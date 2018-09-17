@@ -1,0 +1,109 @@
+#include "windowsimpl.h"
+#include <windows.h>
+#include <pdh.h>
+#include <QDebug>
+#include <conio.h>
+#include <pdhmsg.h>
+#include <stdio.h>
+CONST ULONG SAMPLE_INTERVAL_MS    = 10;
+
+WindowsImpl::WindowsImpl() : SystemMonitor(), mCpuLoadLastValues()
+{
+
+}
+double WindowsImpl::memoryUsed(){
+    MEMORYSTATUSEX memoryStatus;
+    memoryStatus.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memoryStatus);
+    qulonglong memoryPhysicalUsed = memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys;
+    return ((double)memoryPhysicalUsed / (double)memoryStatus.ullTotalPhys * 100.0);
+}
+
+double WindowsImpl::hddUsed(){
+
+    PDH_STATUS Status;
+    HQUERY Query = nullptr;
+    HCOUNTER Counter;
+    PDH_FMT_COUNTERVALUE DisplayValue;
+    DWORD CounterType;
+    SYSTEMTIME SampleTime;
+
+    WCHAR CounterPathBuffer[PDH_MAX_COUNTER_PATH];
+    Status = PdhOpenQuery(NULL, NULL, &Query);
+
+    wchar_t* cesta = L"\\\\honza-toshiba\\logický disk(_total)\\% času disku";
+    wcscpy_s(CounterPathBuffer,sizeof(CounterPathBuffer),cesta);
+    Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);
+    if (Status != ERROR_SUCCESS)
+        {
+            goto Cleanup;
+        }
+
+    //wprintf("\n Counter %s",CounterPathBuffer);
+    Status = PdhCollectQueryData(Query);
+    if (Status != ERROR_SUCCESS)
+        {
+            goto Cleanup;
+        }
+    while (!_kbhit())
+       {
+           Sleep(SAMPLE_INTERVAL_MS);
+           GetLocalTime(&SampleTime);
+           Status = PdhCollectQueryData(Query);
+           Status = PdhGetFormattedCounterValue(Counter,
+                                                PDH_FMT_DOUBLE,
+                                                &CounterType,
+                                                &DisplayValue);
+           if (Status != ERROR_SUCCESS)
+                   {                       
+                       goto Cleanup;
+                   }
+           //qDebug()<<DisplayValue.doubleValue;
+           return DisplayValue.doubleValue;
+       }
+   Cleanup:
+   if (Query)
+   {
+      PdhCloseQuery(Query);
+   }
+
+}
+void WindowsImpl::init()
+{
+    mCpuLoadLastValues = cpuRawData();
+}
+
+QVector<qulonglong> WindowsImpl::cpuRawData()
+{
+    FILETIME idleTime;
+    FILETIME kernelTime;
+    FILETIME userTime;
+    GetSystemTimes(&idleTime,&kernelTime,&userTime);
+    QVector<qulonglong> rawData;
+    rawData.append(convertFileTime(idleTime));
+    rawData.append(convertFileTime(kernelTime));
+    rawData.append(convertFileTime(userTime));
+    return rawData;
+}
+
+qulonglong WindowsImpl::convertFileTime(const FILETIME& filetime)
+const
+{
+    ULARGE_INTEGER largeInteger;
+    largeInteger.LowPart = filetime.dwLowDateTime;
+    largeInteger.HighPart = filetime.dwHighDateTime;
+    return largeInteger.QuadPart;
+}
+
+double WindowsImpl::cpuLoadAverage()
+{
+    QVector<qulonglong> firstSample = mCpuLoadLastValues;
+    QVector<qulonglong> secondSample = cpuRawData();
+    mCpuLoadLastValues = secondSample;
+    qulonglong currentIdle = secondSample[0] - firstSample[0];
+    qulonglong currentKernel = secondSample[1] - firstSample[1];
+    qulonglong currentUser = secondSample[2] - firstSample[2];
+    qulonglong currentSystem = currentKernel + currentUser;
+    double percent = (currentSystem - currentIdle) * 100.0 /currentSystem ;
+    return qBound(0.0, percent, 100.0);
+}

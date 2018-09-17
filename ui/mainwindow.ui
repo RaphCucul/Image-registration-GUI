@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>565</width>
+    <height>442</height>
+   </rect>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::DefaultContextMenu</enum>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Triangular</enum>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="zalozky" name="widget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>561</width>
+      <height>301</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="CPUWidget" name="cpuWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>300</y>
+      <width>131</width>
+      <height>111</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="HddUsagePlot" name="hddWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>300</y>
+      <width>301</width>
+      <height>111</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="MemoryWidget" name="memoryWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>300</y>
+      <width>131</width>
+      <height>101</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="acceptDrops">
+    <bool>false</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Lícování videa</string>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::AllToolBarAreas</set>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="separator"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>zalozky</class>
+   <extends>QWidget</extends>
+   <header>zalozky.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CPUWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">cpuwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MemoryWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">memorywidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>HddUsagePlot</class>
+   <extends>QWidget</extends>
+   <header>hddusageplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
