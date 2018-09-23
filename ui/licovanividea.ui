@@ -61,26 +61,64 @@
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>50</y>
-     <width>341</width>
-     <height>211</height>
+     <x>40</x>
+     <y>80</y>
+     <width>321</width>
+     <height>31</height>
     </rect>
    </property>
-   <layout class="QGridLayout" name="nabidkaAnalyzy"/>
+   <layout class="QGridLayout" name="checkboxy">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+   </layout>
   </widget>
-  <widget class="QPushButton" name="zpracovani">
+  <widget class="QProgressBar" name="prubehVypoctu">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>160</x>
      <y>270</y>
-     <width>151</width>
+     <width>118</width>
      <height>23</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Zpracovat vybranou analýzu</string>
+   <property name="minimum">
+    <number>0</number>
    </property>
+   <property name="maximum">
+    <number>100</number>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+   <property name="textVisible">
+    <bool>false</bool>
+   </property>
+   <property name="textDirection">
+    <enum>QProgressBar::BottomToTop</enum>
+   </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>50</y>
+     <width>341</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="vyberVidea"/>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>120</y>
+     <width>341</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="metody"/>
   </widget>
  </widget>
  <resources/>

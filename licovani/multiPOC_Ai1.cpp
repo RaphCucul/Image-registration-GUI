@@ -202,7 +202,8 @@ int kompletni_slicovani(cv::VideoCapture& cap,
 void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
                                        cv::Mat &obraz,
                                        QVector<double> &parFrang,
-                                       cv::Point2f &hranice_anomalie,
+                                       cv::Point2f &hraniceAnomalie,
+                                       cv::Point2f &hraniceCasu,
                                        cv::Point3d &fraMax,
                                        cv::Rect &oblastAnomalie,
                                        cv::Rect &vyrezKoreEx,
@@ -217,95 +218,127 @@ void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
     cv::Point3d pt_temp(0.0,0.0,0.0);
     cv::Point3d frangi_bod(0.0,0.0,0.0);
     double sirka_framu = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    qDebug()<<"MousePressEvent označil: "<<hranice_anomalie.x<<" "<<hranice_anomalie.y;
-    if (hranice_anomalie.x != 0.0f)
+    double vyska_framu = cap.get(CV_CAP_PROP_FRAME_HEIGHT);    
+
+    if (hraniceAnomalie.x != 0.0f && hraniceAnomalie.y != 0.0f) // světelná anomálie
     {
-        if (hranice_anomalie.x < float(sirka_framu/2))
+        if (hraniceAnomalie.x < float(sirka_framu/2))
         {
             oblastAnomalie.x = 0;
-            oblastAnomalie.y = int(hranice_anomalie.x);
-            oblastAnomalie.width = int(sirka_framu-int(hranice_anomalie.x)-1);
+            oblastAnomalie.y = int(hraniceAnomalie.x);
+            oblastAnomalie.width = int(sirka_framu-int(hraniceAnomalie.x)-1);
             oblastAnomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
         }
-        if (hranice_anomalie.x > float(sirka_framu/2))
+        if (hraniceAnomalie.x > float(sirka_framu/2))
         {
             oblastAnomalie.x = 0;
             oblastAnomalie.y = 0;
-            oblastAnomalie.width = int(hranice_anomalie.x);
+            oblastAnomalie.width = int(hraniceAnomalie.x);
             oblastAnomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
         }
     }
+    if (hraniceCasu.x != 0.0f && hraniceCasu.y != 0.0f) // časová anomálie
+    {
+        if (hraniceCasu.x < float(vyska_framu/2))
+        {
+            oblastAnomalie.x = int(hraniceCasu.y);
+            oblastAnomalie.y = 0;
+            oblastAnomalie.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
+            oblastAnomalie.height = int(vyska_framu-int(hraniceCasu.y)-1);
+        }
+        if (hraniceCasu.x > float(sirka_framu/2))
+        {
+            oblastAnomalie.x = 0;
+            oblastAnomalie.y = 0;
+            oblastAnomalie.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
+            oblastAnomalie.height = int(vyska_framu-int(hraniceCasu.y)-1);
+        }
+    }
+
+
+
     if (pritomnostAnomalie->isChecked())
         frangi_bod = frangi_analyza(reference(oblastAnomalie),1,1,0,"",1,prCasZn,pt_temp,parFrang);
     else
         frangi_bod = frangi_analyza(reference,1,1,0,"",1,prCasZn,pt_temp,parFrang);
+
     if (frangi_bod.z == 0.0)
     {
         qDebug()<<"Nalezeni maxima frangiho funkce se nezdarilo, proverte snimek!"<<endl;
     }
-    bool nutnost_zmenit_velikost = false;
-    int rows = reference.rows;
-    int cols = reference.cols;
-    int radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));
-    int radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-    int sloupec_od = 0;
-    int sloupec_do = 0;
-    if (casZnacka->isChecked())
-        prCasZn = true;
     else
-        prCasZn = false;
-    if (pritomnostAnomalie->isChecked())
-        prSveAn = true;
-    else
-        prSveAn = false;
-    if (prSveAn == true && int(hranice_anomalie.y)<(cols/2))
     {
-        sloupec_od = int(hranice_anomalie.y);
-        nutnost_zmenit_velikost = true;
-    }
-    else {sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));}
-    if (prSveAn == true && int(hranice_anomalie.y)>(cols/2))
-    {
-        sloupec_do = int(hranice_anomalie.y);
-        nutnost_zmenit_velikost = true;
-    }
-    else {sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));}
-    int vyrez_sirka = sloupec_do-sloupec_od;
-    int vyrez_vyska = radek_do - radek_od;
+        bool nutnost_zmenit_velikost = false;
+        int rows = reference.rows;
+        int cols = reference.cols;
+        int radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));
+        int radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
+        int sloupec_od = 0;
+        int sloupec_do = 0;
 
-    if ((vyrez_vyska>480 || vyrez_sirka>640)|| nutnost_zmenit_velikost == true)
-    {
-        vyrezKoreEx.x = sloupec_od;
-        vyrezKoreEx.y = radek_od;
-        vyrezKoreEx.width = vyrez_sirka;
-        vyrezKoreEx.height = vyrez_vyska;
-        reference(vyrezKoreEx).copyTo(obraz);
-        frangi_bod = frangi_analyza(obraz,1,1,0,"",1,false,pt_temp,parFrang);
-        rows = obraz.rows;
-        cols = obraz.cols;
-        radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));
-        radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-        sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
-        sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
-        vyrez_sirka = sloupec_do-sloupec_od;
-        vyrez_vyska = radek_do - radek_od;
-        vyrezKoreStand.x = sloupec_od;
-        vyrezKoreStand.y = radek_od;
-        vyrezKoreStand.width = vyrez_sirka;
-        vyrezKoreStand.height = vyrez_vyska;
-        zmeMer = true;
-        fraMax = frangi_bod;
-    }
-    else
-    {
-        fraMax=frangi_bod;
-        vyrezKoreStand.x = int(round(fraMax.x-0.9*(fraMax.x)));
-        vyrezKoreStand.y = int(round(fraMax.y-0.9*fraMax.y));
-        radek_do = int(round(fraMax.y+0.9*(rows - fraMax.y)));
-        sloupec_do = int(round(fraMax.x+0.9*(cols - fraMax.x)));
-        vyrezKoreStand.width = sloupec_do-vyrezKoreStand.x;
-        vyrezKoreStand.height = radek_do - vyrezKoreStand.y;
-        reference.copyTo(obraz);
-        //obraz_temp.release();
+        if (casZnacka->isChecked())
+            prCasZn = true;
+        else
+            prCasZn = false;
+
+        if (pritomnostAnomalie->isChecked())
+            prSveAn = true;
+        else
+            prSveAn = false;
+
+        if (prSveAn == true && hraniceAnomalie.y != 0.0f && int(hraniceAnomalie.y)<(cols/2))
+        {
+            sloupec_od = int(hraniceAnomalie.y);
+            nutnost_zmenit_velikost = true;
+        }
+        else
+            sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
+
+        if (prSveAn == true && hraniceAnomalie.y != 0.0f &&  int(hraniceAnomalie.y)>(cols/2))
+        {
+            sloupec_do = int(hraniceAnomalie.y);
+            nutnost_zmenit_velikost = true;
+        }
+        else
+            sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
+
+        int vyrez_sirka = sloupec_do-sloupec_od;
+        int vyrez_vyska = radek_do - radek_od;
+
+        if ((vyrez_vyska>480 || vyrez_sirka>640)|| nutnost_zmenit_velikost == true)
+        {
+            vyrezKoreEx.x = sloupec_od;
+            vyrezKoreEx.y = radek_od;
+            vyrezKoreEx.width = vyrez_sirka;
+            vyrezKoreEx.height = vyrez_vyska;
+            reference(vyrezKoreEx).copyTo(obraz);
+            frangi_bod = frangi_analyza(obraz,1,1,0,"",1,false,pt_temp,parFrang);
+            rows = obraz.rows;
+            cols = obraz.cols;
+            radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));
+            radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
+            sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
+            sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
+            vyrez_sirka = sloupec_do-sloupec_od;
+            vyrez_vyska = radek_do - radek_od;
+            vyrezKoreStand.x = sloupec_od;
+            vyrezKoreStand.y = radek_od;
+            vyrezKoreStand.width = vyrez_sirka;
+            vyrezKoreStand.height = vyrez_vyska;
+            zmeMer = true;
+            fraMax = frangi_bod;
+        }
+        else
+        {
+            fraMax=frangi_bod;
+            vyrezKoreStand.x = int(round(fraMax.x-0.9*(fraMax.x)));
+            vyrezKoreStand.y = int(round(fraMax.y-0.9*fraMax.y));
+            radek_do = int(round(fraMax.y+0.9*(rows - fraMax.y)));
+            sloupec_do = int(round(fraMax.x+0.9*(cols - fraMax.x)));
+            vyrezKoreStand.width = sloupec_do-vyrezKoreStand.x;
+            vyrezKoreStand.height = radek_do - vyrezKoreStand.y;
+            reference.copyTo(obraz);
+            //obraz_temp.release();
+        }
     }
 }

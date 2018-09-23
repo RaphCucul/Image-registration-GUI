@@ -20,24 +20,26 @@
 #include <opencv2/imgcodecs/imgcodecs_c.h>
 #include "opencv2/imgproc/types_c.h"
 
-cv::Point2f oznacena_hranice_anomalie;
+cv::Point2f oznacena_hranice_svetelne_anomalie;
+cv::Point2f oznacena_hranice_casove_znacky;
 
-ClickImageEvent::ClickImageEvent(QString kompletni_cesta, int cisloReference, int sirkaSnimku, int vyskaSnimku,QDialog *parent) :
+ClickImageEvent::ClickImageEvent(QString kompletni_cesta,int cisloReference,int TypAnomalie,QDialog *parent) :
     QDialog(parent),
     ui(new Ui::ClickImageEvent)
 {
     ui->setupUi(this);
     cesta_k_souboru = kompletni_cesta;
+    typ_anomalie = TypAnomalie;
     ui->klikniNaObrazek->setMouseTracking(true);
     cv::VideoCapture cap = cv::VideoCapture(cesta_k_souboru.toLocal8Bit().constData());
     cap.set(CV_CAP_PROP_POS_FRAMES,double(cisloReference));
     cv::Mat referencni_snimek;
     cap.read(referencni_snimek);
-    sirka = sirkaSnimku;
-    vyska = vyskaSnimku;
-    qDebug()<<"Referece má "<<referencni_snimek.channels()<<" kanálů a je typu"<<referencni_snimek.type();
+    sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    //qDebug()<<"Referece má "<<referencni_snimek.channels()<<" kanálů a je typu"<<referencni_snimek.type();
     kontrola_typu_snimku_8C3(referencni_snimek);
-    qDebug()<<"Referece má "<<referencni_snimek.channels()<<" kanálů a je typu"<<referencni_snimek.type();
+    //qDebug()<<"Referece má "<<referencni_snimek.channels()<<" kanálů a je typu"<<referencni_snimek.type();
 
     imageObject = new QImage(referencni_snimek.data,
                              referencni_snimek.cols,
@@ -79,8 +81,21 @@ void ClickImageEvent::mousePressEvent(QMouseEvent *press)
 {
     QPointF pt = ui->klikniNaObrazek->mapToScene(press->pos());
     //qDebug()<<pt.x()<<pt.y();
-    oznacena_hranice_anomalie.x = float(pt.x());
-    oznacena_hranice_anomalie.y = float(pt.y());
-    //qDebug()<<"MousePressEvent: "<<oznacena_hranice_anomalie.x<<" "<<oznacena_hranice_anomalie.y;
+    if (typ_anomalie == 1)
+    {
+        oznacena_hranice_svetelne_anomalie.x = float(pt.x());
+        oznacena_hranice_svetelne_anomalie.y = float(pt.y());
+        oznacena_hranice_casove_znacky.x = 0;
+        oznacena_hranice_casove_znacky.y = 0;
+    }
+    if (typ_anomalie == 2)
+    {
+        oznacena_hranice_casove_znacky.x = float(pt.x());
+        oznacena_hranice_casove_znacky.y = float(pt.y());
+        oznacena_hranice_svetelne_anomalie.x = 0;
+        oznacena_hranice_svetelne_anomalie.y = 0;
+    }
+    qDebug()<<"MousePressEvent: "<<oznacena_hranice_svetelne_anomalie.x<<" "<<oznacena_hranice_svetelne_anomalie.y;
+    qDebug()<<"MousePressEvent: "<<oznacena_hranice_casove_znacky.x<<" "<<oznacena_hranice_casove_znacky.y;
     //emit SendClickCoordinates(pt);
 }

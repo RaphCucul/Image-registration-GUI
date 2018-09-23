@@ -659,7 +659,8 @@ void LicovaniDvou::on_slicujDvaSnimky_clicked()
         predzpracovaniKompletnihoLicovani(referencni_snimek,
                                           obraz,
                                           parametry_frangi,
-                                          ziskane_hranice_anomalie,
+                                          oznacena_hranice_svetelne_anomalie,
+                                          oznacena_hranice_casove_znacky,
                                           maximum_frangi,
                                           vyrez_anomalie,
                                           vyrez_korelace_extra,
@@ -755,11 +756,19 @@ void LicovaniDvou::zobrazKliknutelnyDialog()
     if (ui->anomalie->isChecked())
     {
         QString kompletni_cesta = rozborVybranehoSouboru[0]+"/"+rozborVybranehoSouboru[1]+"."+rozborVybranehoSouboru[2];
-        ClickImageEvent* vyznac_anomalii = new ClickImageEvent(kompletni_cesta,cisloReference,640,480);
+        ClickImageEvent* vyznac_anomalii = new ClickImageEvent(kompletni_cesta,cisloReference,1);
         vyznac_anomalii->setModal(true);
         vyznac_anomalii->show();
+    }
+    if (ui->casovaZnacka->isChecked())
+    {
+        QString kompletni_cesta = rozborVybranehoSouboru[0]+"/"+rozborVybranehoSouboru[1]+"."+rozborVybranehoSouboru[2];
+        ClickImageEvent* vyznac_anomalii = new ClickImageEvent(kompletni_cesta,cisloReference,2);
+        vyznac_anomalii->setModal(true);
+        vyznac_anomalii->show();
+    }
+
         /*QObject::connect(vyznac_anomalii,SIGNAL(SendClickCoordinates(QPointF)),
                          this,SLOT(GetClickCoordinates(QPointF)));*/
         //connect(vyznac_anomalii, vyznac_anomalii->SendClickCoordinates, (=)[const auto &myString] {ui->label->setText(myString);});
-    }
 }

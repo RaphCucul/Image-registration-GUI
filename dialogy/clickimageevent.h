@@ -17,14 +17,15 @@ namespace Ui {
 class ClickImageEvent;
 }
 
-extern cv::Point2f oznacena_hranice_anomalie;
+extern cv::Point2f oznacena_hranice_svetelne_anomalie;
+extern cv::Point2f oznacena_hranice_casove_znacky;
 
 class ClickImageEvent : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ClickImageEvent(QString kompletni_cesta,int cisloReference, int sirkaSnimku, int vyskaSnimku,QDialog *parent = nullptr);
+    explicit ClickImageEvent(QString kompletni_cesta,int cisloReference, int TypAnomalie, QDialog *parent = nullptr);
     ~ClickImageEvent();
     void nastav_velikost_okna(int a_sirka, int b_vyska);
 public slots:
@@ -37,9 +38,10 @@ private:
     QImage  *imageObject;
     QGraphicsScene *scena;
     QGraphicsView *pohled;
-    int vyska, sirka;
+    double vyska, sirka;
     QGraphicsWidget* graphicalWidget;
     QString cesta_k_souboru;
+    int typ_anomalie;
 };
 
 #endif // CLICKIMAGEEVENT_H

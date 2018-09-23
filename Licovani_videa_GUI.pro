@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = Licovani_videa_GUI
 TEMPLATE = app
 
-#CONFIG += c++11
+CONFIG += c++14
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -53,7 +53,9 @@ SOURCES += \
     qcustomplot.cpp \
     dialogy/vysledeklicovanidvou.cpp \
     util/entropie.cpp \
-    vykon/hddusageplot.cpp
+    vykon/hddusageplot.cpp \
+    util/util_licovanividea.cpp \
+    dialogy/grafet.cpp
 
 
 HEADERS += \
@@ -84,7 +86,9 @@ HEADERS += \
     qcustomplot.h \
     dialogy/vysledeklicovanidvou.h \
     util/entropie.h \
-    vykon/hddusageplot.h
+    vykon/hddusageplot.h \
+    util/util_licovanividea.h \
+    dialogy/grafet.h
 
 
 FORMS += \
@@ -96,7 +100,8 @@ FORMS += \
     dialogy/errordialog.ui \
     dialogy/clickimageevent.ui \
     ui/licovanividea.ui \
-    dialogy/vysledeklicovanidvou.ui
+    dialogy/vysledeklicovanidvou.ui \
+    dialogy/grafet.ui
 
 RESOURCES += \
     ikonky.qrc

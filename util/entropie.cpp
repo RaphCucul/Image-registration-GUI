@@ -9,9 +9,10 @@
 #include <vector>
 #include <math.h>
 #include <string>
+#include <QDebug>
 using namespace cv;
 
-double frekvence_binu(cv::Mat &histogram,int &velikost_histogramu)
+double frekvence_binu(cv::Mat &histogram, int &velikost_histogramu)
 {
     double frekvence = 0.0;
     for( int i = 0; i < velikost_histogramu; i++ )
@@ -21,7 +22,7 @@ double frekvence_binu(cv::Mat &histogram,int &velikost_histogramu)
     }
     return frekvence;
 }
-void vypocet_entropie(cv::Mat &zkoumany_snimek,double &entropie, cv::Scalar &tennengrad)
+void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad)
 {
     Mat filtrovany;//,filtrovany32f;
 
@@ -128,38 +129,82 @@ void vypocet_entropie(cv::Mat &zkoumany_snimek,double &entropie, cv::Scalar &ten
 }
 int entropie_tennengrad_videa(cv::VideoCapture& capture,
                               std::vector<double>& entropie,
-                              std::vector<double>& tennengrad)
+                              std::vector<double>& tennengrad,
+                              QProgressBar *progbar)
 {
     int uspech_analyzy;
+    int procento;
+    if (!entropie.empty() || !tennengrad.empty())
+    {
+        entropie.clear();
+        tennengrad.clear();
+    }
+
     if (capture.isOpened() == 0)
     {
-        std::cerr<<"Video nelze pouzit pro analyzu entropie a tennengrada!"<<std::endl;
+        qDebug()<<"Video nelze pouzit pro analyzu entropie a tennengrada!";
         uspech_analyzy = 0;
     }
     else
     {
         int pocet_snimku_videa = int(capture.get(CV_CAP_PROP_FRAME_COUNT));
-        cout << "Analyza videa: "<<endl;
-        for (int i = 0; i < pocet_snimku_videa; i++)
+        qDebug()<< "Analyza videa: ";
+        for (int a = 0; a < pocet_snimku_videa; a++)
         {
-            int procento = ((i*100)/pocet_snimku_videa);
-            cout << "\r" << procento << "%";
-            Mat snimek;
+            //qDebug()<<a;
+            if (a == 0)
+                procento = 0;
+            else if (a == (pocet_snimku_videa-1))
+                procento = 100;
+            else
+                procento = ((a/pocet_snimku_videa)*100);
+
+            progbar->setValue(procento);
+            /// po sem to funguje všechno normálně
+
+            cv::Mat snimek;
             double hodnota_entropie = 0;
             cv::Scalar hodnota_tennengrad;
-            capture.set(CAP_PROP_POS_FRAMES,i);
+            capture.set(CAP_PROP_POS_FRAMES,double(a));
+            capture.read(snimek);
+            /// tato pasáž také funguje
+
+            vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
+            double pom = hodnota_tennengrad[0];
+             //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
+            entropie.push_back(hodnota_entropie);
+            tennengrad.push_back(pom);
+            snimek.release();
+        }
+        /*for (int i = 0; i < pocet_snimku_videa; i++)
+        {
+            qDebug()<<i;
+
+            if (i == 0)
+                procento = 0;
+            else if (i == (pocet_snimku_videa-1))
+                procento = 100;
+            else
+                procento = ((i/pocet_snimku_videa)*100);
+
+            progbar->setValue(procento);
+            cv::Mat snimek;
+            double hodnota_entropie = 0;
+            cv::Scalar hodnota_tennengrad;
+            capture.set(CAP_PROP_POS_FRAMES,image_count);
             if (capture.read(snimek)!= 1)
             {
-                std::cerr << "Snimek " << i << " videa se nepodarilo nacist pro analyzu entropie a tennengradu!"<<endl;
+                qDebug()<< "Snimek " << image_count << " videa se nepodarilo nacist pro analyzu entropie a tennengradu!";
                 continue;
-            }
+            }    
             vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad);
-            entropie[i] = hodnota_entropie;
+            entropie[image_count] = hodnota_entropie;
             double pom = hodnota_tennengrad[0];
-            //std::cout<<"Zpracovan snimek "<<i<<" s E: "<<hodnota_entropie<<" a T: "<<pom<<std::endl;
-            tennengrad[i] = pom;
-        }
-        std::cout << endl;
+            qDebug()<<"Zpracovan snimek "<<i<<" s E: "<<hodnota_entropie<<" a T: "<<pom;
+            tennengrad[image_count] = pom;
+            image_count+=1;
+        }*/
+        //std::cout << endl;
         uspech_analyzy = 1;
         return uspech_analyzy;
     }
