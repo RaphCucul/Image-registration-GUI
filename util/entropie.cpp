@@ -209,3 +209,12 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
         return uspech_analyzy;
     }
 }
+
+void standardizaceVektoruDat(QVector<double>& dataStandardizovana, QVector<double> &dataOriginalni, double minimum, double maximum)
+{
+    for (int a = 0; a < dataStandardizovana.length(); a++)
+    {
+        double hodnotaStandardizovana = (dataOriginalni[a]-minimum)/(maximum-minimum);
+        dataStandardizovana[a] = (hodnotaStandardizovana);
+    }
+}

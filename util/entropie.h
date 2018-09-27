@@ -4,6 +4,7 @@
 #include <string>
 #include "util/upravy_obrazu.h"
 #include <QProgressBar>
+#include <QVector>
 void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad);
 /// pocita entropii snimku
 
@@ -13,5 +14,8 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture, std::vector<double>& en
 
 double frekvence_binu(cv::Mat &vstupni_obraz,int &velikost_histogramu);
 /// soucasti vypocet_entropie
+
+void standardizaceVektoruDat(QVector<double>& dataStandardizovana,QVector<double>& dataOriginalni,
+                             double minimum,double maximum);
 
 #endif // ENTROPIE_H_INCLUDED

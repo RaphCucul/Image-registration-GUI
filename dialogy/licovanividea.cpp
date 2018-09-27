@@ -194,7 +194,7 @@ void LicovaniVidea::EplusTPB_clicked()
 
 void LicovaniVidea::ZVPB_clicked()
 {
-    GrafET* graf_ET = new GrafET(hodnoty_entropie,hodnoty_tennengrad,this);
+    GrafET* graf_ET = new GrafET(hodnoty_entropie,hodnoty_tennengrad,vybraneVideoETSingle[1],this);
     graf_ET->setModal(true);
     graf_ET->show();
 }
