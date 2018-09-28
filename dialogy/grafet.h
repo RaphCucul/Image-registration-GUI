@@ -19,14 +19,11 @@ public:
 private slots:
     void ZE();
     void ZT();
-    /*void EHPZ();
+    void EHPZ();
     void EDPZ();
     void THPZ();
     void TDPZ();
-    void EHP();
-    void EDP();
-    void THP();
-    void TDP();*/
+
 private:
     Ui::GrafET *ui;
     QCustomPlot* GrafickyObjekt;
@@ -53,18 +50,4 @@ private:
     bool zobrazHorPra_tennengrad = false;
     bool zobrazDolPra_tennengrad = false;
 };
-
-/*class Graf : public QCustomPlot
-{
-    Q_OBJECT
-public:
-    Graf(QVector<double> E, QVector<double> T, bool zobrazE, bool zobrazT, double HP_E, double DP_E,
-         double HP_T, double DP_T, bool zobrazHP_E, bool zobrazDP_E, bool zobrazHP_T, bool zobrazDP_T,
-         QWidget *parent = nullptr);
-    ~Graf();
-    QVector<double> entropie;
-    QVector<double> tennengrad;
-    int vyobrazeneGrafy = 0;
-};*/
-
 #endif // GRAFET_H

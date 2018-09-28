@@ -21,6 +21,10 @@ GrafET::GrafET(std::vector<double> E, std::vector<double> T, QString jmeno_videa
     dolniPrah_tennengrad = ui->T_DP->value();
     //qDebug()<<entropie<<" "<<tennengrad;
     JmenoVidea = jmeno_videa;
+    ui->E_HPzobraz->setEnabled(false);
+    ui->E_DPzobraz->setEnabled(false);
+    ui->T_HPzobraz->setEnabled(false);
+    ui->T_DPzobraz->setEnabled(false);
 
     /// inicializace parametrů podle vstupních hodnot
     // hledání extrémů ve vektorech
@@ -58,35 +62,53 @@ GrafET::GrafET(std::vector<double> E, std::vector<double> T, QString jmeno_videa
     /// Grafy proměnných
     GrafickyObjekt->addGraph();
     GrafickyObjekt->graph(0)->setData(snimkyRozsah,entropie,true);
+    GrafickyObjekt->graph(0)->setPen(QPen(QColor(255,0,0)));
     GrafickyObjekt->graph(0)->setVisible(false);
     GrafickyObjekt->addGraph();
     GrafickyObjekt->graph(1)->setData(snimkyRozsah,tennengrad,true);
+    GrafickyObjekt->graph(1)->setPen(QPen(QColor(0,0,255)));
     GrafickyObjekt->graph(1)->setVisible(false);
     GrafickyObjekt->addGraph();
     GrafickyObjekt->graph(2)->setData(snimkyRozsah,entropieStandard,true);
+    GrafickyObjekt->graph(2)->setPen(QPen(QColor(255,0,0)));
     GrafickyObjekt->graph(2)->setVisible(false);
     GrafickyObjekt->addGraph();
     GrafickyObjekt->graph(3)->setData(snimkyRozsah,tennengradStandard,true);
+    GrafickyObjekt->graph(3)->setPen(QPen(QColor(0,0,255)));
     GrafickyObjekt->graph(3)->setVisible(false);
+    GrafickyObjekt->addGraph();
+    GrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie,true);
+    GrafickyObjekt->graph(4)->setPen(QPen(QColor(0,255,0)));
+    GrafickyObjekt->graph(4)->setVisible(false);
+    GrafickyObjekt->addGraph();
+    GrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie,true);
+    GrafickyObjekt->graph(5)->setPen(QPen(QColor(0,255,0)));
+    GrafickyObjekt->graph(5)->setVisible(false);
+    GrafickyObjekt->addGraph();
+    GrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad,true);
+    GrafickyObjekt->graph(6)->setPen(QPen(QColor(0,0,0)));
+    GrafickyObjekt->graph(6)->setVisible(false);
+    GrafickyObjekt->addGraph();
+    GrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad,true);
+    GrafickyObjekt->graph(7)->setPen(QPen(QColor(0,0,0)));
+    GrafickyObjekt->graph(7)->setVisible(false);
 
-    ui->grafyTBW->setCurrentIndex(-1);
-    /*Graf* g = new Graf(entropie,tennengrad,zobrazEntropii,zobrazTennengrad,horniPrah_entropie,dolniPrah_entropie,
-                       horniPrah_tennengrad,dolniPrah_tennengrad,zobrazHorPra_entropie,zobrazDolPra_entropie,
-                       zobrazHorPra_tennengrad,zobrazDolPra_tennengrad);*/
-    //GrafickyObjekt = g;
+    /// inicializace QTabWidgetu a vytvoření první záložky
+    ui->grafyTBW->setCurrentIndex(-1);    
     ui->grafyTBW->addTab(GrafickyObjekt,JmenoVidea);
     ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
 
+    /// propojení všech prvků s funkcemi ovládajícími fungování grafu
     QObject::connect(ui->zobrazGrafE,SIGNAL(stateChanged(int)),this,SLOT(ZE()));
     QObject::connect(ui->zobrazGrafT,SIGNAL(stateChanged(int)),this,SLOT(ZT()));
-    /*QObject::connect(ui->E_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(EHPZ()));
+    QObject::connect(ui->E_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(EHPZ()));
     QObject::connect(ui->E_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(EDPZ()));
     QObject::connect(ui->T_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(THPZ()));
     QObject::connect(ui->T_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(TDPZ()));
-    QObject::connect(ui->E_HP,SIGNAL(stateChanged(int)),this,SLOT(EHP()));
-    QObject::connect(ui->E_DP,SIGNAL(stateChanged(int)),this,SLOT(EDP()));
-    QObject::connect(ui->T_HP,SIGNAL(stateChanged(int)),this,SLOT(THP()));
-    QObject::connect(ui->T_DP,SIGNAL(stateChanged(int)),this,SLOT(TDP()));*/
+    QObject::connect(ui->E_HP,SIGNAL(valueChanged(double)),this,SLOT(EHPZ()));
+    QObject::connect(ui->E_DP,SIGNAL(valueChanged(double)),this,SLOT(EDPZ()));
+    QObject::connect(ui->T_HP,SIGNAL(valueChanged(double)),this,SLOT(THPZ()));
+    QObject::connect(ui->T_DP,SIGNAL(valueChanged(double)),this,SLOT(TDPZ()));
 
     //ui->grafyTBW->setStyleSheet("QTabBar::tab {height: 15px;width: 15px;padding-top:2px;padding-bottom:,2px}");
 
@@ -108,6 +130,11 @@ void GrafET::ZE()
         GrafickyObjekt->graph(0)->setScatterSkip(0);
 
         GrafickyObjekt->replot();
+
+        ui->E_HPzobraz->setEnabled(true);
+        ui->E_DPzobraz->setEnabled(true);
+        ui->T_HPzobraz->setEnabled(false);
+        ui->T_DPzobraz->setEnabled(false);
     }
     else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true)
     {
@@ -120,6 +147,11 @@ void GrafET::ZE()
         GrafickyObjekt->graph(1)->setVisible(true);
 
         GrafickyObjekt->replot();
+
+        ui->E_HPzobraz->setEnabled(false);
+        ui->E_DPzobraz->setEnabled(false);
+        ui->T_HPzobraz->setEnabled(true);
+        ui->T_DPzobraz->setEnabled(true);
     }
     else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
     {
@@ -134,6 +166,11 @@ void GrafET::ZE()
         GrafickyObjekt->graph(3)->setScatterSkip(0);
 
         GrafickyObjekt->replot();
+
+        ui->E_HPzobraz->setEnabled(true);
+        ui->E_DPzobraz->setEnabled(true);
+        ui->T_HPzobraz->setEnabled(true);
+        ui->T_DPzobraz->setEnabled(true);
     }
     else
     {
@@ -142,6 +179,11 @@ void GrafET::ZE()
         GrafickyObjekt->graph(2)->setVisible(false);
         GrafickyObjekt->graph(3)->setVisible(false);
         GrafickyObjekt->replot();
+
+        ui->E_HPzobraz->setEnabled(false);
+        ui->E_DPzobraz->setEnabled(false);
+        ui->T_HPzobraz->setEnabled(false);
+        ui->T_DPzobraz->setEnabled(false);
     }
 }
 
@@ -159,6 +201,11 @@ void GrafET::ZT()
         GrafickyObjekt->graph(0)->setScatterSkip(0);
 
         GrafickyObjekt->replot();
+
+        ui->E_HPzobraz->setEnabled(true);
+        ui->E_DPzobraz->setEnabled(true);
+        ui->T_HPzobraz->setEnabled(false);
+        ui->T_DPzobraz->setEnabled(false);
     }
     else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true)
     {
@@ -171,6 +218,11 @@ void GrafET::ZT()
         GrafickyObjekt->graph(1)->setVisible(true);
 
         GrafickyObjekt->replot();
+
+        ui->E_HPzobraz->setEnabled(false);
+        ui->E_DPzobraz->setEnabled(false);
+        ui->T_HPzobraz->setEnabled(true);
+        ui->T_DPzobraz->setEnabled(true);
     }
     else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
     {
@@ -185,6 +237,11 @@ void GrafET::ZT()
         GrafickyObjekt->graph(1)->setVisible(false);
 
         GrafickyObjekt->replot();
+
+        ui->E_HPzobraz->setEnabled(true);
+        ui->E_DPzobraz->setEnabled(true);
+        ui->T_HPzobraz->setEnabled(true);
+        ui->T_DPzobraz->setEnabled(true);
     }
     else
     {
@@ -193,157 +250,168 @@ void GrafET::ZT()
         GrafickyObjekt->graph(2)->setVisible(false);
         GrafickyObjekt->graph(3)->setVisible(false);
         GrafickyObjekt->replot();
+        ui->E_HPzobraz->setEnabled(false);
+        ui->E_DPzobraz->setEnabled(false);
+        ui->T_HPzobraz->setEnabled(false);
+        ui->T_DPzobraz->setEnabled(false);
     }
 }
 
-/*void GrafET::EHPZ()
+void GrafET::EHPZ()
 {
-
+    horniPrah_entropie = ui->E_HP->value();
+    //qDebug()<<"horní práh entropie: "<<horniPrah_entropie;
+    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false &&
+            ui->E_HPzobraz->isChecked() == true)
+    {
+        qDebug()<<"Zobrazuji graf horního prahu entropie.";
+        HP_entropie.clear();
+        HP_entropie.fill(horniPrah_entropie,pocetSnimkuVidea);
+        GrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie);
+        GrafickyObjekt->graph(4)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
+             ui->E_HPzobraz->isChecked() == true)
+    {
+        qDebug()<<"Zobrazuji graf horního prahu entropie.";
+        double prepocetHP_E = (horniPrah_entropie-minEntropie)/(maxEntropie-minEntropie);
+        HP_entropie.clear();
+        HP_entropie.fill(prepocetHP_E,pocetSnimkuVidea);
+        GrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie);
+        GrafickyObjekt->graph(4)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true &&
+             ui->E_HPzobraz->isChecked() == true)
+    {
+        HP_entropie.clear();
+        HP_entropie.fill(horniPrah_entropie,pocetSnimkuVidea);
+        GrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie);
+        GrafickyObjekt->graph(4)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->E_HPzobraz->isChecked() == false)
+    {
+        GrafickyObjekt->graph(4)->setVisible(false);
+        GrafickyObjekt->replot();
+    }
 }
 
 void GrafET::EDPZ()
 {
-
+    dolniPrah_entropie = ui->E_DP->value();
+    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false &&
+            ui->E_DPzobraz->isChecked() == true)
+    {
+        qDebug()<<"Zobrazuji graf horního prahu entropie.";
+        DP_entropie.clear();
+        DP_entropie.fill(dolniPrah_entropie,pocetSnimkuVidea);
+        GrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie);
+        GrafickyObjekt->graph(5)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
+             ui->E_DPzobraz->isChecked() == true)
+    {
+        qDebug()<<"Zobrazuji graf horního prahu entropie.";
+        double prepocetDP_E = (dolniPrah_entropie-minEntropie)/(maxEntropie-minEntropie);
+        DP_entropie.clear();
+        DP_entropie.fill(prepocetDP_E,pocetSnimkuVidea);
+        GrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie);
+        GrafickyObjekt->graph(5)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true &&
+             ui->E_DPzobraz->isChecked() == true)
+    {
+        DP_entropie.clear();
+        DP_entropie.fill(dolniPrah_entropie,pocetSnimkuVidea);
+        GrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie);
+        GrafickyObjekt->graph(5)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if(ui->E_DPzobraz->isChecked() == false)
+    {
+        GrafickyObjekt->graph(5)->setVisible(false);
+        GrafickyObjekt->replot();
+    }
 }
 
 void GrafET::THPZ()
 {
-
+    horniPrah_tennengrad = ui->T_HP->value();
+    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false &&
+            ui->T_HPzobraz->isChecked() == true)
+    {
+        qDebug()<<"Zobrazuji graf horního prahu tennengradu.";
+        HP_tennengrad.clear();
+        HP_tennengrad.fill(horniPrah_tennengrad,pocetSnimkuVidea);
+        GrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad);
+        GrafickyObjekt->graph(6)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
+             ui->T_HPzobraz->isChecked() == true)
+    {
+        qDebug()<<"Zobrazuji graf horního prahu entropie.";
+        double prepocetHP_T = (horniPrah_tennengrad-minTennengrad)/(maxTennengrad-minTennengrad);
+        HP_tennengrad.clear();
+        HP_tennengrad.fill(prepocetHP_T,pocetSnimkuVidea);
+        GrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad);
+        GrafickyObjekt->graph(6)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true &&
+             ui->T_HPzobraz->isChecked() == true)
+    {
+        HP_tennengrad.clear();
+        HP_tennengrad.fill(horniPrah_tennengrad,pocetSnimkuVidea);
+        GrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad);
+        GrafickyObjekt->graph(6)->setVisible(true);
+        GrafickyObjekt->replot();
+    }
+    else if (ui->T_HPzobraz->isChecked() == false)
+    {
+        GrafickyObjekt->graph(6)->setVisible(false);
+        GrafickyObjekt->replot();
+    }
 }
 
 void GrafET::TDPZ()
 {
-
-}
-
-void GrafET::EHP()
-{
-
-}
-
-void GrafET::EDP()
-{
-
-}
-
-void GrafET::THP()
-{
-
-}
-
-void GrafET::TDP()
-{
-
-}*/
-
-/*Graf::~Graf()
-{
-
-}*/
-/*Graf::Graf(QVector<double> E,QVector<double> T, bool zobrazE, bool zobrazT, double HP_E, double DP_E,
-           double HP_T, double DP_T, bool zobrazHP_E, bool zobrazDP_E, bool zobrazHP_T, bool zobrazDP_T,
-           QWidget *parent) :
-    QCustomPlot(parent)
-{
-
-
-
-
-
-
-    /// definuji všechny grafy, protože původní realizace nefungovala, když jsem měl v if podmínkách
-    /// graph(0), graph(1) apod. - definuji všechno hned a zobrazování je řešeno přes viditelnost
-    addGraph(xAxis,yAxis);
-    graph(0)->setData(snimkyRozsah,entropie,true);
-    graph(0)->setVisible(false);
-
-    addGraph(xAxis,yAxis);
-    graph(1)->setData(snimkyRozsah,tennengrad,true);
-    graph(1)->setVisible(false);
-    addGraph(xAxis,yAxis);
-    graph(2)->setData(snimkyRozsah,T_standard,true);
-    addGraph(xAxis,yAxis);
-    graph(3)->setData(snimkyRozsah,E_standard,true);
-    graph(2)->setVisible(false);
-    graph(3)->setVisible(false);
-    addGraph(xAxis,yAxis);
-    graph(4)->setData(snimkyRozsah,HP_entropie,true);
-    graph(4)->setVisible(false);
-    addGraph(xAxis,yAxis);
-    graph(5)->setData(snimkyRozsah,DP_entropie,true);
-    graph(5)->setVisible(false);
-    addGraph(xAxis,yAxis);
-    graph(6)->setData(snimkyRozsah,HP_tennengrad,true);
-    graph(6)->setVisible(false);
-    addGraph(xAxis,yAxis);
-    graph(7)->setData(snimkyRozsah,DP_tennengrad,true);
-    graph(7)->setVisible(false);
-
-    /// úprava chování podle požadavků na zobrazení
-    if (zobrazE == true && zobrazT == false)
+    dolniPrah_tennengrad= ui->T_DP->value();
+    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false &&
+            ui->T_DPzobraz->isChecked() == true)
     {
-        qDebug()<<"Entropie: "<<zobrazE<<"Tennengrad: "<<zobrazT;
-        xAxis->setLabel("Snimky");
-        yAxis->setLabel("Entropie");
-
-        graph(0)->setVisible(true);
-        qDebug()<<graphCount();
-        vyobrazeneGrafy = 1;
-        //replot();
+        DP_tennengrad.clear();
+        DP_tennengrad.fill(dolniPrah_entropie,pocetSnimkuVidea);
+        GrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad);
+        GrafickyObjekt->graph(7)->setVisible(true);
+        GrafickyObjekt->replot();
     }
-    if (zobrazE == false && zobrazT == true)
+    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
+             ui->T_DPzobraz->isChecked() == true)
     {
-        qDebug()<<"Entropie: "<<zobrazE<<"Tennengrad: "<<zobrazT;
-        xAxis->setRange(1, 261);
-        yAxis->setRange(minTennengrad, maxTennengrad+1);
-        graph(1)->setVisible(true);
-        qDebug()<<graphCount();
-        vyobrazeneGrafy = 2;
-        //replot();
+        double prepocetDP_T = (dolniPrah_tennengrad-minTennengrad)/(maxTennengrad-minTennengrad);
+        DP_tennengrad.clear();
+        DP_tennengrad.fill(prepocetDP_T,pocetSnimkuVidea);
+        GrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad);
+        GrafickyObjekt->graph(7)->setVisible(true);
+        GrafickyObjekt->replot();
     }
-    if (zobrazE == true && zobrazT == true)
+    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true &&
+             ui->T_DPzobraz->isChecked() == true)
     {
-        qDebug()<<"Entropie: "<<zobrazE<<"Tennengrad: "<<zobrazT;
-        xAxis->setRange(1, 261);
-        yAxis->setRange(0, 1);
-        graph(0)->setData(snimkyRozsah,T_standard,true);
-        graph(1)->setData(snimkyRozsah,E_standard,true);
-        graph(0)->setVisible(true);
-        graph(0)->setVisible(true);
-        vyobrazeneGrafy = 3;
-        qDebug()<<graphCount();
-        //replot();
+        DP_tennengrad.clear();
+        DP_tennengrad.fill(dolniPrah_entropie,pocetSnimkuVidea);
+        GrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad);
+        GrafickyObjekt->graph(7)->setVisible(true);
+        GrafickyObjekt->replot();
     }
-    if (zobrazE == false && zobrazT == false)
+    else if(ui->E_DPzobraz->isChecked() == false)
     {
-
-        qDebug()<<"Entropie: "<<zobrazE<<"Tennengrad: "<<zobrazT;
-        if (vyobrazeneGrafy == 1 || vyobrazeneGrafy == 2)
-        {
-            if (graph(0)->visible())
-                graph(0)->setVisible(false);
-            //replot();
-        }
-        if (vyobrazeneGrafy == 3)
-        {
-            if (graph(0)->visible() || graph(1)->visible())
-            {
-                graph(0)->setVisible(false);
-                graph(1)->setVisible(false);
-            }
-            //replot();
-        }
-        qDebug()<<graphCount();
-        vyobrazeneGrafy=0;
+        GrafickyObjekt->graph(7)->setVisible(false);
+        GrafickyObjekt->replot();
     }
-
-
-    //qDebug()<<entropie;
-    //qDebug()<<snimkyRozsah;
-
-
-    graph(1)->setData(snimkyRozsah,);
-    graph(2);
-    graph(3);
-    graph(4);
-}*/
+}
