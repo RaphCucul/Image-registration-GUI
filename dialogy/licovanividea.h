@@ -5,6 +5,8 @@
 #include <QGridLayout>
 #include <QVector>
 #include <QString>
+#include <opencv2/opencv.hpp>
+#include <QProgressBar>
 
 namespace Ui {
 class LicovaniVidea;
@@ -32,8 +34,8 @@ private:
     bool spravnostVideaETSingle = false;
     bool volbaCasZnackyETSingle = false;
     bool volbaSvetAnomETSingle = false;
-    std::vector<double> hodnoty_entropie;
-    std::vector<double> hodnoty_tennengrad;
+    QVector<double> hodnoty_entropie;
+    QVector<double> hodnoty_tennengrad;
 };
 
 #endif // LICOVANIVIDEA_H

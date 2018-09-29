@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 #include "dialogy/t_b_ho.h"
+#include "dialogy/zalozky.h"
+#include "vykon/cpuwidget.h"
+#include "vykon/hddusageplot.h"
+#include "vykon/memorywidget.h"
 namespace Ui {
 class MainWindow;
 }

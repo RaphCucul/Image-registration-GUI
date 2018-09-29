@@ -10,6 +10,9 @@
 #include <math.h>
 #include <string>
 #include <QDebug>
+#include <QCoreApplication>
+#include <QTimer>
+#include <QObject>
 using namespace cv;
 
 double frekvence_binu(cv::Mat &histogram, int &velikost_histogramu)
@@ -79,7 +82,7 @@ void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &te
     {
         f+= abs(hist.at<float>(i));
     }*/
-    double f,p,e;
+    double f,p,e = 0.0;
     f = frekvence_binu(hist,histSize);
     for (int i=0; i<histSize; i++)
     {
@@ -128,17 +131,20 @@ void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &te
     }*/
 }
 int entropie_tennengrad_videa(cv::VideoCapture& capture,
-                              std::vector<double>& entropie,
-                              std::vector<double>& tennengrad,
+                              QVector<double> &entropie,
+                              QVector<double> &tennengrad,
                               QProgressBar *progbar)
 {
     int uspech_analyzy;
     int procento;
-    if (!entropie.empty() || !tennengrad.empty())
+    QTimer * timer = new QTimer();
+    QObject::connect(timer, SIGNAL(timeout()), progbar, SLOT(updateProgress()));
+    timer->start(100);
+    /*if (!entropie.empty() || !tennengrad.empty())
     {
         entropie.clear();
         tennengrad.clear();
-    }
+    }*/ // protože ukládání do vektorů řeším už jinak, toto není potřeba - jen to dělá binec
 
     if (capture.isOpened() == 0)
     {
@@ -159,7 +165,9 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
             else
                 procento = ((a/pocet_snimku_videa)*100);
 
-            progbar->setValue(procento);
+            QCoreApplication::processEvents(); // tato funkce frčí v jiném vlákně - mohu sledovat
+            progbar->setValue(procento);            
+            // vytížení procesoru v reálném čase
             /// po sem to funguje všechno normálně
 
             cv::Mat snimek;
@@ -171,9 +179,9 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
 
             vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
             double pom = hodnota_tennengrad[0];
-             //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
-            entropie.push_back(hodnota_entropie);
-            tennengrad.push_back(pom);
+            //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
+            entropie[a] = (hodnota_entropie);
+            tennengrad[a] = (pom);
             snimek.release();
         }
         /*for (int i = 0; i < pocet_snimku_videa; i++)
@@ -217,4 +225,9 @@ void standardizaceVektoruDat(QVector<double>& dataStandardizovana, QVector<doubl
         double hodnotaStandardizovana = (dataOriginalni[a]-minimum)/(maximum-minimum);
         dataStandardizovana[a] = (hodnotaStandardizovana);
     }
+}
+
+void aktualizaceProgressBaru(QProgressBar* pb, int procento)
+{
+    pb->setValue(procento);
 }

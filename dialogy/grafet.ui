@@ -85,46 +85,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QTabWidget" name="grafyTBW">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>150</y>
-     <width>721</width>
-     <height>371</height>
-    </rect>
-   </property>
-   <property name="tabPosition">
-    <enum>QTabWidget::South</enum>
-   </property>
-   <property name="tabShape">
-    <enum>QTabWidget::Rounded</enum>
-   </property>
-   <property name="currentIndex">
-    <number>-1</number>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>16</height>
-    </size>
-   </property>
-   <property name="elideMode">
-    <enum>Qt::ElideMiddle</enum>
-   </property>
-   <property name="documentMode">
-    <bool>true</bool>
-   </property>
-   <property name="tabsClosable">
-    <bool>false</bool>
-   </property>
-   <property name="movable">
-    <bool>true</bool>
-   </property>
-   <property name="tabBarAutoHide">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
@@ -162,7 +122,11 @@
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <widget class="QDoubleSpinBox" name="T_HP"/>
+     <widget class="QDoubleSpinBox" name="T_HP">
+      <property name="maximum">
+       <double>999.990000000000009</double>
+      </property>
+     </widget>
     </item>
     <item row="1" column="2">
      <widget class="QCheckBox" name="T_DPzobraz">
@@ -179,7 +143,11 @@
      </widget>
     </item>
     <item row="1" column="0">
-     <widget class="QDoubleSpinBox" name="T_DP"/>
+     <widget class="QDoubleSpinBox" name="T_DP">
+      <property name="maximum">
+       <double>999.990000000000009</double>
+      </property>
+     </widget>
     </item>
     <item row="1" column="1">
      <widget class="QLabel" name="label_3">
@@ -221,6 +189,22 @@
    </property>
    <property name="text">
     <string>Tennengrad</string>
+   </property>
+  </widget>
+  <widget class="QTabWidget" name="grafyTBW">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>140</y>
+     <width>741</width>
+     <height>391</height>
+    </rect>
+   </property>
+   <property name="usesScrollButtons">
+    <bool>false</bool>
+   </property>
+   <property name="documentMode">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

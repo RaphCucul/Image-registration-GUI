@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QFileDialog>
 #include <QSpacerItem>
+#include <QListWidget>
 
 void ET_SingleVideoAnalysis(QGridLayout* CB, QGridLayout *VV, QGridLayout *Met)
 {
@@ -50,4 +51,12 @@ void ET_SingleVideoAnalysis(QGridLayout* CB, QGridLayout *VV, QGridLayout *Met)
     Met->addItem(horizontalSpacer7,1,0);
     Met->addWidget(ZobrazitVysledky,1,1);
     Met->addItem(horizontalSpacer8,1,2);
+}
+
+void ET_MultipleVideosAnalysis(QGridLayout* CB,QGridLayout* VV, QGridLayout* Met)
+{
+    QPushButton* VyberSlozku = new QPushButton("Výběr složky s videi");
+    QListWidget* vybranaVidea = new QListWidget;
+    VV->addWidget(VyberSlozku,0,0);
+    VV->addWidget(vybranaVidea,0,1);
 }

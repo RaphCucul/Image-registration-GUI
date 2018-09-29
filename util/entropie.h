@@ -8,7 +8,7 @@
 void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad);
 /// pocita entropii snimku
 
-int entropie_tennengrad_videa(cv::VideoCapture& capture, std::vector<double>& entropie, std::vector<double>& tennengrad,
+int entropie_tennengrad_videa(cv::VideoCapture& capture, QVector<double>& entropie, QVector<double>& tennengrad,
                               QProgressBar* progbar);
 /// hlavni funkce volajici vypocet_entropie
 
@@ -17,5 +17,8 @@ double frekvence_binu(cv::Mat &vstupni_obraz,int &velikost_histogramu);
 
 void standardizaceVektoruDat(QVector<double>& dataStandardizovana,QVector<double>& dataOriginalni,
                              double minimum,double maximum);
+/// zajišťuje přepočet hodnot do rozsahu <0,1>
+
+void aktualizaceProgressBaru(QProgressBar* pb, int procento);
 
 #endif // ENTROPIE_H_INCLUDED

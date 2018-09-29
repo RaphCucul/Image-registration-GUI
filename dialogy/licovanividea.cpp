@@ -5,6 +5,11 @@
 #include "dialogy/grafet.h"
 #include "ui_licovanividea.h"
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 #include <QDebug>
 #include <QLineEdit>
 #include <QPushButton>
@@ -13,6 +18,9 @@
 #include <QLabel>
 #include <QFileDialog>
 #include <QSpacerItem>
+#include <QFuture>
+#include <QtConcurrent/QtConcurrent>
+#include <QCoreApplication>
 
 LicovaniVidea::LicovaniVidea(QWidget *parent) :
     QWidget(parent),
@@ -67,13 +75,19 @@ void LicovaniVidea::on_comboBox_activated(int index)
             }
         }
 
-
         predchozi_index = 0;
     }
     else if (index == 1)
     {
-        /*if (predchozi_index != 0)
-            clearLayout(ui->nabidkaAnalyzy);*/
+        if (predchozi_index != 0)
+        {
+            //if (predchozi_index == 1)
+            //{
+                clearLayout(ui->checkboxy);
+                clearLayout(ui->vyberVidea);
+                clearLayout(ui->metody);
+            //}
+        }
 
         predchozi_index = 1;       
         ET_SingleVideoAnalysis(ui->checkboxy,ui->vyberVidea,ui->metody);
@@ -100,7 +114,26 @@ void LicovaniVidea::on_comboBox_activated(int index)
         QPushButton* ZVPB = qobject_cast<QPushButton*>(widgetZobrazVysledkyPB);
         QObject::connect(EplusTPB,SIGNAL(clicked()),this,SLOT(EplusTPB_clicked()));
         QObject::connect(ZVPB,SIGNAL(clicked()),this,SLOT(ZVPB_clicked()));
-
+    }
+    else if (index == 2)
+    {
+        ET_MultipleVideosAnalysis(ui->checkboxy,ui->vyberVidea,ui->metody);
+        if (predchozi_index != 0)
+        {
+            //if (predchozi_index == 1)
+            //{
+                clearLayout(ui->checkboxy);
+                clearLayout(ui->vyberVidea);
+                clearLayout(ui->metody);
+           // }
+        }
+        predchozi_index = 2;
+        QWidget* widgetvyberVideIPB = ui->vyberVidea->itemAtPosition(0,0)->widget();
+        QPushButton* vybVidsPB = qobject_cast<QPushButton*>(widgetvyberVideIPB);
+        QWidget* widgetvyberSlozkuPB = ui->vyberVidea->itemAtPosition(0,1)->widget();
+        QPushButton* vybSlozPB = qobject_cast<QPushButton*>(widgetvyberSlozkuPB);
+        QWidget* widgetvybranaVideaLW = ui->vyberVidea->itemAtPosition(1,0)->widget();
+        QListWidget* vybVidLW = qobject_cast<QListWidget*>(widgetvybranaVideaLW);
     }
 }
 void LicovaniVidea::zobrazKliknutelnyDialog()
@@ -174,6 +207,9 @@ void LicovaniVidea::vybVidPB_clicked(QWidget* W)
         QPushButton* EplusTPB = qobject_cast<QPushButton*>(widgetETPB);
         EplusTPB->setEnabled(true);
 
+        int pocet_snimku = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+        hodnoty_entropie.fill(0.0,pocet_snimku);
+        hodnoty_tennengrad.fill(0.0,pocet_snimku);
     }
 }
 
@@ -181,7 +217,10 @@ void LicovaniVidea::EplusTPB_clicked()
 {
     QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
     cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
+    /*QFuture<int> future = QtConcurrent::run(entropie_tennengrad_videa,cap,hodnoty_entropie,hodnoty_tennengrad,
+                                            ui->prubehVypoctu);*/
     int uspech_analyzy = entropie_tennengrad_videa(cap,hodnoty_entropie,hodnoty_tennengrad,ui->prubehVypoctu);
+    //int uspech_analyzy = future.result();
     if (uspech_analyzy == 0)
         qDebug()<<"Výpočty skončily chybou.";
     else

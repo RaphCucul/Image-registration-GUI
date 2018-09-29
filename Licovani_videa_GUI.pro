@@ -55,7 +55,9 @@ SOURCES += \
     util/entropie.cpp \
     vykon/hddusageplot.cpp \
     util/util_licovanividea.cpp \
-    dialogy/grafet.cpp
+    dialogy/grafet.cpp \
+    util/util_grafet.cpp \
+    util/vicevlaknovezpracovani.cpp
 
 
 HEADERS += \
@@ -88,7 +90,9 @@ HEADERS += \
     util/entropie.h \
     vykon/hddusageplot.h \
     util/util_licovanividea.h \
-    dialogy/grafet.h
+    dialogy/grafet.h \
+    util/util_grafet.h \
+    util/vicevlaknovezpracovani.h
 
 
 FORMS += \

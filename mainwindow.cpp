@@ -15,6 +15,7 @@
 #include "vykon/cpuwidget.h"
 #include "vykon/memorywidget.h"
 #include "vykon/hddwidget.h"
+#include "dialogy/zalozky.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),

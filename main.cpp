@@ -1,4 +1,8 @@
 #include "mainwindow.h"
+#include "dialogy/zalozky.h"
+#include "vykon/cpuwidget.h"
+#include "vykon/hddusageplot.h"
+#include "vykon/memorywidget.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])

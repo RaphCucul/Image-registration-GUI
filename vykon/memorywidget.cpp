@@ -1,6 +1,8 @@
 #include "memorywidget.h"
 #include "util/systemmonitor.h"
 //#include <QtCharts/QAreaSeries>
+#include <QFuture>
+#include <QtConcurrent/QtConcurrent>
 using namespace QtCharts;
 
 const int CHART_X_RANGE_COUNT = 50;

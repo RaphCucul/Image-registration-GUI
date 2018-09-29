@@ -14,7 +14,7 @@ class GrafET : public QDialog
     Q_OBJECT
 
 public:
-    explicit GrafET(std::vector<double> E, std::vector<double> T, QString jmeno_videa,QWidget *parent = nullptr);
+    explicit GrafET(QVector<double> E, QVector<double> T, QString jmeno_videa,QWidget *parent = nullptr);
     ~GrafET();
 private slots:
     void ZE();
@@ -23,10 +23,11 @@ private slots:
     void EDPZ();
     void THPZ();
     void TDPZ();
+    void zmenaTabu(int indexTabu);
 
 private:
     Ui::GrafET *ui;
-    QCustomPlot* GrafickyObjekt;
+    QCustomPlot* AktualniGrafickyObjekt;
     QVector<double> entropie;
     QVector<double> tennengrad;
     QVector<double> entropieStandard;
@@ -42,9 +43,13 @@ private:
     bool zobrazEntropii = false;
     bool zobrazTennengrad = false;
     double horniPrah_entropie = 0.0;
+    double horniPrah_entropiePrepocet = 0.0;
     double dolniPrah_entropie = 0.0;
+    double dolniPrah_entropiePrepocet = 0.0;
     double horniPrah_tennengrad = 0.0;
+    double horniPrah_tennengradPrepocet = 0.0;
     double dolniPrah_tennengrad = 0.0;
+    double dolniPrah_tennengradPrepocet = 0.0;
     bool zobrazHorPra_entropie = false;
     bool zobrazDolPra_entropie = false;
     bool zobrazHorPra_tennengrad = false;
