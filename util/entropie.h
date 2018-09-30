@@ -19,6 +19,6 @@ void standardizaceVektoruDat(QVector<double>& dataStandardizovana,QVector<double
                              double minimum,double maximum);
 /// zajišťuje přepočet hodnot do rozsahu <0,1>
 
-void aktualizaceProgressBaru(QProgressBar* pb, int procento);
+//void aktualizaceProgressBaru(QProgressBar* pb, int procento);
 
 #endif // ENTROPIE_H_INCLUDED

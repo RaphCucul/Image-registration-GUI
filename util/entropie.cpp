@@ -137,9 +137,9 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
 {
     int uspech_analyzy;
     int procento;
-    QTimer * timer = new QTimer();
+    /*QTimer * timer = new QTimer();
     QObject::connect(timer, SIGNAL(timeout()), progbar, SLOT(updateProgress()));
-    timer->start(100);
+    timer->start(100);*/
     /*if (!entropie.empty() || !tennengrad.empty())
     {
         entropie.clear();

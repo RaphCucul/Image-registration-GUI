@@ -57,7 +57,9 @@ SOURCES += \
     util/util_licovanividea.cpp \
     dialogy/grafet.cpp \
     util/util_grafet.cpp \
-    util/vicevlaknovezpracovani.cpp
+    util/vicevlaknovezpracovani.cpp \
+    dialogy/singlevideoet.cpp \
+    dialogy/multiplevideoet.cpp
 
 
 HEADERS += \
@@ -92,7 +94,9 @@ HEADERS += \
     util/util_licovanividea.h \
     dialogy/grafet.h \
     util/util_grafet.h \
-    util/vicevlaknovezpracovani.h
+    util/vicevlaknovezpracovani.h \
+    dialogy/singlevideoet.h \
+    dialogy/multiplevideoet.h
 
 
 FORMS += \
@@ -105,7 +109,9 @@ FORMS += \
     dialogy/clickimageevent.ui \
     ui/licovanividea.ui \
     dialogy/vysledeklicovanidvou.ui \
-    dialogy/grafet.ui
+    dialogy/grafet.ui \
+    dialogy/singlevideoet.ui \
+    dialogy/multiplevideoet.ui
 
 RESOURCES += \
     ikonky.qrc
