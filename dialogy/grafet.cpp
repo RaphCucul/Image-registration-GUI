@@ -48,10 +48,10 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QString j
     standardizaceVektoru(tennengrad,tennengradStandard,maxTennengrad,minTennengrad,pocetVidei);
     standardizaceVektoru(horniPrah_entropie,horniPrah_entropiePrepocet,maxEntropie,minEntropie,pocetVidei);
     standardizaceVektoru(dolniPrah_entropie,dolniPrah_entropiePrepocet,maxEntropie,minEntropie,pocetVidei);
-    //standardizaceVektoru(horniPrah_tennengrad,horniPrah_tennengradPrepocet,maxTennengrad,minTennengrad,
-                         //pocetSnimkuVidea);
-    //standardizaceVektoru(dolniPrah_tennengrad,dolniPrah_tennengradPrepocet,maxTennengrad,minTennengrad,
-                         //pocetSnimkuVidea);
+    standardizaceVektoru(horniPrah_tennengrad,horniPrah_tennengradPrepocet,maxTennengrad,minTennengrad,
+                         pocetSnimkuVidea);
+    standardizaceVektoru(dolniPrah_tennengrad,dolniPrah_tennengradPrepocet,maxTennengrad,minTennengrad,
+                         pocetSnimkuVidea);
     qDebug()<<"Standardizovano.";
     // vektory entropie a tennengradu normalizované podle odpovídajících maxim
     //entropieStandard.fill(0,pocetSnimkuVidea);
@@ -94,18 +94,27 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QString j
     QObject::connect(ui->T_DP,SIGNAL(valueChanged(double)),this,SLOT(TDPZ()));
     QObject::connect(ui->grafyTBW,SIGNAL(currentChanged(int)),this,SLOT(zmenaTabu(int)));
 
-    //ui->grafyTBW->setStyleSheet("QTabBar::tab {height: 15px;width: 15px;padding-top:2px;padding-bottom:,2px}");
+    ui->grafyTBW->setStyleSheet("QTabBar::tab {height: 15px;width: 42px;padding-top:2px;padding-bottom:,2px}");
     ui->grafyTBW->setCurrentIndex(0);
     aktualniIndex = 0;
+    pocetSnimkuVidea = entropie[aktualniIndex].length();
     //qDebug()<<entropie[aktualniIndex];
     QWidget* w = ui->grafyTBW->currentWidget();
     QCustomPlot* GrafickyObjekt = qobject_cast<QCustomPlot*>(w);
     ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
-    HP_entropie.push_back(horniPrah_entropie);
-    DP_entropie.push_back(dolniPrah_entropie);
-    HP_tennengrad.push_back(horniPrah_tennengrad);
-    DP_tennengrad.push_back(dolniPrah_tennengrad);
-    pocetSnimkuVidea = entropie[aktualniIndex].length();
+    QVector<double> pom;
+    pom.fill(horniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
+    HP_entropie.push_back(pom);
+    pom.clear();
+    pom.fill(dolniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
+    DP_entropie.push_back(pom);
+    pom.clear();
+    pom.fill(horniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
+    HP_tennengrad.push_back(pom);
+    pom.clear();
+    pom.fill(dolniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
+    DP_tennengrad.push_back(pom);
+
     std::vector<double> snimky(pocetSnimkuVidea);
     std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
     snimkyRozsah = QVector<double>::fromStdVector(snimky);
@@ -183,20 +192,27 @@ void GrafET::standardizaceVektoru(QVector<double>& zkoumanyVektor,QVector<double
 }
 void GrafET::zmenaTabu(int indexTabu)
 {
-    ui->zobrazGrafE->setChecked(false);
-    ui->grafyTBW->setCurrentIndex(indexTabu);
-    aktualniIndex = indexTabu;
-    QWidget* w = ui->grafyTBW->currentWidget();
-    QCustomPlot* GrafickyObjekt = qobject_cast<QCustomPlot*>(w);
-    ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
-    inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],
-                              entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
-                              HP_entropie[aktualniIndex],DP_entropie[aktualniIndex],HP_tennengrad[aktualniIndex],
-                              DP_tennengrad[aktualniIndex],snimkyRozsah);
-    AktualniGrafickyObjekt = GrafickyObjekt;
+    if (pocetVidei > 1)
+    {
+        ui->zobrazGrafE->setChecked(false);
+        ui->grafyTBW->setCurrentIndex(indexTabu);
+        aktualniIndex = indexTabu;
+        pocetSnimkuVidea = entropie[aktualniIndex].length();
+        std::vector<double> snimky(pocetSnimkuVidea);
+        std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
+        snimkyRozsah = QVector<double>::fromStdVector(snimky);
+        QWidget* w = ui->grafyTBW->currentWidget();
+        QCustomPlot* GrafickyObjekt = qobject_cast<QCustomPlot*>(w);
+        ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
+        inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],
+                                  entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
+                                  HP_entropie[aktualniIndex],DP_entropie[aktualniIndex],HP_tennengrad[aktualniIndex],
+                                  DP_tennengrad[aktualniIndex],snimkyRozsah);
+        AktualniGrafickyObjekt = GrafickyObjekt;
 
-    ui->zobrazGrafE->setChecked(true);
-    qDebug()<<ui->grafyTBW->currentIndex();
+        ui->zobrazGrafE->setChecked(true);
+        qDebug()<<ui->grafyTBW->currentIndex();
+    }
 }
 
 void GrafET::ZE()
