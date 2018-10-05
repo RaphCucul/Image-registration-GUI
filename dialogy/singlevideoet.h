@@ -26,7 +26,7 @@ private slots:
 
 private:
     Ui::SingleVideoET *ui;
-    QString vybraneVideoETSingle;
+    QVector<QString> vybraneVideoETSingle;
     bool spravnostVideaETSingle = false;
     bool volbaCasZnackyETSingle = false;
     bool volbaSvetAnomETSingle = false;

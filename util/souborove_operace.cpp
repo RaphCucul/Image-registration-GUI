@@ -95,3 +95,13 @@ void ZobrazPostup( char titulek[], int krok, int celkem )
     SetConsoleTextAttribute ( h, wOldColorAttrs);
     //SetConsoleTextAttribute(  GetStdHandle( STD_OUTPUT_HANDLE ), 0x08 );
 }
+
+void zpracujJmeno(QString& celeJmeno,QString& slozka,QString& zkraceneJmeno,QString& koncovka)
+{
+    int lastindexSlash = celeJmeno.lastIndexOf("/");
+    int lastIndexDot = celeJmeno.length() - celeJmeno.lastIndexOf(".");
+    slozka = celeJmeno.left(lastindexSlash);
+    zkraceneJmeno = celeJmeno.mid(lastindexSlash+1,
+         (celeJmeno.length()-lastindexSlash-lastIndexDot-1));
+    koncovka = celeJmeno.right(lastIndexDot-1);
+}

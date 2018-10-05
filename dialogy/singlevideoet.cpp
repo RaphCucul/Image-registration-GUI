@@ -119,7 +119,9 @@ void SingleVideoET::on_vypocetET_clicked()
 
 void SingleVideoET::on_zobrazGrafET_clicked()
 {
-    GrafET* graf_ET = new GrafET(entropie,tennengrad,vybraneVideoETSingle[1],this);
+    QVector<QString> vektorKzapisu;
+    vektorKzapisu.push_back(vybraneVideoETSingle[1]);
+    GrafET* graf_ET = new GrafET(entropie,tennengrad,vektorKzapisu,this);
     graf_ET->setModal(true);
     graf_ET->show();
 }

@@ -9,6 +9,8 @@
 #include <getopt.h>
 #include <windows.h>
 #include <iomanip>
+
+#include <QString>
 using namespace std;
 void analyzuj_jmena_souboru_avi(std::string &vybrana_cesta_k_souborum,
                                 std::vector<string> &seznam_jmen_souboru,
@@ -21,6 +23,7 @@ std::string GetFileName( const std::string & prompt );
 int CALLBACK BrowseCallbackProc(HWND hwnd,UINT uMsg, LPARAM lParam, LPARAM lpData);
 string BrowseFolder(string saved_path);
 string ExePath();
+void zpracujJmeno(QString& celeJmeno,QString& slozka,QString& zkraceneJmeno,QString& koncovka);
 /// funkce jsou zalozene na dokumentaci k dirent.h knihovne a z msdn.microsoft.com
 void ZobrazPostup( char titulek[], int krok, int celkem );
 /// nevyuziva se
