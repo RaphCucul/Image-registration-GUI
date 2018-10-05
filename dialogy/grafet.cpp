@@ -7,7 +7,7 @@
 #include <QWidget>
 #include <QHBoxLayout>
 
-GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QString jmeno_videa, QWidget *parent) :
+GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<QString> jmeno_videa, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GrafET)
 {
@@ -78,7 +78,7 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QString j
     {
         QWidget *WSCustomPlot = new QWidget();
         QCustomPlot* GrafickyObjekt = new QCustomPlot(WSCustomPlot);
-        ui->grafyTBW->addTab(GrafickyObjekt,JmenoVidea);
+        ui->grafyTBW->addTab(GrafickyObjekt,JmenoVidea[b]);
     }
 
     /// propojení všech prvků s funkcemi ovládajícími fungování grafu
@@ -102,19 +102,10 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QString j
     QWidget* w = ui->grafyTBW->currentWidget();
     QCustomPlot* GrafickyObjekt = qobject_cast<QCustomPlot*>(w);
     ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
-    QVector<double> pom;
-    pom.fill(horniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
-    HP_entropie.push_back(pom);
-    pom.clear();
-    pom.fill(dolniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
-    DP_entropie.push_back(pom);
-    pom.clear();
-    pom.fill(horniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
-    HP_tennengrad.push_back(pom);
-    pom.clear();
-    pom.fill(dolniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
-    DP_tennengrad.push_back(pom);
-
+    liniePrahu(horniPrah_entropie,HP_entropie,aktualniIndex,pocetSnimkuVidea);
+    liniePrahu(dolniPrah_entropie,DP_entropie,aktualniIndex,pocetSnimkuVidea);
+    liniePrahu(horniPrah_tennengrad,HP_tennengrad,aktualniIndex,pocetSnimkuVidea);
+    liniePrahu(dolniPrah_tennengrad,DP_tennengrad,aktualniIndex,pocetSnimkuVidea);
     std::vector<double> snimky(pocetSnimkuVidea);
     std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
     snimkyRozsah = QVector<double>::fromStdVector(snimky);
@@ -181,6 +172,13 @@ void GrafET::standardizaceVektoru(QVector<QVector<double>>& zkoumanyVektor,QVect
         }
     }
 }
+void GrafET::liniePrahu(QVector<double>& jednotliveHodnotyVidei,QVector<QVector<double>>& vektorPrahoveHodnoty,int aktualIndx,
+                int pctSnVid)
+{
+    QVector<double> pom;
+    pom.fill(jednotliveHodnotyVidei[aktualIndx],pctSnVid);
+    vektorPrahoveHodnoty.push_back(pom);
+}
 void GrafET::standardizaceVektoru(QVector<double>& zkoumanyVektor,QVector<double>& vektorStandardizovany,
                           QVector<double>& max,QVector<double>& min,int pocetAnalyzovanychVidei)
 {
@@ -194,6 +192,7 @@ void GrafET::zmenaTabu(int indexTabu)
 {
     if (pocetVidei > 1)
     {
+        // inicializuji parametry podle aktuálně vybraného videa
         ui->zobrazGrafE->setChecked(false);
         ui->grafyTBW->setCurrentIndex(indexTabu);
         aktualniIndex = indexTabu;
@@ -201,6 +200,17 @@ void GrafET::zmenaTabu(int indexTabu)
         std::vector<double> snimky(pocetSnimkuVidea);
         std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
         snimkyRozsah = QVector<double>::fromStdVector(snimky);
+        // nastav správně vektor prahových hodnot
+        if (aktualniIndex > HP_entropie.size())
+        {
+            liniePrahu(horniPrah_entropie,HP_entropie,aktualniIndex,pocetSnimkuVidea);
+            liniePrahu(dolniPrah_entropie,DP_entropie,aktualniIndex,pocetSnimkuVidea);
+            liniePrahu(horniPrah_tennengrad,HP_tennengrad,aktualniIndex,pocetSnimkuVidea);
+            liniePrahu(dolniPrah_tennengrad,DP_tennengrad,aktualniIndex,pocetSnimkuVidea);
+            qDebug()<<"zmena velikosti vektoru prahu";
+        }
+        qDebug()<<"nebylo nutne menit velikost";
+        // zavolej aktuální widget
         QWidget* w = ui->grafyTBW->currentWidget();
         QCustomPlot* GrafickyObjekt = qobject_cast<QCustomPlot*>(w);
         ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
