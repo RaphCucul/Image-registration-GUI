@@ -1,6 +1,7 @@
 #include "entropie.h"
 #include "util/souborove_operace.h"
 #include "util/pouzij_frangiho.h"
+#include "util/vicevlaknovezpracovani.h"
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgproc/imgproc_c.h"
@@ -95,16 +96,19 @@ void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &te
     hist.release();
 
 }
-int entropie_tennengrad_videa(cv::VideoCapture& capture,
+int entropie_tennengrad_videa(QObject *sender, cv::VideoCapture& capture,
                               QVector<double> &entropie,
-                              QVector<double> &tennengrad,
-                              QProgressBar *progbar)
+                              QVector<double> &tennengrad, QProgressBar *progbar)
 {
     int uspech_analyzy = 0;
     int procento;
     /*QTimer * timer = new QTimer();
     QObject::connect(timer, SIGNAL(timeout()), progbar, SLOT(updateProgress()));
     timer->start(100);*/
+
+    //qDebug() << "Progress: " << QString::number(percent);
+    return 0;
+
     /*if (!entropie.empty() || !tennengrad.empty())
     {
         entropie.clear();
@@ -131,7 +135,8 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
                 procento = ((a/pocet_snimku_videa)*100);
 
             QCoreApplication::processEvents(); // tato funkce frčí v jiném vlákně - mohu sledovat
-            progbar->setValue(procento);            
+            progbar->setValue(procento);
+            //percentageComplete(procento);
             // vytížení procesoru v reálném čase
 
             cv::Mat snimek;

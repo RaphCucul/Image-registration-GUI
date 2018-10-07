@@ -7,8 +7,9 @@ class VicevlaknoveZpracovani : public QThread
 public:
     VicevlaknoveZpracovani();
     void run();
+    int percentageComplete(int procento);
 signals:
-     void percentageComplete(int);
+
 };
 
 #endif // VICEVLAKNOVEZPRACOVANI_H

@@ -17,6 +17,7 @@ class MultipleVideoET : public QWidget
 public:
     explicit MultipleVideoET(QWidget *parent = nullptr);
     ~MultipleVideoET();
+    void aktualizujProgBar(int procento);
 protected:
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;

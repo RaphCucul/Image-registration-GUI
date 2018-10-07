@@ -18,6 +18,9 @@
 #include <QFileDialog>
 #include <QDir>
 
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
+
 MultipleVideoET::MultipleVideoET(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MultipleVideoET)
@@ -101,6 +104,9 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
         QVector<double> entropyActual,tennengradActual;
         entropyActual.fill(0.0,frameCount);
         tennengradActual.fill(0.0,frameCount);
+        /*QFuture<int> future = QtConcurrent::run(entropie_tennengrad_videa,this,cap,entropyActual,tennengradActual,
+                                                ui->progBar);
+        int AnalysisSuccess = future.result();*/
         int AnalysisSuccess = entropie_tennengrad_videa(cap,entropyActual,tennengradActual,ui->progBar);
         if (AnalysisSuccess == 0)
             qDebug()<<"Error occured when calculating entropy and tennengrad!";
@@ -134,4 +140,9 @@ void MultipleVideoET::on_vymazatZVyberuPB_clicked()
     }
     //qDebug()<<"Number of videos after deletion: "<<ui->vybranaVidea->count();
     //qDebug()<<"Number of videos in the video list: "<<sezVid.count();
+}
+
+void MultipleVideoET::aktualizujProgBar(int procento)
+{
+    ui->progBar->setValue(procento);
 }

@@ -8,8 +8,8 @@
 void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad);
 /// pocita entropii snimku
 
-int entropie_tennengrad_videa(cv::VideoCapture& capture, QVector<double>& entropie, QVector<double>& tennengrad,
-                              QProgressBar* progbar);
+int entropie_tennengrad_videa(QObject* sender,cv::VideoCapture& capture, QVector<double>& entropie,
+                              QVector<double>& tennengrad,QProgressBar* progbar);
 /// hlavni funkce volajici vypocet_entropie
 
 double frekvence_binu(cv::Mat &vstupni_obraz,int &velikost_histogramu);
