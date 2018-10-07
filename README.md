@@ -1,1 +1,1 @@
-# Licovani_videa_GUI
+# Image registration GUI
