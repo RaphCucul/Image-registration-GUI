@@ -93,49 +93,14 @@ void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &te
     entropie = e;
     f=0;e=0;p=0;
     hist.release();
-    //return e;
-    /*Mat filtrovany;
-    medianBlur(nacteny_snimek,filtrovany,5);
-    //imshow("Filtrovany",filtrovany);
-    Mat ch1, ch2, ch3;
-    std::vector<Mat> channels(3);
-    split(filtrovany, channels);
-    ch1 = channels[0];
-    filtrovany = channels[1];
-    ch3 = channels[2];
-    Mat Sobelx,Sobely;
-    Mat abs_grad_x, abs_grad_y,grad;
-    Sobel(filtrovany, Sobelx, CV_32FC1, 1, 0);
-    Sobel(filtrovany,Sobely,CV_32FC1,0,1);
-    convertScaleAbs(Sobelx, abs_grad_x);
-    convertScaleAbs(Sobely, abs_grad_y);
-    addWeighted(abs_grad_x, 0.7, abs_grad_y, 0.7, 0, grad);*/
-    //imshow("Sobel",grad);
-    /*int histSize = 128;
-    float range[] = { 0, 128 } ;
-    const float* histRange = { range };
-    bool uniform = true;
-    bool accumulate = false;
-    Mat hist;
-    cv::calcHist(&filtrovany, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);
-    double f=0,p=0,e=0;
-    for (int i=0; i<histSize; i++)
-    {
-        f+= (hist.at<double>(i));
-    }
-    for (int i=0; i<histSize; i++)
-    {
-        p=(hist.at<double>(i))/f;
-        if (p>0)
-            e+=-p*log2(p);
-    }*/
+
 }
 int entropie_tennengrad_videa(cv::VideoCapture& capture,
                               QVector<double> &entropie,
                               QVector<double> &tennengrad,
                               QProgressBar *progbar)
 {
-    int uspech_analyzy;
+    int uspech_analyzy = 0;
     int procento;
     /*QTimer * timer = new QTimer();
     QObject::connect(timer, SIGNAL(timeout()), progbar, SLOT(updateProgress()));
@@ -168,51 +133,23 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
             QCoreApplication::processEvents(); // tato funkce frčí v jiném vlákně - mohu sledovat
             progbar->setValue(procento);            
             // vytížení procesoru v reálném čase
-            /// po sem to funguje všechno normálně
 
             cv::Mat snimek;
             double hodnota_entropie = 0;
             cv::Scalar hodnota_tennengrad;
             capture.set(CAP_PROP_POS_FRAMES,double(a));
-            capture.read(snimek);
-            /// tato pasáž také funguje
-
-            vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
-            double pom = hodnota_tennengrad[0];
-            //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
-            entropie[a] = (hodnota_entropie);
-            tennengrad[a] = (pom);
-            snimek.release();
-        }
-        /*for (int i = 0; i < pocet_snimku_videa; i++)
-        {
-            qDebug()<<i;
-
-            if (i == 0)
-                procento = 0;
-            else if (i == (pocet_snimku_videa-1))
-                procento = 100;
+            if (!capture.read(snimek))
+                    return uspech_analyzy;
             else
-                procento = ((i/pocet_snimku_videa)*100);
-
-            progbar->setValue(procento);
-            cv::Mat snimek;
-            double hodnota_entropie = 0;
-            cv::Scalar hodnota_tennengrad;
-            capture.set(CAP_PROP_POS_FRAMES,image_count);
-            if (capture.read(snimek)!= 1)
             {
-                qDebug()<< "Snimek " << image_count << " videa se nepodarilo nacist pro analyzu entropie a tennengradu!";
-                continue;
-            }    
-            vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad);
-            entropie[image_count] = hodnota_entropie;
-            double pom = hodnota_tennengrad[0];
-            qDebug()<<"Zpracovan snimek "<<i<<" s E: "<<hodnota_entropie<<" a T: "<<pom;
-            tennengrad[image_count] = pom;
-            image_count+=1;
-        }*/
-        //std::cout << endl;
+                vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
+                double pom = hodnota_tennengrad[0];
+                //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
+                entropie[a] = (hodnota_entropie);
+                tennengrad[a] = (pom);
+                snimek.release();
+            }
+        }
         uspech_analyzy = 1;
         return uspech_analyzy;
     }

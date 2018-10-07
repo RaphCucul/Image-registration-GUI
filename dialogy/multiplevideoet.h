@@ -20,9 +20,23 @@ public:
 protected:
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
+private slots:
+    void on_nekolikVideiPB_clicked();
+
+    void on_celaSlozkaPB_clicked();
+
+    void on_ETanalyzaVideiPB_clicked();
+
+    void on_zobrazVysledkyPB_clicked();
+
+    void on_vymazatZVyberuPB_clicked();
+
 private:
     Ui::MultipleVideoET *ui;
     QStringList sezVid;
+    QVector<QVector<double>> entropie;
+    QVector<QVector<double>> tennengrad;
+    QVector<QString> videoNames;
 };
 
 #endif // MULTIPLEVIDEOET_H

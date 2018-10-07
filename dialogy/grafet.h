@@ -23,7 +23,7 @@ public:
                               QVector<double>& max, QVector<double>& min, int pocetAnalyzovanychVidei);
     void standardizaceVektoru(QVector<double>& zkoumanyVektor,QVector<double>& vektorStandardizovany,
                               QVector<double>& max,QVector<double>& min,int pocetAnalyzovanychVidei);
-    void liniePrahu(QVector<double>& jednotliveHodnotyVidei,QVector<QVector<double>>& vektorPrahoveHodnoty,int aktualIndx,
+    void liniePrahu(QVector<double>& jednotliveHodnotyVidei,QVector<QVector<double>>& vektorPrahoveHodnoty,int pctVid,
                     int pctSnVid);
 private slots:
     void ZE();

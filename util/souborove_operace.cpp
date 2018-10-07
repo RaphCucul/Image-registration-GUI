@@ -9,12 +9,14 @@
 #include <iomanip>
 #include <stdio.h>
 #include <math.h>
+#include <QDir>
 #include "souborove_operace.h"
 using namespace std;
+
 void analyzuj_jmena_souboru_avi(string &vybrana_cesta_k_souborum,
                                 std::vector<string> &seznam_jmen_souboru,
-                                int &celkovy_pocet_souboru_s_koncovkou,string koncovka_co_hledam,
-                                string koncovka_kterou_nalezl)
+                                int &celkovy_pocet_souboru_s_koncovkou,
+                                string koncovka_co_hledam, string koncovka_kterou_nalezl)
 {
     /// vyuziti dirent.h knihovny
     DIR *dir; //otevøení directory streamu

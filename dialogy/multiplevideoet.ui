@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>MultipleVideoET</class>
  <widget class="QWidget" name="MultipleVideoET">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
-    <height>295</height>
+    <width>472</width>
+    <height>346</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,129 +22,185 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QPushButton" name="nekolikVideiPB">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>10</y>
-     <width>101</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Vybrat několik videí</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="celaSlozkaPB">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>10</y>
-     <width>101</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Vybrat celou složku</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>40</y>
-     <width>151</width>
-     <height>18</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Přítomnost časové značky</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_2">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>190</x>
-     <y>40</y>
-     <width>161</width>
-     <height>18</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Přítomnost světelné anomálie</string>
-   </property>
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QListWidget" name="vybranaVidea">
    <property name="geometry">
     <rect>
-     <x>15</x>
-     <y>60</y>
-     <width>371</width>
-     <height>161</height>
+     <x>10</x>
+     <y>10</y>
+     <width>331</width>
+     <height>211</height>
     </rect>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Sunken</enum>
+   </property>
+   <property name="sizeAdjustPolicy">
+    <enum>QAbstractScrollArea::AdjustToContents</enum>
    </property>
    <property name="dragDropMode">
-    <enum>QAbstractItemView::DropOnly</enum>
+    <enum>QAbstractItemView::DragDrop</enum>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::MultiSelection</enum>
+   </property>
+   <property name="selectionBehavior">
+    <enum>QAbstractItemView::SelectRows</enum>
+   </property>
+   <property name="movement">
+    <enum>QListView::Free</enum>
+   </property>
+   <property name="flow">
+    <enum>QListView::TopToBottom</enum>
+   </property>
+   <property name="isWrapping" stdset="0">
+    <bool>false</bool>
+   </property>
+   <property name="viewMode">
+    <enum>QListView::ListMode</enum>
+   </property>
+   <property name="sortingEnabled">
+    <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="ETanalyzaVideiPB">
+  <widget class="QProgressBar" name="progBar">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>147</x>
+     <y>320</y>
+     <width>181</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+   <property name="textVisible">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>10</y>
+     <width>104</width>
+     <height>83</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QPushButton" name="nekolikVideiPB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Vybrat několik videí</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="celaSlozkaPB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Vybrat celou složku</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="vymazatZVyberuPB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Vymazat vybrané</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
      <y>230</y>
-     <width>261</width>
-     <height>23</height>
+     <width>431</width>
+     <height>22</height>
     </rect>
    </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Výpočet entropie a tennengradu pro všechna videa</string>
-   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Přítomnost časové značky</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="checkBox_2">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Přítomnost světelné anomálie</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
-  <widget class="QPushButton" name="zobrazVysledkyPB">
+  <widget class="QWidget" name="">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>100</x>
      <y>260</y>
-     <width>151</width>
-     <height>23</height>
+     <width>259</width>
+     <height>54</height>
     </rect>
    </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="text">
-    <string>Zobrazit kompletní výsledky</string>
-   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <widget class="QPushButton" name="ETanalyzaVideiPB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Výpočet entropie a tennengradu pro všechna videa</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="zobrazVysledkyPB">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Zobrazit kompletní výsledky</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
