@@ -32,6 +32,8 @@ private slots:
 
     void on_vymazatZVyberuPB_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::MultipleVideoET *ui;
     QStringList sezVid;

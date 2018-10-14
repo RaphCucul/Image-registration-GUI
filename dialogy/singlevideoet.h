@@ -24,6 +24,8 @@ private slots:
     void on_vypocetET_clicked();
     void on_zobrazGrafET_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::SingleVideoET *ui;
     QVector<QString> vybraneVideoETSingle;

@@ -66,28 +66,13 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     maximum_frangi = detekovane_frangiho_maximum;
     connect(ui->anomalie,SIGNAL(stateChanged(int)),this,SLOT(zobrazKliknutelnyDialog()));
     velikost_frangi_opt(6);
-    QFile soubor(QDir::currentPath()+"/"+"frangi_parametry.txt");
-    //bool soubor_pritomen = false;
-    if (soubor.open(QIODevice::ReadOnly | QIODevice::Text))
+    QFile soubor;
+    soubor.setFileName("D:/Qt_projekty/Licovani_videa_GUI/frangiParameters.json");
+    parametryFrangiJson = readJson(soubor);
+    QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    for (int a = 0; a < 6; a++)
     {
-        //soubor_pritomen = true;
-        QTextStream in(&soubor);
-        int pocitadlo = 0;
-        while (!in.atEnd())
-        {
-            QString line = in.readLine();
-            inicializace_frangi_opt(line,pocitadlo);
-            pocitadlo+=1;
-        }
-    }
-    else
-    {
-        parametry_frangi[0] = 1;
-        parametry_frangi[1] = 10;
-        parametry_frangi[2] = 1;
-        parametry_frangi[3] = 8.0;
-        parametry_frangi[4] = 8.0;
-        parametry_frangi[5] = 1;
+        inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),a);
     }
     /***********************************************************************************/
     // protože se pracuje s layouty a comboboxy, je potřeba definovat defaultní zobrazení
@@ -131,20 +116,24 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
         QStringList nalezeneSoubory;
         int pocetNalezenych;
         analyzuj_jmena_souboru_avi(videaKanalyzeAktual,nalezeneSoubory,pocetNalezenych,"avi");
-
-        zpracujJmeno(videaKanalyzeAktual,slozka,jmeno,koncovka);
-        if (rozborVybranehoSouboru.length() == 0)
+        if (pocetNalezenych != 0)
         {
-            rozborVybranehoSouboru.push_back(slozka);
-            rozborVybranehoSouboru.push_back(jmeno);
-            rozborVybranehoSouboru.push_back(koncovka);
-        }
-        else
-        {
-            rozborVybranehoSouboru.clear();
-            rozborVybranehoSouboru.push_back(vybrana_slozka);
-            rozborVybranehoSouboru.push_back(vybrany_soubor);
-            rozborVybranehoSouboru.push_back(koncovka);
+            QString celeJmeno = videaKanalyzeAktual+"/"+nalezeneSoubory.at(0);
+            zpracujJmeno(celeJmeno,slozka,jmeno,koncovka);
+            if (rozborVybranehoSouboru.length() == 0)
+            {
+                rozborVybranehoSouboru.push_back(slozka);
+                rozborVybranehoSouboru.push_back(jmeno);
+                rozborVybranehoSouboru.push_back(koncovka);
+            }
+            else
+            {
+                rozborVybranehoSouboru.clear();
+                rozborVybranehoSouboru.push_back(slozka);
+                rozborVybranehoSouboru.push_back(jmeno);
+                rozborVybranehoSouboru.push_back(koncovka);
+            }
+            VideoLE->setText(jmeno);
         }
     }
 
@@ -174,9 +163,9 @@ void LicovaniDvou::velikost_frangi_opt(int velikost){
     parametry_frangi = (QVector<double>(velikost));
 }
 
-void LicovaniDvou::inicializace_frangi_opt(QString &hodnota, int &pozice)
+void LicovaniDvou::inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, int &pozice)
 {
-    parametry_frangi[pozice] = hodnota.toDouble();
+    parametry_frangi[pozice] = nactenyObjekt[parametr].toDouble();
 }
 void LicovaniDvou::on_comboBox_activated(int index)
 {
@@ -234,7 +223,8 @@ void LicovaniDvou::on_comboBox_activated(int index)
         m_sigmapper->setMapping(VideoPB,VideoLE); // je jedno, jestli je tam VideoLE nebo widgetVideoLE
         // funguje obojí, ale do connectu nacpu stejně jen QWidget*, nikoliv QLineEdit*
         QObject::connect(m_sigmapper, SIGNAL(mapped(QWidget *)),this, SLOT(vyberVideaPB_clicked(QWidget *)));
-        QObject::connect(widgetVideoLE,SIGNAL(textChanged(const QString &)),this,SLOT(Slot_VideoLE_textChanged(const QString&)));
+        QObject::connect(widgetVideoLE,SIGNAL(textChanged(const QString &)),this,
+                         SLOT(Slot_VideoLE_textChanged(const QString&)));
         /**************************************************/
         QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
         QLineEdit* ReferenceLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
@@ -333,12 +323,8 @@ void LicovaniDvou::vyberVideaPB_clicked(QWidget *W)
     QString videoProDvojiciSnimku = QFileDialog::getOpenFileName(this,
          "Vyberte snímek pro Frangiho filtr", "","*.avi;;Všechny soubory (*)");
     //qDebug()<<"vybrane video: "<<videoProDvojiciSnimku;
-    int lastindexSlash = videoProDvojiciSnimku.lastIndexOf("/");
-    int lastIndexComma = videoProDvojiciSnimku.length() - videoProDvojiciSnimku.lastIndexOf(".");
-    QString vybrana_slozka = videoProDvojiciSnimku.left(lastindexSlash);
-    QString vybrany_soubor = videoProDvojiciSnimku.mid(lastindexSlash+1,
-         (videoProDvojiciSnimku.length()-lastindexSlash-lastIndexComma-1));
-    QString koncovka = videoProDvojiciSnimku.right(lastIndexComma-1);
+    QString vybrana_slozka,vybrany_soubor,koncovka;
+    zpracujJmeno(videoProDvojiciSnimku,vybrana_slozka,vybrany_soubor,koncovka);
     if (rozborVybranehoSouboru.length() == 0)
     {
         rozborVybranehoSouboru.push_back(vybrana_slozka);
@@ -365,7 +351,7 @@ void LicovaniDvou::vyberVideaPB_clicked(QWidget *W)
     cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
     if (!cap.isOpened())
     {
-        VideoLE->setStyleSheet("QLineEdit#VideoLE{color: #FF0000}");
+        VideoLE->setStyleSheet("color: #FF0000");
         qDebug()<<"video nelze otevrit pro potreby zpracovani";
         spravnostVidea = false;
     }
@@ -380,12 +366,8 @@ void LicovaniDvou::vyberReferenceObrPB_clicked(QWidget* W)
 {
     QString referencniObrazek = QFileDialog::getOpenFileName(this,
          "Vyberte referenční obrázek", "","*.bmp;;Všechny soubory (*)");
-    int lastindexSlash = referencniObrazek.lastIndexOf("/");
-    int lastIndexComma = referencniObrazek.length() - referencniObrazek.lastIndexOf(".");
-    QString vybrana_slozka = referencniObrazek.left(lastindexSlash);
-    QString vybrany_soubor = referencniObrazek.mid(lastindexSlash+1,
-         (referencniObrazek.length()-lastindexSlash-lastIndexComma-1));
-    QString koncovka = referencniObrazek.right(lastIndexComma-1);
+    QString vybrana_slozka,vybrany_soubor,koncovka;
+    zpracujJmeno(referencniObrazek,vybrana_slozka,vybrany_soubor,koncovka);
     if (rozborObrReference.length() == 0)
     {
         rozborObrReference.push_back(vybrana_slozka);
@@ -422,12 +404,8 @@ void LicovaniDvou::vyberPosunutehoObrPB_clicked(QWidget* W)
 {
     QString posunutyObrazek = QFileDialog::getOpenFileName(this,
          "Vyberte posunutý obrázek", "","*.bmp;;Všechny soubory (*)");
-    int lastindexSlash = posunutyObrazek.lastIndexOf("/");
-    int lastIndexComma = posunutyObrazek.length() - posunutyObrazek.lastIndexOf(".");
-    QString vybrana_slozka = posunutyObrazek.left(lastindexSlash);
-    QString vybrany_soubor = posunutyObrazek.mid(lastindexSlash+1,
-         (posunutyObrazek.length()-lastindexSlash-lastIndexComma-1));
-    QString koncovka = posunutyObrazek.right(lastIndexComma-1);
+    QString vybrana_slozka,vybrany_soubor,koncovka;
+    zpracujJmeno(posunutyObrazek,vybrana_slozka,vybrany_soubor,koncovka);
     if (rozborObrPosunuty.length() == 0)
     {
         rozborObrPosunuty.push_back(vybrana_slozka);

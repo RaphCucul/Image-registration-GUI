@@ -42,7 +42,7 @@ LicovaniVidea::~LicovaniVidea()
 
 /*void LicovaniVidea::zobrazKliknutelnyDialog()
 {
-    /*QWidget* widgetCasZnacCB = ui->checkboxy->itemAtPosition(0,0)->widget();
+    QWidget* widgetCasZnacCB = ui->checkboxy->itemAtPosition(0,0)->widget();
     QCheckBox* CasZnacCB = qobject_cast<QCheckBox*>(widgetCasZnacCB);
     QWidget* widgetSvetAnomCB = ui->checkboxy->itemAtPosition(0,2)->widget();
     QCheckBox* SvetAnomCB = qobject_cast<QCheckBox*>(widgetSvetAnomCB);

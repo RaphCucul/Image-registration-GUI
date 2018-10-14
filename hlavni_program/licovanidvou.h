@@ -9,23 +9,13 @@
 #include <QSpacerItem>
 #include <QGridLayout>
 #include <QSignalMapper>
+#include <QJsonObject>
 
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core.hpp>
-
-/*cv::Point2d hranice(0,0);
-void onMouse(int event, int x, int y, int flags, void* data)
-{
-    if  ( event == CV_EVENT_LBUTTONDOWN )
-        {
-            hranice.x = x;
-            hranice.y = y;
-            cv::destroyAllWindows();
-        }
-}*/
 
 namespace Ui {
 class LicovaniDvou;
@@ -39,7 +29,7 @@ public:
     explicit LicovaniDvou(QWidget *parent = nullptr);
     ~LicovaniDvou();
     void velikost_frangi_opt(int velikost);
-    void inicializace_frangi_opt(QString &hodnota,int &pozice);
+    void inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, int &pozice);
     void clearLayout(QGridLayout *layout);
     void VideoLE_textChanged(QLineEdit *LE, QString& s);
 
@@ -95,22 +85,11 @@ private:
     bool pritomnost_svetelne_anomalie = false;
     bool zmena_meritka = false;
     /*******************************************/
-    /******************************************/
-    /*QLineEdit* vybraneVideoLE_stable = new QLineEdit();
-    QPushButton* vyberVideaPB_stable = new QPushButton();
-    QLineEdit* cisloReferenceLE_stable = new QLineEdit();
-    QLineEdit* cisloPosunutehoLE_stable = new QLineEdit();
-    QSpacerItem* horizontalSpacer1_stable = new QSpacerItem(20,20);
-    QSpacerItem* horizontalSpacer2_stable = new QSpacerItem(5,20);
-    QLineEdit* volbaReferenceLE_stable = new QLineEdit();
-    QLineEdit* volbaPosunutehoLE_stable = new QLineEdit();
-    QPushButton* vyberObrazekReferencePB_stable = new QPushButton();
-    QPushButton* vyberObrazekPosunutyPB_stable = new QPushButton();*/
-    /******************************************/
     QVector<double> parametry_frangi;
     cv::Point2f ziskane_hranice_anomalie;
     cv::Point3d maximum_frangi;
     int predchozi_index = 0;
+    QJsonObject parametryFrangiJson;
 };
 
 #endif // LICOVANIDVOU_H

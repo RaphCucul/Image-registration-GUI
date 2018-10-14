@@ -1,7 +1,9 @@
 #include "dialogy/singlevideoet.h"
 #include "ui_singlevideoet.h"
 #include "analyza_obrazu/entropie.h"
+#include "hlavni_program/t_b_ho.h"
 #include "dialogy/grafet.h"
+#include "util/souborove_operace.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -15,6 +17,9 @@
 #include <QSignalMapper>
 #include <QLabel>
 #include <QFileDialog>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 SingleVideoET::SingleVideoET(QWidget *parent) :
     QWidget(parent),
@@ -124,4 +129,25 @@ void SingleVideoET::on_zobrazGrafET_clicked()
     GrafET* graf_ET = new GrafET(entropie,tennengrad,vektorKzapisu,this);
     graf_ET->setModal(true);
     graf_ET->show();
+}
+
+void SingleVideoET::on_pushButton_clicked()
+{
+    QJsonDocument document;
+    QJsonObject object;
+    QVector<double> pomVecE = entropie[0];
+    QVector<double> pomVecT = tennengrad[0];
+    QJsonArray poleE = vector2array(pomVecE);
+    QJsonArray poleT = vector2array(pomVecT);
+    QString aktualJmeno = vybraneVideoETSingle[1];
+    QString cesta = TXTulozeniAktual+"/"+aktualJmeno+".dat";
+    object["entropie"] = poleE;
+    object["tennengrad"] = poleT;
+    document.setObject(object);
+    QString documentString = document.toJson();
+    QFile zapis;
+    zapis.setFileName(cesta);
+    zapis.open(QIODevice::WriteOnly);
+    zapis.write(documentString.toLocal8Bit());
+    zapis.close();
 }

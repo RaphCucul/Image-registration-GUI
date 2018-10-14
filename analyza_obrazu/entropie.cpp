@@ -107,7 +107,7 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
     timer->start(100);*/
 
     //qDebug() << "Progress: " << QString::number(percent);
-    return 0;
+    //return 0;
 
     /*if (!entropie.empty() || !tennengrad.empty())
     {

@@ -3,6 +3,7 @@
 #include "util/souborove_operace.h"
 #include "analyza_obrazu/entropie.h"
 #include "dialogy/grafet.h"
+#include "hlavni_program/t_b_ho.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -17,6 +18,9 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <QtConcurrent/QtConcurrent>
 #include <QFuture>
@@ -145,4 +149,29 @@ void MultipleVideoET::on_vymazatZVyberuPB_clicked()
 void MultipleVideoET::aktualizujProgBar(int procento)
 {
     ui->progBar->setValue(procento);
+}
+
+void MultipleVideoET::on_pushButton_clicked()
+{
+
+    for (int a = 0; a < videoNames.length(); a++)
+    {
+        QJsonObject object;
+        QVector<double> pomVecE = entropie[a];
+        QVector<double> pomVecT = tennengrad[a];
+        QJsonArray poleE = vector2array(pomVecE);
+        QJsonArray poleT = vector2array(pomVecT);
+        QString aktualJmeno = videoNames[a];
+        QString cesta = TXTulozeniAktual+"/"+aktualJmeno+".dat";
+        object["entropie"] = poleE;
+        object["tennengrad"] = poleT;
+        QJsonDocument document;
+        document.setObject(object);
+        QString documentString = document.toJson();
+        QFile zapis;
+        zapis.setFileName(cesta);
+        zapis.open(QIODevice::WriteOnly);
+        zapis.write(documentString.toLocal8Bit());
+        zapis.close();
+    }
 }

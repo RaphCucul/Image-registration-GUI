@@ -1,16 +1,12 @@
-#include <iostream>
-#include <string>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <shlobj.h>
-#include <getopt.h>
-#include <windows.h>
-#include <iomanip>
-#include <stdio.h>
-#include <math.h>
 #include <QDir>
-#include "souborove_operace.h"
+#include <QString>
+#include <QStringList>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QVector>
+
+#include "util/souborove_operace.h"
 using namespace std;
 
 void analyzuj_jmena_souboru_avi(QString vybrana_cesta_k_souborum,
@@ -31,4 +27,40 @@ void zpracujJmeno(QString& celeJmeno,QString& slozka,QString& zkraceneJmeno,QStr
     zkraceneJmeno = celeJmeno.mid(lastindexSlash+1,
          (celeJmeno.length()-lastindexSlash-lastIndexDot-1));
     koncovka = celeJmeno.right(lastIndexDot-1);
+}
+
+QJsonObject readJson(QFile& soubor)
+{
+    QByteArray val;
+    soubor.open(QIODevice::ReadOnly | QIODevice::Text);
+    val = soubor.readAll();
+    soubor.close();
+    //qDebug() << val;
+    QJsonDocument d = QJsonDocument::fromJson(val);
+    QJsonObject sett2 = d.object();
+    //qDebug()<<sett2;
+    QJsonArray value = sett2["cestaKvideim"].toArray();
+    //qDebug()<<value.size()<<value[0].toString();
+    //QJsonValue value2 = value[0].toValue();
+    return sett2;
+}
+
+void writeJson(QJsonObject &object, QJsonArray &pole, QString typ, QString pathAndName)
+{
+    object[typ] = pole;
+    QJsonDocument document;
+    document.setObject(object);
+    QString documentString = document.toJson();
+    QFile zapis;
+    zapis.setFileName(pathAndName);
+    zapis.open(QIODevice::WriteOnly);
+    zapis.write(documentString.toLocal8Bit());
+    zapis.close();
+}
+
+QJsonArray vector2array(QVector<double> &vektor)
+{
+    QJsonArray pole;
+    copy(vektor.begin(), vektor.end(), back_inserter(pole));
+    return pole;
 }

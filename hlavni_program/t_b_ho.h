@@ -27,8 +27,6 @@ public:
     QStringList seznam_cest_prazdny=(QStringList()<<"-");
     int pocet_mist_combobox = 3;
     explicit t_b_HO(QWidget *parent = nullptr);
-    QJsonObject readJson(QFile& soubor);
-    void writeJson(QJsonArray pole, QString typ);
     void ziskejCestyZJson(QJsonArray& poleCest,QComboBox* box, QStringList& list);
 
 

@@ -1,5 +1,7 @@
 #include "hlavni_program/t_b_ho.h"
 #include "ui_t_b_ho.h"
+#include "util/souborove_operace.h"
+
 #include <QtCore>
 #include <QtGui>
 #include <QFileDialog>
@@ -12,8 +14,6 @@
 #include <QJsonDocument>
 #include <QVariant>
 #include <QSettings>
-#include <fstream>
-#include <iostream>
 
 QString videaKanalyzeAktual;
 QString ulozeniVideiAktual;
@@ -42,6 +42,11 @@ t_b_HO::t_b_HO(QWidget *parent) :
     ziskejCestyZJson(TXTnacteni,ui->CB_slozka_txt,TXTnacteniList);
     ziskejCestyZJson(TXTulozeni,ui->CB_ulozeni_txt,TXTulozeniList);
 
+    videaKanalyzeAktual = videaKanalyzeList.at(0);
+    ulozeniVideiAktual = ulozeniVideiList.at(0);
+    TXTnacteniAktual = TXTnacteniList.at(0);
+    TXTulozeniAktual = TXTulozeniList.at(0);
+
     connect(ui->CB_cesta_k_videim,SIGNAL(currentIndexChanged(int)),this,SLOT(vybranaCesta(int)));
     connect(ui->CB_cesta_k_videim,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
     connect(ui->CB_ulozeni_videa,SIGNAL(currentIndexChanged(int)),this,SLOT(vybranaCesta(int)));
@@ -58,7 +63,8 @@ void t_b_HO::on_cesta_k_videim_clicked()
     QJsonValue novaCesta = QJsonValue(cesta_k_videim);
     videaKanalyze.append(novaCesta);
     int velikostPole = videaKanalyze.size();
-    writeJson(videaKanalyze,"cestaKvideim");
+    QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
+    writeJson(souborScestami,videaKanalyze,"cestaKvideim",t);
     ui->CB_cesta_k_videim->addItem(videaKanalyze[velikostPole-1].toString());
 
     //qDebug()<<videaKanalyze;
@@ -70,7 +76,8 @@ void t_b_HO::on_ulozeni_videa_clicked()
     QJsonValue novaCesta = QJsonValue(cesta_k_ulozeni_videi);
     ulozeniVidei.append(novaCesta);
     int velikostPole = ulozeniVidei.size();
-    writeJson(ulozeniVidei,"ulozeniVidea");
+    QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
+    writeJson(souborScestami,ulozeniVidei,"ulozeniVidea",t);
     ui->CB_ulozeni_videa->addItem(ulozeniVidei[velikostPole-1].toString());
 }
 
@@ -80,7 +87,8 @@ void t_b_HO::on_txt_slozka_clicked()
     QJsonValue novaCesta = QJsonValue(cesta_k_txt);
     TXTnacteni.append(novaCesta);
     int velikostPole = TXTnacteni.size();
-    writeJson(TXTnacteni,"adresarTXT_nacteni");
+    QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
+    writeJson(souborScestami,TXTnacteni,"adresarTXT_nacteni",t);
     ui->CB_ulozeni_videa->addItem(TXTnacteni[velikostPole-1].toString());
 }
 
@@ -90,7 +98,8 @@ void t_b_HO::on_ulozeni_txt_clicked()
     QJsonValue novaCesta = QJsonValue(cesta_k_ulozeni_txt);
     TXTulozeni.append(novaCesta);
     int velikostPole = TXTulozeni.size();
-    writeJson(TXTulozeni,"adresarTXT_ulozeni");
+    QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
+    writeJson(souborScestami,TXTulozeni,"adresarTXT_ulozeni",t);
     ui->CB_ulozeni_videa->addItem(TXTulozeni[velikostPole-1].toString());
 }
 
@@ -113,22 +122,6 @@ void t_b_HO::on_ulozeni_cest_clicked()
     zapis.open(QIODevice::WriteOnly);
     zapis.write(documentString.toLocal8Bit());
     zapis.close();
-}
-
-QJsonObject t_b_HO::readJson(QFile &soubor)
-{
-    QByteArray val;
-    soubor.open(QIODevice::ReadOnly | QIODevice::Text);
-    val = soubor.readAll();
-    soubor.close();
-    qDebug() << val;
-    QJsonDocument d = QJsonDocument::fromJson(val);
-    QJsonObject sett2 = d.object();
-    qDebug()<<sett2;
-    QJsonArray value = sett2["cestaKvideim"].toArray();
-    qDebug()<<value.size()<<value[0].toString();
-    //QJsonValue value2 = value[0].toValue();
-    return sett2;
 }
 
 void t_b_HO::ziskejCestyZJson(QJsonArray& poleCest, QComboBox *box, QStringList &list)
@@ -182,17 +175,4 @@ void t_b_HO::vybranaCestaString(QString cesta)
         TXTulozeniAktual = cesta;
 
     //qDebug()<<cesta;
-}
-
-void t_b_HO::writeJson(QJsonArray pole, QString typ)
-{
-    souborScestami[typ] = pole;
-    QJsonDocument document;
-    document.setObject(souborScestami);
-    QString documentString = document.toJson();
-    QFile zapis;
-    zapis.setFileName("D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json");
-    zapis.open(QIODevice::WriteOnly);
-    zapis.write(documentString.toLocal8Bit());
-    zapis.close();
 }
