@@ -1,4 +1,4 @@
-#include "errordialog.h"
+#include "dialogy/errordialog.h"
 #include "ui_errordialog.h"
 
 #include <QtGui>

@@ -1,4 +1,4 @@
-#include "cpuwidget.h"
+#include "vykon/cpuwidget.h"
 #include "util/systemmonitor.h"
 //#include <QtCharts/QAreaSeries>
 #include <QDebug>

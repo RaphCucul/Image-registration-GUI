@@ -1,7 +1,7 @@
 #include "multiplevideoet.h"
 #include "ui_multiplevideoet.h"
 #include "util/souborove_operace.h"
-#include "util/entropie.h"
+#include "analyza_obrazu/entropie.h"
 #include "dialogy/grafet.h"
 
 #include <opencv2/opencv.hpp>

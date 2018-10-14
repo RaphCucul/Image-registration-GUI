@@ -1,5 +1,5 @@
 #include "multiPOC_Ai1.h"
-#include "util/upravy_obrazu.h"
+#include "analyza_obrazu/upravy_obrazu.h"
 #include "licovani/fazova_korelace_funkce.h"
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -8,7 +8,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <QDebug>
-#include <util/pouzij_frangiho.h>
+#include "analyza_obrazu/pouzij_frangiho.h"
 
 using cv::Mat;
 using cv::Rect;

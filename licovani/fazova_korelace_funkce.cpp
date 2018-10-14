@@ -1,5 +1,5 @@
 #include "fazova_korelace_funkce.h"
-#include "util/upravy_obrazu.h"
+#include "analyza_obrazu/upravy_obrazu.h"
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgproc/imgproc_c.h"

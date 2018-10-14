@@ -3,7 +3,7 @@
 #include "fancy_staff/systemmonitorwidget.h"
 #include <QWidget>
 #include <QtCharts/QLineSeries>
-#include "qcustomplot.h"
+#include "fancy_staff/qcustomplot.h"
 
 class HddWidget : public SystemMonitorWidget
 {

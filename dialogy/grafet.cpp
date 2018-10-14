@@ -1,5 +1,5 @@
 #include "dialogy/grafet.h"
-#include "util/entropie.h"
+#include "analyza_obrazu/entropie.h"
 #include "util/util_grafet.h"
 #include "ui_grafet.h"
 #include <algorithm>

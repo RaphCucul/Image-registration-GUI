@@ -1,6 +1,6 @@
-#include "hddwidget.h"
+#include "vykon/hddwidget.h"
 #include "util/systemmonitor.h"
-#include "qcustomplot.h"
+#include "fancy_staff/qcustomplot.h"
 #include <QtCharts/QAreaSeries>
 
 using namespace QtCharts;

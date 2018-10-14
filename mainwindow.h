@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "dialogy/t_b_ho.h"
-#include "dialogy/zalozky.h"
+#include "hlavni_program/t_b_ho.h"
+#include "hlavni_program/zalozky.h"
 #include "vykon/cpuwidget.h"
 #include "vykon/hddusageplot.h"
 #include "vykon/memorywidget.h"

@@ -1,4 +1,4 @@
-#include "hddusageplot.h"
+#include "vykon/hddusageplot.h"
 #include "fancy_staff/qcustomplot.h"
 
 HddUsagePlot::HddUsagePlot(QWidget *parent) : QCustomPlot (parent),

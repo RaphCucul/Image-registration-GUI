@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <vector>
-#include "qcustomplot.h"
+#include "fancy_staff/qcustomplot.h"
 
 namespace Ui {
 class GrafET;

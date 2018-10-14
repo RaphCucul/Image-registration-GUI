@@ -1,4 +1,4 @@
-#include "memorywidget.h"
+#include "vykon/memorywidget.h"
 #include "util/systemmonitor.h"
 //#include <QtCharts/QAreaSeries>
 #include <QFuture>

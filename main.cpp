@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "dialogy/zalozky.h"
+#include "hlavni_program/zalozky.h"
 #include "vykon/cpuwidget.h"
 #include "vykon/hddusageplot.h"
 #include "vykon/memorywidget.h"

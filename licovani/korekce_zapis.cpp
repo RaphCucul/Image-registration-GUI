@@ -1,8 +1,8 @@
 #include "licovani/korekce_zapis.h"
 #include "licovani/multiPOC_Ai1.h"
-#include "util/upravy_obrazu.h"
-#include "util/korelacni_koeficient.h"
-#include "util/pouzij_frangiho.h"
+#include "analyza_obrazu/upravy_obrazu.h"
+#include "analyza_obrazu/korelacni_koeficient.h"
+#include "analyza_obrazu/pouzij_frangiho.h"
 #include "licovani/fazova_korelace_funkce.h"
 
 #include <opencv2/core.hpp>

@@ -1,6 +1,6 @@
-#include "clickimageevent.h"
+#include "dialogy/clickimageevent.h"
 #include "ui_clickimageevent.h"
-#include "util/upravy_obrazu.h"
+#include "analyza_obrazu/upravy_obrazu.h"
 
 #include <QGraphicsView>
 #include <QPoint>

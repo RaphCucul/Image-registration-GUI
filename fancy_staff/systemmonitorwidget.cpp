@@ -1,4 +1,4 @@
-#include "systemmonitorwidget.h"
+#include "fancy_staff/systemmonitorwidget.h"
 #include <QtCharts/QChartView>
 #include <QVBoxLayout>
 using namespace QtCharts;

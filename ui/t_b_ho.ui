@@ -2,22 +2,34 @@
 <ui version="4.0">
  <class>t_b_HO</class>
  <widget class="QWidget" name="t_b_HO">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>485</width>
-    <height>180</height>
+    <height>208</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="autoFillBackground">
+   <bool>true</bool>
+  </property>
   <widget class="QComboBox" name="CB_slozka_txt">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>80</y>
+     <x>20</x>
+     <y>100</y>
      <width>311</width>
      <height>20</height>
     </rect>
@@ -32,8 +44,8 @@
   <widget class="QComboBox" name="CB_ulozeni_videa">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>50</y>
+     <x>20</x>
+     <y>70</y>
      <width>311</width>
      <height>20</height>
     </rect>
@@ -42,8 +54,8 @@
   <widget class="QPushButton" name="cesta_k_videim">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>20</y>
+     <x>340</x>
+     <y>40</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -55,8 +67,8 @@
   <widget class="QPushButton" name="txt_slozka">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>80</y>
+     <x>340</x>
+     <y>100</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -68,8 +80,8 @@
   <widget class="QComboBox" name="CB_ulozeni_txt">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>110</y>
+     <x>20</x>
+     <y>130</y>
      <width>311</width>
      <height>20</height>
     </rect>
@@ -78,8 +90,8 @@
   <widget class="QPushButton" name="ulozeni_videa">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>50</y>
+     <x>340</x>
+     <y>70</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -91,8 +103,8 @@
   <widget class="QPushButton" name="ulozeni_txt">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>110</y>
+     <x>340</x>
+     <y>130</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -104,8 +116,8 @@
   <widget class="QComboBox" name="CB_cesta_k_videim">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>20</y>
+     <x>20</x>
+     <y>40</y>
      <width>311</width>
      <height>20</height>
     </rect>
@@ -117,14 +129,27 @@
   <widget class="QPushButton" name="ulozeni_cest">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>140</y>
+     <x>200</x>
+     <y>160</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
     <string>Uložit cesty</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>311</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="frame">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

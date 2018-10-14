@@ -1,6 +1,6 @@
 #include "dialogy/singlevideoet.h"
 #include "ui_singlevideoet.h"
-#include "util/entropie.h"
+#include "analyza_obrazu/entropie.h"
 #include "dialogy/grafet.h"
 
 #include <opencv2/opencv.hpp>
@@ -106,7 +106,7 @@ void SingleVideoET::on_vypocetET_clicked()
 {
     QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
     cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
-    int uspech_analyzy = entropie_tennengrad_videa(this,cap,aktualniEntropie,aktualniTennengrad,ui->prubehVypoctu);
+    int uspech_analyzy = entropie_tennengrad_videa(cap,aktualniEntropie,aktualniTennengrad,ui->prubehVypoctu);
     if (uspech_analyzy == 0)
         qDebug()<<"Výpočty skončily chybou.";
     else
