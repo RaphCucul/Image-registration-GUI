@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <opencv2/opencv.hpp>
 #include <QVector>
+#include "util/vicevlaknovezpracovani.h"
 namespace Ui {
 class SingleVideoET;
 }
@@ -23,11 +24,14 @@ private slots:
     void on_svetelnaAnomalie_stateChanged(int arg1);
     void on_vypocetET_clicked();
     void on_zobrazGrafET_clicked();
-
+    void zpracovano();
     void on_pushButton_clicked();
 
 private:
     Ui::SingleVideoET *ui;
+    VicevlaknoveZpracovani* vlaknoET;
+    double pocetSnimkuVidea;
+    int analyzaETdokoncena = 0;
     QVector<QString> vybraneVideoETSingle;
     bool spravnostVideaETSingle = false;
     bool volbaCasZnackyETSingle = false;

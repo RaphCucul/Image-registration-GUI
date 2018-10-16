@@ -4,6 +4,7 @@
 #include "hlavni_program/t_b_ho.h"
 #include "dialogy/grafet.h"
 #include "util/souborove_operace.h"
+#include "util/vicevlaknovezpracovani.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -111,7 +112,8 @@ void SingleVideoET::on_vypocetET_clicked()
 {
     QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
     cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
-    int uspech_analyzy = entropie_tennengrad_videa(cap,aktualniEntropie,aktualniTennengrad,ui->prubehVypoctu);
+    pocetSnimkuVidea = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    /*int uspech_analyzy = entropie_tennengrad_videa(cap,aktualniEntropie,aktualniTennengrad,ui->prubehVypoctu);
     if (uspech_analyzy == 0)
         qDebug()<<"Výpočty skončily chybou.";
     else
@@ -119,7 +121,11 @@ void SingleVideoET::on_vypocetET_clicked()
         entropie.push_back(aktualniEntropie);
         tennengrad.push_back(aktualniTennengrad);
         ui->zobrazGrafET->setEnabled(true);
-    }
+    }*/
+    vlaknoET = new VicevlaknoveZpracovani(cap,aktualniEntropie,aktualniTennengrad,1);
+    connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
+    connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
+    vlaknoET->start();
 }
 
 void SingleVideoET::on_zobrazGrafET_clicked()
@@ -150,4 +156,13 @@ void SingleVideoET::on_pushButton_clicked()
     zapis.open(QIODevice::WriteOnly);
     zapis.write(documentString.toLocal8Bit());
     zapis.close();
+}
+
+void SingleVideoET::zpracovano()
+{
+    QVector<double> pomE = vlaknoET->vypocitanaEntropie();
+    QVector<double> pomT = vlaknoET->vypocitanyTennengrad();
+    entropie.push_back(pomE);
+    tennengrad.push_back(pomT);
+    ui->zobrazGrafET->setEnabled(true);
 }

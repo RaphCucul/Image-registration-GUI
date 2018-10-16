@@ -108,10 +108,14 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
         QVector<double> entropyActual,tennengradActual;
         entropyActual.fill(0.0,frameCount);
         tennengradActual.fill(0.0,frameCount);
+        vlaknoET = new VicevlaknoveZpracovani(cap,entropyActual,tennengradActual,1);
+        connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->progBar,SLOT(setValue(int)));
+        connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
+        vlaknoET->start();
         /*QFuture<int> future = QtConcurrent::run(entropie_tennengrad_videa,this,cap,entropyActual,tennengradActual,
                                                 ui->progBar);
         int AnalysisSuccess = future.result();*/
-        int AnalysisSuccess = entropie_tennengrad_videa(cap,entropyActual,tennengradActual,ui->progBar);
+        /*int AnalysisSuccess = entropie_tennengrad_videa(cap,entropyActual,tennengradActual,ui->progBar);
         if (AnalysisSuccess == 0)
             qDebug()<<"Error occured when calculating entropy and tennengrad!";
         else
@@ -121,7 +125,7 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
             QString onlyFolder,onlyVideoName,onlySuffix;
             zpracujJmeno(fullPath,onlyFolder,onlyVideoName,onlySuffix);
             videoNames.push_back(onlyVideoName);
-        }
+        }*/
     }
 }
 
@@ -174,4 +178,13 @@ void MultipleVideoET::on_pushButton_clicked()
         zapis.write(documentString.toLocal8Bit());
         zapis.close();
     }
+}
+
+void MultipleVideoET::zpracovano()
+{
+    QVector<double> pomE = vlaknoET->vypocitanaEntropie();
+    QVector<double> pomT = vlaknoET->vypocitanyTennengrad();
+    entropie.push_back(pomE);
+    tennengrad.push_back(pomT);
+    ui->zobrazVysledkyPB->setEnabled(true);
 }

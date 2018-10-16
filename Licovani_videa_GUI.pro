@@ -102,7 +102,6 @@ FORMS += \
     ui/licovanidvou.ui \
     ui/licovanividea.ui \
     ui/mainwindow.ui \
-    ui/vysledeklicovanidvou.ui \
     dialogy/grafet.ui \
     dialogy/singlevideoet.ui \
     dialogy/multiplevideoet.ui \
