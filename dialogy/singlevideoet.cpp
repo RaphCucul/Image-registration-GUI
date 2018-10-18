@@ -31,6 +31,35 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->svetelnaAnomalie->setEnabled(false);
     ui->vypocetET->setEnabled(false);
     ui->zobrazGrafET->setEnabled(false);
+
+    if (videaKanalyzeAktual == "")
+        ui->vybraneVideo->setPlaceholderText("Vybrane video");
+    else
+    {
+        QString slozka,jmeno,koncovka;
+        QStringList nalezeneSoubory;
+        int pocetNalezenych;
+        analyzuj_jmena_souboru_avi(videaKanalyzeAktual,nalezeneSoubory,pocetNalezenych,"avi");
+        if (pocetNalezenych != 0)
+        {
+            QString celeJmeno = videaKanalyzeAktual+"/"+nalezeneSoubory.at(0);
+            zpracujJmeno(celeJmeno,slozka,jmeno,koncovka);
+            if (vybraneVideoETSingle.length() == 0)
+            {
+                vybraneVideoETSingle.push_back(slozka);
+                vybraneVideoETSingle.push_back(jmeno);
+                vybraneVideoETSingle.push_back(koncovka);
+            }
+            else
+            {
+                vybraneVideoETSingle.clear();
+                vybraneVideoETSingle.push_back(slozka);
+                vybraneVideoETSingle.push_back(jmeno);
+                vybraneVideoETSingle.push_back(koncovka);
+            }
+            ui->vybraneVideo->setText(jmeno);
+        }
+    }
 }
 
 SingleVideoET::~SingleVideoET()
@@ -92,7 +121,7 @@ void SingleVideoET::on_vybraneVideo_textChanged(const QString &arg1)
     }
     else
     {
-        ui->vybraneVideo->setStyleSheet("color: #00FF00");
+        ui->vybraneVideo->setStyleSheet("color: #339900");
         spravnostVideaETSingle = true;
         vybraneVideoETSingle[1] = arg1;
     }
@@ -111,8 +140,8 @@ void SingleVideoET::on_svetelnaAnomalie_stateChanged(int arg1)
 void SingleVideoET::on_vypocetET_clicked()
 {
     QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
-    cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
-    pocetSnimkuVidea = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    /*cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
+    pocetSnimkuVidea = cap.get(CV_CAP_PROP_FRAME_COUNT);*/
     /*int uspech_analyzy = entropie_tennengrad_videa(cap,aktualniEntropie,aktualniTennengrad,ui->prubehVypoctu);
     if (uspech_analyzy == 0)
         qDebug()<<"Výpočty skončily chybou.";
@@ -122,7 +151,9 @@ void SingleVideoET::on_vypocetET_clicked()
         tennengrad.push_back(aktualniTennengrad);
         ui->zobrazGrafET->setEnabled(true);
     }*/
-    vlaknoET = new VicevlaknoveZpracovani(cap,aktualniEntropie,aktualniTennengrad,1);
+    QStringList pom;
+    pom.append(kompletni_cesta);
+    vlaknoET = new VicevlaknoveZpracovani(pom);
     connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
     connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
     vlaknoET->start();
@@ -130,8 +161,8 @@ void SingleVideoET::on_vypocetET_clicked()
 
 void SingleVideoET::on_zobrazGrafET_clicked()
 {
-    QVector<QString> vektorKzapisu;
-    vektorKzapisu.push_back(vybraneVideoETSingle[1]);
+    QStringList vektorKzapisu;
+    vektorKzapisu.append(vybraneVideoETSingle[1]);
     GrafET* graf_ET = new GrafET(entropie,tennengrad,vektorKzapisu,this);
     graf_ET->setModal(true);
     graf_ET->show();
@@ -160,9 +191,7 @@ void SingleVideoET::on_pushButton_clicked()
 
 void SingleVideoET::zpracovano()
 {
-    QVector<double> pomE = vlaknoET->vypocitanaEntropie();
-    QVector<double> pomT = vlaknoET->vypocitanyTennengrad();
-    entropie.push_back(pomE);
-    tennengrad.push_back(pomT);
+    entropie = vlaknoET->vypocitanaEntropie();
+    tennengrad = vlaknoET->vypocitanyTennengrad();
     ui->zobrazGrafET->setEnabled(true);
 }

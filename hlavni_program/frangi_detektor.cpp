@@ -90,6 +90,7 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
     connect(ui->beta_two_DSB, SIGNAL(editingFinished()),this,
             SLOT(zmena_hodnoty_slider_two()));
     ui->cisloSnimku->setEnabled(false);
+    ui->Frangi_filtr->setEnabled(false);
 }
 
 Frangi_detektor::~Frangi_detektor()
@@ -268,8 +269,10 @@ void Frangi_detektor::on_souborKAnalyzePB_clicked()
     QLineEdit cislo_snimku;
     if (koncovka == "avi"){
         this->ui->cisloSnimku->setEnabled(true);
+        ui->vybranySoubor->setText(rozborVybranehoSouboru[1]);
+        ui->Frangi_filtr->setEnabled(true);
     }
-    ui->vybranySoubor->setText(rozborVybranehoSouboru[1]);
+
 }
 
 /******************************************************************************************/

@@ -108,6 +108,22 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     QWidget* widgetVideoLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
     QLineEdit* VideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
 
+    QSignalMapper* m_sigmapper = new QSignalMapper(this);
+    connect(VideoPB,SIGNAL(clicked()),m_sigmapper,SLOT(map()));
+    m_sigmapper->setMapping(VideoPB,VideoLE);
+    QObject::connect(m_sigmapper, SIGNAL(mapped(QWidget *)),this, SLOT(vyberVideaPB_clicked(QWidget *)));
+    QObject::connect(widgetVideoLE,SIGNAL(textChanged(const QString &)),this,
+                     SLOT(Slot_VideoLE_textChanged(const QString&)));
+    /********************************************************/
+    QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
+    QLineEdit* ReferenceLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
+    QWidget* widgetPosunutehoLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
+    QLineEdit* PosunutyLE = qobject_cast<QLineEdit*>(widgetPosunutehoLE);
+    QObject::connect(ReferenceLE,SIGNAL(textChanged(const QString &)),
+                     this,SLOT(ReferenceLE_textChanged(const QString&)));
+    QObject::connect(PosunutyLE,SIGNAL(textChanged(const QString &)),
+                     this,SLOT(PosunutyLE_textChanged(const QString&)));
+    /********************************************************/
     if (videaKanalyzeAktual == "")
         VideoLE->setPlaceholderText("vybrane video");
     else
@@ -136,22 +152,6 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
             VideoLE->setText(jmeno);
         }
     }
-
-    QSignalMapper* m_sigmapper = new QSignalMapper(this);
-    connect(VideoPB,SIGNAL(clicked()),m_sigmapper,SLOT(map()));
-    m_sigmapper->setMapping(VideoPB,VideoLE);
-    QObject::connect(m_sigmapper, SIGNAL(mapped(QWidget *)),this, SLOT(vyberVideaPB_clicked(QWidget *)));
-    QObject::connect(widgetVideoLE,SIGNAL(textChanged(const QString &)),this,
-                     SLOT(Slot_VideoLE_textChanged(const QString&)));
-    /********************************************************/
-    QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
-    QLineEdit* ReferenceLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
-    QWidget* widgetPosunutehoLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
-    QLineEdit* PosunutyLE = qobject_cast<QLineEdit*>(widgetPosunutehoLE);
-    QObject::connect(ReferenceLE,SIGNAL(textChanged(const QString &)),
-                     this,SLOT(ReferenceLE_textChanged(const QString&)));
-    QObject::connect(PosunutyLE,SIGNAL(textChanged(const QString &)),
-                     this,SLOT(PosunutyLE_textChanged(const QString&)));
 }
 
 LicovaniDvou::~LicovaniDvou()

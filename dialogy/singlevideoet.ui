@@ -29,7 +29,7 @@
     <number>0</number>
    </property>
    <property name="placeholderText">
-    <string>Vybrané video</string>
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="vyberVidea">

@@ -3,23 +3,25 @@
 #include <QThread>
 #include <opencv2/opencv.hpp>
 #include <QVector>
+#include <QStringList>
 
 class VicevlaknoveZpracovani : public QThread
 {
     Q_OBJECT
 public:
-   explicit VicevlaknoveZpracovani(cv::VideoCapture capture, QVector<double>& entropie,
-                           QVector<double>& tennengrad,double pocetVidei, QObject* parent=nullptr);
+   explicit VicevlaknoveZpracovani(QStringList videaKanalyza, QObject* parent=nullptr);
     void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad);
     double frekvence_binu(cv::Mat &histogram, int &velikost_histogramu);
-    QVector<double> vypocitanaEntropie();
-    QVector<double> vypocitanyTennengrad();
+    QVector<QVector<double>> vypocitanaEntropie();
+    QVector<QVector<double>> vypocitanyTennengrad();
 private:
     void run();
-    cv::VideoCapture cap;
-    QVector<double> entropieAktual;
-    QVector<double> tennengradAktual;
-    double pocetzpracovavanychVidei;
+    QVector<QVector<double>> entropieKomplet;
+    QVector<QVector<double>> tennengradKomplet;
+    QStringList zpracujVidea;
+    double pocetVidei;
+    double procento;
+
 signals:
     void percentageCompleted(int);
     void hotovo();

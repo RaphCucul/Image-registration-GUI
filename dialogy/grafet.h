@@ -14,7 +14,8 @@ class GrafET : public QDialog
     Q_OBJECT
 
 public:
-    explicit GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<QString> jmeno_videa,QWidget *parent = nullptr);
+    explicit GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T,
+                    QStringList jmeno_videa,QWidget *parent = nullptr);
     ~GrafET();
     void vyhledatExtremy(QVector<QVector<double>>& zkoumanyVektor,QVector<double>& zapisSem,
                          int typExtremu,int pocetAnalyzovanychVidei);
@@ -43,7 +44,7 @@ private:
     QVector<QVector<double>> tennengradStandard;
     QVector<QVector<double>> HP_entropie,DP_entropie,HP_tennengrad,DP_tennengrad;
     QVector<double> snimkyRozsah;
-    QVector<QString> JmenoVidea;
+    QStringList JmenoVidea;
     int pocetSnimkuVidea = 0;
     int pocetVidei = 0;
     int aktualniIndex = 0;

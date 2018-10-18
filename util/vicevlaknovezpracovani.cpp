@@ -11,56 +11,63 @@
 #include <QThread>
 
 using cv::Mat;
-VicevlaknoveZpracovani::VicevlaknoveZpracovani(cv::VideoCapture capture, QVector<double> &entropie, QVector<double> &tennengrad, double pocetVidei, QObject *parent):QThread(parent)
+VicevlaknoveZpracovani::VicevlaknoveZpracovani(QStringList videaKanalyza, QObject *parent):QThread(parent)
 {
-    cap = capture;
-    entropieAktual = entropie;
-    tennengradAktual = tennengrad;
-    pocetzpracovavanychVidei = pocetVidei;
+    zpracujVidea = videaKanalyza;
+    pocetVidei = double(videaKanalyza.count());
 }
 
 void VicevlaknoveZpracovani::run()
 {
-    int uspech_analyzy = 0;
-    if (cap.isOpened() == 0)
+    emit percentageCompleted(0);
+    procento = 0;
+    for (int kolikateVideo = 0; kolikateVideo < zpracujVidea.count(); kolikateVideo++)
     {
-        qDebug()<<"Video nelze pouzit pro analyzu entropie a tennengrada!";
-        uspech_analyzy = 0;
-    }
-    else
-    {
-        double pocet_snimku_videa = (cap.get(CV_CAP_PROP_FRAME_COUNT));
-        qDebug()<< "Analyza videa: ";
-        for (double a = 0; a < pocet_snimku_videa; a++)
+        QString fullPath = zpracujVidea.at(kolikateVideo);
+        qDebug()<<"Processing: "<<fullPath;
+        cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
+        int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+        QVector<double> entropyActual,tennengradActual;
+        entropyActual.fill(0.0,frameCount);
+        tennengradActual.fill(0.0,frameCount);
+        int uspech_analyzy = 0;
+        if (cap.isOpened() == 0)
+            continue;
+        else
         {
-            //qDebug()<<a;
-            //double procento = (a/pocet_snimku_videa)*100.0;
-            //qDebug()<<"emitting "<<a;
-            emit percentageCompleted(qRound(((a/pocet_snimku_videa)*100.0)/pocetzpracovavanychVidei));
-
-            //QCoreApplication::processEvents(); // tato funkce frčí v jiném vlákně - mohu sledovat
-            //percentageComplete(procento);
-            // vytížení procesoru v reálném čase
-
-            cv::Mat snimek;
-            double hodnota_entropie;
-            cv::Scalar hodnota_tennengrad;
-            cap.set(CV_CAP_PROP_POS_FRAMES,(a));
-            if (!cap.read(snimek))
-                    continue;
-            else
-            {
-                vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
-                double pom = hodnota_tennengrad[0];
-                //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
-                entropieAktual[int(a)] = (hodnota_entropie);
-                tennengradAktual[int(a)] = (pom);
-                snimek.release();
+            double pocet_snimku_videa = (cap.get(CV_CAP_PROP_FRAME_COUNT));
+            qDebug()<< "Analyza videa: "<<kolikateVideo;
+            for (double a = 0; a < pocet_snimku_videa; a++)
+            {               
+                //qDebug()<<(kolikateVideo/pocetVidei)*100;//+((a/pocet_snimku_videa)*100.0)/pocetVidei;
+                    emit percentageCompleted(qRound((kolikateVideo/pocetVidei)*100+((a/pocet_snimku_videa)*100.0)/pocetVidei));
+                //QCoreApplication::processEvents(); // tato funkce frčí v jiném vlákně - mohu sledovat
+                cv::Mat snimek;
+                double hodnota_entropie;
+                cv::Scalar hodnota_tennengrad;
+                cap.set(CV_CAP_PROP_POS_FRAMES,(a));
+                if (!cap.read(snimek))
+                        continue;
+                else
+                {
+                    vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
+                    double pom = hodnota_tennengrad[0];
+                    //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
+                    entropyActual[int(a)] = (hodnota_entropie);
+                    tennengradActual[int(a)] = (pom);
+                    snimek.release();
+                }
             }
+            uspech_analyzy = 1;
+            procento = qRound(100.0/kolikateVideo+2);
         }
-        uspech_analyzy = 1;
+        entropieKomplet.push_back(entropyActual);
+        tennengradKomplet.push_back(tennengradActual);
+        qDebug()<<entropieKomplet.size()<<tennengradKomplet.size();
     }
+    emit percentageCompleted(100);
     emit hotovo();
+
 }
 
 void VicevlaknoveZpracovani::vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad)
@@ -119,12 +126,12 @@ double VicevlaknoveZpracovani::frekvence_binu(cv::Mat &histogram, int &velikost_
     return frekvence;
 }
 
-QVector<double> VicevlaknoveZpracovani::vypocitanaEntropie()
+QVector<QVector<double> > VicevlaknoveZpracovani::vypocitanaEntropie()
 {
-    return entropieAktual;
+    return entropieKomplet;
 }
 
-QVector<double> VicevlaknoveZpracovani::vypocitanyTennengrad()
+QVector<QVector<double> > VicevlaknoveZpracovani::vypocitanyTennengrad()
 {
-    return tennengradAktual;
+    return tennengradKomplet;
 }

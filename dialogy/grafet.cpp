@@ -1,13 +1,14 @@
 #include "dialogy/grafet.h"
 #include "analyza_obrazu/entropie.h"
 #include "util/util_grafet.h"
+#include "util/souborove_operace.h"
 #include "ui_grafet.h"
 #include <algorithm>
 #include <QVector>
 #include <QWidget>
 #include <QHBoxLayout>
 
-GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<QString> jmeno_videa, QWidget *parent) :
+GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QStringList jmeno_videa, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GrafET)
 {
@@ -73,12 +74,15 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<Q
     tabLayout->addWidget(GrafickyObjekt);
     tabLayout->addWidget(GrafickyObjekt);
     tabWidget->setLayout(tabLayout);*/
-
+    ui->grafyTBW->setStyleSheet("QTabBar::tab { height: 15px; width: 105px; }");
     for (int b = 0; b < pocetVidei;b++)
     {
         QWidget *WSCustomPlot = new QWidget();
         QCustomPlot* GrafickyObjekt = new QCustomPlot(WSCustomPlot);
-        ui->grafyTBW->addTab(GrafickyObjekt,JmenoVidea[b]);
+        QString slozka,jmeno,koncovka;
+        QString celek = JmenoVidea.at(b);
+        zpracujJmeno(celek,slozka,jmeno,koncovka);
+        ui->grafyTBW->addTab(GrafickyObjekt,jmeno);
     }
 
     /// propojení všech prvků s funkcemi ovládajícími fungování grafu
@@ -94,7 +98,6 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<Q
     QObject::connect(ui->T_DP,SIGNAL(valueChanged(double)),this,SLOT(TDPZ()));
     QObject::connect(ui->grafyTBW,SIGNAL(currentChanged(int)),this,SLOT(zmenaTabu(int)));
 
-    ui->grafyTBW->setStyleSheet("height: 15px;width: 42px;padding-top:2px;padding-bottom:,2px");
     ui->grafyTBW->setCurrentIndex(0);
     aktualniIndex = 0;
     pocetSnimkuVidea = entropie[aktualniIndex].length();

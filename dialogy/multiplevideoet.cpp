@@ -98,7 +98,11 @@ void MultipleVideoET::on_celaSlozkaPB_clicked()
 
 void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
 {
-    qDebug()<<"sezVid contains "<<sezVid.count()<<" videos.";
+    vlaknoET = new VicevlaknoveZpracovani(sezVid);
+    connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->progBar,SLOT(setValue(int)));
+    connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
+    vlaknoET->start();
+    /*qDebug()<<"sezVid contains "<<sezVid.count()<<" videos.";
     for (int a = 0; a < sezVid.count(); a++)
     {
         QString fullPath = sezVid.at(a);
@@ -108,10 +112,10 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
         QVector<double> entropyActual,tennengradActual;
         entropyActual.fill(0.0,frameCount);
         tennengradActual.fill(0.0,frameCount);
-        vlaknoET = new VicevlaknoveZpracovani(cap,entropyActual,tennengradActual,1);
+        vlaknoET = new VicevlaknoveZpracovani();
         connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->progBar,SLOT(setValue(int)));
         connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
-        vlaknoET->start();
+        vlaknoET->start();*/
         /*QFuture<int> future = QtConcurrent::run(entropie_tennengrad_videa,this,cap,entropyActual,tennengradActual,
                                                 ui->progBar);
         int AnalysisSuccess = future.result();*/
@@ -125,13 +129,13 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
             QString onlyFolder,onlyVideoName,onlySuffix;
             zpracujJmeno(fullPath,onlyFolder,onlyVideoName,onlySuffix);
             videoNames.push_back(onlyVideoName);
-        }*/
-    }
+        }
+    }*/
 }
 
 void MultipleVideoET::on_zobrazVysledkyPB_clicked()
 {
-    GrafET* graf_ET = new GrafET(entropie,tennengrad,videoNames,this);
+    GrafET* graf_ET = new GrafET(entropie,tennengrad,sezVid,this);
     graf_ET->setModal(true);
     graf_ET->show();
 }
@@ -182,9 +186,7 @@ void MultipleVideoET::on_pushButton_clicked()
 
 void MultipleVideoET::zpracovano()
 {
-    QVector<double> pomE = vlaknoET->vypocitanaEntropie();
-    QVector<double> pomT = vlaknoET->vypocitanyTennengrad();
-    entropie.push_back(pomE);
-    tennengrad.push_back(pomT);
+    entropie = vlaknoET->vypocitanaEntropie();
+    tennengrad = vlaknoET->vypocitanyTennengrad();
     ui->zobrazVysledkyPB->setEnabled(true);
 }
