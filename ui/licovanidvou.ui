@@ -194,7 +194,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QLabel" name="label_8">
+  <widget class="QLabel" name="entropie_reference">
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -207,7 +207,7 @@
     <string>Entropie reference</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_9">
+  <widget class="QLabel" name="tennengrad_reference">
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -220,7 +220,7 @@
     <string>tennengrad reference</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_10">
+  <widget class="QLabel" name="entropie_posunuty">
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -233,7 +233,7 @@
     <string>Entropie posunutý</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_11">
+  <widget class="QLabel" name="tennengrad_posunuty">
    <property name="geometry">
     <rect>
      <x>290</x>

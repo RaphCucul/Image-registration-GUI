@@ -31,33 +31,45 @@ SOURCES += \
     analyza_obrazu/korelacni_koeficient.cpp \
     analyza_obrazu/pouzij_frangiho.cpp \
     analyza_obrazu/upravy_obrazu.cpp \
+###############################################
     dialogy/multiplevideoet.cpp \
     dialogy/clickimageevent.cpp \
     dialogy/errordialog.cpp \
     dialogy/grafet.cpp \
     dialogy/singlevideoet.cpp \
+    dialogy/singlevideolicovani.cpp \
+###############################################
     fancy_staff/qcustomplot.cpp \
     fancy_staff/systemmonitorwidget.cpp \
     fancy_staff/zasobnik_stranek.cpp \
+###############################################
     hlavni_program/frangi_detektor.cpp \
     hlavni_program/licovanidvou.cpp \
     hlavni_program/licovanividea.cpp \
     hlavni_program/t_b_ho.cpp \
     hlavni_program/vysledeklicovanidvou.cpp \
     hlavni_program/zalozky.cpp \
+################################################
     licovani/fazova_korelace_funkce.cpp \
     licovani/korekce_zapis.cpp \
     licovani/multiPOC_Ai1.cpp \
+    licovani/rozhodovaci_algoritmy.cpp \
+################################################
     util/souborove_operace.cpp \
     util/systemmonitor.cpp \
     util/util_grafet.cpp \
     util/util_licovanividea.cpp \
     util/vicevlaknovezpracovani.cpp \
+    util/licovaniparent.cpp \
+    util/vlaknolicovani.cpp \
+    util/prace_s_vektory.cpp \
+################################################
     vykon/cpuwidget.cpp \
     vykon/hddusageplot.cpp \
     vykon/hddwidget.cpp \
     vykon/memorywidget.cpp \
     vykon/windowsimpl.cpp \
+################################################
     main.cpp \
     mainwindow.cpp
 HEADERS += \
@@ -94,7 +106,12 @@ HEADERS += \
     vykon/knihovny_pro_vykony.h \
     vykon/memorywidget.h \
     vykon/windowsimpl.h \
-    mainwindow.h
+    mainwindow.h \
+    util/licovaniparent.h \
+    dialogy/singlevideolicovani.h \
+    util/vlaknolicovani.h \
+    licovani/rozhodovaci_algoritmy.h \
+    util/prace_s_vektory.h
 FORMS += \
     ui/t_b_ho.ui \
     ui/zalozky.ui \
@@ -106,7 +123,8 @@ FORMS += \
     dialogy/singlevideoet.ui \
     dialogy/multiplevideoet.ui \
     dialogy/errordialog.ui \
-    ui/vysledeklicovanidvou.ui
+    ui/vysledeklicovanidvou.ui \
+    dialogy/singlevideolicovani.ui
 RESOURCES += \
     ikonky.qrc
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>436</width>
+    <height>357</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QLineEdit" name="vybraneVideo">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>50</x>
      <y>30</y>
      <width>211</width>
      <height>20</height>
@@ -35,7 +35,7 @@
   <widget class="QPushButton" name="vyberVidea">
    <property name="geometry">
     <rect>
-     <x>244</x>
+     <x>274</x>
      <y>30</y>
      <width>111</width>
      <height>23</height>
@@ -48,7 +48,7 @@
   <widget class="QCheckBox" name="casovaZnacka">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>50</x>
      <y>70</y>
      <width>151</width>
      <height>18</height>
@@ -61,7 +61,7 @@
   <widget class="QCheckBox" name="svetelnaAnomalie">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>210</x>
      <y>70</y>
      <width>161</width>
      <height>18</height>
@@ -71,57 +71,179 @@
     <string>Přítomnost světelné anomálie</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="vypocetET">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>100</y>
-     <width>171</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Výpočet entropie a tennengradu</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="zobrazGrafET">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>140</y>
-     <width>161</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Zobrazit výsledky výpočtu</string>
-   </property>
-  </widget>
-  <widget class="QProgressBar" name="prubehVypoctu">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>250</y>
-     <width>118</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="value">
-    <number>0</number>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>100</y>
+     <x>280</x>
+     <y>230</y>
      <width>75</width>
-     <height>61</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
     <string>Uložit</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>110</y>
+     <width>41</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QLineEdit" name="oblastMaxima"/>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="uhelRotace"/>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="pocetIteraci"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>110</y>
+     <width>162</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Velikost oblasti výpočtu maxima</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Velikost tolerovaného úhlu rotace</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Nastavení počtu iterací lícování</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_4">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>110</y>
+     <width>169</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>rozsah 0 - 20</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>rozsah 0 - 0,5</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>rozsah neomezený od 1 výše</string>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::PlainText</enum>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>-1 znamená automatické nastavení</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>230</y>
+     <width>211</width>
+     <height>54</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_5">
+    <item>
+     <widget class="QPushButton" name="vypocetET">
+      <property name="text">
+       <string>Výpočet entropie a tennengradu</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="zobrazGrafET">
+      <property name="text">
+       <string>Zobrazit výsledky výpočtu</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>290</y>
+     <width>311</width>
+     <height>44</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_6">
+    <item>
+     <widget class="QLabel" name="informaceOprubehu">
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QProgressBar" name="prubehVypoctu">
+      <property name="value">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

@@ -2,6 +2,7 @@
 #include "dialogy/clickimageevent.h"
 #include "dialogy/singlevideoet.h"
 #include "dialogy/multiplevideoet.h"
+#include "dialogy/singlevideolicovani.h"
 #include "analyza_obrazu/entropie.h"
 #include "util/util_licovanividea.h"
 #include "dialogy/grafet.h"
@@ -31,8 +32,10 @@ LicovaniVidea::LicovaniVidea(QWidget *parent) :
     ui->setupUi(this);
     SingleVideoET* SVET = new SingleVideoET();
     MultipleVideoET* MVET = new MultipleVideoET();
+    SingleVideoLicovani* SVreg = new SingleVideoLicovani();
     ui->metody->addTab(SVET,"SVET");
     ui->metody->addTab(MVET,"MVET");
+    ui->metody->addTab(SVreg,"SVreg");
 }
 
 LicovaniVidea::~LicovaniVidea()

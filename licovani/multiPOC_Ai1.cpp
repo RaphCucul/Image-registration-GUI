@@ -17,7 +17,7 @@ using std::cout;
 using std::endl;
 int kompletni_slicovani(cv::VideoCapture& cap,
                         cv::Mat& referencni_snimek,
-                        int cislo_posunuty,
+                        double cislo_posunuty,
                         int &iterace,
                         double &oblastMaxima,
                         double &uhel,

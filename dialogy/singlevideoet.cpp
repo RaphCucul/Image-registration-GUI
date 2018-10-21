@@ -32,6 +32,13 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->vypocetET->setEnabled(false);
     ui->zobrazGrafET->setEnabled(false);
 
+    ui->oblastMaxima->setText("10");
+    oblastMaxima = 10.0;
+    ui->uhelRotace->setText("0.1");
+    uhel = 0.1;
+    ui->pocetIteraci->setText("-1");
+    iterace = -1;
+
     if (videaKanalyzeAktual == "")
         ui->vybraneVideo->setPlaceholderText("Vybrane video");
     else
@@ -58,6 +65,7 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
                 vybraneVideoETSingle.push_back(koncovka);
             }
             ui->vybraneVideo->setText(jmeno);
+            ui->vypocetET->setEnabled(true);
         }
     }
 }
@@ -70,13 +78,15 @@ SingleVideoET::~SingleVideoET()
 void SingleVideoET::on_vyberVidea_clicked()
 {
     QString referencniObrazek = QFileDialog::getOpenFileName(this,
-         "Vyberte referenční obrázek", "","*.avi;;Všechny soubory (*)");
-    int lastindexSlash = referencniObrazek.lastIndexOf("/");
+         "Vyberte referenční obrázek", videaKanalyzeAktual,"*.avi;;Všechny soubory (*)");
+    QString vybrana_slozka,vybrany_soubor,koncovka;
+    zpracujJmeno(referencniObrazek,vybrana_slozka,vybrany_soubor,koncovka);
+    /*int lastindexSlash = referencniObrazek.lastIndexOf("/");
     int lastIndexComma = referencniObrazek.length() - referencniObrazek.lastIndexOf(".");
     QString vybrana_slozka = referencniObrazek.left(lastindexSlash);
     QString vybrany_soubor = referencniObrazek.mid(lastindexSlash+1,
          (referencniObrazek.length()-lastindexSlash-lastIndexComma-1));
-    QString koncovka = referencniObrazek.right(lastIndexComma-1);
+    QString koncovka = referencniObrazek.right(lastIndexComma-1);*/
     if (vybraneVideoETSingle.length() == 0)
     {
         vybraneVideoETSingle.push_back(vybrana_slozka);
@@ -100,7 +110,7 @@ void SingleVideoET::on_vyberVidea_clicked()
     }
     else
     {
-        ui->vybraneVideo->setStyleSheet("color: #00FF00");
+        ui->vybraneVideo->setStyleSheet("color: #339900");
         spravnostVideaETSingle = true;
         ui->vypocetET->setEnabled(true);
         int pocet_snimku = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
@@ -194,4 +204,56 @@ void SingleVideoET::zpracovano()
     entropie = vlaknoET->vypocitanaEntropie();
     tennengrad = vlaknoET->vypocitanyTennengrad();
     ui->zobrazGrafET->setEnabled(true);
+}
+
+void SingleVideoET::on_oblastMaxima_textChanged(const QString &arg1)
+{
+    double oblast_maxima_minimum = 0.0;
+    double oblast_maxima_maximum = 20.0;
+    double zadane_cislo = arg1.toDouble();
+    if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
+    {
+        ui->oblastMaxima->setStyleSheet("QLineEdit#oblastMaxima{color: #FF0000}");
+        oblastMaxima = -1;
+    }
+    else
+    {
+        ui->oblastMaxima->setStyleSheet("QLineEdit#oblastMaxima{color: #00FF00}");
+        oblastMaxima = zadane_cislo;
+    }
+}
+
+void SingleVideoET::on_uhelRotace_textChanged(const QString &arg1)
+{
+    double oblast_maxima_minimum = 0.0;
+    double oblast_maxima_maximum = 0.5;
+    double zadane_cislo = arg1.toDouble();
+    if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
+    {
+        ui->uhelRotace->setStyleSheet("QLineEdit#uhelRotace{color: #FF0000}");
+        uhel = 0.1;
+    }
+    else
+    {
+        ui->uhelRotace->setStyleSheet("QLineEdit#uhelRotace{color: #00FF00}");
+        uhel = zadane_cislo;
+    }
+}
+
+void SingleVideoET::on_pocetIteraci_textChanged(const QString &arg1)
+{
+    int zadane_cislo = arg1.toInt();
+    if (zadane_cislo < 0 && zadane_cislo != -1)
+    {
+        ui->pocetIteraci->setStyleSheet("QLineEdit#pocetIteraci{color: #FF0000}");
+        iterace = -1;
+    }
+    if (zadane_cislo == -1 || zadane_cislo > 1)
+    {
+        ui->pocetIteraci->setStyleSheet("QLineEdit#pocetIteraci{color: #00FF00}");
+        if (zadane_cislo == -1)
+            iterace = -1;
+        else
+            iterace = zadane_cislo;
+    }
 }

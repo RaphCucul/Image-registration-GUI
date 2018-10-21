@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
+#include <QJsonObject>
 #include <opencv2/opencv.hpp>
 
 namespace Ui {
@@ -19,7 +20,7 @@ class Frangi_detektor : public QWidget
     Q_OBJECT
 
 public:
-    void inicializace_frangi_opt(QString &hodnota,int &pozice);
+    void inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, int &pozice);
     double data_z_frangi_opt(int pozice);
     void velikost_frangi_opt(int velikost);
     explicit Frangi_detektor(QWidget *parent = nullptr);
@@ -41,12 +42,16 @@ private slots:
 
     void on_souborKAnalyzePB_clicked();
 
+    void on_cisloSnimku_textChanged(const QString &arg1);
+
 private:
+    int analyzujSnimek = -1;
     Ui::Frangi_detektor *ui;
     int minimum = 0;
     int maximum = 30;
     QVector<QString> rozborVybranehoSouboru;
     QVector<double> FrangiParametrySouboru;
+    QJsonObject nacteneFrangihoParametry;
 };
 
 #endif // FRANGI_DETEKTOR_H

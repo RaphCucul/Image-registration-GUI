@@ -27,6 +27,12 @@ private slots:
     void zpracovano();
     void on_pushButton_clicked();
 
+    void on_oblastMaxima_textChanged(const QString &arg1);
+
+    void on_uhelRotace_textChanged(const QString &arg1);
+
+    void on_pocetIteraci_textChanged(const QString &arg1);
+
 private:
     Ui::SingleVideoET *ui;
     VicevlaknoveZpracovani* vlaknoET;
@@ -39,6 +45,9 @@ private:
     QVector<double> aktualniEntropie, aktualniTennengrad;
     QVector<QVector<double>> entropie;
     QVector<QVector<double>> tennengrad;
+    double oblastMaxima;
+    double uhel;
+    double iterace;
 };
 
 #endif // SINGLEVIDEOET_H

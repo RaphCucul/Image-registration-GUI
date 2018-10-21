@@ -66,7 +66,7 @@ void MultipleVideoET::dragEnterEvent(QDragEnterEvent *event)
 
 void MultipleVideoET::on_nekolikVideiPB_clicked()
 {
-    QStringList filenames = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),QDir::currentPath(),tr("Video files (*.avi);;;") );
+    QStringList filenames = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),videaKanalyzeAktual,tr("Video files (*.avi);;;") );
     if( !filenames.isEmpty() )
     {
         for (int i =0;i<filenames.count();i++)
@@ -79,7 +79,7 @@ void MultipleVideoET::on_nekolikVideiPB_clicked()
 
 void MultipleVideoET::on_celaSlozkaPB_clicked()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),"/home",
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),videaKanalyzeAktual,
                                                     QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     QDir chosenDirectory(dir);
     //qDebug()<<"Chosen directory:"<<dir;

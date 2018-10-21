@@ -48,13 +48,13 @@ t_b_HO::t_b_HO(QWidget *parent) :
     TXTulozeniAktual = TXTulozeniList.at(0);
 
     connect(ui->CB_cesta_k_videim,SIGNAL(currentIndexChanged(int)),this,SLOT(vybranaCesta(int)));
-    connect(ui->CB_cesta_k_videim,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
+    //connect(ui->CB_cesta_k_videim,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
     connect(ui->CB_ulozeni_videa,SIGNAL(currentIndexChanged(int)),this,SLOT(vybranaCesta(int)));
-    connect(ui->CB_ulozeni_videa,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
+    //connect(ui->CB_ulozeni_videa,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
     connect(ui->CB_slozka_txt,SIGNAL(currentIndexChanged(int)),this,SLOT(vybranaCesta(int)));
-    connect(ui->CB_slozka_txt,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
+    //connect(ui->CB_slozka_txt,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
     connect(ui->CB_ulozeni_txt,SIGNAL(currentIndexChanged(int)),this,SLOT(vybranaCesta(int)));
-    connect(ui->CB_ulozeni_txt,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
+    //connect(ui->CB_ulozeni_txt,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
 }
 
 void t_b_HO::on_cesta_k_videim_clicked()
@@ -62,10 +62,10 @@ void t_b_HO::on_cesta_k_videim_clicked()
     QString cesta_k_videim = QFileDialog::getExistingDirectory(this,"Vyberte složku obsahující videa",QDir::currentPath());
     QJsonValue novaCesta = QJsonValue(cesta_k_videim);
     videaKanalyze.append(novaCesta);
-    int velikostPole = videaKanalyze.size();
+    //int velikostPole = videaKanalyze.size();
     QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
     writeJson(souborScestami,videaKanalyze,"cestaKvideim",t);
-    ui->CB_cesta_k_videim->addItem(videaKanalyze[velikostPole-1].toString());
+    ui->CB_cesta_k_videim->addItem(cesta_k_videim);
 
     //qDebug()<<videaKanalyze;
 }
@@ -75,32 +75,39 @@ void t_b_HO::on_ulozeni_videa_clicked()
     QString cesta_k_ulozeni_videi = QFileDialog::getExistingDirectory(this,"Vyberte složku pro uložení slícovaného videa",QDir::currentPath());
     QJsonValue novaCesta = QJsonValue(cesta_k_ulozeni_videi);
     ulozeniVidei.append(novaCesta);
-    int velikostPole = ulozeniVidei.size();
+    //int velikostPole = ulozeniVidei.size();
     QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
     writeJson(souborScestami,ulozeniVidei,"ulozeniVidea",t);
-    ui->CB_ulozeni_videa->addItem(ulozeniVidei[velikostPole-1].toString());
+    ui->CB_ulozeni_videa->addItem(cesta_k_ulozeni_videi);
+    //ui->CB_ulozeni_videa->addItem(ulozeniVidei[velikostPole-1].toString());
+
+   qDebug()<<ulozeniVidei;
 }
 
 void t_b_HO::on_txt_slozka_clicked()
 {
-    QString cesta_k_txt = QFileDialog::getExistingDirectory(this,"Vyberte složku obsahující txt soubory",QDir::currentPath());
+    QString cesta_k_txt = QFileDialog::getExistingDirectory(this,"Vyberte složku obsahující parametrický soubory",QDir::currentPath());
     QJsonValue novaCesta = QJsonValue(cesta_k_txt);
     TXTnacteni.append(novaCesta);
-    int velikostPole = TXTnacteni.size();
+    //int velikostPole = TXTnacteni.size();
     QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
     writeJson(souborScestami,TXTnacteni,"adresarTXT_nacteni",t);
-    ui->CB_ulozeni_videa->addItem(TXTnacteni[velikostPole-1].toString());
+    ui->CB_slozka_txt->addItem(cesta_k_txt);
+
+    qDebug()<<TXTnacteni;
 }
 
 void t_b_HO::on_ulozeni_txt_clicked()
 {
-    QString cesta_k_ulozeni_txt = QFileDialog::getExistingDirectory(this,"Vyberte složku pro uložení txt souborů",QDir::currentPath());
+    QString cesta_k_ulozeni_txt = QFileDialog::getExistingDirectory(this,"Vyberte složku pro uložení parametrických souborů",QDir::currentPath());
     QJsonValue novaCesta = QJsonValue(cesta_k_ulozeni_txt);
     TXTulozeni.append(novaCesta);
-    int velikostPole = TXTulozeni.size();
+    //int velikostPole = TXTulozeni.size();
     QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
     writeJson(souborScestami,TXTulozeni,"adresarTXT_ulozeni",t);
-    ui->CB_ulozeni_videa->addItem(TXTulozeni[velikostPole-1].toString());
+    ui->CB_ulozeni_txt->addItem(cesta_k_ulozeni_txt);
+
+    qDebug()<<TXTulozeni;
 }
 
 t_b_HO::~t_b_HO()
@@ -160,7 +167,7 @@ void t_b_HO::vybranaCesta(int index)
      if (QObject::sender() == ui->CB_ulozeni_txt)
          TXTulozeniAktual = TXTulozeniList.at(index).toLocal8Bit().constData();
 
-     //qDebug()<<index<<videaKanalyzeAktual;
+     qDebug()<<index<<videaKanalyzeAktual;
  }
 
 void t_b_HO::vybranaCestaString(QString cesta)
@@ -174,5 +181,5 @@ void t_b_HO::vybranaCestaString(QString cesta)
     if (QObject::sender() == ui->CB_ulozeni_txt)
         TXTulozeniAktual = cesta;
 
-    //qDebug()<<cesta;
+    qDebug()<<cesta;
 }

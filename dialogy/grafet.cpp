@@ -170,9 +170,9 @@ void GrafET::vytvoreniPrahu(QVector<double>& vektorExtremu,QVector<double>& vekt
         if (typExtremu == 2) // tennengrad
         {
             if (typPrahu == 1) // horní
-                vektorPrahu.push_back(vektorExtremu[a]-30);
+                vektorPrahu.push_back(vektorExtremu[a]-5);
             if (typPrahu == 2) // dolní
-                vektorPrahu.push_back(vektorExtremu[a]+20);
+                vektorPrahu.push_back(vektorExtremu[a]+5);
         }
     }
 }
