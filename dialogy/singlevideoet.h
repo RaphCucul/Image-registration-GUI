@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <opencv2/opencv.hpp>
 #include <QVector>
+#include <QJsonObject>
 #include "util/vicevlaknovezpracovani.h"
 namespace Ui {
 class SingleVideoET;
@@ -33,6 +34,8 @@ private slots:
 
     void on_pocetIteraci_textChanged(const QString &arg1);
 
+    void on_cisloReferencnihosnimku_textChanged(const QString &arg1);
+
 private:
     Ui::SingleVideoET *ui;
     VicevlaknoveZpracovani* vlaknoET;
@@ -45,9 +48,18 @@ private:
     QVector<double> aktualniEntropie, aktualniTennengrad;
     QVector<QVector<double>> entropie;
     QVector<QVector<double>> tennengrad;
-    double oblastMaxima;
-    double uhel;
-    double iterace;
+    /// Parametries of anomalies
+    /// Parametries for Frangi filter and phase correlation
+    int iterace = -1;
+    double oblastMaxima = -1;
+    double uhel = 0.1;
+    QVector<double> parametry_frangi;
+    cv::Point2f ziskane_hranice_anomalie;
+    cv::Point2f ziskane_hranice_casZnac;
+    cv::Point3d maximum_frangi;
+    int predchozi_index = 0;
+    QJsonObject parametryFrangiJson;
+    int cisloReference;
 };
 
 #endif // SINGLEVIDEOET_H

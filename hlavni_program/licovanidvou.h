@@ -27,9 +27,7 @@ class LicovaniDvou : public QWidget
 
 public:
     explicit LicovaniDvou(QWidget *parent = nullptr);
-    ~LicovaniDvou();
-    void velikost_frangi_opt(int velikost);
-    void inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, int &pozice);
+    ~LicovaniDvou();    
     void clearLayout(QGridLayout *layout);
     void VideoLE_textChanged(QLineEdit *LE, QString& s);
 
@@ -87,6 +85,7 @@ private:
     /*******************************************/
     QVector<double> parametry_frangi;
     cv::Point2f ziskane_hranice_anomalie;
+    cv::Point2f ziskane_hranice_CasZnac;
     cv::Point3d maximum_frangi;
     int predchozi_index = 0;
     QJsonObject parametryFrangiJson;

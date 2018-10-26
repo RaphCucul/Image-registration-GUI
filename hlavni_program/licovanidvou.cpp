@@ -65,14 +65,14 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     // a zvolí se výchozí parametry pro algoritmus
     maximum_frangi = detekovane_frangiho_maximum;
     connect(ui->anomalie,SIGNAL(stateChanged(int)),this,SLOT(zobrazKliknutelnyDialog()));
-    velikost_frangi_opt(6);
+    velikost_frangi_opt(6,parametry_frangi);
     QFile soubor;
     soubor.setFileName("D:/Qt_projekty/Licovani_videa_GUI/frangiParameters.json");
     parametryFrangiJson = readJson(soubor);
     QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
     for (int a = 0; a < 6; a++)
     {
-        inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),a);
+        inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
     }
     /***********************************************************************************/
     // protože se pracuje s layouty a comboboxy, je potřeba definovat defaultní zobrazení
@@ -159,14 +159,6 @@ LicovaniDvou::~LicovaniDvou()
     delete ui;
 }
 
-void LicovaniDvou::velikost_frangi_opt(int velikost){
-    parametry_frangi = (QVector<double>(velikost));
-}
-
-void LicovaniDvou::inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, int &pozice)
-{
-    parametry_frangi[pozice] = nactenyObjekt[parametr].toDouble();
-}
 void LicovaniDvou::on_comboBox_activated(int index)
 {
     qDebug()<<"Index Comboboxu: "<<index;
@@ -492,7 +484,7 @@ void LicovaniDvou::VideoLE_textChanged(QLineEdit *LE, QString &s)
     }
     else
     {
-        LE->setStyleSheet("color: #00FF00");
+        LE->setStyleSheet("color: #339900");
         spravnostVidea = true;
         rozborVybranehoSouboru[1] = s;
     }
@@ -645,7 +637,8 @@ void LicovaniDvou::on_slicujDvaSnimky_clicked()
         cap.set(CV_CAP_PROP_POS_FRAMES,double(cisloPosunuteho));
         cap.read(posunuty);
         kontrola_typu_snimku_8C3(posunuty);
-
+        double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+        double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
         double entropie_posunuteho,entropie_reference;
         cv::Scalar tennengrad_posunuteho,tennengrad_reference;
         vypocet_entropie(referencni_snimek,entropie_reference,tennengrad_reference);
@@ -662,18 +655,36 @@ void LicovaniDvou::on_slicujDvaSnimky_clicked()
         cv::Rect vyrez_anomalie(0,0,0,0);
         cv::Point3d pt_temp(0.0,0.0,0.0);
         cv::Mat obraz;
+        if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
+        {
+            ziskane_hranice_anomalie.x = oznacena_hranice_svetelne_anomalie.x;
+            ziskane_hranice_anomalie.y = oznacena_hranice_svetelne_anomalie.y;
+        }
+        else
+        {
+            ziskane_hranice_anomalie.x = 0.0f;
+            ziskane_hranice_anomalie.y = 0.0f;
+        }
+        if (oznacena_hranice_casove_znacky.y > 0.0f && oznacena_hranice_casove_znacky.y < float(vyska))
+        {
+            ziskane_hranice_CasZnac.y = oznacena_hranice_casove_znacky.y;
+            ziskane_hranice_CasZnac.x = oznacena_hranice_casove_znacky.x;
+        }
+        else
+        {
+            ziskane_hranice_CasZnac.y = 0.0f;
+            ziskane_hranice_CasZnac.x = 0.0f;
+        }
         predzpracovaniKompletnihoLicovani(referencni_snimek,
                                           obraz,
                                           parametry_frangi,
-                                          oznacena_hranice_svetelne_anomalie,
-                                          oznacena_hranice_casove_znacky,
+                                          ziskane_hranice_anomalie,
+                                          ziskane_hranice_CasZnac,
                                           maximum_frangi,
                                           vyrez_anomalie,
                                           vyrez_korelace_extra,
                                           vyrez_korelace_standard,
-                                          cap,
-                                          ui->anomalie,
-                                          ui->casovaZnacka,
+                                          cap,                                          
                                           pritomnost_svetelne_anomalie,
                                           pritomnost_casove_znacky,
                                           zmena_meritka);

@@ -20,9 +20,6 @@ class Frangi_detektor : public QWidget
     Q_OBJECT
 
 public:
-    void inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, int &pozice);
-    double data_z_frangi_opt(int pozice);
-    void velikost_frangi_opt(int velikost);
     explicit Frangi_detektor(QWidget *parent = nullptr);
     ~Frangi_detektor();
 

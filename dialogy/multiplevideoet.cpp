@@ -98,10 +98,10 @@ void MultipleVideoET::on_celaSlozkaPB_clicked()
 
 void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
 {
-    vlaknoET = new VicevlaknoveZpracovani(sezVid);
+    /*vlaknoET = new VicevlaknoveZpracovani(sezVid);
     connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->progBar,SLOT(setValue(int)));
     connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
-    vlaknoET->start();
+    vlaknoET->start();*/
     /*qDebug()<<"sezVid contains "<<sezVid.count()<<" videos.";
     for (int a = 0; a < sezVid.count(); a++)
     {

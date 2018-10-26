@@ -26,10 +26,8 @@ void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
                                        cv::Rect &vyrezKoreEx,
                                        cv::Rect &vyrezKoreStand,
                                        cv::VideoCapture &cap,
-                                       QCheckBox* pritomnostAnomalie,
-                                       QCheckBox* casZnacka,
-                                       bool &prCasZn,
-                                       bool &prSveAn,
+                                       bool pritomnostAnomalie,
+                                       bool casZnacka,
                                        bool &zmeMer);
 /// funkce provede predzpracovani
 #endif // MULTIPOC_AI1_H_INCLUDED

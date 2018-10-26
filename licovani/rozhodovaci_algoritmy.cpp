@@ -243,10 +243,7 @@ void rozhodovani_treti(cv::Mat& obraz,
                        QVector<double> &POC_y,
                        QVector<double> &uhel,
                        bool zmena_velikosti_snimku,
-                       bool casova_znamka,
-                       int iterace,
-                       double oblastMaxima,
-                       double uhelMaximalni,
+                       bool casova_znamka,                       
                        cv::VideoCapture& cap,
                        QVector<double> &hodnoceni_vsech_snimku_videa,
                        QVector<double> &snimky_k_provereni_druhy,
@@ -265,6 +262,7 @@ void rozhodovani_treti(cv::Mat& obraz,
         Mat slicovan_kompletne = cv::Mat::zeros(obraz.size(), CV_32FC3);
         Point3d mira_translace;
         double celkovy_uhel = 0;
+        int iterace = -1;double oblastMaxima = 5;double uhelMaximalni = 0.1;
         int uspech_licovani = kompletni_slicovani(cap,obraz,
                                                   snimky_k_provereni_druhy[i],
                                                   iterace,

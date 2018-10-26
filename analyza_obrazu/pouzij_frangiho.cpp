@@ -205,7 +205,7 @@ cv::Point3d frangi_analyza(const cv::Mat vstupni_snimek,
                            int mod_zpracovani,
                            int presnost,
                            int zobraz_vysledek_detekce,
-                           std::string jmeno_okna,
+                           QString jmeno_okna,
                            int typ_snimku,
                            bool pritomnost_casove_znamky,
                            cv::Point3d mira_posunuti,
@@ -283,7 +283,7 @@ cv::Point3d frangi_analyza(const cv::Mat vstupni_snimek,
         if (zobraz_vysledek_detekce == 1)
         {
             drawMarker(obraz_frangi,max_loc_frangi,(0));
-           imshow(jmeno_okna,obraz_frangi);
+           //imshow(jmeno_okna,obraz_frangi);
 
         }
         /*if(zobraz_vysledek_detekce == 0)
@@ -292,4 +292,18 @@ cv::Point3d frangi_analyza(const cv::Mat vstupni_snimek,
         }*/
     }
     return vystup_funkce;
+}
+
+void inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, QVector<double>& nacteneParametry,
+                             int &pozice)
+{
+    nacteneParametry[pozice] = nactenyObjekt[parametr].toDouble();
+}
+
+double data_z_frangi_opt(int pozice,QVector<double>& nacteneParametry)
+{
+    return nacteneParametry[pozice];
+}
+void velikost_frangi_opt(int velikost,QVector<double>& nacteneParametry){
+    nacteneParametry = (QVector<double>(velikost));
 }

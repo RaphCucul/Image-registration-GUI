@@ -37,21 +37,21 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
     ui(new Ui::Frangi_detektor)
 {
     ui->setupUi(this);
-    velikost_frangi_opt(6);
+    velikost_frangi_opt(6,FrangiParametrySouboru);
     QFile soubor;
     soubor.setFileName("D:/Qt_projekty/Licovani_videa_GUI/frangiParameters.json");
     nacteneFrangihoParametry = readJson(soubor);
     QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
     for (int a = 0; a < 6; a++)
     {
-        inicializace_frangi_opt(nacteneFrangihoParametry,parametry.at(a),a);
+        inicializace_frangi_opt(nacteneFrangihoParametry,parametry.at(a),FrangiParametrySouboru,a);
     }
-    ui->sigma_start_DSB->setValue(data_z_frangi_opt(0));
-    ui->sigma_end_DSB->setValue(data_z_frangi_opt(1));
-    ui->sigma_step_DSB->setValue(data_z_frangi_opt(2));
-    ui->beta_one_DSB->setValue(data_z_frangi_opt(3));
-    ui->beta_two_DSB->setValue(data_z_frangi_opt(4));
-    if (data_z_frangi_opt(5) == 1.0){
+    ui->sigma_start_DSB->setValue(data_z_frangi_opt(0,FrangiParametrySouboru));
+    ui->sigma_end_DSB->setValue(data_z_frangi_opt(1,FrangiParametrySouboru));
+    ui->sigma_step_DSB->setValue(data_z_frangi_opt(2,FrangiParametrySouboru));
+    ui->beta_one_DSB->setValue(data_z_frangi_opt(3,FrangiParametrySouboru));
+    ui->beta_two_DSB->setValue(data_z_frangi_opt(4,FrangiParametrySouboru));
+    if (data_z_frangi_opt(5,FrangiParametrySouboru) == 1.0){
         ui->RB_standard->setChecked(1);
         ui->RB_reverz->setChecked(0);}
     else{
@@ -110,19 +110,6 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
 Frangi_detektor::~Frangi_detektor()
 {
     delete ui;
-}
-
-void Frangi_detektor::inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, int &pozice)
-{
-    FrangiParametrySouboru[pozice] = nactenyObjekt[parametr].toDouble();
-}
-
-double Frangi_detektor::data_z_frangi_opt(int pozice)
-{
-    return FrangiParametrySouboru[pozice];
-}
-void Frangi_detektor::velikost_frangi_opt(int velikost){
-    FrangiParametrySouboru = (QVector<double>(velikost));
 }
 
 void Frangi_detektor::on_sigma_start_sliderMoved(int value)

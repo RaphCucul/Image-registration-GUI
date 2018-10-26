@@ -209,10 +209,8 @@ void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
                                        cv::Rect &vyrezKoreEx,
                                        cv::Rect &vyrezKoreStand,
                                        cv::VideoCapture &cap,
-                                       QCheckBox* pritomnostAnomalie,
-                                       QCheckBox* casZnacka,
-                                       bool &prCasZn,
-                                       bool &prSveAn,
+                                       bool pritomnostAnomalie,
+                                       bool casZnacka,
                                        bool &zmeMer)
 {
     cv::Point3d pt_temp(0.0,0.0,0.0);
@@ -257,10 +255,10 @@ void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
 
 
 
-    if (pritomnostAnomalie->isChecked())
-        frangi_bod = frangi_analyza(reference(oblastAnomalie),1,1,0,"",1,prCasZn,pt_temp,parFrang);
+    if (pritomnostAnomalie == true)
+        frangi_bod = frangi_analyza(reference(oblastAnomalie),1,1,0,"",1,casZnacka,pt_temp,parFrang);
     else
-        frangi_bod = frangi_analyza(reference,1,1,0,"",1,prCasZn,pt_temp,parFrang);
+        frangi_bod = frangi_analyza(reference,1,1,0,"",1,casZnacka,pt_temp,parFrang);
 
     if (frangi_bod.z == 0.0)
     {
@@ -276,17 +274,7 @@ void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
         int sloupec_od = 0;
         int sloupec_do = 0;
 
-        if (casZnacka->isChecked())
-            prCasZn = true;
-        else
-            prCasZn = false;
-
-        if (pritomnostAnomalie->isChecked())
-            prSveAn = true;
-        else
-            prSveAn = false;
-
-        if (prSveAn == true && hraniceAnomalie.y != 0.0f && int(hraniceAnomalie.y)<(cols/2))
+        if (pritomnostAnomalie == true && hraniceAnomalie.y != 0.0f && int(hraniceAnomalie.y)<(cols/2))
         {
             sloupec_od = int(hraniceAnomalie.y);
             nutnost_zmenit_velikost = true;
@@ -294,7 +282,7 @@ void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
         else
             sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
 
-        if (prSveAn == true && hraniceAnomalie.y != 0.0f &&  int(hraniceAnomalie.y)>(cols/2))
+        if (pritomnostAnomalie == true && hraniceAnomalie.y != 0.0f &&  int(hraniceAnomalie.y)>(cols/2))
         {
             sloupec_do = int(hraniceAnomalie.y);
             nutnost_zmenit_velikost = true;

@@ -1,8 +1,11 @@
 #include "dialogy/singlevideoet.h"
 #include "ui_singlevideoet.h"
 #include "analyza_obrazu/entropie.h"
+#include "analyza_obrazu/pouzij_frangiho.h"
 #include "hlavni_program/t_b_ho.h"
+#include "hlavni_program/frangi_detektor.h"
 #include "dialogy/grafet.h"
+#include "dialogy/clickimageevent.h"
 #include "util/souborove_operace.h"
 #include "util/vicevlaknovezpracovani.h"
 
@@ -38,6 +41,16 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     uhel = 0.1;
     ui->pocetIteraci->setText("-1");
     iterace = -1;
+
+    velikost_frangi_opt(6,parametry_frangi);
+    QFile soubor;
+    soubor.setFileName("D:/Qt_projekty/Licovani_videa_GUI/frangiParameters.json");
+    parametryFrangiJson = readJson(soubor);
+    QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    for (int a = 0; a < 6; a++)
+    {
+        inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+    }
 
     if (videaKanalyzeAktual == "")
         ui->vybraneVideo->setPlaceholderText("Vybrane video");
@@ -139,19 +152,34 @@ void SingleVideoET::on_vybraneVideo_textChanged(const QString &arg1)
 
 void SingleVideoET::on_casovaZnacka_stateChanged(int arg1)
 {
-
+    if (arg1 == 2)
+    {
+        QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
+        ClickImageEvent* vyznac_anomalii = new ClickImageEvent(kompletni_cesta,cisloReference,2);
+        vyznac_anomalii->setModal(true);
+        vyznac_anomalii->show();
+    }
 }
 
 void SingleVideoET::on_svetelnaAnomalie_stateChanged(int arg1)
 {
+    if (arg1 == 2)
+    {
+        QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
+        ClickImageEvent* vyznac_anomalii = new ClickImageEvent(kompletni_cesta,cisloReference,1);
+        vyznac_anomalii->setModal(true);
+        vyznac_anomalii->show();
+    }
 
 }
 
 void SingleVideoET::on_vypocetET_clicked()
 {
     QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
-    /*cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
-    pocetSnimkuVidea = cap.get(CV_CAP_PROP_FRAME_COUNT);*/
+    cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
+    double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    //pocetSnimkuVidea = cap.get(CV_CAP_PROP_FRAME_COUNT);*/
     /*int uspech_analyzy = entropie_tennengrad_videa(cap,aktualniEntropie,aktualniTennengrad,ui->prubehVypoctu);
     if (uspech_analyzy == 0)
         qDebug()<<"Výpočty skončily chybou.";
@@ -162,8 +190,30 @@ void SingleVideoET::on_vypocetET_clicked()
         ui->zobrazGrafET->setEnabled(true);
     }*/
     QStringList pom;
+    if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
+    {
+        ziskane_hranice_anomalie.x = oznacena_hranice_svetelne_anomalie.x;
+        ziskane_hranice_anomalie.y = oznacena_hranice_svetelne_anomalie.y;
+    }
+    else
+    {
+        ziskane_hranice_anomalie.x = 0.0f;
+        ziskane_hranice_anomalie.y = 0.0f;
+    }
+    if (oznacena_hranice_casove_znacky.y > 0.0f && oznacena_hranice_casove_znacky.y < float(vyska))
+    {
+        ziskane_hranice_casZnac.y = oznacena_hranice_casove_znacky.y;
+        ziskane_hranice_casZnac.x = oznacena_hranice_casove_znacky.x;
+    }
+    else
+    {
+        ziskane_hranice_casZnac.y = 0.0f;
+        ziskane_hranice_casZnac.x = 0.0f;
+    }
     pom.append(kompletni_cesta);
-    vlaknoET = new VicevlaknoveZpracovani(pom);
+    vlaknoET = new VicevlaknoveZpracovani(pom,ziskane_hranice_anomalie,
+                                          ziskane_hranice_casZnac,parametry_frangi,
+                                          volbaSvetAnomETSingle,volbaCasZnackyETSingle);
     connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
     connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
     vlaknoET->start();
@@ -187,7 +237,7 @@ void SingleVideoET::on_pushButton_clicked()
     QJsonArray poleE = vector2array(pomVecE);
     QJsonArray poleT = vector2array(pomVecT);
     QString aktualJmeno = vybraneVideoETSingle[1];
-    QString cesta = TXTulozeniAktual+"/"+aktualJmeno+".dat";
+    QString cesta = TXTnacteniAktual+"/"+aktualJmeno+".dat";
     object["entropie"] = poleE;
     object["tennengrad"] = poleT;
     document.setObject(object);
@@ -213,12 +263,12 @@ void SingleVideoET::on_oblastMaxima_textChanged(const QString &arg1)
     double zadane_cislo = arg1.toDouble();
     if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
     {
-        ui->oblastMaxima->setStyleSheet("QLineEdit#oblastMaxima{color: #FF0000}");
+        ui->oblastMaxima->setStyleSheet("color: #FF0000");
         oblastMaxima = -1;
     }
     else
     {
-        ui->oblastMaxima->setStyleSheet("QLineEdit#oblastMaxima{color: #00FF00}");
+        ui->oblastMaxima->setStyleSheet("color: #339900");
         oblastMaxima = zadane_cislo;
     }
 }
@@ -230,12 +280,12 @@ void SingleVideoET::on_uhelRotace_textChanged(const QString &arg1)
     double zadane_cislo = arg1.toDouble();
     if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
     {
-        ui->uhelRotace->setStyleSheet("QLineEdit#uhelRotace{color: #FF0000}");
+        ui->uhelRotace->setStyleSheet("color: #FF0000");
         uhel = 0.1;
     }
     else
     {
-        ui->uhelRotace->setStyleSheet("QLineEdit#uhelRotace{color: #00FF00}");
+        ui->uhelRotace->setStyleSheet("color: #339900");
         uhel = zadane_cislo;
     }
 }
@@ -245,15 +295,36 @@ void SingleVideoET::on_pocetIteraci_textChanged(const QString &arg1)
     int zadane_cislo = arg1.toInt();
     if (zadane_cislo < 0 && zadane_cislo != -1)
     {
-        ui->pocetIteraci->setStyleSheet("QLineEdit#pocetIteraci{color: #FF0000}");
+        ui->pocetIteraci->setStyleSheet("color: #FF0000");
         iterace = -1;
     }
     if (zadane_cislo == -1 || zadane_cislo > 1)
     {
-        ui->pocetIteraci->setStyleSheet("QLineEdit#pocetIteraci{color: #00FF00}");
+        ui->pocetIteraci->setStyleSheet("color: #339900");
         if (zadane_cislo == -1)
             iterace = -1;
         else
             iterace = zadane_cislo;
+    }
+}
+
+void SingleVideoET::on_cisloReferencnihosnimku_textChanged(const QString &arg1)
+{
+    QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
+    cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
+    int pocet_snimku_videa = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+    int zadane_cislo = arg1.toInt();
+    if (zadane_cislo < 0 || zadane_cislo > pocet_snimku_videa)
+    {
+        ui->cisloReferencnihosnimku->setStyleSheet("color: #FF0000");
+        //qDebug()<<"Referencni snimek nelze ve videu dohledat";
+        cisloReference = -1;
+    }
+    else
+    {
+        ui->cisloReferencnihosnimku->setStyleSheet("color: #339900");
+        cisloReference = zadane_cislo;
+        ui->casovaZnacka->setEnabled(true);
+        ui->svetelnaAnomalie->setEnabled(true);
     }
 }
