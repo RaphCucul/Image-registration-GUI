@@ -195,7 +195,7 @@ cv::Mat eventualni_korekce_translace(cv::Mat& slicovany_snimek,cv::Mat& obraz,cv
     cout << "Korelace 1: "<<R1<<endl;
     mezivysledek32f.release();
     mezivysledek32f_vyrez.release();
-    Point3d korekce_bod = fk_translace_hann(obraz,mezivysledek,oblastMaxima);
+    Point3d korekce_bod = fk_translace_hann(obraz,mezivysledek);
     cout << "korekce Y: " << korekce_bod.y <<" X: "<<korekce_bod.x<< endl;
     Mat korekce = translace_snimku(mezivysledek,korekce_bod,rows,cols);
     korekce.copyTo(mezivysledek32f);

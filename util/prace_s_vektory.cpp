@@ -2,6 +2,7 @@
 #include "licovani/fazova_korelace_funkce.h"
 #include "analyza_obrazu/upravy_obrazu.h"
 #include "analyza_obrazu/korelacni_koeficient.h"
+#include "licovani/multiPOC_Ai1.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -18,14 +19,10 @@
 #include <random>
 #include <iterator>
 #include <QDebug>
-using std::vector;
-using std::cout;
-using std::endl;
-using cv::Mat;
 
 double median_vektoru_cisel(QVector<double> vektor_hodnot)
 {
-    size_t size = vektor_hodnot.size();
+    int size = vektor_hodnot.length();
 
     if (size == 0)
     {
@@ -58,7 +55,6 @@ double kontrola_maxima(QVector<double> &vektor_hodnot)
     double maximum_vektoru = vektor_hodnot[pom];
     double pom2 = maximum_vektoru;
     int kontrolni_mnozstvi = 0;
-    QVector<size_t> results(vektor_hodnot.size());;
     while (kontrolni_mnozstvi < 20)
     {
         kontrolni_mnozstvi = 0;
@@ -79,14 +75,24 @@ QVector<double> spojeni_vektoru(QVector<double>& vektor1,QVector<double>& vektor
     //std::ostream_iterator<double> out_it (std::cout," ");
     int celkovaVelikost = vektor1.length()+vektor2.length();
     QVector<double> sjednoceny_vektor(celkovaVelikost,0.0);
+
     for (int a = 0; a < 2; a++)
     {
-        for (int b = 0; b < celkovaVelikost; b++)
+        if (a == 0)
         {
-            if (a == 0)
+            for (int b = 0; b < vektor1.length(); b++)
+            {
                 sjednoceny_vektor[b] = vektor1[b];
-            if (a == 1)
-                sjednoceny_vektor[b] = vektor2[b];
+            }
+        }
+        if (a == 1)
+        {
+            int c=0;
+            for (int b = vektor1.length(); b < sjednoceny_vektor.length(); b++)
+            {
+                sjednoceny_vektor[b] = vektor2[c];
+                c+=1;
+            }
         }
     }
     /*sjednoceny_vektor.insert(sjednoceny_vektor.end(),*vektor1.begin(),*vektor1.end());
@@ -99,7 +105,7 @@ QVector<double> spojeni_vektoru(QVector<double>& vektor1,QVector<double>& vektor
     return sjednoceny_vektor;
 }
 
-void okna_vektoru(QVector<double>& vektor_hodnot,QVector<double>& okna,double zbytek_do_konce)
+void okna_vektoru(QVector<double>& vektor_hodnot, QVector<double>& okna, double &zbytek_do_konce)
 {
 
     int velikost_vektoru = vektor_hodnot.size();
@@ -124,7 +130,7 @@ QVector<double> mediany_vektoru(QVector<double>& vektor_hodnot,
 {
     //std::ostream_iterator<double> out_it (std::cout," ");
     double krok = vektor_oken[0];
-    QVector<double> mediany_oken_vektoru(vektor_oken.size(),0);
+    QVector<double> mediany_oken_vektoru(vektor_oken.size(),0.0);
     double pocitadlo = 1.0;
     for (int i = 0; i < vektor_oken.size(); i++)
     {
@@ -149,12 +155,13 @@ QVector<double> mediany_vektoru(QVector<double>& vektor_hodnot,
             pocitadlo+=1;
         }
     }
-    /*if (zbytek_do_konce != 0 && zbytek_do_konce >= 10)
+    if (zbytek_do_konce != 0.0 && zbytek_do_konce >= 10.0)
     {
-        vector<double> vekpom(vektor_hodnot.end()-zbytek_do_konce+1,vektor_hodnot.end());
+        QVector<double> vekpom;
+        vekpom = vektor_hodnot.mid(int(vektor_hodnot.length()-zbytek_do_konce+1),vektor_hodnot.length());
         double median_okna = median_vektoru_cisel(vekpom);
         mediany_oken_vektoru.push_back(median_okna);
-    }*/
+    }
     return mediany_oken_vektoru;
 }
 
@@ -180,6 +187,11 @@ void analyza_prubehu_funkce(QVector<double>& vektor_hodnot,
         {
             od_do[0] = 1;
             od_do[1] = int(vektor_oken[i]);
+        }
+        else if (i == (vektor_oken.size()-1))
+        {
+            od_do[0] = int(vektor_oken[i-1]);
+            od_do[1] = int(vektor_oken[i]-2.0);
         }
         else
         {
@@ -239,35 +251,37 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
     int referencni_snimek = 0;
     for (int i = 0; i < pro_provereni.size(); i++)
     {
-        if (std::abs(prepocitane_maximum - vektor_hodnot[pro_provereni[i]]) < rozdil)
+        if (std::abs(prepocitane_maximum - vektor_hodnot[int(pro_provereni[i])]) < rozdil)
         {
             referencni_snimek = int(pro_provereni[i]);
-            rozdil = prepocitane_maximum - vektor_hodnot[pro_provereni[i]];
+            rozdil = prepocitane_maximum - vektor_hodnot[int(pro_provereni[i])];
         }
     }
     return referencni_snimek;
 }
 
-double analyza_FWHM(cv::VideoCapture& capture,
+void analyza_FWHM(cv::VideoCapture& capture,
                     int referencni_snimek_cislo,
                     int pocet_snimku_videa,
-                    double& R,
                     bool zmena_meritka,
+                    double& vypocteneR,
+                    double& vypocteneFWHM,
                     cv::Rect& vyrez_oblasti_standardni,
                     cv::Rect& vyrez_oblasti_navic,
                     QVector<double>& spatne_snimky_komplet)
 {
-    std::ostream_iterator<double> out_it (std::cout," ");
-    int velikost_spojeneho_vektoru = spatne_snimky_komplet.size();
+    //std::ostream_iterator<double> out_it (std::cout," ");
+    int velikost_spojeneho_vektoru = spatne_snimky_komplet.length();
     QVector<double> snimky_pro_sigma((pocet_snimku_videa-velikost_spojeneho_vektoru-10),0);
     QVector<double> cisla_pro_generator(pocet_snimku_videa,0);
-    std::iota(cisla_pro_generator.begin(),cisla_pro_generator.end(),0);
+    //std::iota(cisla_pro_generator.begin(),cisla_pro_generator.end(),0);
+    std::generate(cisla_pro_generator.begin(), cisla_pro_generator.end(), [n = 0] () mutable { return n++; });
 
     std::random_device rd;
     std::mt19937 eng(rd());
     std::uniform_int_distribution<> distr(0, pocet_snimku_videa-1);
     QVector<double>::iterator it;
-    for (int i = 0; i < snimky_pro_sigma.size(); i++)
+    for (int i = 0; i < snimky_pro_sigma.length(); i++)
     {
         int kontrola_ulozeni = 0;
         while (kontrola_ulozeni == 0)
@@ -281,9 +295,11 @@ double analyza_FWHM(cv::VideoCapture& capture,
             if (it != spatne_snimky_komplet.end())
                 {kontrola_ulozeni = 0;}
             else
-                {snimky_pro_sigma[i] = vygenerovane_cislo;
-            cisla_pro_generator[vygenerovane_cislo] = 0;
-            kontrola_ulozeni = 1;}
+            {
+                snimky_pro_sigma[i] = vygenerovane_cislo;
+                cisla_pro_generator[vygenerovane_cislo] = 0;
+                kontrola_ulozeni = 1;
+            }
         }
     }
     //std::copy ( snimky_pro_sigma.begin(), snimky_pro_sigma.end(), out_it );
@@ -291,7 +307,6 @@ double analyza_FWHM(cv::VideoCapture& capture,
     if (capture.isOpened() == 0)
     {
         qWarning()<<"Video nelze pouzit pro analyzu entropie a tennengrada!";
-        return 0.0;
     }
     cv::Mat referencni_snimek_temp,referencni_snimek,referencni_snimek32f,referencni_vyrez;
     capture.set(CV_CAP_PROP_POS_FRAMES,referencni_snimek_cislo);
@@ -314,16 +329,18 @@ double analyza_FWHM(cv::VideoCapture& capture,
         referencni_snimek(vyrez_oblasti_standardni).copyTo(referencni_vyrez);
         referencni_snimek_temp.release();
     }
-    QVector<double> zaznamenane_FWHM(snimky_pro_sigma.size(),0.0);
-    QVector<double> zaznamenane_R(snimky_pro_sigma.size(),0.0);
+    QVector<double> zaznamenane_FWHM(snimky_pro_sigma.length(),0.0);
+    QVector<double> zaznamenane_R(snimky_pro_sigma.length(),0.0);
+    kontrola_typu_snimku_32C1(referencni_snimek);
     //referencni_snimek.copyTo(referencni_snimek32f);
     //kontrola_typu_snimku_32(referencni_snimek32f);
     //cout << snimky_pro_sigma.size()<<" "<<zaznamenane_FWHM.size()<<endl;
     qDebug()<< "Analyza snimku pro urceni prumerneho korelacniho koeficientu a hodnoty FWHM";
-    for (int j = 0; j < snimky_pro_sigma.size(); j++)
+    for (int j = 0; j < snimky_pro_sigma.length(); j++)
     {
-        Mat posunuty_temp,posunuty,posunuty_vyrez;
-        capture.set(CV_CAP_PROP_POS_FRAMES,snimky_pro_sigma[j]);
+        cv::Mat posunuty_temp,posunuty,posunuty_vyrez;
+        double cisloSnimku = snimky_pro_sigma[j];
+        capture.set(CV_CAP_PROP_POS_FRAMES,cisloSnimku);
         if (capture.read(posunuty_temp) != 1)
         {
             qWarning()<<"Snimek "<<j<<" nelze slicovat!";
@@ -343,39 +360,55 @@ double analyza_FWHM(cv::VideoCapture& capture,
                 posunuty(vyrez_oblasti_standardni).copyTo(posunuty_vyrez);
                 posunuty_temp.release();
             }
-            int procento = int((j*100.0)/snimky_pro_sigma.size());
+            //int procento = int((j*100.0)/snimky_pro_sigma.size());
             //cout << "\r" << procento << "%";
             cv::Point3d pt(0,0,0);
+            kontrola_typu_snimku_32C1(posunuty);
+            cv::Mat slicovany,slicovany_vyrez;
+            double celkovyUhelRotace;
+            int iter = 2;double obl = 10;double u = 0.1;
             if (zmena_meritka == true)
             {
-                pt = fk_translace_hann(referencni_snimek,posunuty,5);
+                pt = fk_translace_hann(referencni_snimek,posunuty);
                 if (std::abs(pt.x)>=290 || std::abs(pt.y)>=290)
                 {
-                    pt = fk_translace(referencni_snimek,posunuty,5);
+                    pt = fk_translace(referencni_snimek,posunuty);
                 }
             }
-            if (zmena_meritka == false){pt = fk_translace_hann(referencni_snimek,posunuty,5);}
-            Mat slicovany,slicovany_vyrez;
+            if (zmena_meritka == false)
+            {
+                kompletni_slicovani(capture,
+                                    referencni_snimek,
+                                    cisloSnimku,
+                                    iter,obl,u,
+                                    vyrez_oblasti_navic,
+                                    vyrez_oblasti_standardni,
+                                    zmena_meritka,slicovany,pt,
+                                    celkovyUhelRotace);
+            }            
             slicovany = translace_snimku(posunuty,pt,rows,cols);
+            //cv::imshow("slicovany",slicovany);
             posunuty.release();
             slicovany(vyrez_oblasti_standardni).copyTo(slicovany_vyrez);
-            double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt.z);
-            double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
+            double zSouradnice = pt.z;
+            double sigma_gauss = 0.0;
+            sigma_gauss = 1/(std::sqrt(2*CV_PI)*zSouradnice);
+            double FWHM = 0.0;
+            FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
             zaznamenane_FWHM[j] = FWHM;
-            double R = vypocet_KK(referencni_snimek,slicovany,vyrez_oblasti_standardni);
+            double KK = vypocet_KK(referencni_snimek,slicovany,vyrez_oblasti_standardni);
+            qDebug()<<"Snimek: "<<cisloSnimku<<"R: "<<KK<<" "<<"FWHM: "<<FWHM<<" "<<pt.x<<" "<<pt.y;
             slicovany.release();
             slicovany_vyrez.release();
-            zaznamenane_R[j] = R;
+            zaznamenane_R[j] = KK;
         }
 
     }
     //cout << endl;
     //std::copy ( zaznamenane_R.begin(), zaznamenane_R.end(), out_it );
     //cout<<endl;
-    double charakteristicke_FWHM = median_vektoru_cisel(zaznamenane_FWHM);
-    R = median_vektoru_cisel(zaznamenane_R);
-    //cout<<"Zaznamenany R: "<<charakteristicke_R<<endl;
-    return charakteristicke_FWHM;
+    vypocteneFWHM = median_vektoru_cisel(zaznamenane_FWHM);
+    vypocteneR = median_vektoru_cisel(zaznamenane_R);
 }
 
 void kontrola_celistvosti(QVector<double>& spatne_snimky)

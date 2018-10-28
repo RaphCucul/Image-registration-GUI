@@ -5,7 +5,7 @@
 #include <QMimeData>
 #include <QDropEvent>
 #include <QDragEnterEvent>
-#include "util/vicevlaknovezpracovani.h"
+//#include "util/vicevlaknovezpracovani.h"
 
 namespace Ui {
 class MultipleVideoET;
@@ -41,7 +41,7 @@ private:
     QVector<QVector<double>> entropie;
     QVector<QVector<double>> tennengrad;
     QVector<QString> videoNames;
-    VicevlaknoveZpracovani* vlaknoET;
+    //VicevlaknoveZpracovani* vlaknoET;
 };
 
 #endif // MULTIPLEVIDEOET_H

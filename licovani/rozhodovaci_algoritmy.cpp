@@ -10,14 +10,12 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 
-#include <iostream>
+//#include <iostream>
 #include <QVector>
-#include <iterator>
+//#include <iterator>
 #include <QDebug>
 using cv::Mat;
 using cv::Point3d;
-using std::cout;
-using std::endl;
 void rozhodovani_prvni(QVector<double> &spatne_snimky_prvotni_ohodnoceni,
                        QVector<double> &hodnoceni_vsech_snimku_videa,
                        QVector<double> &POC_x,
@@ -37,7 +35,7 @@ void rozhodovani_prvni(QVector<double> &spatne_snimky_prvotni_ohodnoceni,
                        QVector<double> &vypoctene_hodnoty_R,
                        QVector<double> &vypoctene_hodnoty_FWHM)
 {
-    for (int i = 0; i < spatne_snimky_prvotni_ohodnoceni.size(); i++)
+    for (int i = 0; i < spatne_snimky_prvotni_ohodnoceni.length(); i++)
     {
         Mat posunuty_temp,posunuty,posunuty_vyrez,slicovany,slicovany_vyrez;
         Mat obraz, obraz_vyrez;
@@ -72,13 +70,16 @@ void rozhodovani_prvni(QVector<double> &spatne_snimky_prvotni_ohodnoceni,
         cv::Point3d pt(0,0,0);
         if (zmena_velikosti_obrazu == true)
         {
-            pt = fk_translace_hann(obraz,posunuty,5);
+            pt = fk_translace_hann(obraz,posunuty);
             if (std::abs(pt.x)>=290 || std::abs(pt.y)>=290)
             {
-                pt = fk_translace(obraz,posunuty,5);
+                pt = fk_translace(obraz,posunuty);
             }
         }
-        if (zmena_velikosti_obrazu == false){pt = fk_translace_hann(obraz,posunuty,5);}
+        if (zmena_velikosti_obrazu == false)
+        {
+            pt = fk_translace_hann(obraz,posunuty);
+        }
         if (pt.x >= 55 || pt.y >= 55)
         {
             qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " nepripusten k analyze.";
@@ -98,55 +99,64 @@ void rozhodovani_prvni(QVector<double> &spatne_snimky_prvotni_ohodnoceni,
             slicovany = translace_snimku(posunuty,pt,rows,cols);
             slicovany(vyrez_korelace_standardni).copyTo(slicovany_vyrez);
             double R = vypocet_KK(obraz,slicovany,vyrez_korelace_standardni);
-            //cout << "R " << R <<" a FWHM " << FWHM << " ";
+            qDebug() <<spatne_snimky_prvotni_ohodnoceni[i]<< "R " << R <<" a FWHM " << FWHM;
             slicovany.release();
             slicovany_vyrez.release();
             posunuty.release();
-            if ((std::abs(prumerny_korelacni_koeficient - R) < 0.02) && (FWHM < prumerne_FWHM)) //1.
+            double rozdilnostKK = prumerny_korelacni_koeficient-R;
+            double rozdilnostFWHM = prumerne_FWHM-FWHM;
+            if ((std::abs(rozdilnostKK) < 0.02) && (FWHM < prumerne_FWHM)) //1.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " je vhodny ke slicovani.";
-                hodnoceni_vsech_snimku_videa[int(spatne_snimky_prvotni_ohodnoceni[i])] = 0;
+                hodnoceni_vsech_snimku_videa[int(spatne_snimky_prvotni_ohodnoceni[i])] = 0.0;
+                continue;
             }
-		else if (R > prumerny_korelacni_koeficient && std::abs(FWHM-prumerne_FWHM)<=2) //5.
+            else if (R > prumerny_korelacni_koeficient && (std::abs(rozdilnostFWHM)<=2||(FWHM < prumerne_FWHM))) //5.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " je vhodny ke slicovani.";
-                hodnoceni_vsech_snimku_videa[int(spatne_snimky_prvotni_ohodnoceni[i])] = 0;
+                hodnoceni_vsech_snimku_videa[int(spatne_snimky_prvotni_ohodnoceni[i])] = 0.0;
+                continue;
             }
-		else if (R > prumerny_korelacni_koeficient && FWHM > prumerne_FWHM) //4.
+            else if (R >= prumerny_korelacni_koeficient && FWHM > prumerne_FWHM) //4.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " je vhodny ke slicovani.";
-                hodnoceni_vsech_snimku_videa[int(spatne_snimky_prvotni_ohodnoceni[i])] = 0;
+                hodnoceni_vsech_snimku_videa[int(spatne_snimky_prvotni_ohodnoceni[i])] = 0.0;
+                continue;
             }
-            else if ((std::abs(prumerny_korelacni_koeficient - R) <= 0.02) && (FWHM > prumerne_FWHM)) //2.
+            else if ((std::abs(rozdilnostKK) <= 0.02) && (FWHM > prumerne_FWHM)) //2.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " bude proveren.";
                 snimky_k_provereni_prvni.push_back(int(spatne_snimky_prvotni_ohodnoceni[i]));
                 vypoctene_hodnoty_FWHM.push_back(FWHM);
                 vypoctene_hodnoty_R.push_back(R);
+                continue;
             }
-            else if (((prumerny_korelacni_koeficient - R) > 0.02) && ((prumerny_korelacni_koeficient - R) < 0.1)) //3.
+            else if ((rozdilnostKK > 0.02) && (rozdilnostKK < 0.18)) //3.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " bude proveren.";
                 snimky_k_provereni_prvni.push_back(int(spatne_snimky_prvotni_ohodnoceni[i]));
                 vypoctene_hodnoty_FWHM.push_back(FWHM);
                 vypoctene_hodnoty_R.push_back(R);
+                continue;
             }
-		else if (((prumerny_korelacni_koeficient - R) >= 0.05) && ((FWHM < prumerne_FWHM) || prumerne_FWHM > 35.0)) //6.
+            else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && ((FWHM < prumerne_FWHM) || prumerne_FWHM > 35.0)) //6.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " bude proveren.";
                 snimky_k_provereni_prvni.push_back(int(spatne_snimky_prvotni_ohodnoceni[i]));
                 vypoctene_hodnoty_FWHM.push_back(FWHM);
                 vypoctene_hodnoty_R.push_back(R);
+                continue;
             }
-		else if (((prumerny_korelacni_koeficient - R) >= 0.05) && (FWHM <= (prumerne_FWHM+10))) //8.
+            else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && (FWHM <= (prumerne_FWHM+10))) //8.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " bude proveren.";
                 snimky_k_provereni_prvni.push_back(int(spatne_snimky_prvotni_ohodnoceni[i]));
                 vypoctene_hodnoty_FWHM.push_back(FWHM);
                 vypoctene_hodnoty_R.push_back(R);
+                continue;
             }
 
-            else if (((prumerny_korelacni_koeficient - R) >= 0.1) && (FWHM > (prumerne_FWHM+10))) //7.
+            else if ((rozdilnostKK >= 0.2) && (FWHM > (prumerne_FWHM+10))) //7.
             {
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " nepripusten k analyze.";
                 hodnoceni_vsech_snimku_videa[int(spatne_snimky_prvotni_ohodnoceni[i])] = 5;
@@ -156,10 +166,11 @@ void rozhodovani_prvni(QVector<double> &spatne_snimky_prvotni_ohodnoceni,
                 frangi_x[int(spatne_snimky_prvotni_ohodnoceni[i])] = 999;
                 frangi_y[int(spatne_snimky_prvotni_ohodnoceni[i])] = 999;
                 frangi_euklid[int(spatne_snimky_prvotni_ohodnoceni[i])] = 999;
+                continue;
             }
             else
             {
-                //cout << "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " nepripusten k analyze."<<endl;
+                qDebug() << "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " bude proveren - nevyhovel nikde.";
                 /*hodnoceni_vsech_snimku_videa[spatne_snimky_prvotni_ohodnoceni[i]] = 5;
                 POC_x[spatne_snimky_prvotni_ohodnoceni[i]] = 999;
                 POC_y[spatne_snimky_prvotni_ohodnoceni[i]] = 999;
@@ -169,7 +180,7 @@ void rozhodovani_prvni(QVector<double> &spatne_snimky_prvotni_ohodnoceni,
                 frangi_euklid[spatne_snimky_prvotni_ohodnoceni[i]] = 999;*/
                 qDebug()<< "Snimek "<< spatne_snimky_prvotni_ohodnoceni[i]<< " bude proveren.";
                 snimky_k_provereni_prvni.push_back(int(spatne_snimky_prvotni_ohodnoceni[i]));
-                        vypoctene_hodnoty_FWHM.push_back(FWHM);
+                vypoctene_hodnoty_FWHM.push_back(FWHM);
                 vypoctene_hodnoty_R.push_back(R);
 
             }
@@ -191,13 +202,13 @@ void rozhodovani_druhe(QVector<double> &snimky_k_provereni_prvni,
                        double prumerne_FWHM,
                        QVector<double> &snimky_k_provereni_druhy)
 {
-    for (int b = 0; b < snimky_k_provereni_prvni.size(); b++)
+    for (int b = 0; b < snimky_k_provereni_prvni.length(); b++)
     {
-        if ((prumerny_korelacni_koeficient - vypoctene_hodnoty_R[b]) <= 0.01)
+        if ((prumerny_korelacni_koeficient - vypoctene_hodnoty_R[b]) <= 0.02)
         {
-            if (vypoctene_hodnoty_FWHM[b] < (prumerne_FWHM + 2))
+            if (vypoctene_hodnoty_FWHM[b] < (prumerne_FWHM + 30))
             {
-               qDebug()<< "Snimek "<< snimky_k_provereni_prvni[b]<< " je vhodny ke slicovani.";
+                qDebug()<< "Snimek "<< snimky_k_provereni_prvni[b]<< " je vhodny ke slicovani.";
                 hodnoceni_vsech_snimku_videa[int(snimky_k_provereni_prvni[b])] = 0;
             }
             else
@@ -206,9 +217,22 @@ void rozhodovani_druhe(QVector<double> &snimky_k_provereni_prvni,
                 snimky_k_provereni_druhy.push_back(snimky_k_provereni_prvni[b]);
             }
         }
-        else if ((prumerny_korelacni_koeficient - vypoctene_hodnoty_R[b]) > 0.01)
+        else if ((prumerny_korelacni_koeficient - vypoctene_hodnoty_R[b]) >0.02 && (prumerny_korelacni_koeficient - vypoctene_hodnoty_R[b]) < 0.05)
         {
-            if (vypoctene_hodnoty_FWHM[b] <= (prumerne_FWHM + 2.5))
+            if (vypoctene_hodnoty_FWHM[b] < (prumerne_FWHM + 15))
+            {
+                qDebug()<< "Snimek "<< snimky_k_provereni_prvni[b]<< " je vhodny ke slicovani.";
+                hodnoceni_vsech_snimku_videa[int(snimky_k_provereni_prvni[b])] = 0;
+            }
+            else
+            {
+                qDebug()<< "Snimek "<< snimky_k_provereni_prvni[b]<< " bude proveren.";
+                snimky_k_provereni_druhy.push_back(snimky_k_provereni_prvni[b]);
+            }
+        }
+        else if ((prumerny_korelacni_koeficient - vypoctene_hodnoty_R[b]) >= 0.05)
+        {
+            if (vypoctene_hodnoty_FWHM[b] <= (prumerne_FWHM + 5))
             {
                 qDebug()<< "Snimek "<< snimky_k_provereni_prvni[b]<< " je vhodny ke slicovani.";
                 hodnoceni_vsech_snimku_videa[int(snimky_k_provereni_prvni[b])] = 0;
@@ -243,7 +267,7 @@ void rozhodovani_treti(cv::Mat& obraz,
                        QVector<double> &POC_y,
                        QVector<double> &uhel,
                        bool zmena_velikosti_snimku,
-                       bool casova_znamka,                       
+                       bool casova_znamka,
                        cv::VideoCapture& cap,
                        QVector<double> &hodnoceni_vsech_snimku_videa,
                        QVector<double> &snimky_k_provereni_druhy,
@@ -256,13 +280,13 @@ void rozhodovani_treti(cv::Mat& obraz,
     int rows = obraz.rows;
     int cols = obraz.cols;
     //for (unsigned int i = 0; i < 1; i++)
-    for (int i = 0; i < snimky_k_provereni_druhy.size(); i++) //snimky_k_provereni2.size()
+    for (int i = 0; i < snimky_k_provereni_druhy.length(); i++) //snimky_k_provereni2.size()
     {
 
         Mat slicovan_kompletne = cv::Mat::zeros(obraz.size(), CV_32FC3);
         Point3d mira_translace;
         double celkovy_uhel = 0;
-        int iterace = -1;double oblastMaxima = 5;double uhelMaximalni = 0.1;
+        int iterace = -1;double oblastMaxima = 5.0;double uhelMaximalni = 0.1;
         int uspech_licovani = kompletni_slicovani(cap,obraz,
                                                   snimky_k_provereni_druhy[i],
                                                   iterace,
@@ -273,12 +297,11 @@ void rozhodovani_treti(cv::Mat& obraz,
                                                   zmena_velikosti_snimku,
                                                   slicovan_kompletne,
                                                   mira_translace,celkovy_uhel);
-        //cout << "Typ: "<<slicovan_kompletne.type()<<endl;
-        cout << snimky_k_provereni_druhy[i] <<" -> ";
+        qDebug() << snimky_k_provereni_druhy[i] <<" -> ";
         if (uspech_licovani == 0)
         {
 
-            cout << "nelze slicovat, ohodnocení: 5"<<endl;
+            qDebug()  << "nelze slicovat, ohodnocení: 5";
             hodnoceni_vsech_snimku_videa[int(snimky_k_provereni_druhy[i])] = 5.0;
             POC_x[int(snimky_k_provereni_druhy[i])] = 999.0;
             POC_y[int(snimky_k_provereni_druhy[i])] = 999.0;
@@ -300,13 +323,16 @@ void rozhodovani_treti(cv::Mat& obraz,
             Point3d korekce_bod(0,0,0);
             if (zmena_velikosti_snimku == true)
             {
-                korekce_bod = fk_translace(obraz,slicovan_kompletne,5.0);
+                korekce_bod = fk_translace(obraz,slicovan_kompletne);
                 if (std::abs(korekce_bod.x)>=290 || std::abs(korekce_bod.y)>=290)
                 {
-                    korekce_bod = fk_translace_hann(obraz,slicovan_kompletne,5.0);
+                    korekce_bod = fk_translace_hann(obraz,slicovan_kompletne);
                 }
             }
-            if (zmena_velikosti_snimku == false){korekce_bod = fk_translace_hann(obraz,slicovan_kompletne,5.0);}
+            else
+            {
+                korekce_bod = fk_translace_hann(obraz,slicovan_kompletne);
+            }
             Mat korekce = translace_snimku(slicovan_kompletne,korekce_bod,rows,cols);
             korekce.copyTo(mezivysledek32f);
             kontrola_typu_snimku_32C1(mezivysledek32f);
@@ -314,13 +340,13 @@ void rozhodovani_treti(cv::Mat& obraz,
             double R2 = vypocet_KK(obraz,korekce,vyrez_korelace_standardni);
             Point3d slicovany_frangi_reverse(0,0,0);
             double rozdil = R2-R1;
-            if ((R2-R1)>0.015)
+            if (rozdil>0.015)
             {
                 cv::Point3d extra_translace(0,0,0);
                 extra_translace.x = mira_translace.x+korekce_bod.x;
                 extra_translace.y = mira_translace.y+korekce_bod.y;
                 extra_translace.z = mira_translace.z;
-                qDebug()<< "Provedena korekce posunuti pro objektivnejsi analyzu skrze cevy."<<endl;
+                qDebug()<< "Provedena korekce posunuti pro objektivnejsi analyzu skrze cevy.";
                 slicovany_frangi_reverse = frangi_analyza(korekce,2,2,0,"",2,false,extra_translace,parametryFrangianalyzy);//!
             }
             else

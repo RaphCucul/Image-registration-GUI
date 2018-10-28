@@ -81,11 +81,13 @@ using cv::Mat;
 
 }*/
 
-double vypocet_KK(cv::Mat& referencni,cv::Mat& slicovany,cv::Rect vyrez_korelace)
+double vypocet_KK(const cv::Mat &referencni, const cv::Mat &slicovany, cv::Rect vyrez_korelace)
 {
-    Mat referencni_vyrez,slicovany_vyrez;
-    Mat referencni64 = kontrola_typu_snimku_64C1(referencni);
-    Mat slicovany64 = kontrola_typu_snimku_64C1(slicovany);
+    Mat referencni_vyrez,slicovany_vyrez,referencni64,slicovany64;
+    referencni.copyTo(referencni64);
+    slicovany.copyTo(slicovany64);
+    referencni64 = kontrola_typu_snimku_64C1(referencni64);
+    slicovany64 = kontrola_typu_snimku_64C1(slicovany64);
     referencni64(vyrez_korelace).copyTo(referencni_vyrez);
     slicovany64(vyrez_korelace).copyTo(slicovany_vyrez);
     //int typ_reference = referencni_vyrez.type();

@@ -2,12 +2,16 @@
 #include "ui_singlevideoet.h"
 #include "analyza_obrazu/entropie.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
+#include "analyza_obrazu/upravy_obrazu.h"
 #include "hlavni_program/t_b_ho.h"
 #include "hlavni_program/frangi_detektor.h"
 #include "dialogy/grafet.h"
 #include "dialogy/clickimageevent.h"
 #include "util/souborove_operace.h"
-#include "util/vicevlaknovezpracovani.h"
+//#include "util/vicevlaknovezpracovani.h"
+#include "util/prace_s_vektory.h"
+#include "licovani/rozhodovaci_algoritmy.h"
+#include "licovani/multiPOC_Ai1.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -211,12 +215,14 @@ void SingleVideoET::on_vypocetET_clicked()
         ziskane_hranice_casZnac.x = 0.0f;
     }
     pom.append(kompletni_cesta);
-    vlaknoET = new VicevlaknoveZpracovani(pom,ziskane_hranice_anomalie,
+    temp(pom);
+    /*vlaknoET = new VicevlaknoveZpracovani(pom,ziskane_hranice_anomalie,
                                           ziskane_hranice_casZnac,parametry_frangi,
                                           volbaSvetAnomETSingle,volbaCasZnackyETSingle);
     connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
     connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
-    vlaknoET->start();
+
+    vlaknoET->start();*/
 }
 
 void SingleVideoET::on_zobrazGrafET_clicked()
@@ -251,9 +257,34 @@ void SingleVideoET::on_pushButton_clicked()
 
 void SingleVideoET::zpracovano()
 {
-    entropie = vlaknoET->vypocitanaEntropie();
+    /*entropie = vlaknoET->vypocitanaEntropie();
     tennengrad = vlaknoET->vypocitanyTennengrad();
-    ui->zobrazGrafET->setEnabled(true);
+    ui->zobrazGrafET->setEnabled(true);*/
+}
+
+void SingleVideoET::newVideoProcessed(QString video)
+{
+    ui->analyzovaneVideo->setText("Currently analysed video:"+video);
+}
+
+void SingleVideoET::movedToMethod(int metoda)
+{
+    if (metoda == 0)
+        ui->informaceOprubehu->setText("1/8 Entropy and tennengrad computation");
+    if (metoda == 1)
+        ui->informaceOprubehu->setText("2/8 Searching for maximum");
+    if (metoda == 2)
+        ui->informaceOprubehu->setText("3/8 Thresholding entropy and tennengrad");
+    if (metoda == 3)
+        ui->informaceOprubehu->setText("4/8 Frangi filtering and preprocessing");
+    if (metoda == 4)
+        ui->informaceOprubehu->setText("5/8 Average correlation and FWHM");
+    if (metoda == 5)
+        ui->informaceOprubehu->setText("6/8 First decision algorithm");
+    if (metoda == 6)
+        ui->informaceOprubehu->setText("7/8 Second decision algorithm");
+    if (metoda == 7)
+        ui->informaceOprubehu->setText("8/8 Third decision algorithm");
 }
 
 void SingleVideoET::on_oblastMaxima_textChanged(const QString &arg1)
@@ -328,3 +359,249 @@ void SingleVideoET::on_cisloReferencnihosnimku_textChanged(const QString &arg1)
         ui->svetelnaAnomalie->setEnabled(true);
     }
 }
+
+void SingleVideoET::temp(QStringList pomList)
+{
+
+    /// Firstly, entropy and tennengrad are computed for each frame of each video
+    /// This task is indicated by emiting 0 in typeOfMethod
+    int kolikateVideo = 0;
+    //for (int kolikateVideo = 0; kolikateVideo < pom.count(); kolikateVideo++)
+    //{
+    QString fullPath = pomList.at(kolikateVideo);
+    qDebug()<<"Processing: "<<fullPath;
+    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
+    int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+    QVector<double> pom(frameCount,0);
+
+    QVector<double> frangi_x,frangi_y,frangi_euklid,POC_x,POC_y,uhel;
+    frangi_x = pom;frangi_y=pom;frangi_euklid=pom;POC_x=pom;POC_y=pom;uhel=pom;
+
+    double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    cv::Rect vyrez_anomalie(0,0,0,0);
+    cv::Point2f hranice_anomalie;
+    cv::Point2f hranice_CasZnac;
+    if (ziskane_hranice_anomalie.x >0.0f && ziskane_hranice_anomalie.x < float(sirka))
+    {
+        hranice_anomalie.x = ziskane_hranice_anomalie.x;
+        hranice_anomalie.y = ziskane_hranice_anomalie.y;
+    }
+    else
+    {
+        hranice_anomalie.x = 0.0f;
+        hranice_anomalie.y = 0.0f;
+    }
+    if (ziskane_hranice_anomalie.y > 0.0f && ziskane_hranice_anomalie.y < float(vyska))
+    {
+        hranice_CasZnac.y = ziskane_hranice_anomalie.y;
+        hranice_CasZnac.x = ziskane_hranice_anomalie.x;
+    }
+    else
+    {
+        hranice_CasZnac.x = 0.0f;
+        hranice_CasZnac.y = 0.0f;
+    }
+    if (hranice_anomalie.x != 0.0f)
+    {
+        if (hranice_anomalie.x < float(sirka/2))
+        {
+            vyrez_anomalie.x = 0;
+            vyrez_anomalie.y = int(hranice_anomalie.y);
+            vyrez_anomalie.width = int(sirka)-int(hranice_anomalie.x)-1;
+            vyrez_anomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+        }
+        if (hranice_anomalie.x > float(sirka/2))
+        {
+            vyrez_anomalie.x = 0;
+            vyrez_anomalie.y = 0;
+            vyrez_anomalie.width = int(hranice_anomalie.x);
+            vyrez_anomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+        }
+    }
+    QVector<double> entropyActual,tennengradActual;
+    entropyActual.fill(0.0,frameCount);
+    tennengradActual.fill(0.0,frameCount);
+    int uspech_analyzy = 0;
+    if (cap.isOpened() == 0)
+        qWarning()<<"Nelze nacist";
+    else
+    {
+        double pocet_snimku_videa = (cap.get(CV_CAP_PROP_FRAME_COUNT));
+        qDebug()<< "Analyza videa: "<<kolikateVideo;
+        for (double a = 0; a < pocet_snimku_videa; a++)
+        {
+            //qDebug()<<(kolikateVideo/pocetVidei)*100;//+((a/pocet_snimku_videa)*100.0)/pocetVidei;
+            //emit percentageCompleted(qRound((kolikateVideo/pocetVidei)*100+((a/pocet_snimku_videa)*100.0)/pocetVidei));
+            cv::Mat snimek;
+            double hodnota_entropie;
+            cv::Scalar hodnota_tennengrad;
+            cap.set(CV_CAP_PROP_POS_FRAMES,(a));
+            if (!cap.read(snimek))
+                continue;
+            else
+            {
+                kontrola_typu_snimku_8C3(snimek);
+                vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
+                double pomocna = hodnota_tennengrad[0];
+                //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
+                entropyActual[int(a)] = (hodnota_entropie);
+                tennengradActual[int(a)] = (pomocna);
+                snimek.release();
+            }
+        }
+        uspech_analyzy = 1;
+        //procento = qRound(100.0/kolikateVideo+2);
+    }
+    entropie.push_back(entropyActual);
+    tennengrad.push_back(tennengradActual);
+    qDebug()<<entropie.size()<<tennengrad.size();
+
+    /// Secondly, it is necessary to select proper maximal value for later selection of bad images
+    /// after this procedure, windows for detail analysis of entropy and tennengrad vectors are computed
+    /// medians of values in the windows are computed
+    double correctEntropyMax = kontrola_maxima(entropie[kolikateVideo]);
+    double correctTennengradMax = kontrola_maxima(tennengrad[kolikateVideo]);
+    QVector<double> windows_tennengrad,windows_entropy,windowsEntropy_medians,windowsTennengrad_medians;
+    double restEntropy = 0.0,restTennengrad = 0.0;
+    okna_vektoru(entropie[kolikateVideo],windows_entropy,restEntropy);
+    okna_vektoru(tennengrad[kolikateVideo],windows_tennengrad,restTennengrad);
+    windowsEntropy_medians = mediany_vektoru(entropie[kolikateVideo],windows_entropy,restEntropy);
+    windowsTennengrad_medians = mediany_vektoru(tennengrad[kolikateVideo],windows_tennengrad,restTennengrad);
+    qDebug()<<windowsEntropy_medians;
+    qDebug()<<windowsTennengrad_medians;
+
+    /// Thirdly, values of entropy and tennengrad are evaluated and frames get mark good/bad, if they are
+    /// or they are not suitable for image registration
+    QVector<double> thresholdsEntropy(2,0);
+    QVector<double> thresholdsTennengrad(2,0);
+    thresholdsEntropy[0] = 0.01;thresholdsEntropy[1] = 0.01;
+    thresholdsTennengrad[0] = 10;thresholdsTennengrad[1] = 10;
+    double toleranceEntropy = 0.001;
+    double toleranceTennengrad = 0.1;
+    int dmin = 1;
+    QVector<double> badFramesEntropy, badFramesTennengrad;
+    QVector<double> nextAnalysisEntropy, nextAnalysisTennengrad;
+    analyza_prubehu_funkce(entropie[kolikateVideo],windowsEntropy_medians,windows_entropy,
+                           correctEntropyMax,thresholdsEntropy,toleranceEntropy,dmin,restEntropy,
+                           badFramesEntropy,nextAnalysisEntropy);
+    analyza_prubehu_funkce(tennengrad[kolikateVideo],windowsTennengrad_medians,windows_tennengrad,
+                           correctTennengradMax,thresholdsTennengrad,toleranceTennengrad,dmin,restTennengrad,
+                           badFramesTennengrad,nextAnalysisTennengrad);
+    int referencni_snimek = nalezeni_referencniho_snimku(correctEntropyMax,nextAnalysisEntropy,
+                                                         entropie[kolikateVideo]);
+    /// Fourth part - frangi filter is applied on the frame marked as the reference
+    cv::Mat reference, reference_vyrez;
+    cap.set(CV_CAP_PROP_POS_FRAMES,referencni_snimek);
+    cap.read(reference);
+
+    cv::Rect vyrez_korelace_extra(0,0,0,0);
+    cv::Rect vyrez_korelace_standard(0,0,0,0);
+    cv::Point3d pt_temp(0.0,0.0,0.0);
+    cv::Mat obraz;
+    cv::Point3d frangi_bod(0,0,0);
+    bool zmenaMeritka = false;
+    predzpracovaniKompletnihoLicovani(reference,
+                                      obraz,
+                                      parametry_frangi,
+                                      hranice_anomalie,
+                                      hranice_CasZnac,
+                                      frangi_bod,
+                                      vyrez_anomalie,
+                                      vyrez_korelace_extra,
+                                      vyrez_korelace_standard,
+                                      cap,
+                                      volbaSvetAnomETSingle,
+                                      volbaCasZnackyETSingle,
+                                      zmenaMeritka);
+    /// Fifth part - average correlation coefficient and FWHM coefficient of the video are computed
+    /// for decision algorithms
+    double prumerny_korelacni_koeficient = 0.0;
+    double prumerne_FWHM = 0.0;
+    QVector<double> spatne_snimky_komplet = spojeni_vektoru(badFramesEntropy,badFramesTennengrad);
+    kontrola_celistvosti(spatne_snimky_komplet);
+    analyza_FWHM(cap,referencni_snimek,frameCount,zmenaMeritka,prumerny_korelacni_koeficient,prumerne_FWHM,
+                                        vyrez_korelace_standard,vyrez_korelace_extra,spatne_snimky_komplet);
+    QVector<double> hodnoceniSnimku;
+    hodnoceniSnimku = pom;
+    for (int a = 0; a < spatne_snimky_komplet.length(); a++)
+    {
+        hodnoceniSnimku[int(spatne_snimky_komplet[a])] = 1;
+    }
+    if (restEntropy == 1.0)
+    {
+        spatne_snimky_komplet.push_back(frameCount-1);
+    }
+    int do_zbytku = int(restEntropy-1.0);
+    if (restEntropy > 1)
+    {
+        while (do_zbytku >= 0)
+        {
+            spatne_snimky_komplet.push_back(frameCount-1-do_zbytku);
+            do_zbytku -= 1;
+        }
+        spatne_snimky_komplet.push_back(frameCount-1);
+    }
+    /// Sixth part - first decision algorithm
+    QVector<double> vypoctena_R,vypoctena_FWHM,snimkyKprovereniPrvni;
+    rozhodovani_prvni(spatne_snimky_komplet,
+                      hodnoceniSnimku,
+                      POC_x,
+                      POC_y,
+                      uhel,
+                      frangi_x,
+                      frangi_y,
+                      frangi_euklid,
+                      prumerny_korelacni_koeficient,
+                      prumerne_FWHM,
+                      cap,
+                      reference,
+                      vyrez_korelace_standard,
+                      vyrez_korelace_extra,
+                      zmenaMeritka,
+                      snimkyKprovereniPrvni,
+                      vypoctena_R,
+                      vypoctena_FWHM);
+    if (snimkyKprovereniPrvni.empty() != true)
+    {
+        QVector<double> snimkyKprovereniDruhy;
+        /// Seventh part - second decision algorithm
+        rozhodovani_druhe(snimkyKprovereniPrvni,
+                          hodnoceniSnimku,
+                          vypoctena_R,
+                          vypoctena_FWHM,
+                          POC_x,
+                          POC_y,
+                          uhel,
+                          frangi_x,
+                          frangi_y,
+                          frangi_euklid,
+                          prumerny_korelacni_koeficient,
+                          prumerne_FWHM,
+                          snimkyKprovereniDruhy);
+        if (snimkyKprovereniDruhy.empty() != true)
+        {
+            /// Eigth part - third decision algorithm
+            rozhodovani_treti(obraz,
+                              vyrez_korelace_extra,
+                              vyrez_korelace_standard,
+                              frangi_x,
+                              frangi_y,
+                              frangi_euklid,
+                              POC_x,
+                              POC_y,
+                              uhel,
+                              zmenaMeritka,
+                              volbaCasZnackyETSingle,
+                              cap,
+                              hodnoceniSnimku,
+                              snimkyKprovereniDruhy,
+                              parametry_frangi);
+        }
+        else
+            qWarning()<<"Continuing";
+    }
+    else
+        qWarning()<<"Continuing";
+}
+//}

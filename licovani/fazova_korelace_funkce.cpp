@@ -6,7 +6,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 using namespace cv;
-cv::Point3d fk_translace_hann(const cv::Mat& referencni_snimek, const cv::Mat& posunuty, double oblastMaxima)
+cv::Point3d fk_translace_hann(const Mat &referencni_snimek, const Mat &posunuty)
 {
     Point3d vysledek_posunuti(0,0,0);
     Mat referencni_snimek32f,posunuty32f;
@@ -20,7 +20,7 @@ cv::Point3d fk_translace_hann(const cv::Mat& referencni_snimek, const cv::Mat& p
     cv::Mat hann;
     cv::createHanningWindow(hann, referencni_snimek32f.size(), CV_32FC1);
     kontrola_typu_snimku_32C1(hann);
-    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,oblastMaxima,hann);
+    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,5,hann);
 
     hann.release();
     referencni_snimek32f.release();
@@ -29,7 +29,7 @@ cv::Point3d fk_translace_hann(const cv::Mat& referencni_snimek, const cv::Mat& p
     //cout << "Result type "<<result.type()<<endl;
 }
 
-cv::Point3d fk_translace(const cv::Mat& referencni_snimek, const cv::Mat& posunuty, double oblastMaxima)
+cv::Point3d fk_translace(const Mat &referencni_snimek, const Mat &posunuty)
 {
     Point3d vysledek_posunuti;
     Mat referencni_snimek32f,posunuty32f;
@@ -39,15 +39,15 @@ cv::Point3d fk_translace(const cv::Mat& referencni_snimek, const cv::Mat& posunu
     kontrola_typu_snimku_32C1(posunuty32f);
     //int typ_reference = referencni_snimek32f.type();
     //int typ_posunuty = posunuty32f.type();
-    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,oblastMaxima);
+    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f);
 
     referencni_snimek32f.release();
     posunuty32f.release();
     return vysledek_posunuti;
 }
 
-cv::Point3d fk_rotace(const cv::Mat& referencni_snimek,
-                      const cv::Mat& posunuty,
+cv::Point3d fk_rotace(const Mat &referencni_snimek,
+                      const Mat &posunuty,
                       double maximalni_uhel,
                       const double& hodnota_maxima_fk_translace,
                       cv::Point3d& hodnoty_translace)

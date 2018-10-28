@@ -10,7 +10,7 @@ double kontrola_maxima(QVector<double>& vektor_hodnot);
 
 QVector<double> spojeni_vektoru(QVector<double>& vektor1,QVector<double>& vektor2);
 
-void okna_vektoru(QVector<double>& vektor_hodnot, QVector<double>& okna, double zbytek_do_konce);
+void okna_vektoru(QVector<double>& vektor_hodnot, QVector<double>& okna, double& zbytek_do_konce);
 /// rozdeleni prubehu entropie/tenengradu na okna
 
 QVector<double> mediany_vektoru(QVector<double>& vektor_hodnot,
@@ -34,14 +34,15 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
                                  QVector<double>& vektor_hodnot);
 /// hleda nejvhodnejsi snimek k prepocitane hodnote maxima
 
-double analyza_FWHM(cv::VideoCapture& capture,
-                    int referencni_snimek_cislo,
-                    int pocet_snimku_videa,
-                    double& R,
-                    bool zmena_meritka,
-                    cv::Rect& vyrez_oblasti_standardni,
-                    cv::Rect& vyrez_oblasti_navic,
-                    QVector<double>& spatne_snimky_komplet);
+void analyza_FWHM(cv::VideoCapture& capture,
+                  int referencni_snimek_cislo,
+                  int pocet_snimku_videa,
+                  bool zmena_meritka,
+                  double& vypocteneR,
+                  double& vypocteneFWHM,
+                  cv::Rect& vyrez_oblasti_standardni,
+                  cv::Rect& vyrez_oblasti_navic,
+                  QVector<double>& spatne_snimky_komplet);
 /// pocita prumerny R a PMPf
 
 void kontrola_celistvosti(QVector<double>& spatne_snimky);

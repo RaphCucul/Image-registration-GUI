@@ -67,32 +67,32 @@ int kompletni_slicovani(cv::VideoCapture& cap,
     Point3d pt1(0,0,0);
     if (nutnost_zmenit_velikost_snimku == true)
     {
-        pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f,oblastMaxima);
-        qDebug() << "PT1 pri zmene velikosti Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
+        pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
+        //qDebug() << "PT1 pri zmene velikosti Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
         if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
         {
-            pt1 = fk_translace(referencni_snimek_32f,posunuty_32f,oblastMaxima);
+            pt1 = fk_translace(referencni_snimek_32f,posunuty_32f);
         }
         if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
         {
-            pt1 = fk_translace(referencni_snimek_vyrez,posunuty_vyrez,oblastMaxima);
+            pt1 = fk_translace(referencni_snimek_vyrez,posunuty_vyrez);
         }
     }
     if (nutnost_zmenit_velikost_snimku == false)
     {
-        pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f,oblastMaxima);
-        qDebug() << "PT1 bez zmeny velikosti Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
+        pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
+        //qDebug() << "PT1 bez zmeny velikosti Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
     }
 
     if (pt1.x>=55 || pt1.y>=55)
     {
         mira_translace = pt1;
-        qDebug() << "PT1 nad 55 - Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
+        //qDebug() << "PT1 nad 55 - Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
         return uspech_licovani = 0;
     }
     else
     {
-        qDebug() << "PT1 v normálu Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
+        //qDebug() << "PT1 v normálu Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
         slicovany1 = translace_snimku(posunuty,pt1,rows,cols);
         cv::Mat slicovany1_32f_rotace,slicovany1_32f,slicovany1_vyrez;
         slicovany1.copyTo(slicovany1_32f);
@@ -102,7 +102,7 @@ int kompletni_slicovani(cv::VideoCapture& cap,
         slicovany1_32f_rotace = rotace_snimku(slicovany1_32f,vysledek_rotace.y);
         slicovany1_32f_rotace(korelacni_vyrez_standardni).copyTo(slicovany1_vyrez);
         /**************************************************************************************/
-        Point3d pt2 = fk_translace(referencni_snimek_vyrez,slicovany1_vyrez,oblastMaxima);
+        Point3d pt2 = fk_translace(referencni_snimek_vyrez,slicovany1_vyrez);
         if (pt2.x >= 55 || pt2.y >= 55)
         {
             mira_translace = pt1;
@@ -114,7 +114,7 @@ int kompletni_slicovani(cv::VideoCapture& cap,
         {
             double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt2.z);
             double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-            qDebug()<<"FWHM: "<<FWHM;
+            //qDebug()<<"FWHM: "<<FWHM;
             slicovany1.release();
             slicovany1_32f.release();
             slicovany1_vyrez.release();
@@ -159,13 +159,13 @@ int kompletni_slicovani(cv::VideoCapture& cap,
                 if (std::abs(rotace_ForLoop.y) > 0.1){rotace_ForLoop.y = 0;}
                 else if (std::abs(celkovy_uhel+rotace_ForLoop.y)>0.1){rotace_ForLoop.y=0;}
                 else {celkovy_uhel+=rotace_ForLoop.y;}
-                qDebug() << "rotace " << celkovy_uhel <<" se zmenou " << rotace_ForLoop.y << endl;
+                //qDebug() << "rotace " << celkovy_uhel <<" se zmenou " << rotace_ForLoop.y << endl;
                 Mat rotovany = rotace_snimku(mezivysledek,rotace_ForLoop.y);
                 rotace_ForLoop.y = 0;
                 Mat rotovany_vyrez;
                 rotovany(korelacni_vyrez_standardni).copyTo(rotovany_vyrez);
                 rotovany.release();
-                Point3d pt4 = fk_translace(referencni_snimek_vyrez,rotovany_vyrez,oblastMaxima);
+                Point3d pt4 = fk_translace(referencni_snimek_vyrez,rotovany_vyrez);
                 rotovany_vyrez.release();
                 if (pt4.x >= 55 || pt4.y >= 55)
                 {
@@ -179,7 +179,7 @@ int kompletni_slicovani(cv::VideoCapture& cap,
                     pt3.x += pt4.x;
                     pt3.y += pt4.y;
                     pt3.z = pt4.z;
-                    qDebug() << "Y: "<< (pt3.y) <<" a X: "<<(pt3.x)<<endl<<endl;
+                    //qDebug() << "Y: "<< (pt3.y) <<" a X: "<<(pt3.x)<<endl<<endl;
                     Mat posunuty_temp = translace_snimku(posunuty,pt3,rows,cols);
                     Mat rotovany_temp = rotace_snimku(posunuty_temp,celkovy_uhel);
                     posunuty_temp.release();

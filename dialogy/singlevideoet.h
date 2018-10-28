@@ -17,7 +17,7 @@ class SingleVideoET : public QWidget
 public:
     explicit SingleVideoET(QWidget *parent = nullptr);
     ~SingleVideoET();
-
+    void temp(QStringList pomList);
 private slots:
     void on_vyberVidea_clicked();
     void on_vybraneVideo_textChanged(const QString &arg1);
@@ -26,6 +26,8 @@ private slots:
     void on_vypocetET_clicked();
     void on_zobrazGrafET_clicked();
     void zpracovano();
+    void newVideoProcessed(QString video);
+    void movedToMethod(int metoda);
     void on_pushButton_clicked();
 
     void on_oblastMaxima_textChanged(const QString &arg1);
@@ -38,7 +40,7 @@ private slots:
 
 private:
     Ui::SingleVideoET *ui;
-    VicevlaknoveZpracovani* vlaknoET;
+    //VicevlaknoveZpracovani* vlaknoET;
     double pocetSnimkuVidea;
     int analyzaETdokoncena = 0;
     QVector<QString> vybraneVideoETSingle;

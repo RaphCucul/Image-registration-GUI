@@ -186,7 +186,7 @@ void MultipleVideoET::on_pushButton_clicked()
 
 void MultipleVideoET::zpracovano()
 {
-    entropie = vlaknoET->vypocitanaEntropie();
+    /*entropie = vlaknoET->vypocitanaEntropie();
     tennengrad = vlaknoET->vypocitanyTennengrad();
-    ui->zobrazVysledkyPB->setEnabled(true);
+    ui->zobrazVysledkyPB->setEnabled(true);*/
 }

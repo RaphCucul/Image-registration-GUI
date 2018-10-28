@@ -728,12 +728,12 @@ void LicovaniDvou::on_slicujDvaSnimky_clicked()
             qDebug()<<"PT3 - posunutí po multiPOC "<<pt3.x<<" "<<pt3.y;
             cv::Mat korekce = eventualni_korekce_translace(mezivysledek,obraz,vyrez_korelace_standard,pt3,oblastMaxima);
             qDebug()<<"Mezivýsledek "<<mezivysledek.channels()<<" "<<mezivysledek.type();
-            cv::Point3d pt5 = fk_translace_hann(obraz,korekce,oblastMaxima);
+            cv::Point3d pt5 = fk_translace_hann(obraz,korekce);
             qDebug()<<"PT5 obraz vs korekce"<<pt5.x<<" "<<pt5.y;
             double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt5.z);
             double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
             qDebug()<<"FWHM: "<<FWHM;
-            cv::Point3d pt6 = fk_translace(obraz,korekce,oblastMaxima);
+            cv::Point3d pt6 = fk_translace(obraz,korekce);
             qDebug()<<"Pt6 "<<pt6.x<<" "<<pt6.y;
             cv::Point3d souradnice_slicovany_frangi_reverse = frangi_analyza(mezivysledek,2,2,0,"",2,false,pt3,parametry_frangi);
             //cv::Point3d souradnice_slicovany_frangi = frangi_analyza(mezivysledek,1,1,0,"",2,false,pt3,parametry_frangi);
