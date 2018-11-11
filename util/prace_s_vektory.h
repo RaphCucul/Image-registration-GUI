@@ -8,7 +8,7 @@ double median_vektoru_cisel(QVector<double> vektor_hodnot);
 double kontrola_maxima(QVector<double>& vektor_hodnot);
 /// zjistuje, jestli neni maximum prilis velke
 
-QVector<double> spojeni_vektoru(QVector<double>& vektor1,QVector<double>& vektor2);
+QVector<int> spojeni_vektoru(QVector<int>& vektor1,QVector<int>& vektor2);
 
 void okna_vektoru(QVector<double>& vektor_hodnot, QVector<double>& okna, double& zbytek_do_konce);
 /// rozdeleni prubehu entropie/tenengradu na okna
@@ -26,7 +26,7 @@ void analyza_prubehu_funkce(QVector<double>& vektor_hodnot,
                             double& tolerance,
                             int& dmin,
                             double& zbytek_do_konce,
-                            QVector<double>& spatne_snimky,
+                            QVector<int>& spatne_snimky,
                             QVector<double>& pro_provereni);
 /// realizuje prvni cast algoritmu
 
@@ -34,7 +34,7 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
                                  QVector<double>& vektor_hodnot);
 /// hleda nejvhodnejsi snimek k prepocitane hodnote maxima
 
-void analyza_FWHM(cv::VideoCapture& capture,
+/*void analyza_FWHM(cv::VideoCapture& capture,
                   int referencni_snimek_cislo,
                   int pocet_snimku_videa,
                   bool zmena_meritka,
@@ -43,9 +43,9 @@ void analyza_FWHM(cv::VideoCapture& capture,
                   cv::Rect& vyrez_oblasti_standardni,
                   cv::Rect& vyrez_oblasti_navic,
                   QVector<double>& spatne_snimky_komplet);
-/// pocita prumerny R a PMPf
+/// pocita prumerny R a PMPf*/
 
-void kontrola_celistvosti(QVector<double>& spatne_snimky);
+void kontrola_celistvosti(QVector<int>& spatne_snimky);
 /// kontroluje, jestli v rade vadnych snimku lze doplnit snimek pro kompletaci sekvence (v pripade nekolika vadnych
 /// snimku za sebou zabrani preskoceni pripadneho spatneho snimku)
 #endif // PRACE_S_VEKTORY_H_INCLUDED

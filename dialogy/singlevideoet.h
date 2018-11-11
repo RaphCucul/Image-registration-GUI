@@ -5,7 +5,11 @@
 #include <opencv2/opencv.hpp>
 #include <QVector>
 #include <QJsonObject>
-#include "util/vicevlaknovezpracovani.h"
+#include "multithreadET/qThreadFirstPart.h"
+#include "multithreadET/qthreadsecondpart.h"
+#include "multithreadET/qthreadthirdpart.h"
+#include "multithreadET/qthreadfourthpart.h"
+#include "multithreadET/qthreadfifthpart.h"
 namespace Ui {
 class SingleVideoET;
 }
@@ -16,8 +20,8 @@ class SingleVideoET : public QWidget
 
 public:
     explicit SingleVideoET(QWidget *parent = nullptr);
-    ~SingleVideoET();
-    void temp(QStringList pomList);
+    ~SingleVideoET();    
+    //void temp(QStringList pomList);
 private slots:
     void on_vyberVidea_clicked();
     void on_vybraneVideo_textChanged(const QString &arg1);
@@ -25,10 +29,11 @@ private slots:
     void on_svetelnaAnomalie_stateChanged(int arg1);
     void on_vypocetET_clicked();
     void on_zobrazGrafET_clicked();
-    void zpracovano();
+    void zpracovano(int dokonceno);
     void newVideoProcessed(QString video);
     void movedToMethod(int metoda);
-    void on_pushButton_clicked();
+    void terminatedByError(int where);
+    void on_ulozeni_clicked();
 
     void on_oblastMaxima_textChanged(const QString &arg1);
 
@@ -40,9 +45,14 @@ private slots:
 
 private:
     Ui::SingleVideoET *ui;
-    //VicevlaknoveZpracovani* vlaknoET;
+    qThreadFirstPart* TFirstP;
+    qThreadSecondPart* TSecondP;
+    qThreadThirdPart* TThirdP;
+    qThreadFourthPart* TFourthP;
+    qThreadFifthPart* TFifthP;
     double pocetSnimkuVidea;
     int analyzaETdokoncena = 0;
+    QStringList analysedVideos;
     QVector<QString> vybraneVideoETSingle;
     bool spravnostVideaETSingle = false;
     bool volbaCasZnackyETSingle = false;
@@ -50,6 +60,21 @@ private:
     QVector<double> aktualniEntropie, aktualniTennengrad;
     QVector<QVector<double>> entropie;
     QVector<QVector<double>> tennengrad;
+    QVector<QVector<int>> snimkyPrvotniOhodnoceniEntropieKomplet;
+    QVector<QVector<int>> snimkyPrvotniOhodnoceniTennengradKomplet;
+    QVector<QVector<int>> snimkyPrvniRozhodovaniKomplet;
+    QVector<QVector<int>> snimkyDruheRozhodovaniKomplet;
+    QVector<QVector<int>> snimkyOhodnoceniKomplet;
+    QVector<QVector<int>> spatneSnimkyKomplet;
+    QVector<QVector<double>> snimkyFrangiX;
+    QVector<QVector<double>> snimkyFrangiY;
+    QVector<QVector<double>> snimkyFrangiEuklid;
+    QVector<QVector<double>> snimkyPOCX;
+    QVector<QVector<double>> snimkyPOCY;
+    QVector<QVector<double>> snimkyUhel;
+    QVector<int> snimkyReferencni;
+    QVector<double> prumerneRKomplet;
+    QVector<double> prumerneFWHMKomplet;
     /// Parametries of anomalies
     /// Parametries for Frangi filter and phase correlation
     int iterace = -1;
@@ -58,6 +83,8 @@ private:
     QVector<double> parametry_frangi;
     cv::Point2f ziskane_hranice_anomalie;
     cv::Point2f ziskane_hranice_casZnac;
+    cv::Rect ziskany_VK_standard;
+    cv::Rect ziskany_VK_extra;
     cv::Point3d maximum_frangi;
     int predchozi_index = 0;
     QJsonObject parametryFrangiJson;

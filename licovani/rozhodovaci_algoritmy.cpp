@@ -185,6 +185,7 @@ void rozhodovani_prvni(QVector<double> &spatne_snimky_prvotni_ohodnoceni,
 
             }
         }
+
     }
 }
 

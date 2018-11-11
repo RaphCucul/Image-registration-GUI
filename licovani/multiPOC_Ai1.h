@@ -4,7 +4,7 @@
 #include <QCheckBox>
 int kompletni_slicovani(cv::VideoCapture& cap,
                         cv::Mat& referencni_snimek,
-                        double cislo_posunuty,
+                        int cislo_posunuty,
                         int& iterace,
                         double& oblastMaxima,
                         double& uhel,

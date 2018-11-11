@@ -70,11 +70,11 @@ double kontrola_maxima(QVector<double> &vektor_hodnot)
     return pom2;
 }
 
-QVector<double> spojeni_vektoru(QVector<double>& vektor1,QVector<double>& vektor2)
+QVector<int> spojeni_vektoru(QVector<int> &vektor1, QVector<int> &vektor2)
 {
     //std::ostream_iterator<double> out_it (std::cout," ");
     int celkovaVelikost = vektor1.length()+vektor2.length();
-    QVector<double> sjednoceny_vektor(celkovaVelikost,0.0);
+    QVector<int> sjednoceny_vektor(celkovaVelikost,0.0);
 
     for (int a = 0; a < 2; a++)
     {
@@ -82,7 +82,7 @@ QVector<double> spojeni_vektoru(QVector<double>& vektor1,QVector<double>& vektor
         {
             for (int b = 0; b < vektor1.length(); b++)
             {
-                sjednoceny_vektor[b] = vektor1[b];
+                sjednoceny_vektor[b] = int(vektor1[b]);
             }
         }
         if (a == 1)
@@ -90,7 +90,7 @@ QVector<double> spojeni_vektoru(QVector<double>& vektor1,QVector<double>& vektor
             int c=0;
             for (int b = vektor1.length(); b < sjednoceny_vektor.length(); b++)
             {
-                sjednoceny_vektor[b] = vektor2[c];
+                sjednoceny_vektor[b] = int(vektor2[c]);
                 c+=1;
             }
         }
@@ -173,7 +173,7 @@ void analyza_prubehu_funkce(QVector<double>& vektor_hodnot,
                             double& tolerance,
                             int& dmin,
                             double& zbytek_do_konce,
-                            QVector<double>& spatne_snimky,
+                            QVector<int> &spatne_snimky,
                             QVector<double>& pro_provereni)
 {
     if ((vektor_hodnot[0] < vektor_medianu[0]) || (vektor_hodnot[0] >= (prepocitane_maximum+prahy[1])))
@@ -260,7 +260,7 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
     return referencni_snimek;
 }
 
-void analyza_FWHM(cv::VideoCapture& capture,
+/*void analyza_FWHM(cv::VideoCapture& capture,
                     int referencni_snimek_cislo,
                     int pocet_snimku_videa,
                     bool zmena_meritka,
@@ -409,11 +409,11 @@ void analyza_FWHM(cv::VideoCapture& capture,
     //cout<<endl;
     vypocteneFWHM = median_vektoru_cisel(zaznamenane_FWHM);
     vypocteneR = median_vektoru_cisel(zaznamenane_R);
-}
+}*/
 
-void kontrola_celistvosti(QVector<double>& spatne_snimky)
+void kontrola_celistvosti(QVector<int> &spatne_snimky)
 {
-    QVector<double> vektor_rozdilu(spatne_snimky.size(),0);
+    QVector<int> vektor_rozdilu(spatne_snimky.size(),0);
     //std::ostream_iterator<double> out_it (std::cout," ");
     for (int j = 0; j < spatne_snimky.size()-1; j++)
     {

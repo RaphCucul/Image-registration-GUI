@@ -64,3 +64,10 @@ QJsonArray vector2array(QVector<double> &vektor)
     copy(vektor.begin(), vektor.end(), back_inserter(pole));
     return pole;
 }
+
+QJsonArray vector2array(QVector<int>& vektor)
+{
+    QJsonArray pole;
+    copy(vektor.begin(), vektor.end(), back_inserter(pole));
+    return pole;
+}

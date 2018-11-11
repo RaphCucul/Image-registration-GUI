@@ -50,5 +50,45 @@ void inicializujGrafickyObjekt(QCustomPlot* QP,
     QP->addGraph();
     QP->graph(7)->setData(snimkyRozsah,DP_tennengrad,true);
     QP->graph(7)->setPen(QPen(QColor(0,0,0)));
-    QP->graph(7)->setVisible(false);
+    QP->graph(7)->setVisible(false);    
+    /// Prvotni hodnoceni entropie
+    QP->addGraph();
+    QP->graph(8)->setPen(QPen(QColor(118, 111, 219)));
+    QP->graph(8)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(8)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
+    QP->graph(8)->setVisible(false);
+    /// Prvotni hodnoceni tennengrad
+    QP->addGraph();
+    QP->graph(9)->setPen(QPen(QColor(254, 132, 251)));
+    QP->graph(9)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(9)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 4));
+    QP->graph(9)->setVisible(false);
+    /// Prvni rozhodovani
+    QP->addGraph();
+    QP->graph(10)->setPen(QPen(QColor(254, 132, 11)));
+    QP->graph(10)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(10)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 4));
+    QP->graph(10)->setVisible(false);
+    /// Druhe rozhodovani
+    QP->addGraph();
+    QP->graph(11)->setPen(QPen(QColor(94, 186, 110)));
+    QP->graph(11)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(11)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssTriangle, 4));
+    QP->graph(11)->setVisible(false);
+    /*QP->addGraph();
+    QP->graph(12)->setData(snimkyDruheRozhodovani,entropie,true);
+    QP->graph(12)->setPen(QPen(QColor(0,0,0)));
+    QP->graph(12)->setVisible(false);
+    QP->addGraph();
+    QP->graph(13)->setData(snimkyDruheRozhodovani,entropieStandard,true);
+    QP->graph(13)->setPen(QPen(QColor(0,0,0)));
+    QP->graph(13)->setVisible(false);*/
+    /*QP->addGraph();
+    QP->graph(14)->setData(snimkyDruheRozhodovani,entropie,true);
+    QP->graph(14)->setPen(QPen(QColor(0,0,0)));
+    QP->graph(14)->setVisible(false);
+    QP->addGraph();
+    QP->graph(15)->setData(snimkyPrvotniOhodnoceni,entropieStandard,true);
+    QP->graph(15)->setPen(QPen(QColor(0,0,0)));
+    QP->graph(15)->setVisible(false);*/
 }

@@ -3,6 +3,8 @@
 #include "util/souborove_operace.h"
 #include "analyza_obrazu/entropie.h"
 #include "dialogy/grafet.h"
+#include "dialogy/clickimageevent.h"
+#include "hlavni_program/frangi_detektor.h"
 #include "hlavni_program/t_b_ho.h"
 
 #include <opencv2/opencv.hpp>
@@ -31,6 +33,8 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
 {
     ui->setupUi(this);
     setAcceptDrops(true);
+    ui->zobrazVysledkyPB->setEnabled(false);
+    ui->ulozeni->setEnabled(false);
 }
 
 MultipleVideoET::~MultipleVideoET()
@@ -102,7 +106,33 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
     connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->progBar,SLOT(setValue(int)));
     connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
     vlaknoET->start();*/
-    /*qDebug()<<"sezVid contains "<<sezVid.count()<<" videos.";
+    QString pom = sezVid.at(0);
+    cv::VideoCapture cap = cv::VideoCapture(pom.toLocal8Bit().constData());
+    if (!cap.isOpened())
+        qWarning()<<"Error opening video";
+    double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
+    {
+        ziskane_hranice_anomalie.x = oznacena_hranice_svetelne_anomalie.x;
+        ziskane_hranice_anomalie.y = oznacena_hranice_svetelne_anomalie.y;
+    }
+    else
+    {
+        ziskane_hranice_anomalie.x = 0.0f;
+        ziskane_hranice_anomalie.y = 0.0f;
+    }
+    if (oznacena_hranice_casove_znacky.y > 0.0f && oznacena_hranice_casove_znacky.y < float(vyska))
+    {
+        ziskane_hranice_casZnac.y = oznacena_hranice_casove_znacky.y;
+        ziskane_hranice_casZnac.x = oznacena_hranice_casove_znacky.x;
+    }
+    else
+    {
+        ziskane_hranice_casZnac.y = 0.0f;
+        ziskane_hranice_casZnac.x = 0.0f;
+    }
+    qDebug()<<"sezVid contains "<<sezVid.count()<<" videos.";
     for (int a = 0; a < sezVid.count(); a++)
     {
         QString fullPath = sezVid.at(a);
@@ -112,7 +142,9 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
         QVector<double> entropyActual,tennengradActual;
         entropyActual.fill(0.0,frameCount);
         tennengradActual.fill(0.0,frameCount);
-        vlaknoET = new VicevlaknoveZpracovani();
+        /*vlaknoET = new VicevlaknoveZpracovani(sezVid,ziskane_hranice_anomalie,
+                                              ziskane_hranice_casZnac,parametry_frangi,
+                                              volbaSvetAnomETSingle,volbaCasZnackyETSingle);
         connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->progBar,SLOT(setValue(int)));
         connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
         vlaknoET->start();*/
@@ -131,13 +163,16 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
             videoNames.push_back(onlyVideoName);
         }
     }*/
+  }
 }
 
 void MultipleVideoET::on_zobrazVysledkyPB_clicked()
 {
-    GrafET* graf_ET = new GrafET(entropie,tennengrad,sezVid,this);
+    /*GrafET* graf_ET = new GrafET(entropie,tennengrad,snimkyPrvotniOhodnoceniEntropieKomplet,
+                                 snimkyPrvotniOhodnoceniTennengradKomplet,snimkyPrvniRozhodovaniKomplet,
+                                 snimkyDruheRozhodovaniKomplet,sezVid,this);
     graf_ET->setModal(true);
-    graf_ET->show();
+    graf_ET->show();*/
 }
 
 void MultipleVideoET::on_vymazatZVyberuPB_clicked()
@@ -159,25 +194,60 @@ void MultipleVideoET::aktualizujProgBar(int procento)
     ui->progBar->setValue(procento);
 }
 
-void MultipleVideoET::on_pushButton_clicked()
+void MultipleVideoET::on_ulozeni_clicked()
 {
 
-    for (int a = 0; a < videoNames.length(); a++)
+    for (int a = 0; a < sezVid.count(); a++)
     {
+        QJsonDocument document;
         QJsonObject object;
         QVector<double> pomVecE = entropie[a];
         QVector<double> pomVecT = tennengrad[a];
+        QVector<double> pomVecPOE = snimkyPrvotniOhodnoceniEntropieKomplet[a];
+        QVector<double> pomVecPOT = snimkyPrvotniOhodnoceniTennengradKomplet[a];
+        QVector<double> pomVecPR = snimkyPrvniRozhodovaniKomplet[a];
+        QVector<double> pomVecDR = snimkyDruheRozhodovaniKomplet[a];
+        QVector<double> pomVecO = snimkyOhodnoceniKomplet[a];
+        QVector<double> pomVecFX = snimkyFrangiX[a];
+        QVector<double> pomVecFY = snimkyFrangiY[a];
+        QVector<double> pomVecFE = snimkyFrangiEuklid[a];
+        QVector<double> pomVecPX = snimkyPOCX[a];
+        QVector<double> pomVecPY = snimkyPOCY[a];
+        QVector<double> pomVecU = snimkyUhel[a];
         QJsonArray poleE = vector2array(pomVecE);
         QJsonArray poleT = vector2array(pomVecT);
-        QString aktualJmeno = videoNames[a];
-        QString cesta = TXTulozeniAktual+"/"+aktualJmeno+".dat";
+        QJsonArray polePOE = vector2array(pomVecPOE);
+        QJsonArray polePOT = vector2array(pomVecPOT);
+        QJsonArray poleO = vector2array(pomVecO);
+        QJsonArray polePR = vector2array(pomVecPR);
+        QJsonArray poleDR = vector2array(pomVecDR);
+        QJsonArray poleFX = vector2array(pomVecFX);
+        QJsonArray poleFY = vector2array(pomVecFY);
+        QJsonArray poleFE = vector2array(pomVecFE);
+        QJsonArray polePX = vector2array(pomVecPX);
+        QJsonArray polePY = vector2array(pomVecPY);
+        QJsonArray poleU = vector2array(pomVecU);
+        QString cesta,jmeno,koncovka;
+        QString kompletniCesta = sezVid.at(a);
+        zpracujJmeno(kompletniCesta,cesta,jmeno,koncovka);
+        QString cestaUlozeni = TXTulozeniAktual+"/"+jmeno+".dat";
         object["entropie"] = poleE;
         object["tennengrad"] = poleT;
-        QJsonDocument document;
+        object["Ohodnoceni"] = poleO;
+        object["PrvotOhodEntropie"] = polePOE;
+        object["PrvotOhodTennengrad"] = polePOT;
+        object["PrvniRozhod"] = polePR;
+        object["DruheRozhod"] = poleDR;
+        object["FrangiX"] = poleFX;
+        object["FrangiY"] = poleFY;
+        object["FrangiEuklid"] = poleFE;
+        object["POCX"] = polePX;
+        object["POCY"] = polePY;
+        object["Uhel"] = poleU;
         document.setObject(object);
         QString documentString = document.toJson();
         QFile zapis;
-        zapis.setFileName(cesta);
+        zapis.setFileName(cestaUlozeni);
         zapis.open(QIODevice::WriteOnly);
         zapis.write(documentString.toLocal8Bit());
         zapis.close();
@@ -188,5 +258,18 @@ void MultipleVideoET::zpracovano()
 {
     /*entropie = vlaknoET->vypocitanaEntropie();
     tennengrad = vlaknoET->vypocitanyTennengrad();
-    ui->zobrazVysledkyPB->setEnabled(true);*/
+    snimkyPrvotniOhodnoceniEntropieKomplet = vlaknoET->vypocitanePrvotniOhodnoceniEntropie();
+    snimkyPrvotniOhodnoceniTennengradKomplet = vlaknoET->vypocitanePrvotniOhodnoceniTennengrad();
+    snimkyPrvniRozhodovaniKomplet = vlaknoET->vypocitanePrvniRozhodnuti();
+    snimkyDruheRozhodovaniKomplet = vlaknoET->vypocitaneDruheRozhodnuti();
+    snimkyOhodnoceniKomplet = vlaknoET->vypocitaneOhodnoceni();
+    snimkyFrangiX = vlaknoET->vypocitaneFrangiX();
+    snimkyFrangiY = vlaknoET->vypocitaneFrangiY();
+    snimkyFrangiEuklid = vlaknoET->vypocitaneFrangiEuklid();
+    snimkyPOCX = vlaknoET->vypocitanePOCX();
+    snimkyPOCY = vlaknoET->vypocitanePOCY();
+    snimkyUhel = vlaknoET->vypocitanyUhel();
+    vlaknoET->quit();
+    ui->zobrazVysledkyPB->setEnabled(true);
+    ui->ulozeni->setEnabled(true);*/
 }

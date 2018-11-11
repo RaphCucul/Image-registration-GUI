@@ -59,7 +59,6 @@ SOURCES += \
     util/systemmonitor.cpp \
     util/util_grafet.cpp \
     util/util_licovanividea.cpp \
-    util/vicevlaknovezpracovani.cpp \
     util/licovaniparent.cpp \
     util/vlaknolicovani.cpp \
     util/prace_s_vektory.cpp \
@@ -71,7 +70,12 @@ SOURCES += \
     vykon/windowsimpl.cpp \
 ################################################
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    multithreadET/qThreadFirstPart.cpp \
+    multithreadET/qthreadsecondpart.cpp \
+    multithreadET/qthreadthirdpart.cpp \
+    multithreadET/qthreadfourthpart.cpp \
+    multithreadET/qthreadfifthpart.cpp
 HEADERS += \
     analyza_obrazu/entropie.h \
     analyza_obrazu/frangi.h \
@@ -99,7 +103,6 @@ HEADERS += \
     util/systemmonitor.h \
     util/util_grafet.h \
     util/util_licovanividea.h \
-    util/vicevlaknovezpracovani.h \
     vykon/cpuwidget.h \
     vykon/hddusageplot.h \
     vykon/hddwidget.h \
@@ -111,7 +114,12 @@ HEADERS += \
     dialogy/singlevideolicovani.h \
     util/vlaknolicovani.h \
     licovani/rozhodovaci_algoritmy.h \
-    util/prace_s_vektory.h
+    util/prace_s_vektory.h \
+    multithreadET/qThreadFirstPart.h \
+    multithreadET/qthreadsecondpart.h \
+    multithreadET/qthreadthirdpart.h \
+    multithreadET/qthreadfourthpart.h \
+    multithreadET/qthreadfifthpart.h
 FORMS += \
     ui/t_b_ho.ui \
     ui/zalozky.ui \

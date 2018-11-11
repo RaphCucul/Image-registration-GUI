@@ -8,7 +8,7 @@
 #include "dialogy/grafet.h"
 #include "dialogy/clickimageevent.h"
 #include "util/souborove_operace.h"
-//#include "util/vicevlaknovezpracovani.h"
+#include "multithreadET/qThreadFirstPart.h"
 #include "util/prace_s_vektory.h"
 #include "licovani/rozhodovaci_algoritmy.h"
 #include "licovani/multiPOC_Ai1.h"
@@ -38,7 +38,7 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->svetelnaAnomalie->setEnabled(false);
     ui->vypocetET->setEnabled(false);
     ui->zobrazGrafET->setEnabled(false);
-
+    ui->ulozeni->setEnabled(false);
     ui->oblastMaxima->setText("10");
     oblastMaxima = 10.0;
     ui->uhelRotace->setText("0.1");
@@ -193,7 +193,6 @@ void SingleVideoET::on_vypocetET_clicked()
         tennengrad.push_back(aktualniTennengrad);
         ui->zobrazGrafET->setEnabled(true);
     }*/
-    QStringList pom;
     if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
     {
         ziskane_hranice_anomalie.x = oznacena_hranice_svetelne_anomalie.x;
@@ -214,38 +213,74 @@ void SingleVideoET::on_vypocetET_clicked()
         ziskane_hranice_casZnac.y = 0.0f;
         ziskane_hranice_casZnac.x = 0.0f;
     }
-    pom.append(kompletni_cesta);
-    temp(pom);
-    /*vlaknoET = new VicevlaknoveZpracovani(pom,ziskane_hranice_anomalie,
+    analysedVideos.append(kompletni_cesta);
+    //temp(pom);
+    TFirstP = new qThreadFirstPart(analysedVideos,ziskane_hranice_anomalie,
                                           ziskane_hranice_casZnac,parametry_frangi,
                                           volbaSvetAnomETSingle,volbaCasZnackyETSingle);
-    connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
-    connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
-
-    vlaknoET->start();*/
+    connect(TFirstP,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
+    connect(TFirstP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+    connect(TFirstP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+    connect(TFirstP,SIGNAL(actualVideo(QString)),this,SLOT(newVideoProcessed(QString)));
+    TFirstP->start();
 }
 
 void SingleVideoET::on_zobrazGrafET_clicked()
 {
     QStringList vektorKzapisu;
     vektorKzapisu.append(vybraneVideoETSingle[1]);
-    GrafET* graf_ET = new GrafET(entropie,tennengrad,vektorKzapisu,this);
+    GrafET* graf_ET = new GrafET(entropie,tennengrad,snimkyPrvotniOhodnoceniEntropieKomplet,
+                                 snimkyPrvotniOhodnoceniTennengradKomplet,snimkyPrvniRozhodovaniKomplet,
+                                 snimkyDruheRozhodovaniKomplet,vektorKzapisu,this);
     graf_ET->setModal(true);
     graf_ET->show();
 }
 
-void SingleVideoET::on_pushButton_clicked()
+void SingleVideoET::on_ulozeni_clicked()
 {
     QJsonDocument document;
     QJsonObject object;
     QVector<double> pomVecE = entropie[0];
     QVector<double> pomVecT = tennengrad[0];
+    QVector<int> pomVecPOE = snimkyPrvotniOhodnoceniEntropieKomplet[0];
+    QVector<int> pomVecPOT = snimkyPrvotniOhodnoceniTennengradKomplet[0];
+    QVector<int> pomVecPR = snimkyPrvniRozhodovaniKomplet[0];
+    QVector<int> pomVecDR = snimkyDruheRozhodovaniKomplet[0];
+    QVector<int> pomVecO = snimkyOhodnoceniKomplet[0];
+    QVector<double> pomVecFX = snimkyFrangiX[0];
+    QVector<double> pomVecFY = snimkyFrangiY[0];
+    QVector<double> pomVecFE = snimkyFrangiEuklid[0];
+    QVector<double> pomVecPX = snimkyPOCX[0];
+    QVector<double> pomVecPY = snimkyPOCY[0];
+    QVector<double> pomVecU = snimkyUhel[0];
     QJsonArray poleE = vector2array(pomVecE);
     QJsonArray poleT = vector2array(pomVecT);
+    QJsonArray polePOE = vector2array(pomVecPOE);
+    QJsonArray polePOT = vector2array(pomVecPOT);
+    QJsonArray poleO = vector2array(pomVecO);
+    QJsonArray polePR = vector2array(pomVecPR);
+    QJsonArray poleDR = vector2array(pomVecDR);
+    QJsonArray poleFX = vector2array(pomVecFX);
+    QJsonArray poleFY = vector2array(pomVecFY);
+    QJsonArray poleFE = vector2array(pomVecFE);
+    QJsonArray polePX = vector2array(pomVecPX);
+    QJsonArray polePY = vector2array(pomVecPY);
+    QJsonArray poleU = vector2array(pomVecU);
     QString aktualJmeno = vybraneVideoETSingle[1];
-    QString cesta = TXTnacteniAktual+"/"+aktualJmeno+".dat";
+    QString cesta = TXTulozeniAktual+"/"+aktualJmeno+".dat";
     object["entropie"] = poleE;
     object["tennengrad"] = poleT;
+    object["Ohodnoceni"] = poleO;
+    object["PrvotOhodEntropie"] = polePOE;
+    object["PrvotOhodTennengrad"] = polePOT;
+    object["PrvniRozhod"] = polePR;
+    object["DruheRozhod"] = poleDR;
+    object["FrangiX"] = poleFX;
+    object["FrangiY"] = poleFY;
+    object["FrangiEuklid"] = poleFE;
+    object["POCX"] = polePX;
+    object["POCY"] = polePY;
+    object["Uhel"] = poleU;
     document.setObject(object);
     QString documentString = document.toJson();
     QFile zapis;
@@ -255,36 +290,122 @@ void SingleVideoET::on_pushButton_clicked()
     zapis.close();
 }
 
-void SingleVideoET::zpracovano()
+void SingleVideoET::zpracovano(int dokonceno)
 {
-    /*entropie = vlaknoET->vypocitanaEntropie();
-    tennengrad = vlaknoET->vypocitanyTennengrad();
-    ui->zobrazGrafET->setEnabled(true);*/
+    if (dokonceno == 1)
+    {
+        entropie = TFirstP->vypocitanaEntropie();
+        tennengrad = TFirstP->vypocitanyTennengrad();
+        snimkyPrvotniOhodnoceniEntropieKomplet = TFirstP->vypocitanePrvotniOhodnoceniEntropie();
+        snimkyPrvotniOhodnoceniTennengradKomplet = TFirstP->vypocitanePrvotniOhodnoceniTennengrad();
+        ziskany_VK_standard = TFirstP->vypocitanyVKstandard();
+        ziskany_VK_extra = TFirstP->vypocitanyVKextra();
+        snimkyOhodnoceniKomplet = TFirstP->vypocitaneKompletniOhodnoceni();
+        snimkyReferencni = TFirstP->urceneReferenceVidei();
+        spatneSnimkyKomplet = TFirstP->vypocitaneSpatneSnimkyKomplet();
+        TFirstP->quit();
+        TSecondP = new qThreadSecondPart(analysedVideos,ziskany_VK_standard,ziskany_VK_extra,
+                                         spatneSnimkyKomplet,snimkyReferencni,false);
+        connect(TSecondP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        connect(TSecondP,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
+        connect(TSecondP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        connect(TSecondP,SIGNAL(actualVideo(QString)),this,SLOT(newVideoProcessed(QString)));
+        TSecondP->start();
+    }
+    if (dokonceno == 2)
+    {
+        prumerneRKomplet = TSecondP->vypoctenyR();
+        prumerneFWHMKomplet = TSecondP->vypocteneFWHM();
+        TSecondP->quit();
+        TThirdP = new qThreadThirdPart(analysedVideos,spatneSnimkyKomplet,snimkyOhodnoceniKomplet,
+                                       snimkyReferencni,prumerneRKomplet,prumerneFWHMKomplet,
+                                       ziskany_VK_standard,ziskany_VK_extra,false);
+        connect(TThirdP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        connect(TThirdP,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
+        connect(TThirdP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        connect(TThirdP,SIGNAL(actualVideo(QString)),this,SLOT(newVideoProcessed(QString)));
+        TThirdP->start();
+    }
+    if (dokonceno == 3)
+    {
+        snimkyOhodnoceniKomplet = TThirdP->snimkyUpdateOhodnoceni();
+        snimkyPrvniRozhodovaniKomplet = TThirdP->snimkyProvereniPrvniKompletestimated();
+        QVector<QVector<double>> KKproblematickychSnimku = TThirdP->snimkyProblematicke_R();
+        QVector<QVector<double>> FWHMproblematickychSnimku = TThirdP->snimkyProblematicke_FWHM();
+        snimkyFrangiX = TThirdP->snimkyFrangiXestimated();
+        snimkyFrangiY = TThirdP->snimkyFrangiYestimated();
+        snimkyFrangiEuklid = TThirdP->snimkyFrangiEuklidestimated();
+        snimkyPOCX = TThirdP->snimkyPOCXestimated();
+        snimkyPOCY = TThirdP->snimkyPOCYestimated();
+        snimkyUhel = TThirdP->snimkyUhelestimated();
+        TThirdP->quit();
+        TFourthP = new qThreadFourthPart(analysedVideos,snimkyPrvniRozhodovaniKomplet,snimkyOhodnoceniKomplet,
+                                         KKproblematickychSnimku,FWHMproblematickychSnimku,snimkyPOCX,
+                                         snimkyPOCY,snimkyUhel,snimkyFrangiX,snimkyFrangiY,snimkyFrangiEuklid,
+                                         prumerneRKomplet,prumerneFWHMKomplet);
+        connect(TFourthP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        connect(TFourthP,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
+        connect(TFourthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        connect(TFourthP,SIGNAL(actualVideo(QString)),this,SLOT(newVideoProcessed(QString)));
+        TFourthP->start();
+    }
+    if (dokonceno == 4)
+    {
+        snimkyOhodnoceniKomplet = TFourthP->snimkyUpdateOhodnoceniKomplet();
+        snimkyDruheRozhodovaniKomplet = TFourthP->snimkyRozhodovaniDruheKomplet();
+        snimkyFrangiX = TFourthP->snimkyFrangiXestimated();
+        snimkyFrangiY = TFourthP->snimkyFrangiYestimated();
+        snimkyFrangiEuklid = TFourthP->snimkyFrangiEuklidestimated();
+        snimkyPOCX = TFourthP->snimkyPOCXestimated();
+        snimkyPOCY = TFourthP->snimkyPOCYestimated();
+        snimkyUhel = TFourthP->snimkyUhelestimated();
+        TFourthP->quit();
+        TFifthP = new qThreadFifthPart(analysedVideos,ziskany_VK_standard,ziskany_VK_extra,
+                                       snimkyPOCX,snimkyPOCY,snimkyUhel,snimkyFrangiX,snimkyFrangiY,
+                                       snimkyFrangiEuklid,false,false,snimkyOhodnoceniKomplet,snimkyDruheRozhodovaniKomplet,
+                                       snimkyReferencni,parametry_frangi);
+        connect(TFifthP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        connect(TFifthP,SIGNAL(percentageCompleted(int)),ui->prubehVypoctu,SLOT(setValue(int)));
+        connect(TFifthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        connect(TFifthP,SIGNAL(actualVideo(QString)),this,SLOT(newVideoProcessed(QString)));
+        TFifthP->start();
+    }
+    /*snimkyPrvniRozhodovaniKomplet = vlaknoET->vypocitanePrvniRozhodnuti();
+    snimkyDruheRozhodovaniKomplet = vlaknoET->vypocitaneDruheRozhodnuti();
+    snimkyOhodnoceniKomplet = vlaknoET->vypocitaneOhodnoceni();
+    snimkyFrangiX = vlaknoET->vypocitaneFrangiX();
+    snimkyFrangiY = vlaknoET->vypocitaneFrangiY();
+    snimkyFrangiEuklid = vlaknoET->vypocitaneFrangiEuklid();
+    snimkyPOCX = vlaknoET->vypocitanePOCX();
+    snimkyPOCY = vlaknoET->vypocitanePOCY();
+    snimkyUhel = vlaknoET->vypocitanyUhel();*/
+
+    ui->zobrazGrafET->setEnabled(true);
+    ui->ulozeni->setEnabled(true);
 }
 
 void SingleVideoET::newVideoProcessed(QString video)
 {
-    ui->analyzovaneVideo->setText("Currently analysed video:"+video);
+    ui->analyzovaneVideo->setText("Analysing: "+video+" (1/"+QString::number(analysedVideos.size())+")");
 }
 
 void SingleVideoET::movedToMethod(int metoda)
 {
     if (metoda == 0)
-        ui->informaceOprubehu->setText("1/8 Entropy and tennengrad computation");
+        ui->informaceOprubehu->setText("1/5 Entropy and tennengrad computation");
     if (metoda == 1)
-        ui->informaceOprubehu->setText("2/8 Searching for maximum");
+        ui->informaceOprubehu->setText("2/5 Average correlation and FWHM");
     if (metoda == 2)
-        ui->informaceOprubehu->setText("3/8 Thresholding entropy and tennengrad");
+        ui->informaceOprubehu->setText("3/5 First decision algorithm started");
     if (metoda == 3)
-        ui->informaceOprubehu->setText("4/8 Frangi filtering and preprocessing");
+        ui->informaceOprubehu->setText("4/5 Second decision algorithm started");
     if (metoda == 4)
-        ui->informaceOprubehu->setText("5/8 Average correlation and FWHM");
-    if (metoda == 5)
-        ui->informaceOprubehu->setText("6/8 First decision algorithm");
-    if (metoda == 6)
-        ui->informaceOprubehu->setText("7/8 Second decision algorithm");
-    if (metoda == 7)
-        ui->informaceOprubehu->setText("8/8 Third decision algorithm");
+        ui->informaceOprubehu->setText("5/5 Third decision algorithm started");
+}
+
+void SingleVideoET::terminatedByError(int where)
+{
+
 }
 
 void SingleVideoET::on_oblastMaxima_textChanged(const QString &arg1)
@@ -360,7 +481,7 @@ void SingleVideoET::on_cisloReferencnihosnimku_textChanged(const QString &arg1)
     }
 }
 
-void SingleVideoET::temp(QStringList pomList)
+/*void SingleVideoET::temp(QStringList pomList)
 {
 
     /// Firstly, entropy and tennengrad are computed for each frame of each video
@@ -604,4 +725,4 @@ void SingleVideoET::temp(QStringList pomList)
     else
         qWarning()<<"Continuing";
 }
-//}
+//}*/

@@ -8,8 +8,10 @@
 #include <QWidget>
 #include <QHBoxLayout>
 
-GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QStringList jmeno_videa, QWidget *parent) :
-    QDialog(parent),
+GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<QVector<int> > PrOhE,
+               QVector<QVector<int> > PrOhT, QVector<QVector<int> > PrRozh,
+               QVector<QVector<int> > DruhRozh, QStringList jmeno_videa,
+               QWidget *parent) : QDialog(parent),
     ui(new Ui::GrafET)
 {
     ui->setupUi(this);
@@ -17,18 +19,33 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QStringLi
     /// jednotlivých vektorů a pak je jeden po jednom identifikovat
     entropie = E;
     tennengrad = T;
+    snimkyPrvotniOhodnoceniEntropieKomplet = PrOhE;
+    snimkyPrvotniOhodnoceniTennengradKomplet = PrOhT;
+    snimkyPrvniRozhodovaniKomplet = PrRozh;
+    snimkyDruheRozhodovaniKomplet = DruhRozh;
     JmenoVidea = jmeno_videa;
 
     ui->E_HPzobraz->setEnabled(false);
     ui->E_DPzobraz->setEnabled(false);
     ui->T_HPzobraz->setEnabled(false);
     ui->T_DPzobraz->setEnabled(false);
-
+    /// osetreni moznosti zobrazit hodnoceni snimku
+    if (snimkyPrvotniOhodnoceniEntropieKomplet.length() == 0)
+        ui->ohodnoceniEntropyCB->setEnabled(false);
+    if (snimkyPrvotniOhodnoceniTennengradKomplet.length()==0)
+        ui->ohodnoceniTennenCB->setEnabled(false);
+    if (snimkyPrvniRozhodovaniKomplet.length() == 0)
+        ui->prvniRozhodCB->setEnabled(false);
+    else
+        ui->prvniRozhodCB->setEnabled(true);
+    if (snimkyDruheRozhodovaniKomplet.length() == 0)
+        ui->druheRozhodCB->setEnabled(false);
+    else
+        ui->druheRozhodCB->setEnabled(true);
     /// inicializace parametrů podle vstupních hodnot
     /// hledání extrémů ve vektorech
     pocetVidei = entropie.size();
-    qDebug()<<"Počet videí k zobrazení: "<<pocetVidei;
-    //qDebug()<<"Počet snímků prvního videa: "<<entropie[0].length();
+    qDebug()<<"Number of videos: "<<pocetVidei;
     //QVector<double> he = entropie[pocetVidei-1];
     //qDebug()<<"Vektor hodnot: "<<he;
     vyhledatExtremy(entropie,maxEntropie,1,pocetVidei); // maximum 1
@@ -39,8 +56,8 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QStringLi
     /// POZOR - JEDNÁ SE O DOČASNÉ ŘEŠENÍ - NUTNO IMPLEMENTOVAT PRVOTNÍ OHODNOCENÍ
     /// nové vstupy - prahy
    vytvoreniPrahu(maxEntropie,horniPrah_entropie,1,1); // typPrahu typExtremu
-   vytvoreniPrahu(minEntropie,dolniPrah_entropie,2,1); // práh horní a dolní
-   vytvoreniPrahu(maxTennengrad,horniPrah_tennengrad,1,2); // extrém minimum a maximum
+   vytvoreniPrahu(minEntropie,dolniPrah_entropie,2,1); // threshold upper and lower
+   vytvoreniPrahu(maxTennengrad,horniPrah_tennengrad,1,2); // extremes - minimum, maximum
    vytvoreniPrahu(minTennengrad,dolniPrah_tennengrad,2,2);
     qDebug()<<"Prahy vytvoreny.";
     /// pro zjednodušení vykreslování se přepočítané hodnoty prahů do standardního rozsahu
@@ -53,12 +70,7 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QStringLi
                          pocetVidei);
     standardizaceVektoru(dolniPrah_tennengrad,dolniPrah_tennengradPrepocet,maxTennengrad,minTennengrad,
                          pocetVidei);
-    qDebug()<<"Standardizovano.";
-    // vektory entropie a tennengradu normalizované podle odpovídajících maxim
-    //entropieStandard.fill(0,pocetSnimkuVidea);
-    //tennengradStandard.fill(0,pocetSnimkuVidea);
-    //standardizaceVektoruDat(entropieStandard,entropie,minEntropie,maxEntropie);
-    //standardizaceVektoruDat(tennengradStandard,tennengrad,minTennengrad,maxTennengrad);*/
+    qDebug()<<"Standardizovano.";    
 
     /// generování vektoru 0->počet snímků videa-1 pro osu x
     /// týká se to jak osy x pro snímky, tak pro osy y pro prahové linie
@@ -97,6 +109,10 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QStringLi
     QObject::connect(ui->T_HP,SIGNAL(valueChanged(double)),this,SLOT(THPZ()));
     QObject::connect(ui->T_DP,SIGNAL(valueChanged(double)),this,SLOT(TDPZ()));
     QObject::connect(ui->grafyTBW,SIGNAL(currentChanged(int)),this,SLOT(zmenaTabu(int)));
+    QObject::connect(ui->ohodnoceniEntropyCB,SIGNAL(stateChanged(int)),this,SLOT(prOhE()));
+    QObject::connect(ui->ohodnoceniTennenCB,SIGNAL(stateChanged(int)),this,SLOT(prOhT()));
+    QObject::connect(ui->prvniRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(prvHod()));
+    QObject::connect(ui->druheRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(druhHod()));
 
     ui->grafyTBW->setCurrentIndex(0);
     aktualniIndex = 0;
@@ -113,7 +129,8 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QStringLi
     std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
     snimkyRozsah = QVector<double>::fromStdVector(snimky);
     //qDebug()<<snimkyRozsah;
-    inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
+    inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],
+                              entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
                               HP_entropie[aktualniIndex],DP_entropie[aktualniIndex],
                               HP_tennengrad[aktualniIndex],DP_tennengrad[aktualniIndex],snimkyRozsah);
     AktualniGrafickyObjekt = GrafickyObjekt;
@@ -239,8 +256,8 @@ void GrafET::zmenaTabu(int indexTabu)
         ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
         inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],
                                   entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
-                                  HP_entropie[aktualniIndex],DP_entropie[aktualniIndex],HP_tennengrad[aktualniIndex],
-                                  DP_tennengrad[aktualniIndex],snimkyRozsah);
+                                  HP_entropie[aktualniIndex],DP_entropie[aktualniIndex],
+                                  HP_tennengrad[aktualniIndex],DP_tennengrad[aktualniIndex],snimkyRozsah);
         AktualniGrafickyObjekt = GrafickyObjekt;
 
         ui->zobrazGrafE->setChecked(true);
@@ -267,6 +284,7 @@ void GrafET::ZE()
         ui->E_DPzobraz->setEnabled(true);
         ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
         ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
+        ui->ohodnoceniEntropyCB->setEnabled(true);
     }
     else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true)
     {
@@ -294,6 +312,7 @@ void GrafET::ZE()
         ui->E_DPzobraz->setEnabled(false);
         //ui->T_HPzobraz->setEnabled(true);
         //ui->T_DPzobraz->setEnabled(true);
+        ui->ohodnoceniEntropyCB->setEnabled(false);
     }
     else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
     {
@@ -320,7 +339,8 @@ void GrafET::ZE()
         AktualniGrafickyObjekt->replot();
         // povoluji vykreslení prahů pro entropii
         ui->E_HPzobraz->setEnabled(true);
-        ui->E_DPzobraz->setEnabled(true);        
+        ui->E_DPzobraz->setEnabled(true);
+        ui->ohodnoceniEntropyCB->setEnabled(true);
     }
     else
     {
@@ -338,6 +358,10 @@ void GrafET::ZE()
         ui->T_HPzobraz->setEnabled(false);ui->T_DPzobraz->setEnabled(false);
         ui->E_DPzobraz->setChecked(false);ui->E_HPzobraz->setChecked(false);
         ui->T_HPzobraz->setChecked(false);ui->T_DPzobraz->setChecked(false);
+        ui->ohodnoceniEntropyCB->setEnabled(false);
+        ui->ohodnoceniTennenCB->setEnabled(false);
+        ui->prvniRozhodCB->setEnabled(false);
+        ui->druheRozhodCB->setEnabled(false);
     }
 }
 
@@ -368,6 +392,7 @@ void GrafET::ZT()
 
         ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
         ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
+        ui->ohodnoceniTennenCB->setEnabled(false);
     }
     else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true)
     {
@@ -377,7 +402,7 @@ void GrafET::ZT()
 
         AktualniGrafickyObjekt->replot();
 
-        ui->T_HPzobraz->setEnabled(true);
+        ui->T_HPzobraz->setEnabled(true);ui->ohodnoceniTennenCB->setEnabled(true);
         ui->T_DPzobraz->setEnabled(true);
     }
     else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
@@ -406,6 +431,7 @@ void GrafET::ZT()
 
         ui->T_HPzobraz->setEnabled(true);
         ui->T_DPzobraz->setEnabled(true);
+        ui->ohodnoceniTennenCB->setEnabled(true);
     }
     else
     {
@@ -416,6 +442,8 @@ void GrafET::ZT()
         AktualniGrafickyObjekt->replot();
         ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
         ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
+        ui->ohodnoceniEntropyCB->setEnabled(false);ui->ohodnoceniTennenCB->setEnabled(false);
+        ui->prvniRozhodCB->setEnabled(false);ui->druheRozhodCB->setEnabled(false);
     }
 }
 
@@ -630,4 +658,24 @@ void GrafET::TDPZ()
         AktualniGrafickyObjekt->graph(7)->setVisible(false);
         AktualniGrafickyObjekt->replot();
     }
+}
+
+void GrafET::prOhE()
+{
+    if (ui->ohodnoceniEntropyCB->isChecked() == true)
+    {
+
+    }
+}
+void GrafET::prOhT()
+{
+
+}
+void GrafET::prvHod()
+{
+
+}
+void GrafET::druhHod()
+{
+
 }

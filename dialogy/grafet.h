@@ -14,8 +14,9 @@ class GrafET : public QDialog
     Q_OBJECT
 
 public:
-    explicit GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T,
-                    QStringList jmeno_videa,QWidget *parent = nullptr);
+    explicit GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<QVector<int>> PrOhE,
+                    QVector<QVector<int>> PrOhT, QVector<QVector<int> > PrRozh, QVector<QVector<int>> DruhRozh,
+                    QStringList jmeno_videa, QWidget *parent = nullptr);
     ~GrafET();
     void vyhledatExtremy(QVector<QVector<double>>& zkoumanyVektor,QVector<double>& zapisSem,
                          int typExtremu,int pocetAnalyzovanychVidei);
@@ -34,12 +35,19 @@ private slots:
     void THPZ();
     void TDPZ();
     void zmenaTabu(int indexTabu);
-
+    void prOhE();
+    void prOhT();
+    void prvHod();
+    void druhHod();
 private:
     Ui::GrafET *ui;
     QCustomPlot* AktualniGrafickyObjekt;
     QVector<QVector<double>> entropie;
     QVector<QVector<double>> tennengrad;
+    QVector<QVector<int>> snimkyPrvotniOhodnoceniEntropieKomplet;
+    QVector<QVector<int>> snimkyPrvotniOhodnoceniTennengradKomplet;
+    QVector<QVector<int>> snimkyPrvniRozhodovaniKomplet;
+    QVector<QVector<int>> snimkyDruheRozhodovaniKomplet;
     QVector<QVector<double>> entropieStandard;
     QVector<QVector<double>> tennengradStandard;
     QVector<QVector<double>> HP_entropie,DP_entropie,HP_tennengrad,DP_tennengrad;

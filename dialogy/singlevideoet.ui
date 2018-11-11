@@ -71,7 +71,7 @@
     <string>Přítomnost světelné anomálie</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="ulozeni">
    <property name="geometry">
     <rect>
      <x>280</x>

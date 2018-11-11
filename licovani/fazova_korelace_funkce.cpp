@@ -8,7 +8,7 @@
 using namespace cv;
 cv::Point3d fk_translace_hann(const Mat &referencni_snimek, const Mat &posunuty)
 {
-    Point3d vysledek_posunuti(0,0,0);
+    Point3d vysledek_posunuti(0.0,0.0,0.0);
     Mat referencni_snimek32f,posunuty32f;
     referencni_snimek.copyTo(referencni_snimek32f);
     posunuty.copyTo(posunuty32f);
@@ -20,7 +20,7 @@ cv::Point3d fk_translace_hann(const Mat &referencni_snimek, const Mat &posunuty)
     cv::Mat hann;
     cv::createHanningWindow(hann, referencni_snimek32f.size(), CV_32FC1);
     kontrola_typu_snimku_32C1(hann);
-    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,5,hann);
+    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,10,hann);
 
     hann.release();
     referencni_snimek32f.release();
@@ -31,7 +31,7 @@ cv::Point3d fk_translace_hann(const Mat &referencni_snimek, const Mat &posunuty)
 
 cv::Point3d fk_translace(const Mat &referencni_snimek, const Mat &posunuty)
 {
-    Point3d vysledek_posunuti;
+    Point3d vysledek_posunuti(0.0,0.0,0.0);
     Mat referencni_snimek32f,posunuty32f;
     referencni_snimek.copyTo(referencni_snimek32f);
     posunuty.copyTo(posunuty32f);
@@ -39,7 +39,7 @@ cv::Point3d fk_translace(const Mat &referencni_snimek, const Mat &posunuty)
     kontrola_typu_snimku_32C1(posunuty32f);
     //int typ_reference = referencni_snimek32f.type();
     //int typ_posunuty = posunuty32f.type();
-    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f);
+    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,10);
 
     referencni_snimek32f.release();
     posunuty32f.release();
@@ -52,7 +52,7 @@ cv::Point3d fk_rotace(const Mat &referencni_snimek,
                       const double& hodnota_maxima_fk_translace,
                       cv::Point3d& hodnoty_translace)
 {
-    cv::Point3d vysledek_fazove_korelace;
+    cv::Point3d vysledek_fazove_korelace(0.0,0.0,0.0);
     cv::Mat referencni_snimek8U,referencni_snimek32f, posunuty8U;
     referencni_snimek.copyTo(referencni_snimek8U);
     referencni_snimek.copyTo(referencni_snimek32f);
@@ -72,7 +72,7 @@ cv::Point3d fk_rotace(const Mat &referencni_snimek,
     cv::Mat hann;
     //double response = 0;
     cv::createHanningWindow(hann, referencni_snimek.size(), CV_32FC1);
-    cv::Point3d vysledek_rotace;
+    cv::Point3d vysledek_rotace(0.0,0.0,0.0);
     if (std::abs(hodnoty_translace.x) > 10.0 || std::abs(hodnoty_translace.y) > 10.0)
     {vysledek_rotace = cv::phaseCorrelate(logImage1, logImage2,1,hann);}
     else {vysledek_rotace = cv::phaseCorrelate(logImage1, logImage2,5,hann);}
@@ -90,7 +90,8 @@ cv::Point3d fk_rotace(const Mat &referencni_snimek,
     kontrola_typu_snimku_32C1(vysledny_snimek_rotace);
     kontrola_typu_snimku_32C1(referencni_snimek32f);
 
-    cv::Point3d vysledek_translace_po_rotaci = cv::phaseCorrelate(referencni_snimek32f,vysledny_snimek_rotace,10,hann);
+    cv::Point3d vysledek_translace_po_rotaci(0.0,0.0,0.0);
+    vysledek_translace_po_rotaci = cv::phaseCorrelate(referencni_snimek32f,vysledny_snimek_rotace,5,hann);
 
     //if ((vysledek_translace_po_rotaci.z - hodnota_maxima_fk_translace)>=0.0001)
     if (vysledek_translace_po_rotaci.z > hodnota_maxima_fk_translace)

@@ -1,7 +1,7 @@
 #include "entropie.h"
 #include "util/souborove_operace.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
-#include "util/vicevlaknovezpracovani.h"
+//#include "util/vicevlaknovezpracovani.h"
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgproc/imgproc_c.h"

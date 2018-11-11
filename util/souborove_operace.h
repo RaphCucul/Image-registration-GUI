@@ -16,4 +16,5 @@ void zpracujJmeno(QString& celeJmeno,QString& slozka,QString& zkraceneJmeno,QStr
 QJsonObject readJson(QFile& soubor);
 void writeJson(QJsonObject& object, QJsonArray& pole, QString typ, QString pathAndName);
 QJsonArray vector2array(QVector<double>& vektor);
+QJsonArray vector2array(QVector<int>& vektor);
 #endif // SOUBOROVE_OPERACE_H_INCLUDED
