@@ -22,7 +22,7 @@ signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
     void hotovo(int);
-    void actualVideo(QString);
+    void actualVideo(int);
     void unexpectedTermination();
 private:
     QStringList sezVid;

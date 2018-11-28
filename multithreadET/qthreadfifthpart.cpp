@@ -61,7 +61,7 @@ void qThreadFifthPart::run()
         QString fullPath = seznamVidei.at(indexVidea);
         QString slozka,jmeno,koncovka;
         zpracujJmeno(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(jmeno);
+        emit actualVideo(indexVidea);
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!cap.isOpened())
         {
@@ -221,7 +221,37 @@ void qThreadFifthPart::run()
 
             }
         }
+
     }
     emit percentageCompleted(100);
     emit hotovo(5);
+}
+
+QVector<QVector<int>> qThreadFifthPart::snimkyUpdateOhodnoceniKomplet()
+{
+    return ohodnoceniSnimkuKomplet;
+}
+QVector<QVector<double>> qThreadFifthPart::snimkyFrangiXestimated()
+{
+    return frangi_x;
+}
+QVector<QVector<double>> qThreadFifthPart::snimkyFrangiYestimated()
+{
+    return frangi_y;
+}
+QVector<QVector<double>> qThreadFifthPart::snimkyFrangiEuklidestimated()
+{
+    return frangi_euklid;
+}
+QVector<QVector<double>> qThreadFifthPart::snimkyPOCXestimated()
+{
+    return POC_x;
+}
+QVector<QVector<double>> qThreadFifthPart::snimkyPOCYestimated()
+{
+    return POC_y;
+}
+QVector<QVector<double>> qThreadFifthPart::snimkyUhelestimated()
+{
+    return uhel;
 }

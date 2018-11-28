@@ -28,11 +28,18 @@ public:
                               QVector<double>& parametryFrangianalyzy,
                               QObject* parent = nullptr);
     void run() override;
+    QVector<QVector<int>> snimkyUpdateOhodnoceniKomplet();
+    QVector<QVector<double>> snimkyFrangiXestimated();
+    QVector<QVector<double>> snimkyFrangiYestimated();
+    QVector<QVector<double>> snimkyFrangiEuklidestimated();
+    QVector<QVector<double>> snimkyPOCXestimated();
+    QVector<QVector<double>> snimkyPOCYestimated();
+    QVector<QVector<double>> snimkyUhelestimated();
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
     void hotovo(int);
-    void actualVideo(QString);
+    void actualVideo(int);
     void unexpectedTermination();
 private:
     double pocetVidei;

@@ -45,7 +45,7 @@ void qThreadThirdPart::run()
         QString fullPath = seznamVidei.at(indexVidea);
         QString slozka,jmeno,koncovka;
         zpracujJmeno(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(jmeno);
+        emit actualVideo(indexVidea);
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!cap.isOpened())
         {

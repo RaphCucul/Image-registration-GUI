@@ -38,7 +38,7 @@ void qThreadSecondPart::run()
         QString fullPath = sezVid.at(kolikateVideo);
         QString slozka,jmeno,koncovka;
         zpracujJmeno(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(jmeno);
+        emit actualVideo(kolikateVideo);
         cv::VideoCapture capture = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!capture.isOpened())
         {

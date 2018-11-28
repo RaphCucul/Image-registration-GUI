@@ -49,7 +49,7 @@ void qThreadFourthPart::run()
         QString fullPath = seznamVidei.at(indexVidea);
         QString slozka,jmeno,koncovka;
         zpracujJmeno(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(jmeno);
+        emit actualVideo(indexVidea);
         for (int b = 0; b < snimky_k_provereni_prvni[indexVidea].length(); b++)
         {
             emit percentageCompleted(qRound((double(indexVidea)/pocetVidei)*100.0+((double(b)/pocetSnimku)*100.0)/pocetVidei));

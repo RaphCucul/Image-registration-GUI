@@ -44,7 +44,7 @@ void qThreadFirstPart::run()
         QString fullPath = zpracujVidea.at(kolikateVideo);
         QString slozka,jmeno,koncovka;
         zpracujJmeno(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(jmeno);
+        emit actualVideo(kolikateVideo);
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!cap.isOpened())
         {
@@ -114,7 +114,7 @@ void qThreadFirstPart::run()
             for (double a = 0; a < pocet_snimku_videa; a++)
             {
                 //qDebug()<<(kolikateVideo/pocetVidei)*100;//+((a/pocet_snimku_videa)*100.0)/pocetVidei;
-                emit percentageCompleted(qRound((kolikateVideo/pocetVidei)*100+((a/pocet_snimku_videa)*100.0)/pocetVidei));
+                emit percentageCompleted(qRound((double(kolikateVideo)/double(pocetVidei))*100.0+1.0+((double(a)/pocet_snimku_videa)*100.0)/double(pocetVidei)));
                 //emit percentageCompleted(qRound(((a/pocet_snimku_videa)*100.0)));
                 cv::Mat snimek;
                 double hodnota_entropie;
