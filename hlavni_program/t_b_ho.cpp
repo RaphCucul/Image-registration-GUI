@@ -19,6 +19,7 @@ QString videaKanalyzeAktual;
 QString ulozeniVideiAktual;
 QString TXTnacteniAktual;
 QString TXTulozeniAktual;
+QString paramFrangi;
 
 t_b_HO::t_b_HO(QWidget *parent) :
     QWidget(parent),
@@ -35,17 +36,20 @@ t_b_HO::t_b_HO(QWidget *parent) :
     ulozeniVidei = souborScestami["ulozeniVidea"].toArray();
     TXTnacteni = souborScestami["adresarTXT_nacteni"].toArray();
     TXTulozeni = souborScestami["adresarTXT_ulozeni"].toArray();
+    parametryFrangi = souborScestami["parametryFrangiFiltr"].toArray();
 
     //ui->CB_cesta_k_videim->addItem(videaKanalyze[0].toString());
     ziskejCestyZJson(videaKanalyze,ui->CB_cesta_k_videim,videaKanalyzeList);
     ziskejCestyZJson(ulozeniVidei,ui->CB_ulozeni_videa,ulozeniVideiList);
     ziskejCestyZJson(TXTnacteni,ui->CB_slozka_txt,TXTnacteniList);
     ziskejCestyZJson(TXTulozeni,ui->CB_ulozeni_txt,TXTulozeniList);
+    ziskejCestyZJson(parametryFrangi,ui->paramFrangCB,parametryFrangiList);
 
     videaKanalyzeAktual = videaKanalyzeList.at(0);
     ulozeniVideiAktual = ulozeniVideiList.at(0);
     TXTnacteniAktual = TXTnacteniList.at(0);
     TXTulozeniAktual = TXTulozeniList.at(0);
+    paramFrangi = parametryFrangiList.at(0);
 
     connect(ui->CB_cesta_k_videim,SIGNAL(currentIndexChanged(int)),this,SLOT(vybranaCesta(int)));
     //connect(ui->CB_cesta_k_videim,&QComboBox::currentTextChanged,this,&t_b_HO::vybranaCestaString);
@@ -108,6 +112,17 @@ void t_b_HO::on_ulozeni_txt_clicked()
     ui->CB_ulozeni_txt->addItem(cesta_k_ulozeni_txt);
 
     qDebug()<<TXTulozeni;
+}
+
+void t_b_HO::on_paramFrangPB_clicked()
+{
+    QString parFF = QFileDialog::getExistingDirectory(this,"Vyberte složku obsahující parametry Frangiho filtru",QDir::currentPath());
+    QJsonValue novaCesta = QJsonValue(parFF);
+    parametryFrangi.append(novaCesta);
+    //int velikostPole = TXTnacteni.size();
+    QString t = "D:/Qt_projekty/Licovani_videa_GUI/seznamCest.json";
+    writeJson(souborScestami,TXTnacteni,"adresarTXT_nacteni",t);
+    ui->CB_slozka_txt->addItem(parFF);
 }
 
 t_b_HO::~t_b_HO()

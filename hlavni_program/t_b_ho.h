@@ -18,6 +18,7 @@ extern QString videaKanalyzeAktual;
 extern QString ulozeniVideiAktual;
 extern QString TXTnacteniAktual;
 extern QString TXTulozeniAktual;
+extern QString paramFrangi;
 
 class t_b_HO : public QWidget
 {
@@ -40,6 +41,8 @@ private slots:
     void vybranaCesta(int index);
     void vybranaCestaString(QString cesta);
 
+    void on_paramFrangPB_clicked();
+
 private:
     Ui::t_b_HO *ui;
     QVector<int> zaplnenost_CB_cesta_k_videi;
@@ -48,10 +51,12 @@ private:
     QJsonArray ulozeniVidei;
     QJsonArray TXTnacteni;
     QJsonArray TXTulozeni;
+    QJsonArray parametryFrangi;
     QStringList videaKanalyzeList;
     QStringList ulozeniVideiList;
     QStringList TXTnacteniList;
     QStringList TXTulozeniList;
+    QStringList parametryFrangiList;
 };
 
 #endif // T_B_HO_H
