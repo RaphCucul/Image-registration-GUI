@@ -2,6 +2,7 @@
 #define SINGLEVIDEOLICOVANI_H
 
 #include "util/licovaniparent.h"
+#include "licovani/registrationthread.h"
 #include <QWidget>
 
 namespace Ui {
@@ -15,28 +16,21 @@ class SingleVideoLicovani : public LicovaniParent
 public:
     explicit SingleVideoLicovani(QWidget *parent = nullptr);
     ~SingleVideoLicovani();
-
+    void processVideoParameters(QJsonObject& videoData);
 private slots:
-    void on_vybraneVideo_textChanged(const QString &arg1);
-
-    void on_vyberVidea_clicked();
-
-    void on_slozkaParametruLE_textChanged(const QString &arg1);
-
-    void on_slozkaParametruPB_clicked();
-
-    void on_slicovatPB_clicked();
-
-    void on_zobrazVysledekLicovaniPB_clicked();
-
-    void on_grafickeHodnoceniPB_clicked();
-
-    void on_ulozitPB_clicked();
-
+    void on_vybraneVideoLE_textChanged(const QString &arg1);
+    void on_vyberVideaPB_clicked();
+    void slicovatSnimkyVidea();
+    void createAndRunThreads(int indexProcVid, cv::VideoCapture& cap, int lowerLimit,
+                             int upperLimit);
 private:
     Ui::SingleVideoLicovani *ui;
+    QString fullVideoPath;
+    QWidget* widgetForScroll;
     QVector<QString> vybraneVideoLicovaniSingle;
     QVector<QString> vybranyJSONLicovaniSingle;
+    QList<QPointer<RegistrationThread>> registrationThreadsList;
+    QJsonObject videoParametersJson;
 };
 
 #endif // SINGLEVIDEOLICOVANI_H
