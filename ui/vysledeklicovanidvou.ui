@@ -13,32 +13,34 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QGraphicsView" name="vysledekLicovani">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>40</y>
-     <width>401</width>
-     <height>281</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QSlider" name="vyberSnimek">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>378</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="maximum">
-    <number>1</number>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSlider" name="vyberSnimek">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximum">
+      <number>1</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGraphicsView" name="vysledekLicovani">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

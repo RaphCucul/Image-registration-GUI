@@ -48,4 +48,8 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
 void kontrola_celistvosti(QVector<int>& spatne_snimky);
 /// kontroluje, jestli v rade vadnych snimku lze doplnit snimek pro kompletaci sekvence (v pripade nekolika vadnych
 /// snimku za sebou zabrani preskoceni pripadneho spatneho snimku)
+
+int findReferenceFrame(QVector<int> vectorEvaluation);
+
+QVector<QVector<int>> divideIntoPeaces(int totalLength, int threadCount);
 #endif // PRACE_S_VEKTORY_H_INCLUDED

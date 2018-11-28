@@ -39,7 +39,7 @@ QJsonObject readJson(QFile& soubor)
     QJsonDocument d = QJsonDocument::fromJson(val);
     QJsonObject sett2 = d.object();
     //qDebug()<<sett2;
-    QJsonArray value = sett2["cestaKvideim"].toArray();
+    //QJsonArray value = sett2["cestaKvideim"].toArray();
     //qDebug()<<value.size()<<value[0].toString();
     //QJsonValue value2 = value[0].toValue();
     return sett2;

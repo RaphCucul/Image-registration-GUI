@@ -437,3 +437,57 @@ void kontrola_celistvosti(QVector<int> &spatne_snimky)
         else{b+=1;}
     }
 }
+
+int findReferenceFrame(QVector<int> vectorEvaluation)
+{
+    int foundReference = -1;
+    for (int frame = 0; frame < vectorEvaluation.length(); frame++)
+    {
+        if (vectorEvaluation[frame] == 2){
+            foundReference = frame;
+            break;
+        }
+    }
+    return foundReference;
+}
+
+QVector<QVector<int> > divideIntoPeaces(int totalLength, int threadCount)
+{
+    QVector<QVector<int>> output;
+    if (threadCount == 1){
+        output[0].push_back(-1);
+        output[1].push_back(-1);
+    }
+    else if (threadCount > 1){
+        if (totalLength%threadCount == 0){
+            int pom = 1;
+            int smallestPart = (totalLength/threadCount)-1;
+            output[0].push_back(0);
+            output[1].push_back(smallestPart);
+            while (pom < threadCount){
+                output[0].push_back(smallestPart*pom+pom);
+                output[1].push_back(smallestPart*pom+pom+smallestPart);
+                pom+=1;
+            }
+        }
+        else{
+            int rest = 1;
+            totalLength-=1;
+            while(totalLength%threadCount !=0){
+                rest+=1;
+                totalLength-=1;
+            }
+            int pom = 1;
+            int smallestPart = (totalLength/threadCount)-1;
+            output[0].push_back(0);
+            output[1].push_back(smallestPart);
+            while (pom < threadCount){
+                output[0].push_back(smallestPart*pom+pom);
+                output[1].push_back(smallestPart*pom+pom+smallestPart);
+                pom+=1;
+            }
+            output[1][pom-1]+=rest;
+        }
+    }
+    return output;
+}
