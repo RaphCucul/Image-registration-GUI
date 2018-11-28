@@ -67,7 +67,7 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     connect(ui->anomalie,SIGNAL(stateChanged(int)),this,SLOT(zobrazKliknutelnyDialog()));
     velikost_frangi_opt(6,parametry_frangi);
     QFile soubor;
-    soubor.setFileName("D:/Qt_projekty/Licovani_videa_GUI/frangiParameters.json");
+    soubor.setFileName(paramFrangi+"/frangiParameters.json");
     parametryFrangiJson = readJson(soubor);
     QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
     for (int a = 0; a < 6; a++)

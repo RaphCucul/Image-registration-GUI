@@ -75,7 +75,8 @@ SOURCES += \
     multithreadET/qthreadsecondpart.cpp \
     multithreadET/qthreadthirdpart.cpp \
     multithreadET/qthreadfourthpart.cpp \
-    multithreadET/qthreadfifthpart.cpp
+    multithreadET/qthreadfifthpart.cpp \
+    licovani/registrationthread.cpp
 HEADERS += \
     analyza_obrazu/entropie.h \
     analyza_obrazu/frangi.h \
@@ -119,7 +120,8 @@ HEADERS += \
     multithreadET/qthreadsecondpart.h \
     multithreadET/qthreadthirdpart.h \
     multithreadET/qthreadfourthpart.h \
-    multithreadET/qthreadfifthpart.h
+    multithreadET/qthreadfifthpart.h \
+    licovani/registrationthread.h
 FORMS += \
     ui/t_b_ho.ui \
     ui/zalozky.ui \

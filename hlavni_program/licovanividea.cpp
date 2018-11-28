@@ -4,7 +4,7 @@
 #include "dialogy/multiplevideoet.h"
 #include "dialogy/singlevideolicovani.h"
 #include "analyza_obrazu/entropie.h"
-#include "util/util_licovanividea.h"
+//#include "util/util_licovanividea.h"
 #include "dialogy/grafet.h"
 #include "ui_licovanividea.h"
 

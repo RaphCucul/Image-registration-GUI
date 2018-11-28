@@ -39,7 +39,7 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
     ui->setupUi(this);
     velikost_frangi_opt(6,FrangiParametrySouboru);
     QFile soubor;
-    soubor.setFileName("D:/Qt_projekty/Licovani_videa_GUI/frangiParameters.json");
+    soubor.setFileName(paramFrangi+"/frangiParameters.json");
     nacteneFrangihoParametry = readJson(soubor);
     QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
     for (int a = 0; a < 6; a++)
@@ -74,8 +74,8 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
             SLOT(zmena_hodnoty_slider_one()));
     connect(ui->beta_two_DSB, SIGNAL(editingFinished()),this,
             SLOT(zmena_hodnoty_slider_two()));
-    ui->cisloSnimku->setEnabled(false);
-    ui->Frangi_filtr->setEnabled(false);
+    ui->cisloSnimku->setEnabled(true);
+    ui->Frangi_filtr->setEnabled(true);
 
     if (videaKanalyzeAktual == "")
         ui->vybranySoubor->setPlaceholderText("vybrane video");
