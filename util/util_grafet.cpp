@@ -55,40 +55,130 @@ void inicializujGrafickyObjekt(QCustomPlot* QP,
     QP->addGraph();
     QP->graph(8)->setPen(QPen(QColor(118, 111, 219)));
     QP->graph(8)->setLineStyle(QCPGraph::lsNone);
-    QP->graph(8)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
+    QP->graph(8)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 8));
     QP->graph(8)->setVisible(false);
     /// Prvotni hodnoceni tennengrad
     QP->addGraph();
     QP->graph(9)->setPen(QPen(QColor(254, 132, 251)));
     QP->graph(9)->setLineStyle(QCPGraph::lsNone);
-    QP->graph(9)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 4));
+    QP->graph(9)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 8));
     QP->graph(9)->setVisible(false);
     /// Prvni rozhodovani
     QP->addGraph();
     QP->graph(10)->setPen(QPen(QColor(254, 132, 11)));
     QP->graph(10)->setLineStyle(QCPGraph::lsNone);
-    QP->graph(10)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 4));
+    QP->graph(10)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 8));
     QP->graph(10)->setVisible(false);
     /// Druhe rozhodovani
     QP->addGraph();
     QP->graph(11)->setPen(QPen(QColor(94, 186, 110)));
     QP->graph(11)->setLineStyle(QCPGraph::lsNone);
-    QP->graph(11)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssTriangle, 4));
+    QP->graph(11)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssTriangle, 8));
     QP->graph(11)->setVisible(false);
-    /*QP->addGraph();
-    QP->graph(12)->setData(snimkyDruheRozhodovani,entropie,true);
+    /// kompletni hodnoceni
+    QP->addGraph();
     QP->graph(12)->setPen(QPen(QColor(0,0,0)));
+    QP->graph(12)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(12)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 8));
     QP->graph(12)->setVisible(false);
+    /// index vhodnosti 1
     QP->addGraph();
-    QP->graph(13)->setData(snimkyDruheRozhodovani,entropieStandard,true);
     QP->graph(13)->setPen(QPen(QColor(0,0,0)));
-    QP->graph(13)->setVisible(false);*/
-    /*QP->addGraph();
-    QP->graph(14)->setData(snimkyDruheRozhodovani,entropie,true);
-    QP->graph(14)->setPen(QPen(QColor(0,0,0)));
-    QP->graph(14)->setVisible(false);
+    QP->graph(13)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(13)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssSquare, 8));
+    QP->graph(13)->setVisible(false);
+    /// index vhodnosti 4
     QP->addGraph();
-    QP->graph(15)->setData(snimkyPrvotniOhodnoceni,entropieStandard,true);
+    QP->graph(14)->setPen(QPen(QColor(0,0,0)));
+    QP->graph(14)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(14)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssStar, 8));
+    QP->graph(14)->setVisible(false);
+    /// index vhodnosti 5
+    QP->addGraph();
     QP->graph(15)->setPen(QPen(QColor(0,0,0)));
-    QP->graph(15)->setVisible(false);*/
+    QP->graph(15)->setLineStyle(QCPGraph::lsNone);
+    QP->graph(15)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssTriangleInverted, 8));
+    QP->graph(15)->setVisible(false);
+}
+
+QVector<double> vyberHodnotySnimku(QVector<int> indexyProblematicke,QVector<double> vektorHodnot,int zpusobVyberu)
+{
+    QVector<double> vystupniVektor;
+    if (zpusobVyberu == 0){ // standard choice of values
+        for (int var = 0; var < indexyProblematicke.length(); var++) {
+            if (var > vektorHodnot.length() || indexyProblematicke[var] > vektorHodnot.length())
+                break;
+            else
+                vystupniVektor.push_back(vektorHodnot[indexyProblematicke[var]]);
+        }
+    }
+    if (zpusobVyberu == 1){ // only all problematic frames
+        for (int var = 0; var < indexyProblematicke.length(); var++) {
+            if (indexyProblematicke[var] == 1 || indexyProblematicke[var] == 4 || indexyProblematicke[var] == 5){
+                vystupniVektor.push_back(vektorHodnot[var]);
+            }
+        }
+    }
+    if (zpusobVyberu == 2){ // index of ... 1
+        for (int var = 0; var < indexyProblematicke.length(); var++) {
+            if (indexyProblematicke[var] == 1){
+                vystupniVektor.push_back(vektorHodnot[var]);
+            }
+        }
+    }
+    if (zpusobVyberu == 3){ // index of ... 4
+        for (int var = 0; var < indexyProblematicke.length(); var++) {
+            if (indexyProblematicke[var] == 4){
+                vystupniVektor.push_back(vektorHodnot[var]);
+            }
+        }
+    }
+    if (zpusobVyberu == 4){ // index of ... 5
+        for (int var = 0; var < indexyProblematicke.length(); var++) {
+            if (indexyProblematicke[var] == 5){
+                vystupniVektor.push_back(vektorHodnot[var]);
+            }
+        }
+    }
+    return vystupniVektor;
+}
+
+QVector<double> transformInt2Double(QVector<int> vstupniVektor, int zpusobVyberu)
+{
+    QVector<double> vystupniVektor;
+    if (zpusobVyberu == 0){
+        for (int var = 0; var < vstupniVektor.length(); var++){
+            vystupniVektor.push_back(double(vstupniVektor[var]));
+        }
+    }
+    if (zpusobVyberu == 1){ // all bad frames
+        for (int var = 0; var < vstupniVektor.length(); var++){
+            if (vstupniVektor[var] == 1 || vstupniVektor[var] == 4 || vstupniVektor[var] == 5){
+                vystupniVektor.push_back(double(var));
+            }
+        }
+    }
+    if (zpusobVyberu == 2){ // index of ... 1
+        for (int var = 0; var < vstupniVektor.length(); var++){
+            if (vstupniVektor[var] == 1){
+                vystupniVektor.push_back(double(var));
+            }
+        }
+    }
+    if (zpusobVyberu == 3){ // index of ... 4
+        for (int var = 0; var < vstupniVektor.length(); var++){
+            if (vstupniVektor[var] == 4){
+                vystupniVektor.push_back(double(var));
+            }
+        }
+    }
+    if (zpusobVyberu == 4){ // index of ... 5
+        for (int var = 0; var < vstupniVektor.length(); var++){
+            if (vstupniVektor[var] == 5){
+                vystupniVektor.push_back(double(var));
+            }
+        }
+    }
+
+    return vystupniVektor;
 }

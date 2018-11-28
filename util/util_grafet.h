@@ -11,4 +11,6 @@ void inicializujGrafickyObjekt(QCustomPlot* QP,
                                QVector<double> HP_tennengrad,
                                QVector<double> DP_tennengrad,
                                QVector<double> snimkyRozsah);
+QVector<double> vyberHodnotySnimku(QVector<int> indexyProblematicke,QVector<double> vektorHodnot,int zpusobVyberu);
+QVector<double> transformInt2Double(QVector<int> vstupniVektor,int zpusobVyberu);
 #endif // UTIL_GRAFET_H
