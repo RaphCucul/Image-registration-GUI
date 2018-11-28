@@ -5,6 +5,8 @@
 #include <opencv2/opencv.hpp>
 #include <QVector>
 #include <QJsonObject>
+#include <QMap>
+
 #include "multithreadET/qThreadFirstPart.h"
 #include "multithreadET/qthreadsecondpart.h"
 #include "multithreadET/qthreadthirdpart.h"
@@ -30,17 +32,13 @@ private slots:
     void on_vypocetET_clicked();
     void on_zobrazGrafET_clicked();
     void zpracovano(int dokonceno);
-    void newVideoProcessed(QString video);
+    void newVideoProcessed(int index);
     void movedToMethod(int metoda);
     void terminatedByError(int where);
     void on_ulozeni_clicked();
-
     void on_oblastMaxima_textChanged(const QString &arg1);
-
     void on_uhelRotace_textChanged(const QString &arg1);
-
     void on_pocetIteraci_textChanged(const QString &arg1);
-
     void on_cisloReferencnihosnimku_textChanged(const QString &arg1);
 
 private:
@@ -88,7 +86,16 @@ private:
     cv::Point3d maximum_frangi;
     int predchozi_index = 0;
     QJsonObject parametryFrangiJson;
+    QJsonObject videoParametersJson;
     int cisloReference;
+    QMap<QString,QVector<QVector<double>>> mapDouble;
+    QMap<QString,QVector<QVector<int>>> mapInt;
+    QMap<QString,QVector<float>> mapAnomalies;
+    QVector<float> PritomnostCasoveZnacky;
+    QVector<float> PritomnostSvetelneAnomalie;
+    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
+                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad"
+                                 "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
 };
 
 #endif // SINGLEVIDEOET_H
