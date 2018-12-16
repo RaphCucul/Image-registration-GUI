@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>433</width>
-    <height>346</height>
+    <width>489</width>
+    <height>399</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,45 +25,100 @@
   <property name="autoFillBackground">
    <bool>true</bool>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit">
-       <property name="frame">
-        <bool>false</bool>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>1</number>
+   </property>
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <item>
+    <layout class="QGridLayout" name="gridLayout" columnstretch="3,1">
+     <item row="3" column="1">
+      <widget class="QPushButton" name="ulozeni_txt">
+       <property name="text">
+        <string>Složka pro uložení txt</string>
        </property>
       </widget>
      </item>
-     <item>
-      <spacer name="horizontalSpacer_4">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="cesta_k_videim">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
+       <property name="text">
+        <string>Výběr cesty k videím</string>
        </property>
-      </spacer>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QComboBox" name="CB_ulozeni_txt"/>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="ulozeni_videa">
+       <property name="text">
+        <string>Složka pro uložení videa</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QComboBox" name="CB_ulozeni_videa"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QComboBox" name="CB_cesta_k_videim">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maxVisibleItems">
+        <number>3</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QComboBox" name="paramFrangCB"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QComboBox" name="CB_slozka_txt">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentIndex">
+        <number>-1</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QPushButton" name="paramFrangPB">
+       <property name="text">
+        <string>Parametry frangi</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="txt_slozka">
+       <property name="text">
+        <string>Složka s txt</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <spacer name="horizontalSpacer">
@@ -100,78 +155,7 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QComboBox" name="CB_cesta_k_videim">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maxVisibleItems">
-        <number>3</number>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QPushButton" name="cesta_k_videim">
-       <property name="text">
-        <string>Výběr cesty k videím</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QComboBox" name="CB_ulozeni_videa"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="QPushButton" name="ulozeni_videa">
-       <property name="text">
-        <string>Složka pro uložení videa</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QComboBox" name="CB_slozka_txt">
-       <property name="editable">
-        <bool>false</bool>
-       </property>
-       <property name="currentIndex">
-        <number>-1</number>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QPushButton" name="txt_slozka">
-       <property name="text">
-        <string>Složka s txt</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QComboBox" name="CB_ulozeni_txt"/>
-     </item>
-     <item row="3" column="1">
-      <widget class="QPushButton" name="ulozeni_txt">
-       <property name="text">
-        <string>Složka pro uložení txt</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QComboBox" name="paramFrangCB"/>
-     </item>
-     <item row="4" column="1">
-      <widget class="QPushButton" name="paramFrangPB">
-       <property name="text">
-        <string>Parametry frangi</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="2" column="0">
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>

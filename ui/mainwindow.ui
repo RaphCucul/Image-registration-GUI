@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>562</width>
-    <height>555</height>
+    <width>513</width>
+    <height>454</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
   <property name="tabShape">
    <enum>QTabWidget::Triangular</enum>
   </property>
@@ -26,46 +29,108 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="zalozky" name="widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>561</width>
-      <height>411</height>
-     </rect>
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="3,1">
+    <property name="spacing">
+     <number>0</number>
     </property>
-   </widget>
-   <widget class="CPUWidget" name="cpuWidget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>410</y>
-      <width>131</width>
-      <height>111</height>
-     </rect>
+    <property name="leftMargin">
+     <number>0</number>
     </property>
-   </widget>
-   <widget class="HddUsagePlot" name="hddWidget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>260</x>
-      <y>410</y>
-      <width>301</width>
-      <height>111</height>
-     </rect>
+    <property name="topMargin">
+     <number>0</number>
     </property>
-   </widget>
-   <widget class="MemoryWidget" name="memoryWidget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>410</y>
-      <width>131</width>
-      <height>111</height>
-     </rect>
+    <property name="rightMargin">
+     <number>0</number>
     </property>
-   </widget>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="zalozky" name="widget" native="true"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,2">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
+      </property>
+      <item>
+       <widget class="CPUWidget" name="cpuWidget" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>120</width>
+          <height>120</height>
+         </size>
+        </property>
+        <property name="whatsThis">
+         <string>CPU</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="MemoryWidget" name="memoryWidget" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>120</width>
+          <height>120</height>
+         </size>
+        </property>
+        <property name="whatsThis">
+         <string>Memory</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="HddUsagePlot" name="hddWidget" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>260</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="whatsThis">
+         <string>HDD</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QMenuBar" name="menuBar">
@@ -73,7 +138,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>562</width>
+     <width>513</width>
      <height>18</height>
     </rect>
    </property>
@@ -84,25 +149,25 @@
   <customwidget>
    <class>zalozky</class>
    <extends>QWidget</extends>
-   <header>zalozky.h</header>
+   <header>hlavni_program/zalozky.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>CPUWidget</class>
    <extends>QWidget</extends>
-   <header location="global">cpuwidget.h</header>
+   <header location="global">vykon/cpuwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>MemoryWidget</class>
    <extends>QWidget</extends>
-   <header location="global">memorywidget.h</header>
+   <header location="global">vykon/memorywidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>HddUsagePlot</class>
    <extends>QWidget</extends>
-   <header>hddusageplot.h</header>
+   <header>vykon/hddusageplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
