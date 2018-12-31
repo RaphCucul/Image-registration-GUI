@@ -453,20 +453,23 @@ int findReferenceFrame(QVector<int> vectorEvaluation)
 
 QVector<QVector<int> > divideIntoPeaces(int totalLength, int threadCount)
 {
+    QVector<int> lowerBoundary;
+    QVector<int> upperBoundary;
     QVector<QVector<int>> output;
     if (threadCount == 1){
-        output[0].push_back(-1);
-        output[1].push_back(-1);
+        lowerBoundary.push_back(0);
+        upperBoundary.push_back(totalLength-1);
+
     }
     else if (threadCount > 1){
         if (totalLength%threadCount == 0){
             int pom = 1;
             int smallestPart = (totalLength/threadCount)-1;
-            output[0].push_back(0);
-            output[1].push_back(smallestPart);
+            lowerBoundary.push_back(0);
+            upperBoundary.push_back(smallestPart);
             while (pom < threadCount){
-                output[0].push_back(smallestPart*pom+pom);
-                output[1].push_back(smallestPart*pom+pom+smallestPart);
+                lowerBoundary.push_back(smallestPart*pom+pom);
+                upperBoundary.push_back(smallestPart*pom+pom+smallestPart);
                 pom+=1;
             }
         }
@@ -479,15 +482,26 @@ QVector<QVector<int> > divideIntoPeaces(int totalLength, int threadCount)
             }
             int pom = 1;
             int smallestPart = (totalLength/threadCount)-1;
-            output[0].push_back(0);
-            output[1].push_back(smallestPart);
+            lowerBoundary.push_back(0);
+            upperBoundary.push_back(smallestPart);
             while (pom < threadCount){
-                output[0].push_back(smallestPart*pom+pom);
-                output[1].push_back(smallestPart*pom+pom+smallestPart);
+                lowerBoundary.push_back(smallestPart*pom+pom);
+                upperBoundary.push_back(smallestPart*pom+pom+smallestPart);
                 pom+=1;
             }
-            output[1][pom-1]+=rest;
+            upperBoundary[pom-1]+=rest;
         }
     }
+    output.append(lowerBoundary);
+    output.append(upperBoundary);
+    return output;
+}
+
+int vectorSum(QVector<int> input)
+{
+    int output=0;
+    for (int vectorElement = 0; vectorElement < input.length(); vectorElement++)
+        output += input[vectorElement];
+
     return output;
 }

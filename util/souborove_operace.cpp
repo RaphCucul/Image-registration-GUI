@@ -19,7 +19,7 @@ void analyzuj_jmena_souboru_avi(QString vybrana_cesta_k_souborum,
      celkovy_pocet_souboru_s_koncovkou = seznam_jmen_souboru.size();
 }
 
-void zpracujJmeno(QString& celeJmeno,QString& slozka,QString& zkraceneJmeno,QString& koncovka)
+void zpracujJmeno(QString celeJmeno,QString& slozka,QString& zkraceneJmeno,QString& koncovka)
 {
     int lastindexSlash = celeJmeno.lastIndexOf("/");
     int lastIndexDot = celeJmeno.length() - celeJmeno.lastIndexOf(".");
@@ -70,4 +70,22 @@ QJsonArray vector2array(QVector<int>& vektor)
     QJsonArray pole;
     copy(vektor.begin(), vektor.end(), back_inserter(pole));
     return pole;
+}
+
+QVector<int> arrayInt2vector(QJsonArray& array)
+{
+    QVector<int> output;
+    for (int indexPole = 0; indexPole < array.size(); indexPole++){
+        output.push_back(array[indexPole].toInt());
+    }
+    return output;
+}
+
+QVector<double> arrayDouble2vector(QJsonArray& array)
+{
+    QVector<double> output;
+    for (int indexPole = 0; indexPole < array.size(); indexPole++){
+        output.push_back(array[indexPole].toDouble());
+    }
+    return output;
 }

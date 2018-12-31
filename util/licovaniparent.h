@@ -35,22 +35,25 @@ protected:
     QVector<QVector<double>> snimkyPOCY;
     QVector<QVector<double>> snimkyUhel;
 
-    QVector<float> PritomnostCasoveZnacky;
-    QVector<float> PritomnostSvetelneAnomalie;
+    QVector<int> PritomnostCasoveZnacky;
+    QVector<int> PritomnostSvetelneAnomalie;
     QJsonObject parametryFrangiJS;
     QVector<double> parametryFrangi;
     QStringList seznamVidei;
+    QStringList videoListFull;
+    QStringList videoListNames;
 
     bool canceled;
+    int processedVideoNo = 0;
 
    /* QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
                              "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad"
                              "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};*/
-    QStringList videoParameters = {"FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
+    QStringList videoParameters = {"FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
                                  "Uhel","Ohodnoceni","VerticalAnomaly","HorizontalAnomaly"};
     QMap<QString,QVector<QVector<double>>> videoParametersDouble;
     QMap<QString,QVector<QVector<int>>> videoParametersInt;
-    QMap<QString,QVector<float>> videoAnomalies;
+    QMap<QString,QVector<int>> videoAnomalies;
 };
 
 #endif // LICOVANIPARENT_H
