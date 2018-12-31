@@ -12,7 +12,7 @@ TARGET = Licovani_videa_GUI
 TEMPLATE = app
 
 CONFIG += c++14
-
+TRANSLATIONS = appTranslation_CS.ts
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -47,7 +47,7 @@ SOURCES += \
     hlavni_program/licovanidvou.cpp \
     hlavni_program/licovanividea.cpp \
     hlavni_program/t_b_ho.cpp \
-    hlavni_program/vysledeklicovanidvou.cpp \
+    hlavni_program/vysledeklicovani.cpp \
     hlavni_program/zalozky.cpp \
 ################################################
     licovani/fazova_korelace_funkce.cpp \
@@ -76,7 +76,8 @@ SOURCES += \
     multithreadET/qthreadthirdpart.cpp \
     multithreadET/qthreadfourthpart.cpp \
     multithreadET/qthreadfifthpart.cpp \
-    licovani/registrationthread.cpp
+    licovani/registrationthread.cpp \
+    dialogy/multivideolicovani.cpp
 HEADERS += \
     analyza_obrazu/entropie.h \
     analyza_obrazu/frangi.h \
@@ -95,7 +96,7 @@ HEADERS += \
     hlavni_program/licovanidvou.h \
     hlavni_program/licovanividea.h \
     hlavni_program/t_b_ho.h \
-    hlavni_program/vysledeklicovanidvou.h \
+    hlavni_program/vysledeklicovani.h \
     hlavni_program/zalozky.h \
     licovani/fazova_korelace_funkce.h \
     licovani/korekce_zapis.h \
@@ -121,7 +122,8 @@ HEADERS += \
     multithreadET/qthreadthirdpart.h \
     multithreadET/qthreadfourthpart.h \
     multithreadET/qthreadfifthpart.h \
-    licovani/registrationthread.h
+    licovani/registrationthread.h \
+    dialogy/multivideolicovani.h
 FORMS += \
     ui/t_b_ho.ui \
     ui/zalozky.ui \
@@ -133,8 +135,9 @@ FORMS += \
     dialogy/singlevideoet.ui \
     dialogy/multiplevideoet.ui \
     dialogy/errordialog.ui \
-    ui/vysledeklicovanidvou.ui \
-    dialogy/singlevideolicovani.ui
+    ui/vysledeklicovani.ui \
+    dialogy/singlevideolicovani.ui \
+    dialogy/multivideolicovani.ui
 RESOURCES += \
     ikonky.qrc
 
@@ -497,4 +500,8 @@ DISTFILES += \
     qcustomplot/documentation/html/specialqtflags.html \
     qcustomplot/documentation/html/thelayoutsystem.html \
     qcustomplot/changelog.txt \
-    qcustomplot/GPL.txt
+    qcustomplot/GPL.txt \
+    images/leftArrow.ico \
+    images/rightArrow.ico \
+    qml/CircularBarForm.ui.qml \
+    qml/CircularBar.qml

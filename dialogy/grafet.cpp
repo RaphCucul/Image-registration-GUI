@@ -126,9 +126,9 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<Q
     liniePrahu(dolniPrah_entropie,DP_entropie,pocetVidei,pocetSnimkuVidea);
     liniePrahu(horniPrah_tennengrad,HP_tennengrad,pocetVidei,pocetSnimkuVidea);
     liniePrahu(dolniPrah_tennengrad,DP_tennengrad,pocetVidei,pocetSnimkuVidea);
-    std::vector<double> snimky(pocetSnimkuVidea);
+    QVector<double> snimky(pocetSnimkuVidea);
     std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
-    snimkyRozsah = QVector<double>::fromStdVector(snimky);
+    snimkyRozsah = snimky;//QVector<double>::fromStdVector(snimky);
     //qDebug()<<snimkyRozsah;
     inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],
                               entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
@@ -240,9 +240,11 @@ void GrafET::zmenaTabu(int indexTabu)
         qDebug()<<ui->grafyTBW->currentIndex();
         aktualniIndex = indexTabu;
         pocetSnimkuVidea = entropie[aktualniIndex].length();
-        std::vector<double> snimky(pocetSnimkuVidea);
+        //std::vector<double> snimky(pocetSnimkuVidea);
+        QVector<double> snimky(pocetSnimkuVidea);
         std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
-        snimkyRozsah = QVector<double>::fromStdVector(snimky);
+        //snimkyRozsah = QVector<double>::fromStdVector(snimky);
+        snimkyRozsah = snimky;
         // nastav správně vektor prahových hodnot
         if (aktualniIndex > HP_entropie.size())
         {

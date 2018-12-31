@@ -14,7 +14,15 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
                                     cv::Rect& vyrez_korelace_standard,
                                     bool zmena_meritka,
                                     QVector<double> &parametry_frangi,
-                                    );
+                                    QVector<double>& frangi_x,
+                                    QVector<double>& frangi_y,
+                                    QVector<double>& frangi_euklid,
+                                    QVector<double>& POC_x,
+                                    QVector<double>& POC_y,
+                                    QVector<double>& celkovyUhel,
+                                    QVector<double>& finalPOC_x,
+                                    QVector<double>& finalPOC_y);
+
 cv::Mat eventualni_korekce_translace(cv::Mat& slicovany_snimek,cv::Mat& obraz,cv::Rect& vyrez_korelace_standard,
                                      cv::Point3d& korekce_bod,double &oblastMaxima);
 

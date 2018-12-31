@@ -19,8 +19,8 @@ private:
     //QtCharts::QLineSeries* mSeries;
     QtCharts::QPieSeries* mSeries;
     qint64 mPointPositionX;
-signals:
-    void updateWidget();
+/*signals:
+    void updateWidget();*/
 };
 
 #endif // CPUWIDGET_H

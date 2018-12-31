@@ -3,6 +3,7 @@
 #include "dialogy/singlevideoet.h"
 #include "dialogy/multiplevideoet.h"
 #include "dialogy/singlevideolicovani.h"
+#include "dialogy/multivideolicovani.h"
 #include "analyza_obrazu/entropie.h"
 //#include "util/util_licovanividea.h"
 #include "dialogy/grafet.h"
@@ -33,14 +34,25 @@ LicovaniVidea::LicovaniVidea(QWidget *parent) :
     SingleVideoET* SVET = new SingleVideoET();
     MultipleVideoET* MVET = new MultipleVideoET();
     SingleVideoLicovani* SVreg = new SingleVideoLicovani();
+    MultiVideoLicovani* MVreg = new MultiVideoLicovani();
     ui->metody->addTab(SVET,"SVET");
     ui->metody->addTab(MVET,"MVET");
     ui->metody->addTab(SVreg,"SVreg");
+    ui->metody->addTab(MVreg,"MVreg");
+
+    QFile qssFile(":/style.qss");
+    qssFile.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(qssFile.readAll());
+    setStyleSheet(styleSheet);
 }
 
 LicovaniVidea::~LicovaniVidea()
 {
     delete ui;
+}
+
+void LicovaniVidea::checkPaths(){
+
 }
 
 /*void LicovaniVidea::zobrazKliknutelnyDialog()

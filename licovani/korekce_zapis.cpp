@@ -31,10 +31,18 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
                                     cv::Rect& vyrez_korelace_extra,
                                     cv::Rect& vyrez_korelace_standard,
                                     bool zmena_meritka,
-                                    QVector<double>& parametry_frangi)
+                                    QVector<double> &parametry_frangi,
+                                    QVector<double>& frangi_x,
+                                    QVector<double>& frangi_y,
+                                    QVector<double>& frangi_euklid,
+                                    QVector<double>& POC_x,
+                                    QVector<double>& POC_y,
+                                    QVector<double>& celkovyUhel,
+                                    QVector<double>& finalPOC_x,
+                                    QVector<double>& finalPOC_y)
 {
     Mat plne_slicovany_snimek = cv::Mat::zeros(Size(referencni_snimek.cols,referencni_snimek.rows), CV_32FC3);
-    Point3d mira_translace;
+    Point3d mira_translace(0.0,0.0,0.0);
     double celkovy_uhel = 0;
     int uspech_licovani = kompletni_slicovani(cap,
                                               referencni_snimek,
@@ -68,6 +76,9 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
             posunuty.release();
             plne_slicovany_snimek.release();
         }
+        celkovyUhel[index_posunuty] = 0.0;
+        finalPOC_x[index_posunuty] = 0.0;
+        finalPOC_y[index_posunuty] = 0.0;
     }
     else
     {
@@ -85,6 +96,9 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
                 zap.write(posunuty);
                 posunuty.release();
             }
+            celkovyUhel[index_posunuty] = 0.0;
+            finalPOC_x[index_posunuty] = 0.0;
+            finalPOC_y[index_posunuty] = 0.0;
         }
         else
         {
@@ -103,18 +117,47 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
             {
                 posunuty_temp.copyTo(posunuty);
             }
+            Point3d translace_korekce(0,0,0);
+            Mat plne_slicovany_snimek = eventualni_korekce_translace(plne_slicovany_snimek,referencni_snimek,
+                                                                     vyrez_korelace_standard,translace_korekce,oblastMaxima);
+            if (translace_korekce.x != 0.0)
+            {
+                mira_translace.x+=translace_korekce.x;
+                mira_translace.y+=translace_korekce.y;
+                Point3d pt6 = fk_translace_hann(referencni_snimek,plne_slicovany_snimek);
+                if (std::abs(pt6.x)>=290 || std::abs(pt6.y)>=290)
+                {
+                    pt6 = fk_translace(referencni_snimek,plne_slicovany_snimek);
+                }
+                cout << "kontrola Y: " << pt6.y <<" X: "<<pt6.x << endl;
+                finalPOC_x[index_posunuty] = pt6.x;
+                finalPOC_y[index_posunuty] = pt6.y;
+            }
+            POC_x[index_posunuty] = mira_translace.x;
+            POC_y[index_posunuty] = mira_translace.y;
+            celkovyUhel[index_posunuty] = celkovy_uhel;
+
             plne_slicovany_snimek.copyTo(mezivysledek32f);
             kontrola_typu_snimku_32C1(mezivysledek32f);
             mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
             double R_prvni = vypocet_KK(referencni_snimek,plne_slicovany_snimek,vyrez_korelace_standard);
             Point3d frangi_bod_slicovany_reverse = frangi_analyza(plne_slicovany_snimek,2,2,0,"",2,false,mira_translace,parametry_frangi);
+            frangi_x[index_posunuty] = frangi_bod_slicovany_reverse.x;
+            frangi_y[index_posunuty] = frangi_bod_slicovany_reverse.y;
             double yydef = bod_RefS_reverse.x - frangi_bod_slicovany_reverse.x;
             double xxdef = bod_RefS_reverse.y - frangi_bod_slicovany_reverse.y;
             //cout << yydef << " " << xxdef << endl;
+            double suma_rozdilu = std::pow(xxdef,2.0) + std::pow(yydef,2.0);
+            double euklid = std::sqrt(suma_rozdilu);
+            frangi_euklid[index_posunuty] = euklid;
+            xxdef = 0;
+            yydef = 0;
+            suma_rozdilu = 0;
+
             Point3d vysledne_posunuti;
             vysledne_posunuti.y = mira_translace.y - yydef;
             vysledne_posunuti.x = mira_translace.x - xxdef;
-            vysledne_posunuti.z = 0;
+            vysledne_posunuti.z = 0.0;
             //cout << vysledne_posunuti.y << " " << vysledne_posunuti.x << endl;//pt3.x <<endl;
             Mat posunuty2 = translace_snimku(posunuty,vysledne_posunuti,rows,cols);
             Mat finalni_licovani = rotace_snimku(posunuty2,celkovy_uhel);
@@ -128,8 +171,8 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
             finalni_licovani_32f_vyrez.release();
             if (R_prvni >= R_druhy)
             {
-                cout << "Snimek "<<index_posunuty<<" zapsan pouze po standardnim slicovani."<<endl;
-                cout<<" Mira translace: "<<mira_translace.x<<" "<<mira_translace.y<<" "<<celkovy_uhel<<endl<<endl;
+                //cout << "Snimek "<<index_posunuty<<" zapsan pouze po standardnim slicovani."<<endl;
+                //cout<<" Mira translace: "<<mira_translace.x<<" "<<mira_translace.y<<" "<<celkovy_uhel<<endl<<endl;
                 if (zmena_meritka == true)
                 {
                     int radky = posunuty_temp.rows;
@@ -149,6 +192,10 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
                     plne_slicovany_snimek.release();
                     finalni_licovani.release();
                 }
+                celkovyUhel[index_posunuty] = 0.0;
+                finalPOC_x[index_posunuty] = 0.0;
+                finalPOC_y[index_posunuty] = 0.0;
+                euklid = 0.0;
             }
             else
             {
@@ -173,6 +220,10 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
                     plne_slicovany_snimek.release();
                     finalni_licovani.release();
                 }
+                celkovyUhel[index_posunuty] = 0.0;
+                finalPOC_x[index_posunuty] = 0.0;
+                finalPOC_y[index_posunuty] = 0.0;
+                euklid = 0.0;
             }
             mezivysledek32f.release();
             mezivysledek32f_vyrez.release();
@@ -181,7 +232,7 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
 }
 
 cv::Mat eventualni_korekce_translace(cv::Mat& slicovany_snimek,cv::Mat& obraz,cv::Rect& vyrez_korelace_standard,
-                                     cv::Point3d& translace,double &oblastMaxima)
+                                     cv::Point3d& korekce_bod,double &oblastMaxima)
 {
     Mat mezivysledek,mezivysledek32f,mezivysledek32f_vyrez,obraz_vyrez;
     slicovany_snimek.copyTo(mezivysledek);
@@ -195,7 +246,16 @@ cv::Mat eventualni_korekce_translace(cv::Mat& slicovany_snimek,cv::Mat& obraz,cv
     cout << "Korelace 1: "<<R1<<endl;
     mezivysledek32f.release();
     mezivysledek32f_vyrez.release();
-    Point3d korekce_bod = fk_translace_hann(obraz,mezivysledek);
+    korekce_bod = fk_translace_hann(obraz,mezivysledek);
+    Point3d mira_korekcniho_posunuti = fk_translace_hann(obraz,mezivysledek);
+    if (std::abs(mira_korekcniho_posunuti.x) > 290 || std::abs(mira_korekcniho_posunuti.y) > 290)
+    {
+        mira_korekcniho_posunuti = fk_translace(obraz,mezivysledek);
+    }
+    if (std::abs(mira_korekcniho_posunuti.x) > 290 || std::abs(mira_korekcniho_posunuti.y) > 290)
+    {
+        mira_korekcniho_posunuti = fk_translace(obraz_vyrez,mezivysledek32f_vyrez);
+    }
     cout << "korekce Y: " << korekce_bod.y <<" X: "<<korekce_bod.x<< endl;
     Mat korekce = translace_snimku(mezivysledek,korekce_bod,rows,cols);
     korekce.copyTo(mezivysledek32f);
@@ -203,15 +263,16 @@ cv::Mat eventualni_korekce_translace(cv::Mat& slicovany_snimek,cv::Mat& obraz,cv
     mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
     double R2 = vypocet_KK(obraz,korekce,vyrez_korelace_standard);
     cout << "Korelace 2: "<<R2<<endl;
-    double rozdil = R2-R1;
-    if ((R2 > R1) && (korekce_bod.x>0.4 || korekce_bod.y>0.4))//((R2-R1)>0.015)
+    //double rozdil = R2-R1;
+    if ((R2 > R1) && ((std::abs(mira_korekcniho_posunuti.x) > 0.3) || (std::abs(mira_korekcniho_posunuti.y) > 0.3)))
     {
-        cout << "Vracen korigovany."<<endl;
+        cout << "snimek zkorigovan." << endl;
+        korekce_bod = mira_korekcniho_posunuti;
         return korekce;
     }
     else
-    {
-        cout << "Vracen puvodni slicovany."<<endl;
-        return slicovany_snimek;
+    {        
+        cout << "snimek nezkorigovan." << endl;
+        return mezivysledek;
     }
 }

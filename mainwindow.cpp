@@ -10,8 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <QVBoxLayout>
-#include "util/systemmonitor.h"
-#include "fancy_staff/systemmonitorwidget.h"
+
 #include "vykon/cpuwidget.h"
 #include "vykon/memorywidget.h"
 #include "vykon/hddwidget.h"
@@ -26,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setupUsagePlots();
     QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
+    this->setStyleSheet("background-color: white");
 }
 
 MainWindow::~MainWindow()

@@ -13,8 +13,36 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="3">
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>10</number>
+   </property>
+   <property name="topMargin">
+    <number>5</number>
+   </property>
+   <property name="rightMargin">
+    <number>10</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
@@ -30,23 +58,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBox">
-       <item>
-        <property name="text">
-         <string>Výběr dvou snímků videa</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Výběr dvou obrázků</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>-</string>
-        </property>
-       </item>
-      </widget>
+      <widget class="QComboBox" name="comboBox"/>
      </item>
      <item>
       <spacer name="horizontalSpacer_2">
@@ -63,87 +75,120 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0" colspan="3">
+   <item>
     <layout class="QGridLayout" name="nabidkaAnalyzy"/>
    </item>
-   <item row="2" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,1,2">
      <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Velikost oblasti výpočtu maxima</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="areaSizelabel">
+         <property name="text">
+          <string>Velikost oblasti výpočtu maxima</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="toleratedAnglelabel">
+         <property name="text">
+          <string>Velikost tolerovaného úhlu rotace</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="numberOfIterationlabel">
+         <property name="text">
+          <string>Nastavení počtu iterací lícování</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Velikost tolerovaného úhlu rotace</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLineEdit" name="oblastMaxima"/>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="uhelRotace"/>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="pocetIteraci"/>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Nastavení počtu iterací lícování</string>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>0</number>
        </property>
-      </widget>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1">
+         <item>
+          <widget class="QLabel" name="entropie_reference">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="ER">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="tennengrad_reference"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="TR">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="2,1">
+         <item>
+          <widget class="QLabel" name="entropie_posunuty"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="EM">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,1">
+         <item>
+          <widget class="QLabel" name="tennengrad_posunuty"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="TM">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
-   <item row="2" column="1">
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item>
-      <widget class="QLineEdit" name="oblastMaxima"/>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="uhelRotace"/>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="pocetIteraci"/>
-     </item>
-    </layout>
-   </item>
-   <item row="2" column="2" rowspan="2" colspan="2">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>rozsah 0 - 20</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>rozsah 0 - 0,5</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>rozsah neomezený od 1 výše</string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::PlainText</enum>
-       </property>
-       <property name="scaledContents">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>-1 znamená automatické nastavení</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="3" column="0" rowspan="3" colspan="2">
-    <layout class="QVBoxLayout" name="verticalLayout_4">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QCheckBox" name="casovaZnacka">
        <property name="text">
@@ -160,78 +205,61 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="2" rowspan="4">
-    <layout class="QVBoxLayout" name="verticalLayout_5">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QLabel" name="entropie_reference">
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="slicujDvaSnimky">
        <property name="text">
-        <string>Entropie reference</string>
+        <string>Slícovat dva snímky</string>
+       </property>
+       <property name="default">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="tennengrad_reference">
-       <property name="text">
-        <string>tennengrad reference</string>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="entropie_posunuty">
-       <property name="text">
-        <string>Entropie posunutý</string>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="tennengrad_posunuty">
-       <property name="text">
-        <string>tennengrad posunutý</string>
-       </property>
-      </widget>
+      </spacer>
      </item>
     </layout>
    </item>
-   <item row="4" column="3">
-    <widget class="QLabel" name="ER">
-     <property name="text">
-      <string/>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
-    </widget>
-   </item>
-   <item row="5" column="3">
-    <widget class="QLabel" name="TR">
-     <property name="text">
-      <string/>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
      </property>
-    </widget>
-   </item>
-   <item row="6" column="0" rowspan="2" colspan="2">
-    <widget class="QPushButton" name="slicujDvaSnimky">
-     <property name="text">
-      <string>Slícovat dva snímky</string>
-     </property>
-     <property name="default">
-      <bool>false</bool>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="3">
-    <widget class="QLabel" name="EP">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="3">
-    <widget class="QLabel" name="TP">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
+    </spacer>
    </item>
   </layout>
  </widget>

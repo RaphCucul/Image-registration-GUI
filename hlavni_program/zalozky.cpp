@@ -19,7 +19,8 @@ zalozky::zalozky(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->stranky->setTabPosition(QTabWidget::West);
-    ui->stranky->setStyleSheet("QTabBar::tab {height: 32px;width: 32px;padding-top:0px;padding-bottom:,0px}");
+    //ui->stranky->setStyleSheet("QTabBar::tab {height: 32px;width: 32px;padding-top:0px;padding-bottom:,0px}");
+    //ui->stranky->setStyleSheet("background-color: white");
 
     QIcon ikonka_slozky(":/images/adresar.png");
     QIcon ikonka_frangi(":/images/frangi.png");
@@ -32,10 +33,11 @@ zalozky::zalozky(QWidget *parent) :
     QIcon icon_licovaniDvou = rotace_ikonky(ikonka_licovaniDvou);
     QIcon icon_licovaniVidea = rotace_ikonky(ikonka_licovaniVidea);
 
-    t_b_HO* volba_slozek = new t_b_HO;
-    Frangi_detektor* detektor = new Frangi_detektor;
-    LicovaniDvou* licovaniDvou = new LicovaniDvou;
-    LicovaniVidea* licovaniVidea = new LicovaniVidea;
+    volba_slozek = new t_b_HO;
+    detektor = new Frangi_detektor;
+    licovaniDvou = new LicovaniDvou;
+    licovaniVidea = new LicovaniVidea;
+
     ui->stranky->addTab(volba_slozek,icon_slozky,"");
     ui->stranky->addTab(detektor,icon_frangi,"");    
     ui->stranky->addTab(licovaniDvou,icon_licovaniDvou,"");
@@ -60,3 +62,13 @@ zalozky::~zalozky()
     delete ui;
 }
 
+
+void zalozky::on_stranky_tabBarClicked(int index)
+{
+    if (index == 1){
+        detektor->checkPaths();
+    }
+    if (index == 2){
+        licovaniDvou->checkPaths();
+    }
+}

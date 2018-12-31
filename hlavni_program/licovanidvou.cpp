@@ -9,7 +9,7 @@
 #include "dialogy/errordialog.h"
 #include "dialogy/clickimageevent.h"
 #include "hlavni_program/frangi_detektor.h"
-#include "hlavni_program/vysledeklicovanidvou.h"
+//#include "hlavni_program/vysledeklicovani.h"
 #include "hlavni_program/t_b_ho.h"
 #include "util/souborove_operace.h"
 
@@ -33,80 +33,83 @@
 #include <array>
 #include <QSignalMapper>
 
-/*static int slider_position=0;
-static int alpha_slider;*/
 static cv::Mat src1;
 static cv::Mat src2;
-
-
-/*static void on_trackbar( int, void* )
-{
-    if(slider_position == 0){cv::imshow("Kontrola_licovani",src1);}
-    else {cv::imshow("Kontrola_licovani",src2);}
-}*/
 
 LicovaniDvou::LicovaniDvou(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::LicovaniDvou)
 {
     ui->setupUi(this);
-    /***********************************************************************************/
-    // nastavení výchozích parametrů pro lícování
-    ui->oblastMaxima->setText("10");
+    ui->comboBox->addItem(tr("Choose two videoframes"));
+    ui->comboBox->addItem(tr("Choose two images"));
+    ui->areaSizelabel->setText(tr("Size of calculation area"));
+    ui->toleratedAnglelabel->setText(tr("Maximal tolerated rotation angle"));
+    ui->numberOfIterationlabel->setText(tr("Number of iteration of algorithm"));
+    ui->entropie_reference->setText(tr("Referrence entropy"));
+    ui->entropie_posunuty->setText(tr("Moved entropy"));
+    ui->tennengrad_reference->setText(tr("Tennengrad referrence"));
+    ui->tennengrad_posunuty->setText(tr("Tennengrad moved"));
+    ui->casovaZnacka->setText(tr("Top/bottom anomaly"));
+    ui->anomalie->setText(tr("Left/right anomaly"));
+
+    QFile qssFile(":/style.qss");
+    qssFile.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(qssFile.readAll());
+    setStyleSheet(styleSheet);
+
+    ui->oblastMaxima->setPlaceholderText("0 - 20");
     oblastMaxima = 10.0;
-    ui->uhelRotace->setText("0.1");
+    ui->uhelRotace->setPlaceholderText("0 - 0.5");
     uhel = 0.1;
-    ui->pocetIteraci->setText("-1");
+    ui->pocetIteraci->setPlaceholderText("1 - Inf; -1~automatic settings");
     iterace = -1;
     ui->casovaZnacka->setChecked(false);
     ui->anomalie->setChecked(false);
-    /***********************************************************************************/
-    // nastavení parametrů pro frangiho detektor - buď soubor existuje, nebo neexistuje
-    // a zvolí se výchozí parametry pro algoritmus
+
     maximum_frangi = detekovane_frangiho_maximum;
     connect(ui->anomalie,SIGNAL(stateChanged(int)),this,SLOT(zobrazKliknutelnyDialog()));
     velikost_frangi_opt(6,parametry_frangi);
-    QFile soubor;
-    soubor.setFileName(paramFrangi+"/frangiParameters.json");
-    parametryFrangiJson = readJson(soubor);
-    QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-    for (int a = 0; a < 6; a++)
-    {
-        inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        parametryFrangiJson = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+        }
     }
-    /***********************************************************************************/
-    // protože se pracuje s layouty a comboboxy, je potřeba definovat defaultní zobrazení
-    // nabídky a odpovídajících widgetů
-    // první v nabídce je lícování dvou snímků -> layout bude zaplněn prvky pro tuto nabídku
+
     QLineEdit* vybraneVideoLE = new QLineEdit();
     QPushButton* vyberVideaPB = new QPushButton();
     QLineEdit* cisloReferenceLE = new QLineEdit();
     QLineEdit* cisloPosunutehoLE = new QLineEdit();
     QSpacerItem* horizontalSpacer1 = new QSpacerItem(20,20);
-    /*******************************************************/
-    vybraneVideoLE->setPlaceholderText("Vybrané video");
+
+    vybraneVideoLE->setPlaceholderText(tr("Chosen video"));
     vybraneVideoLE->setMinimumWidth(110);
     vybraneVideoLE->setMinimumHeight(20);    
-    vyberVideaPB->setText("Výběr videa");
+    vyberVideaPB->setText(tr("Choose video"));
     vyberVideaPB->setMinimumWidth(71);
     vyberVideaPB->setMinimumHeight(23);
     cisloReferenceLE->setPlaceholderText("Ref");
     cisloReferenceLE->setMinimumWidth(31);
     cisloReferenceLE->setMinimumHeight(20);
-    cisloPosunutehoLE->setPlaceholderText("Posun");
+    cisloPosunutehoLE->setPlaceholderText(tr("Moved"));
     cisloPosunutehoLE->setMinimumWidth(41);
     cisloPosunutehoLE->setMinimumHeight(20);
-    /*******************************************************/
+
     ui->nabidkaAnalyzy->addWidget(vybraneVideoLE,0,0);
     ui->nabidkaAnalyzy->addWidget(vyberVideaPB,0,1);
     ui->nabidkaAnalyzy->addWidget(cisloReferenceLE,0,2);
     ui->nabidkaAnalyzy->addWidget(cisloPosunutehoLE,0,3);
     ui->nabidkaAnalyzy->addItem(horizontalSpacer1,0,4);
-    /*******************************************************/
+
     QWidget* widgetVideoPB = ui->nabidkaAnalyzy->itemAt(1)->widget();
     QPushButton* VideoPB = qobject_cast<QPushButton*>(widgetVideoPB);
     QWidget* widgetVideoLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-    QLineEdit* VideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
+    VideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
 
     QSignalMapper* m_sigmapper = new QSignalMapper(this);
     connect(VideoPB,SIGNAL(clicked()),m_sigmapper,SLOT(map()));
@@ -114,7 +117,7 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     QObject::connect(m_sigmapper, SIGNAL(mapped(QWidget *)),this, SLOT(vyberVideaPB_clicked(QWidget *)));
     QObject::connect(widgetVideoLE,SIGNAL(textChanged(const QString &)),this,
                      SLOT(Slot_VideoLE_textChanged(const QString&)));
-    /********************************************************/
+
     QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
     QLineEdit* ReferenceLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
     QWidget* widgetPosunutehoLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
@@ -123,9 +126,9 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
                      this,SLOT(ReferenceLE_textChanged(const QString&)));
     QObject::connect(PosunutyLE,SIGNAL(textChanged(const QString &)),
                      this,SLOT(PosunutyLE_textChanged(const QString&)));
-    /********************************************************/
+
     if (videaKanalyzeAktual == "")
-        VideoLE->setPlaceholderText("vybrane video");
+        VideoLE->setPlaceholderText(tr("Chosen video"));
     else
     {
         QString slozka,jmeno,koncovka;
@@ -159,6 +162,47 @@ LicovaniDvou::~LicovaniDvou()
     delete ui;
 }
 
+void LicovaniDvou::checkPaths(){
+    if (videaKanalyzeAktual == "")
+        VideoLE->setPlaceholderText(tr("Chosen video"));
+    else
+    {
+        QString slozka,jmeno,koncovka;
+        QStringList nalezeneSoubory;
+        int pocetNalezenych;
+        analyzuj_jmena_souboru_avi(videaKanalyzeAktual,nalezeneSoubory,pocetNalezenych,"avi");
+        if (pocetNalezenych != 0)
+        {
+            QString celeJmeno = videaKanalyzeAktual+"/"+nalezeneSoubory.at(0);
+            zpracujJmeno(celeJmeno,slozka,jmeno,koncovka);
+            if (rozborVybranehoSouboru.length() == 0)
+            {
+                rozborVybranehoSouboru.push_back(slozka);
+                rozborVybranehoSouboru.push_back(jmeno);
+                rozborVybranehoSouboru.push_back(koncovka);
+            }
+            else
+            {
+                rozborVybranehoSouboru.clear();
+                rozborVybranehoSouboru.push_back(slozka);
+                rozborVybranehoSouboru.push_back(jmeno);
+                rozborVybranehoSouboru.push_back(koncovka);
+            }
+            VideoLE->setText(jmeno);
+        }
+    }
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        parametryFrangiJson = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+        }
+    }
+}
+
 void LicovaniDvou::on_comboBox_activated(int index)
 {
     qDebug()<<"Index Comboboxu: "<<index;
@@ -181,16 +225,16 @@ void LicovaniDvou::on_comboBox_activated(int index)
         QLineEdit* cisloPosunutehoLE = new QLineEdit(this);
         QSpacerItem* horizontalSpacer1 = new QSpacerItem(20,20);        
         /**************************************************/
-        vybraneVideoLE->setPlaceholderText("Vybrané video");
+        vybraneVideoLE->setPlaceholderText(tr("Chosen video"));
         vybraneVideoLE->setMinimumWidth(110);
         vybraneVideoLE->setMinimumHeight(20);
-        vyberVideaPB->setText("Výběr videa");
+        vyberVideaPB->setText(tr("Choose video"));
         vyberVideaPB->setMinimumWidth(71);
         vyberVideaPB->setMinimumHeight(23);
         cisloReferenceLE->setPlaceholderText("Ref");
         cisloReferenceLE->setMinimumWidth(31);
         cisloReferenceLE->setMinimumHeight(20);
-        cisloPosunutehoLE->setPlaceholderText("Posun");
+        cisloPosunutehoLE->setPlaceholderText(tr("Moved"));
         cisloPosunutehoLE->setMinimumWidth(41);
         cisloPosunutehoLE->setMinimumHeight(20);
         /**************************************************/
@@ -244,11 +288,11 @@ void LicovaniDvou::on_comboBox_activated(int index)
         volbaReferenceLE->setPlaceholderText("Ref");
         volbaPosunutehoLE->setMinimumWidth(20);
         volbaPosunutehoLE->setMinimumHeight(20);
-        volbaPosunutehoLE->setPlaceholderText("Pos");
-        vyberObrazekReferencePB->setText("Výběr reference");
+        volbaPosunutehoLE->setPlaceholderText(tr("Moved"));
+        vyberObrazekReferencePB->setText(tr("Chooce referrence"));
         vyberObrazekReferencePB->setMinimumWidth(90);
         vyberObrazekReferencePB->setMinimumHeight(23);
-        vyberObrazekPosunutyPB->setText("Výběr posunutého");
+        vyberObrazekPosunutyPB->setText(tr("Choose moved"));
         vyberObrazekPosunutyPB->setMinimumWidth(90);
         vyberObrazekPosunutyPB->setMinimumHeight(23);
         /***************************************************/
@@ -566,7 +610,7 @@ void LicovaniDvou::on_oblastMaxima_textChanged(const QString &arg1)
     }
     else
     {
-        ui->oblastMaxima->setStyleSheet("QLineEdit#oblastMaxima{color: #00FF00}");
+        ui->oblastMaxima->setStyleSheet("QLineEdit#oblastMaxima{color: #339900}");
         spravnostOblasti = true;
         oblastMaxima = zadane_cislo;
     }
@@ -585,7 +629,7 @@ void LicovaniDvou::on_uhelRotace_textChanged(const QString &arg1)
     }
     else
     {
-        ui->uhelRotace->setStyleSheet("QLineEdit#uhelRotace{color: #00FF00}");
+        ui->uhelRotace->setStyleSheet("QLineEdit#uhelRotace{color: #339900}");
         spravnostUhlu = true;
         uhel = zadane_cislo;
     }
@@ -602,7 +646,7 @@ void LicovaniDvou::on_pocetIteraci_textChanged(const QString &arg1)
     }
     if (zadane_cislo == -1 || zadane_cislo > 1)
     {
-        ui->pocetIteraci->setStyleSheet("QLineEdit#pocetIteraci{color: #00FF00}");
+        ui->pocetIteraci->setStyleSheet("QLineEdit#pocetIteraci{color: #339900}");
         spravnostIteraci = true;
         if (zadane_cislo == -1)        
             iterace = -1;        
@@ -619,9 +663,9 @@ void LicovaniDvou::on_slicujDvaSnimky_clicked()
     if (spravnostVidea == false || spravnostReference == false || spravnostPosunuteho == false
             || spravnostOblasti == false || spravnostUhlu == false || spravnostIteraci == false)
     {
-        ErrorDialog* errordialog = new ErrorDialog;
+        /*ErrorDialog* errordialog = new ErrorDialog;
         errordialog->setModal(true);
-        errordialog->exec();
+        errordialog->exec();*/
     }
     else
     {        
@@ -647,8 +691,8 @@ void LicovaniDvou::on_slicujDvaSnimky_clicked()
         //cout << "E: " << entropie_posunuteho << " T: " << tennengrad_posunuteho[0] << endl;
         ui->ER->setText(QString::number(entropie_reference));
         ui->TR->setText(QString::number(tennengrad_reference[0]));
-        ui->EP->setText(QString::number(entropie_posunuteho));
-        ui->TP->setText(QString::number(tennengrad_posunuteho[0]));
+        ui->EM->setText(QString::number(entropie_posunuteho));
+        ui->TM->setText(QString::number(tennengrad_posunuteho[0]));
 
         cv::Rect vyrez_korelace_extra(0,0,0,0);
         cv::Rect vyrez_korelace_standard(0,0,0,0);
@@ -761,9 +805,9 @@ void LicovaniDvou::on_slicujDvaSnimky_clicked()
             cv::createTrackbar("Vybrany snimek","Kontrola_licovani",&slider_position,1,on_trackbar);
             on_trackbar( alpha_slider, 0 );*/
             /// nová verze prohlížeče, která umožní ovládání bez vypnutí hlavního programu
-            VysledekLicovaniDvou *vysledekLicovani = new VysledekLicovaniDvou(src1,src2);
+            /*VysledekLicovani *vysledekLicovani = new VysledekLicovani();
             vysledekLicovani->setModal(true);
-            vysledekLicovani->show();
+            vysledekLicovani->show();*/
         }
     }
 }

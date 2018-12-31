@@ -26,6 +26,17 @@ t_b_HO::t_b_HO(QWidget *parent) :
     ui(new Ui::t_b_HO)
 {
     ui->setupUi(this);
+    ui->cesta_k_videim->setText(tr("Load video from"));
+    ui->ulozeni_videa->setText(tr("Save video to"));
+    ui->txt_slozka->setText(tr("Load video parameters"));
+    ui->ulozeni_txt->setText(tr("Save video parameters"));
+    ui->paramFrangPB->setText(tr("Load frangi parameters"));
+    ui->ulozeni_cest->setText(tr("Save my paths"));
+
+    QFile qssFile(":/style.qss");
+    qssFile.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(qssFile.readAll());
+    setStyleSheet(styleSheet);
 
     // načtení dat v případě, že se ve složce nachází soubor s uloženými cestami
     //QFile soubor(QDir::currentPath()+"/"+"cesty.txt");
@@ -71,7 +82,7 @@ void t_b_HO::on_cesta_k_videim_clicked()
     writeJson(souborScestami,videaKanalyze,"cestaKvideim",t);
     ui->CB_cesta_k_videim->addItem(cesta_k_videim);
 
-    //qDebug()<<videaKanalyze;
+    qDebug()<<videaKanalyze;
 }
 
 void t_b_HO::on_ulozeni_videa_clicked()
@@ -173,14 +184,15 @@ void t_b_HO::ziskejCestyZJson(QJsonArray& poleCest, QComboBox *box, QStringList 
 }
 void t_b_HO::vybranaCesta(int index)
  {
+    qDebug()<<index;
      if (QObject::sender() == ui->CB_cesta_k_videim)
-         videaKanalyzeAktual = videaKanalyzeList.at(index).toLocal8Bit().constData();
+         videaKanalyzeAktual = videaKanalyzeList.at(index);//.toLocal8Bit().constData();
      if (QObject::sender() == ui->CB_ulozeni_videa)
-         ulozeniVideiAktual = ulozeniVideiList.at(index).toLocal8Bit().constData();
+         ulozeniVideiAktual = ulozeniVideiList.at(index);//.toLocal8Bit().constData();
      if (QObject::sender() == ui->CB_slozka_txt)
-         TXTnacteniAktual = TXTnacteniList.at(index).toLocal8Bit().constData();
+         TXTnacteniAktual = TXTnacteniList.at(index);//.toLocal8Bit().constData();
      if (QObject::sender() == ui->CB_ulozeni_txt)
-         TXTulozeniAktual = TXTulozeniList.at(index).toLocal8Bit().constData();
+         TXTulozeniAktual = TXTulozeniList.at(index);//.toLocal8Bit().constData();
 
      qDebug()<<index<<videaKanalyzeAktual;
  }

@@ -30,7 +30,7 @@ public:
     ~LicovaniDvou();    
     void clearLayout(QGridLayout *layout);
     void VideoLE_textChanged(QLineEdit *LE, QString& s);
-
+    void checkPaths();
 
 public slots:
     //void GetClickCoordinates(QPointF hranice_anomalie);
@@ -89,6 +89,7 @@ private:
     cv::Point3d maximum_frangi;
     int predchozi_index = 0;
     QJsonObject parametryFrangiJson;
+    QLineEdit* VideoLE;
 };
 
 #endif // LICOVANIDVOU_H
