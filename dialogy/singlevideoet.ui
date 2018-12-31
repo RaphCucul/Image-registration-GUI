@@ -17,24 +17,13 @@
    <item row="4" column="0" colspan="2">
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="1">
-      <widget class="QPushButton" name="vypocetET">
-       <property name="text">
-        <string>Výpočet entropie a tennengradu</string>
-       </property>
-      </widget>
+      <widget class="QPushButton" name="vypocetET"/>
      </item>
      <item row="1" column="1">
-      <widget class="QPushButton" name="zobrazGrafET">
-       <property name="text">
-        <string>Zobrazit výsledky výpočtu</string>
-       </property>
-      </widget>
+      <widget class="QPushButton" name="zobrazGrafET"/>
      </item>
      <item row="1" column="2">
       <widget class="QPushButton" name="ulozeni">
-       <property name="text">
-        <string>Uložit</string>
-       </property>
        <property name="flat">
         <bool>false</bool>
        </property>
@@ -87,25 +76,13 @@
    <item row="3" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Velikost oblasti výpočtu maxima</string>
-       </property>
-      </widget>
+      <widget class="QLabel" name="areaSizelabel"/>
      </item>
      <item>
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Velikost tolerovaného úhlu rotace</string>
-       </property>
-      </widget>
+      <widget class="QLabel" name="angleTolerancelabel"/>
      </item>
      <item>
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Nastavení počtu iterací lícování</string>
-       </property>
-      </widget>
+      <widget class="QLabel" name="iterationNumberlabel"/>
      </item>
     </layout>
    </item>
@@ -168,11 +145,7 @@
    <item row="2" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QCheckBox" name="casovaZnacka">
-       <property name="text">
-        <string>Přítomnost časové značky</string>
-       </property>
-      </widget>
+      <widget class="QCheckBox" name="casovaZnacka"/>
      </item>
      <item>
       <spacer name="horizontalSpacer_4">
@@ -188,11 +161,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="svetelnaAnomalie">
-       <property name="text">
-        <string>Přítomnost světelné anomálie</string>
-       </property>
-      </widget>
+      <widget class="QCheckBox" name="svetelnaAnomalie"/>
      </item>
      <item>
       <spacer name="horizontalSpacer_3">
@@ -227,7 +196,7 @@
      <item>
       <widget class="QLineEdit" name="cisloReferencnihosnimku">
        <property name="placeholderText">
-        <string>Reference</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -264,7 +233,7 @@
      <item>
       <widget class="QPushButton" name="vyberVidea">
        <property name="text">
-        <string>Výběr videa</string>
+        <string/>
        </property>
       </widget>
      </item>

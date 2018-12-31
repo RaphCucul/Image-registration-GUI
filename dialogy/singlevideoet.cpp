@@ -40,12 +40,23 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->vypocetET->setEnabled(false);
     ui->zobrazGrafET->setEnabled(false);
     ui->ulozeni->setEnabled(false);
-    ui->oblastMaxima->setText("10");
+    ui->oblastMaxima->setPlaceholderText("0 - 20");
     oblastMaxima = 10.0;
-    ui->uhelRotace->setText("0.1");
+    ui->uhelRotace->setPlaceholderText("0 - 0.5");
     uhel = 0.1;
-    ui->pocetIteraci->setText("-1");
+    ui->pocetIteraci->setPlaceholderText("1 - Inf; -1~automatic settings");
     iterace = -1;
+
+    ui->vyberVidea->setText(tr("Choose video"));
+    ui->cisloReferencnihosnimku->setPlaceholderText(tr("Write number of referrence frame"));
+    ui->casovaZnacka->setText(tr("Top/bottom anomaly"));
+    ui->svetelnaAnomalie->setText(tr("Left/right anomaly"));
+    ui->areaSizelabel->setText(tr("Size of calculation area"));
+    ui->angleTolerancelabel->setText(tr("Maximal tolerated rotation angle"));
+    ui->iterationNumberlabel->setText(tr("Number of iterations of algorithm"));
+    ui->vypocetET->setText(tr("Estimate entropy and tennengrade"));
+    ui->zobrazGrafET->setText(tr("Show computed results"));
+    ui->ulozeni->setText(tr("Save results"));
 
     mapDouble["entropie"]=entropie;
     mapDouble["tennengrad"]=tennengrad;
@@ -64,13 +75,15 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     mapAnomalies["HorizontalAnomaly"]=PritomnostSvetelneAnomalie;
 
     velikost_frangi_opt(6,parametry_frangi);
-    QFile soubor;
-    soubor.setFileName(paramFrangi+"/frangiParameters.json");
-    parametryFrangiJson = readJson(soubor);
-    QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-    for (int a = 0; a < 6; a++)
-    {
-        inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        parametryFrangiJson = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+        }
     }
 
     if (videaKanalyzeAktual == "")
@@ -109,6 +122,48 @@ SingleVideoET::~SingleVideoET()
     delete ui;
 }
 
+void SingleVideoET::checkPaths(){
+    if (videaKanalyzeAktual == "")
+        ui->vybraneVideo->setPlaceholderText("Vybrane video");
+    else
+    {
+        QString slozka,jmeno,koncovka;
+        QStringList nalezeneSoubory;
+        int pocetNalezenych;
+        analyzuj_jmena_souboru_avi(videaKanalyzeAktual,nalezeneSoubory,pocetNalezenych,"avi");
+        if (pocetNalezenych != 0)
+        {
+            QString celeJmeno = videaKanalyzeAktual+"/"+nalezeneSoubory.at(0);
+            zpracujJmeno(celeJmeno,slozka,jmeno,koncovka);
+            if (vybraneVideoETSingle.length() == 0)
+            {
+                vybraneVideoETSingle.push_back(slozka);
+                vybraneVideoETSingle.push_back(jmeno);
+                vybraneVideoETSingle.push_back(koncovka);
+            }
+            else
+            {
+                vybraneVideoETSingle.clear();
+                vybraneVideoETSingle.push_back(slozka);
+                vybraneVideoETSingle.push_back(jmeno);
+                vybraneVideoETSingle.push_back(koncovka);
+            }
+            ui->vybraneVideo->setText(jmeno);
+            ui->vypocetET->setEnabled(true);
+        }
+    }
+
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        parametryFrangiJson = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+        }
+    }
+}
 void SingleVideoET::on_vyberVidea_clicked()
 {
     QString referencniObrazek = QFileDialog::getOpenFileName(this,

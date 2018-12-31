@@ -24,6 +24,7 @@ public:
     explicit SingleVideoET(QWidget *parent = nullptr);
     ~SingleVideoET();    
     //void temp(QStringList pomList);
+    void checkPaths();
 private slots:
     void on_vyberVidea_clicked();
     void on_vybraneVideo_textChanged(const QString &arg1);
