@@ -13,6 +13,7 @@
 #include "multithreadET/qthreadthirdpart.h"
 #include "multithreadET/qthreadfourthpart.h"
 #include "multithreadET/qthreadfifthpart.h"
+#include "dialogy/errordialog.h"
 
 namespace Ui {
 class MultipleVideoET;
@@ -26,6 +27,7 @@ public:
     explicit MultipleVideoET(QWidget *parent = nullptr);
     ~MultipleVideoET();
     void aktualizujProgBar(int procento);
+    void checkPaths();
 protected:
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -52,6 +54,8 @@ private:
     qThreadThirdPart* TThirdP;
     qThreadFourthPart* TFourthP;
     qThreadFifthPart* TFifthP;
+    ErrorDialog* errorWindow;
+
     double pocetSnimkuVidea;
     int analyzaETdokoncena = 0;
 

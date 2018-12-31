@@ -39,27 +39,42 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
     ui->setupUi(this);
     setAcceptDrops(true);
     ui->zobrazVysledkyPB->setEnabled(false);
+    ui->zobrazVysledkyPB->setText(tr("Show results"));
     ui->ulozeni->setEnabled(false);
+    ui->ulozeni->setText(tr("Save computed parameters"));
     ui->casovaZnacka->setEnabled(false);
+    ui->casovaZnacka->setText(tr("Top/bottom anomaly"));
     ui->svetAnomal->setEnabled(false);
-    ui->zobrazVysledkyPB->setEnabled(false);
-    ui->ulozeni->setEnabled(false);
-    ui->oblastMaxima->setText("0-20");
+    ui->svetAnomal->setText(tr("Left/right anomaly"));
+    ui->oblastMaxima->setPlaceholderText("0-20");
     oblastMaxima = 10.0;
-    ui->uhelRotace->setText("0 - 0.5");
+    ui->uhelRotace->setPlaceholderText("0 - 0.5");
     uhel = 0.1;
-    ui->pocetIteraci->setText("-1");
+    ui->pocetIteraci->setPlaceholderText("1-Inf; -1~auto");
     iterace = -1;
+    ui->areaSizelabel->setText(tr("Size of calculation area"));
+    ui->angleTolerationlabel->setText(tr("Maximal tolerated rotation angle"));
+    ui->numberIterationlabel->setText(tr("Number of iterations of algorithm"));
+    ui->nekolikVideiPB->setText(tr("Choose few files"));
+    ui->celaSlozkaPB->setText(tr("Choose whole folder"));
+    ui->vymazatZVyberuPB->setText(tr("Delete selected"));
+    ui->ETanalyzaVideiPB->setText(tr("Analyse videos"));
+
+    errorWindow = new ErrorDialog();
 
     velikost_frangi_opt(6,parametry_frangi);
-    QFile soubor;
-    soubor.setFileName(paramFrangi+"/frangiParameters.json");
-    parametryFrangiJson = readJson(soubor);
-    QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-    for (int a = 0; a < 6; a++)
-    {
-        inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        parametryFrangiJson = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+        }
     }
+
+    //QObject::connect()
 }
 
 MultipleVideoET::~MultipleVideoET()
@@ -67,6 +82,18 @@ MultipleVideoET::~MultipleVideoET()
     delete ui;
 }
 
+void MultipleVideoET::checkPaths(){
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        parametryFrangiJson = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(parametryFrangiJson,parametry.at(a),parametry_frangi,a);
+        }
+    }
+}
 void MultipleVideoET::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
@@ -127,10 +154,6 @@ void MultipleVideoET::on_celaSlozkaPB_clicked()
 
 void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
 {
-    /*vlaknoET = new VicevlaknoveZpracovani(sezVid);
-    connect(vlaknoET,SIGNAL(percentageCompleted(int)),ui->progBar,SLOT(setValue(int)));
-    connect(vlaknoET,SIGNAL(hotovo()),this,SLOT(zpracovano()));
-    vlaknoET->start();*/
     QString pom = sezVid.at(0);
     cv::VideoCapture cap = cv::VideoCapture(pom.toLocal8Bit().constData());
     if (!cap.isOpened())
