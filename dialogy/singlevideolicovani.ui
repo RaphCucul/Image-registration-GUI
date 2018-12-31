@@ -61,9 +61,6 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="text">
-        <string>Výběr videa</string>
-       </property>
       </widget>
      </item>
     </layout>
@@ -71,20 +68,7 @@
    <item>
     <layout class="QHBoxLayout" name="tlacitkaLayout">
      <item>
-      <widget class="QPushButton" name="slicovatPB">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Slícovat</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="horizontalSpacer_3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -97,16 +81,22 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="zobrazVysledekLicovaniPB">
+      <widget class="QPushButton" name="slicovatPB">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="text">
-        <string>Zobrazit slícované
- video</string>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="zobrazVysledekLicovaniPB">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -120,7 +110,17 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_2">
+      <widget class="QPushButton" name="ulozitPB">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -131,19 +131,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="ulozitPB">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Uložit</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
@@ -263,7 +250,7 @@
         <number>0</number>
        </property>
        <property name="textVisible">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
