@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThread>
 #include <QVector>
+#include <QTableWidgetItem>
 
 #include <opencv2/opencv.hpp>
 
@@ -12,6 +13,8 @@ class RegistrationThread : public QThread
     Q_OBJECT
 public:
     RegistrationThread(cv::VideoCapture& cap,
+                       int indexOfThread,
+                       QString nameOfVideo,
                        QVector<double> frangiParam,
                        QVector<int> frameEvaluation,
                        cv::Mat& referencni_snimek,
@@ -24,6 +27,7 @@ public:
                        float lightAnomaly,
                        bool nutnost_zmenit_velikost_snimku);
     void run() override;
+    QMap<QString,QVector<double>> provideResults();
     int registrateTheBest(cv::VideoCapture& cap,
                           cv::Mat& referencni_snimek,
                           cv::Point3d bod_RefS_reverse,
@@ -34,13 +38,7 @@ public:
                           cv::Rect& vyrez_korelace_extra,
                           cv::Rect& vyrez_korelace_standard,
                           bool zmena_meritka,
-                          QVector<double> &parametry_frangi,
-                          QVector<double>& frangi_x,
-                          QVector<double>& frangi_y,
-                          QVector<double>& frangi_euklid,
-                          QVector<double>& POC_x,
-                          QVector<double>& POC_y,
-                          QVector<double>& angleList);
+                          QVector<double> &parametry_frangi);
     int fullRegistration(cv::VideoCapture& cap,
                          cv::Mat& referencni_snimek,
                          int cislo_posunuty,
@@ -63,33 +61,34 @@ public:
                            cv::Rect &vyrezKoreEx,
                            cv::Rect &vyrezKoreStand,
                            cv::VideoCapture &cap,
-                           bool pritomnostAnomalie,
-                           bool casZnacka,
                            bool &zmeMer);
     int registrationCorrection(cv::Mat& slicovany_snimek,
                                cv::Mat& obraz,
+                               cv::Mat& snimek_korigovany,
                                cv::Rect& vyrez_korelace_standard,
-                               cv::Point3d& korekce_bod,
-                               int index_posunuty,
-                               QVector<double>& finalni_POC_x,
-                               QVector<double>& finalni_POC_y);
+                               cv::Point3d& korekce_bod);
 signals:
     void allWorkDone(int);
+    //void frameCompleted(int);
+    void numberOfFrame(int,int,QTableWidgetItem*);
 
 private:
     cv::VideoCapture capture;
     cv::Mat referencialImage;
     QVector<double> frangiParameters;
-    QVector<double> frangiX,frangiY,frangiEuklidean,POCx,POCy,finalPOCx,finalPOCy,maximalAngles;
+    QVector<double> frangiX,frangiY,frangiEuklidean,finalPOCx,finalPOCy,maximalAngles;
+    QMap<QString,QVector<double>> vectors;
     QVector<int> ohodnoceniSnimku;
     int noMoved;
     int iteration;
     int startingFrame;
     int stoppingFrame;
+    int pomCounter=0;
     double maximalArea;
     double angle;
     float casovaZnacka;
     float svetelAnomalie;
+    double frameCount;
     cv::Rect correl_standard;
     cv::Rect correl_extra;
     cv::Rect anomalyCutoff;
@@ -98,6 +97,8 @@ private:
     cv::Point3d totalTranslation;
     cv::Point2f ziskane_hranice_anomalie;
     cv::Point2f ziskane_hranice_CasZnac;
+    int threadIndex = -1;
+    QString videoName;
 };
 
 #endif // REGISTRATIONTHREAD_H
