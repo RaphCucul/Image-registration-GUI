@@ -22,7 +22,8 @@ class Frangi_detektor : public QWidget
 public:
     explicit Frangi_detektor(QWidget *parent = nullptr);
     ~Frangi_detektor();
-
+    void checkPaths();
+    void setParametersToUI();
 private slots:   
     void on_sigma_start_sliderMoved(int value);
     void on_sigma_end_sliderMoved(int value);
@@ -49,6 +50,7 @@ private:
     QVector<QString> rozborVybranehoSouboru;
     QVector<double> FrangiParametrySouboru;
     QJsonObject nacteneFrangihoParametry;
+
 };
 
 #endif // FRANGI_DETEKTOR_H

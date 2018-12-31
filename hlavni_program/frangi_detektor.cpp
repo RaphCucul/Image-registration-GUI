@@ -4,6 +4,7 @@
 #include "analyza_obrazu/upravy_obrazu.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
 #include "util/souborove_operace.h"
+#include "dialogy/errordialog.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -37,32 +38,25 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
     ui(new Ui::Frangi_detektor)
 {
     ui->setupUi(this);
+    ui->ulozeni->setText(tr("Save Frangi parameters"));
+    ui->souborKAnalyzePB->setText(tr("Choose file"));
+    ui->cisloSnimku->setPlaceholderText(tr("Choose frame number"));
+    ui->vybranySoubor->setPlaceholderText(tr("Chosen file"));
+    ui->RB_standard->setText(tr("Standard Frangi mode"));
+    ui->RB_reverz->setText(tr("Reverz Frangi mode"));
+
     velikost_frangi_opt(6,FrangiParametrySouboru);
-    QFile soubor;
-    soubor.setFileName(paramFrangi+"/frangiParameters.json");
-    nacteneFrangihoParametry = readJson(soubor);
-    QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-    for (int a = 0; a < 6; a++)
-    {
-        inicializace_frangi_opt(nacteneFrangihoParametry,parametry.at(a),FrangiParametrySouboru,a);
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        nacteneFrangihoParametry = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(nacteneFrangihoParametry,parametry.at(a),FrangiParametrySouboru,a);
+        }
+        setParametersToUI();
     }
-    ui->sigma_start_DSB->setValue(data_z_frangi_opt(0,FrangiParametrySouboru));
-    ui->sigma_end_DSB->setValue(data_z_frangi_opt(1,FrangiParametrySouboru));
-    ui->sigma_step_DSB->setValue(data_z_frangi_opt(2,FrangiParametrySouboru));
-    ui->beta_one_DSB->setValue(data_z_frangi_opt(3,FrangiParametrySouboru));
-    ui->beta_two_DSB->setValue(data_z_frangi_opt(4,FrangiParametrySouboru));
-    if (data_z_frangi_opt(5,FrangiParametrySouboru) == 1.0){
-        ui->RB_standard->setChecked(1);
-        ui->RB_reverz->setChecked(0);}
-    else{
-        ui->RB_standard->setChecked(0);
-        ui->RB_reverz->setChecked(1);
-    }
-    ui->sigma_start->setValue(int(ui->sigma_start_DSB->value()/10*50));
-    ui->sigma_end->setValue(int(ui->sigma_end_DSB->value()/10*50));
-    ui->sigma_step->setValue(int(ui->sigma_step_DSB->value()/10*50));
-    ui->beta_one->setValue(int(ui->beta_one_DSB->value()/10*50));
-    ui->beta_two->setValue(int(ui->beta_two_DSB->value()/10*50));
 
     connect(ui->sigma_start_DSB, SIGNAL(editingFinished()),this,
             SLOT(zmena_hodnoty_slider_start()));
@@ -74,8 +68,6 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
             SLOT(zmena_hodnoty_slider_one()));
     connect(ui->beta_two_DSB, SIGNAL(editingFinished()),this,
             SLOT(zmena_hodnoty_slider_two()));
-    ui->cisloSnimku->setEnabled(true);
-    ui->Frangi_filtr->setEnabled(true);
 
     if (videaKanalyzeAktual == "")
         ui->vybranySoubor->setPlaceholderText("vybrane video");
@@ -110,6 +102,72 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
 Frangi_detektor::~Frangi_detektor()
 {
     delete ui;
+}
+
+void Frangi_detektor::setParametersToUI(){
+    ui->sigma_start_DSB->setValue(data_z_frangi_opt(0,FrangiParametrySouboru));
+    ui->sigma_end_DSB->setValue(data_z_frangi_opt(1,FrangiParametrySouboru));
+    ui->sigma_step_DSB->setValue(data_z_frangi_opt(2,FrangiParametrySouboru));
+    ui->beta_one_DSB->setValue(data_z_frangi_opt(3,FrangiParametrySouboru));
+    ui->beta_two_DSB->setValue(data_z_frangi_opt(4,FrangiParametrySouboru));
+    if (data_z_frangi_opt(5,FrangiParametrySouboru) == 1.0){
+        ui->RB_standard->setChecked(1);
+        ui->RB_reverz->setChecked(0);}
+    else{
+        ui->RB_standard->setChecked(0);
+        ui->RB_reverz->setChecked(1);
+    }
+    ui->sigma_start->setValue(int(ui->sigma_start_DSB->value()/10*50));
+    ui->sigma_end->setValue(int(ui->sigma_end_DSB->value()/10*50));
+    ui->sigma_step->setValue(int(ui->sigma_step_DSB->value()/10*50));
+    ui->beta_one->setValue(int(ui->beta_one_DSB->value()/10*50));
+    ui->beta_two->setValue(int(ui->beta_two_DSB->value()/10*50));
+    ui->cisloSnimku->setEnabled(true);
+    ui->Frangi_filtr->setEnabled(true);
+}
+
+void Frangi_detektor::checkPaths()
+{
+    if (videaKanalyzeAktual == "")
+        ui->vybranySoubor->setPlaceholderText("vybrane video");
+    else
+    {
+        QString slozka,jmeno,koncovka;
+        QStringList nalezeneSoubory;
+        int pocetNalezenych;
+        analyzuj_jmena_souboru_avi(videaKanalyzeAktual,nalezeneSoubory,pocetNalezenych,"avi");
+        if (pocetNalezenych != 0)
+        {
+            QString celeJmeno = videaKanalyzeAktual+"/"+nalezeneSoubory.at(0);
+            zpracujJmeno(celeJmeno,slozka,jmeno,koncovka);
+            if (rozborVybranehoSouboru.length() == 0)
+            {
+                rozborVybranehoSouboru.push_back(slozka);
+                rozborVybranehoSouboru.push_back(jmeno);
+                rozborVybranehoSouboru.push_back(koncovka);
+            }
+            else
+            {
+                rozborVybranehoSouboru.clear();
+                rozborVybranehoSouboru.push_back(slozka);
+                rozborVybranehoSouboru.push_back(jmeno);
+                rozborVybranehoSouboru.push_back(koncovka);
+            }
+            ui->vybranySoubor->setText(jmeno);
+        }
+    }
+    if (paramFrangi != ""){
+        QFile soubor;
+        soubor.setFileName(paramFrangi+"/frangiParameters.json");
+        nacteneFrangihoParametry = readJson(soubor);
+        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+        for (int a = 0; a < 6; a++)
+        {
+            inicializace_frangi_opt(nacteneFrangihoParametry,parametry.at(a),FrangiParametrySouboru,a);
+        }
+        setParametersToUI();
+    }
+
 }
 
 void Frangi_detektor::on_sigma_start_sliderMoved(int value)
@@ -170,6 +228,19 @@ void Frangi_detektor::zmena_hodnoty_slider_two(){
 
 void Frangi_detektor::on_Frangi_filtr_clicked()
 {
+    if (paramFrangi == ""){
+        //QPoint globalPos = ui->Frangi_filtr->mapFromParent(ui->Frangi_filtr->rect().topLeft());
+        QRect geometry = ui->Frangi_filtr->geometry();
+        qDebug()<<geometry;
+
+        ErrorDialog* ed = new ErrorDialog();
+        ui->Frangi_filtr->setEnabled(false);
+        ed->analyseParents(ui->Frangi_filtr);
+        ed->initialiseErrorLabel();
+        ed->evaluatePosition();
+        ed->HardError();
+    }
+    else{
     double beta_two = ui->beta_one_DSB->value();
     double beta_one = ui->beta_one_DSB->value();
     double sigma_start = ui->sigma_start_DSB->value();
@@ -252,6 +323,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
    kontrola_typu_snimku_32(vybrany_snimekFrangi);
    frangi2d(vybrany_snimekFrangi,J,Scale,Directions,opts);
    imshow("Frangi",J);*/
+    }
 }
 
 void Frangi_detektor::on_souborKAnalyzePB_clicked()
