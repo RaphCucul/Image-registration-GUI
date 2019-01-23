@@ -41,44 +41,42 @@
       <enum>Qt::TabFocus</enum>
      </property>
      <property name="styleSheet">
-      <string notr="true">QTabWidget::pane { /* The tab widget frame */
-    border-top: 2px solid #999999;
+      <string notr="true">QTabWidget::pane {
+	border-style: none;
 }
-
 QTabWidget::tab-bar {
-    left: 2px; /* move to the right by 2px */
+    left: 2px;
 }
-
-/* Style the tab using the tab sub-control. Note that
-    it reads QTabBar _not_ QTabWidget */
 QTabBar::tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #fafafa, stop: 0.4 #f4f4f4,
                                 stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);
-    border: 2px solid #C4C4C3;
-    border-bottom-color: #999999; /* same as the pane color */
+    /*border: 2px solid #C4C4C3;
+    border-bottom-color: #999999;
     border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    border-top-right-radius: 4px;*/
     min-width: 4ex;
     padding: 2px;
-	height: 32px;
-	width: 32px;
+        height: 32px;
+        width: 32px;
 }
-
-QTabBar::tab:selected, QTabBar::tab:hover {
-	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+QTabBar::tab:selected{
+        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #b3d9ff, stop: 0.4 #99ccff,
                                 stop: 0.5 #80bfff, stop: 1.0 #4da6ff);
 }
-
-QTabBar::tab:selected {
-    border-color: #3399ff;
-    border-bottom-color: #0066ff; /* same as pane color */
+QTabBar::tab:hover{
+		background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #e5452f, stop: 0.4 #f14d36,
+                                stop: 0.5 #fc9081, stop: 1.0 #ca3a26);
 }
-
+/*QTabBar::tab:selected {
+    border-color: #3399ff;
+    border-bottom-color: #0066ff;
+}
 QTabBar::tab:!selected {
-    margin-top: 2px; /* make non-selected tabs look smaller */
-}</string>
+    margin-top: 2px;
+}*/</string>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::West</enum>

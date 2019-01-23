@@ -9,7 +9,9 @@
 #include <QVector>
 #include <QJsonArray>
 #include <QJsonObject>
+
 #include "mainwindow.h"
+#include "dialogy/errordialog.h"
 namespace Ui {
 class t_b_HO;
 }
@@ -28,35 +30,40 @@ public:
     QStringList seznam_cest_prazdny=(QStringList()<<"-");
     int pocet_mist_combobox = 3;
     explicit t_b_HO(QWidget *parent = nullptr);
-    void ziskejCestyZJson(QJsonArray& poleCest,QComboBox* box, QStringList& list);
-
+    bool checkFileFolderExistence();
+    QString LoadSettings();
 
     ~t_b_HO();
 private slots:
-    void on_cesta_k_videim_clicked();
-    void on_ulozeni_videa_clicked();
-    void on_txt_slozka_clicked();
-    void on_ulozeni_txt_clicked();
-    void on_ulozeni_cest_clicked();
     void vybranaCesta(int index);
     void vybranaCestaString(QString cesta);
 
     void on_paramFrangPB_clicked();
+    void on_ChooseFileFolderDirectory_clicked();
+    void on_pathToVideos_clicked();
+    void on_SaveVideos_clicked();
+    void on_LoadingDataFolder_clicked();
+    void on_SavingDataFolder_clicked();
+    void on_SaveAllPath_clicked();
 
+    void on_FileFolderDirectory_textEdited(const QString &arg1);
+signals:
+    void fileFolderDirectoryFound();
 private:
     Ui::t_b_HO *ui;
-    QVector<int> zaplnenost_CB_cesta_k_videi;
-    QJsonObject souborScestami;
-    QJsonArray videaKanalyze;
-    QJsonArray ulozeniVidei;
-    QJsonArray TXTnacteni;
-    QJsonArray TXTulozeni;
-    QJsonArray parametryFrangi;
-    QStringList videaKanalyzeList;
-    QStringList ulozeniVideiList;
-    QStringList TXTnacteniList;
-    QStringList TXTulozeniList;
-    QStringList parametryFrangiList;
+    void enableElements();
+    void disableElements();
+    void getPathFromJson(QJsonArray& poleCest,QComboBox* box, QStringList& list);
+    void getPathsFromJson();
+    void loadJsonPaths();
+
+    QVector<int> fillingComboboxsVideoPaths;
+    bool iniFileError = false;
+    QJsonObject fileWithPaths;
+    QJsonArray videosForAnalysis,savingVideos,videoDataLoad,videoDataSave,frangiParameters;
+    QStringList videosForAnalysisList,savingVideosList,videoDataLoadList,videoDataSaveList,frangiParametersList;
+    QString pathToFileFolderDirectory,fileFolderDirectoryName;
+    QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };
 
 #endif // T_B_HO_H

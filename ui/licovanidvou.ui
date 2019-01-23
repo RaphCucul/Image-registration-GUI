@@ -58,6 +58,19 @@
       </spacer>
      </item>
      <item>
+      <spacer name="verticalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QComboBox" name="comboBox"/>
      </item>
      <item>
@@ -83,38 +96,26 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QLabel" name="areaSizelabel">
-         <property name="text">
-          <string>Velikost oblasti výpočtu maxima</string>
-         </property>
-        </widget>
+        <widget class="QLabel" name="areaMaximumLabel"/>
        </item>
        <item>
-        <widget class="QLabel" name="toleratedAnglelabel">
-         <property name="text">
-          <string>Velikost tolerovaného úhlu rotace</string>
-         </property>
-        </widget>
+        <widget class="QLabel" name="rotationAngleLabel"/>
        </item>
        <item>
-        <widget class="QLabel" name="numberOfIterationlabel">
-         <property name="text">
-          <string>Nastavení počtu iterací lícování</string>
-         </property>
-        </widget>
+        <widget class="QLabel" name="iterationCountLabel"/>
        </item>
       </layout>
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QLineEdit" name="oblastMaxima"/>
+        <widget class="QLineEdit" name="areaMaximum"/>
        </item>
        <item>
-        <widget class="QLineEdit" name="uhelRotace"/>
+        <widget class="QLineEdit" name="rotationAngle"/>
        </item>
        <item>
-        <widget class="QLineEdit" name="pocetIteraci"/>
+        <widget class="QLineEdit" name="iterationCount"/>
        </item>
       </layout>
      </item>
@@ -126,7 +127,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1">
          <item>
-          <widget class="QLabel" name="entropie_reference">
+          <widget class="QLabel" name="entropie_referencial">
            <property name="text">
             <string/>
            </property>
@@ -144,7 +145,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
-          <widget class="QLabel" name="tennengrad_reference"/>
+          <widget class="QLabel" name="tennengrad_referencial"/>
          </item>
          <item>
           <widget class="QLabel" name="TR">
@@ -158,7 +159,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="2,1">
          <item>
-          <widget class="QLabel" name="entropie_posunuty"/>
+          <widget class="QLabel" name="entropie_translated"/>
          </item>
          <item>
           <widget class="QLabel" name="EM">
@@ -172,7 +173,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,1">
          <item>
-          <widget class="QLabel" name="tennengrad_posunuty"/>
+          <widget class="QLabel" name="tennengrad_translated"/>
          </item>
          <item>
           <widget class="QLabel" name="TM">
@@ -190,18 +191,10 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QCheckBox" name="casovaZnacka">
-       <property name="text">
-        <string>Přítomnost časové značky</string>
-       </property>
-      </widget>
+      <widget class="QCheckBox" name="horizontalAnomaly"/>
      </item>
      <item>
-      <widget class="QCheckBox" name="anomalie">
-       <property name="text">
-        <string>Přítomnost anomálie</string>
-       </property>
-      </widget>
+      <widget class="QCheckBox" name="verticalAnomaly"/>
      </item>
     </layout>
    </item>
@@ -221,9 +214,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="slicujDvaSnimky">
-       <property name="text">
-        <string>Slícovat dva snímky</string>
+      <widget class="QPushButton" name="registrateTwo">
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
        <property name="default">
         <bool>false</bool>

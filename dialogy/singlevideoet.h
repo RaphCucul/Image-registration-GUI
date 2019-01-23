@@ -35,7 +35,6 @@ private slots:
     void zpracovano(int dokonceno);
     void newVideoProcessed(int index);
     void movedToMethod(int metoda);
-    void terminatedByError(int where);
     void on_ulozeni_clicked();
     void on_oblastMaxima_textChanged(const QString &arg1);
     void on_uhelRotace_textChanged(const QString &arg1);

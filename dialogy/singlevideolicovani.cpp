@@ -2,7 +2,7 @@
 #include "licovani/registrationthread.h"
 #include "licovani/fazova_korelace_funkce.h"
 #include "ui_singlevideolicovani.h"
-#include "hlavni_program/t_b_ho.h"
+//#include "hlavni_program/t_b_ho.h"
 #include "util/licovaniparent.h"
 #include "util/souborove_operace.h"
 #include "util/prace_s_vektory.h"
@@ -30,6 +30,12 @@
 using cv::Mat;
 using cv::Point3d;
 using cv::Rect;
+
+extern QString videaKanalyzeAktual;
+extern QString ulozeniVideiAktual;
+extern QString TXTnacteniAktual;
+extern QString TXTulozeniAktual;
+extern QString paramFrangi;
 
 SingleVideoLicovani::SingleVideoLicovani(QWidget *parent) : LicovaniParent(parent),
     ui(new Ui::SingleVideoLicovani)

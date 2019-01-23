@@ -3,7 +3,7 @@
 #include "analyza_obrazu/entropie.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
 #include "analyza_obrazu/upravy_obrazu.h"
-#include "hlavni_program/t_b_ho.h"
+//#include "hlavni_program/t_b_ho.h"
 #include "hlavni_program/frangi_detektor.h"
 #include "dialogy/grafet.h"
 #include "dialogy/clickimageevent.h"
@@ -32,6 +32,12 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFuture>
 
+extern QString videaKanalyzeAktual;
+extern QString ulozeniVideiAktual;
+extern QString TXTnacteniAktual;
+extern QString TXTulozeniAktual;
+extern QString paramFrangi;
+
 MultipleVideoET::MultipleVideoET(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MultipleVideoET)
@@ -59,8 +65,6 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
     ui->celaSlozkaPB->setText(tr("Choose whole folder"));
     ui->vymazatZVyberuPB->setText(tr("Delete selected"));
     ui->ETanalyzaVideiPB->setText(tr("Analyse videos"));
-
-    errorWindow = new ErrorDialog();
 
     velikost_frangi_opt(6,parametry_frangi);
     if (paramFrangi != ""){

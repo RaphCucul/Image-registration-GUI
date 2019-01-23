@@ -54,4 +54,5 @@ int findReferenceFrame(QVector<int> vectorEvaluation);
 QVector<QVector<int>> divideIntoPeaces(int totalLength, int threadCount);
 
 int vectorSum(QVector<int> input);
+double vectorSum(QVector<double> input);
 #endif // PRACE_S_VEKTORY_H_INCLUDED

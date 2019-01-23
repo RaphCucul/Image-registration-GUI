@@ -24,7 +24,7 @@ public:
 
 private slots:
     void on_stranky_tabBarClicked(int index);
-
+    void fileFolderDirectoryLocated();
 private:
     Ui::zalozky *ui;
     QIcon* ikona;

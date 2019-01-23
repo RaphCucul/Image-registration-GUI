@@ -1,9 +1,5 @@
 #include "hlavni_program/zalozky.h"
 #include "ui_zalozky.h"
-#include "hlavni_program/t_b_ho.h"
-#include "hlavni_program/frangi_detektor.h"
-#include "hlavni_program/licovanidvou.h"
-#include "hlavni_program/licovanividea.h"
 
 #include <QTabWidget>
 #include <QIcon>
@@ -43,6 +39,14 @@ zalozky::zalozky(QWidget *parent) :
     ui->stranky->addTab(licovaniDvou,icon_licovaniDvou,"");
     ui->stranky->addTab(licovaniVidea,icon_licovaniVidea,"");
 
+    bool folderPresent = volba_slozek->checkFileFolderExistence();
+    if (!folderPresent){
+        ui->stranky->setTabEnabled(1,false);
+        ui->stranky->setTabEnabled(2,false);
+        ui->stranky->setTabEnabled(3,false);
+    }
+
+    connect(volba_slozek,SIGNAL(fileFolderDirectoryFound()),this,SLOT(fileFolderDirectoryLocated()));
 }
 
 QIcon zalozky::rotace_ikonky(QIcon ikona_vstup)
@@ -62,7 +66,12 @@ zalozky::~zalozky()
     delete ui;
 }
 
-
+void zalozky::fileFolderDirectoryLocated()
+{
+    ui->stranky->setTabEnabled(1,true);
+    ui->stranky->setTabEnabled(2,true);
+    ui->stranky->setTabEnabled(3,true);
+}
 void zalozky::on_stranky_tabBarClicked(int index)
 {
     if (index == 1){

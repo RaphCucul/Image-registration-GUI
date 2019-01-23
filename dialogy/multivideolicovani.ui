@@ -18,36 +18,61 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="chooseMultiVPB">
-       <property name="text">
-        <string>Choose multiple videos</string>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="chooseFolderPB">
-       <property name="text">
-        <string>Choose the folder</string>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="deleteChosenPB">
-       <property name="text">
-        <string>Delete chosen</string>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="registratePB">
-       <property name="text">
-        <string>Registrate</string>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="saveResultsPB">
-       <property name="text">
-        <string>Save results</string>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
       </widget>
      </item>

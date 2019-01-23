@@ -11,10 +11,12 @@
         <file>images/noProgress.png</file>
         <file>images/processingComplete.gif</file>
         <file>images/currentlyProcessed.png</file>
-        <file>images/Info.png</file>
         <file>images/What_todo.png</file>
         <file>images/hardError24_2.png</file>
-        <file>images/softError24_2.png</file>
         <file>style.qss</file>
+        <file>progressIndicator.qml</file>
+        <file>images/circularHardError16_2.png</file>
+        <file>images/circularInfo16_2.png</file>
+        <file>images/circularSoftError16_2.png</file>
     </qresource>
 </RCC>

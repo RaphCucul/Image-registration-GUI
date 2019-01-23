@@ -29,29 +29,31 @@ public:
     explicit LicovaniDvou(QWidget *parent = nullptr);
     ~LicovaniDvou();    
     void clearLayout(QGridLayout *layout);
-    void VideoLE_textChanged(QLineEdit *LE, QString& s);
+    //void VideoLE_textChanged(QLineEdit *LE, QString& s);
     void checkPaths();
 
 public slots:
     //void GetClickCoordinates(QPointF hranice_anomalie);
-    void vyberVideaPBWrapper();
-    void vyberVideaPB_clicked(QWidget *W);
-    void vyberReferenceObrPB_clicked(QWidget *W);
-    void vyberPosunutehoObrPB_clicked(QWidget *W);
-    void ReferenceObrLE_textChanged(const QString &arg1);
-    void PosunutyObrLE_textChanged(const QString &arg1);
+    void chosenVideoPBWrapper();
+    void chosenVideoPB_clicked(QWidget *W);
+    void chosenReferenceImgPB_clicked(QWidget *W);
+    void chosenTranslatedImgPB_clicked(QWidget *W);
+    void ReferenceImgLE_textChanged(const QString &arg1);
+    void TranslatedImgLE_textChanged(const QString &arg1);
 
 signals:
+    void checkRegistrationPass();
 
 private slots:
     void Slot_VideoLE_textChanged(const QString &s);
     void ReferenceLE_textChanged(const QString &arg1);
-    void PosunutyLE_textChanged(const QString &arg1);
-    void on_oblastMaxima_textChanged(const QString &arg1);
-    void on_uhelRotace_textChanged(const QString &arg1);
-    void on_pocetIteraci_textChanged(const QString &arg1);
-    void on_slicujDvaSnimky_clicked();
-    void zobrazKliknutelnyDialog();
+    void TranslatedLE_textChanged(const QString &arg1);
+    void on_areaMaximum_textChanged(const QString &arg1);
+    void on_rotationAngle_textChanged(const QString &arg1);
+    void on_iterationCount_textChanged(const QString &arg1);
+    void on_registrateTwo_clicked();
+    void showDialog();
+    void evaluateCorrectValues();
     //void on_comboBox_currentIndexChanged(int index);
     void on_comboBox_activated(int index);
 
@@ -59,37 +61,56 @@ private slots:
 
 private:
     Ui::LicovaniDvou *ui;
-    QVector<QString> rozborVybranehoSouboru;
-    QVector<QString> rozborObrReference;
-    QVector<QString> rozborObrPosunuty;
+
+    void initChoiceOneInnerWidgets();
+    void initChoiceTwoInnerWidgets();
+    void placeChoiceOneWidgets();
+    void placeChoiceTwoWidgets();
+    void analyseAndSaveFirst(QString analysedFolder, QVector<QString>& whereToSave);
+    void analyseAndSave(QString analysedFolder, QVector<QString>& whereToSave);
+    void evaluateVideoImageInput(QString path,QString method);
+
+    QVector<QString> chosenVideoAnalysis;
+    QVector<QString> chosenReferencialImgAnalysis;
+    QVector<QString> chosenTranslatedImgAnalysis;
     cv::VideoCapture cap;
-    int cisloReference = -1;
-    int cisloPosunuteho = -1;
-    int iterace = -1;
-    double oblastMaxima = -1;
-    double uhel = 0.1;
-    QString vybrane_video="";
-    /*****************************************/
-    bool spravnostVidea = false;
-    bool spravnostReference = false;
-    bool spravnostReferenceObr = false;
-    bool spravnostPosunutyObr = false;
-    bool spravnostPosunuteho = false;
-    bool spravnostOblasti = false;
-    bool spravnostUhlu = false;
-    bool spravnostIteraci = false;
-    QPixmap reprezentace_reference;
-    bool pritomnost_casove_znacky = false;
-    bool pritomnost_svetelne_anomalie = false;
-    bool zmena_meritka = false;
-    /*******************************************/
-    QVector<double> parametry_frangi;
-    cv::Point2f ziskane_hranice_anomalie;
-    cv::Point2f ziskane_hranice_CasZnac;
-    cv::Point3d maximum_frangi;
-    int predchozi_index = 0;
-    QJsonObject parametryFrangiJson;
-    QLineEdit* VideoLE;
+    int referenceNumber = -1;
+    int translatedNumber = -1;
+    int iteration = -1;
+    double areaMaximum = -1;
+    double angle = 0.1;
+    QString chosenVideo="";
+
+    bool videoCorrect = false;
+    bool referenceCorrect = false;
+    bool referencialImgCorrect = false;
+    bool translatedImgCorrect = false;
+    bool translatedCorrect = false;
+    bool areaMaximumCorrect = false;
+    bool angleCorrect = false;
+    bool iterationCorrect = false;
+    bool horizontalAnomalyPresent = false; // time stamp
+    bool verticalAnomalyPresent = false; // light anomaly
+    bool scaleChanged = false;
+
+    QVector<double> FrangiParametersVector;
+    cv::Point2f horizontalAnomalyCoords;
+    cv::Point2f verticalAnomalyCoords;
+    cv::Point3d frangiMaximumCoords;
+    int formerIndex = 0;
+    QJsonObject FrangiParametersFile;
+    QLineEdit* chosenVideoLE;
+    QPushButton* chosenVideoPB;
+    QLineEdit* referenceNoLE;
+    QLineEdit* translatedNoLE;
+
+    QSpacerItem* horizontalSpacer1;
+    QSpacerItem* horizontalSpacer2;
+
+    QPushButton* chooseReferencialImagePB;
+    QPushButton* chooseTranslatedImagePB;
+    QLineEdit* referenceImgLE;
+    QLineEdit* translatedImgLE;
 };
 
 #endif // LICOVANIDVOU_H

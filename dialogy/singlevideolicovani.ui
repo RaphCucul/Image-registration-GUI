@@ -61,6 +61,14 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
+       </property>
       </widget>
      </item>
     </layout>
@@ -88,6 +96,14 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
+       </property>
       </widget>
      </item>
      <item>
@@ -97,6 +113,14 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -116,6 +140,14 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
        </property>
       </widget>
      </item>

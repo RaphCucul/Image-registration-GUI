@@ -505,3 +505,12 @@ int vectorSum(QVector<int> input)
 
     return output;
 }
+
+double vectorSum(QVector<double> input)
+{
+    int output=0;
+    for (int vectorElement = 0; vectorElement < input.length(); vectorElement++)
+        output += input[vectorElement];
+
+    return output;
+}

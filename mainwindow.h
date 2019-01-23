@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
+#include <QApplication>
 #include "util/systemmonitor.h"
 
 namespace Ui {
@@ -15,6 +17,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void setupUsagePlots();
+
 private slots:
     void updateWidget();
 private:

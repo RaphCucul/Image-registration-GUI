@@ -3,7 +3,7 @@
 #include "analyza_obrazu/entropie.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
 #include "analyza_obrazu/upravy_obrazu.h"
-#include "hlavni_program/t_b_ho.h"
+//#include "hlavni_program/t_b_ho.h"
 #include "hlavni_program/frangi_detektor.h"
 #include "dialogy/grafet.h"
 #include "dialogy/clickimageevent.h"
@@ -29,6 +29,12 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+extern QString videaKanalyzeAktual;
+extern QString ulozeniVideiAktual;
+extern QString TXTnacteniAktual;
+extern QString TXTulozeniAktual;
+extern QString paramFrangi;
 
 SingleVideoET::SingleVideoET(QWidget *parent) :
     QWidget(parent),
@@ -502,11 +508,6 @@ void SingleVideoET::movedToMethod(int metoda)
         ui->informaceOprubehu->setText("4/5 Second decision algorithm started");
     if (metoda == 4)
         ui->informaceOprubehu->setText("5/5 Third decision algorithm started");
-}
-
-void SingleVideoET::terminatedByError(int where)
-{
-
 }
 
 void SingleVideoET::on_oblastMaxima_textChanged(const QString &arg1)

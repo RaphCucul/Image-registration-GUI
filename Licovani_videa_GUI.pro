@@ -77,7 +77,8 @@ SOURCES += \
     multithreadET/qthreadfourthpart.cpp \
     multithreadET/qthreadfifthpart.cpp \
     licovani/registrationthread.cpp \
-    dialogy/multivideolicovani.cpp
+    dialogy/multivideolicovani.cpp \
+    fancy_staff/globalsettings.cpp
 HEADERS += \
     analyza_obrazu/entropie.h \
     analyza_obrazu/frangi.h \
@@ -123,7 +124,9 @@ HEADERS += \
     multithreadET/qthreadfourthpart.h \
     multithreadET/qthreadfifthpart.h \
     licovani/registrationthread.h \
-    dialogy/multivideolicovani.h
+    dialogy/multivideolicovani.h \
+    fancy_staff/globalsettings.h \
+    fancy_staff/errors.h
 FORMS += \
     ui/t_b_ho.ui \
     ui/zalozky.ui \
@@ -159,7 +162,6 @@ SUBDIRS += \
     qcustomplot/examples/plots/plot-examples.pro \
     qcustomplot/examples/scrollbar-axis-range-control/scrollbar-axis-range-control.pro \
     qcustomplot/examples/text-document-integration/text-document-integration.pro \
-    Licovani_videa_GUI.pro
 
 DISTFILES += \
     images/adresar.png \
@@ -503,5 +505,3 @@ DISTFILES += \
     qcustomplot/GPL.txt \
     images/leftArrow.ico \
     images/rightArrow.ico \
-    qml/CircularBarForm.ui.qml \
-    qml/CircularBar.qml

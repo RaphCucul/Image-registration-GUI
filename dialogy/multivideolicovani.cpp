@@ -1,6 +1,6 @@
 #include "multivideolicovani.h"
 #include "ui_multivideolicovani.h"
-#include "hlavni_program/t_b_ho.h"
+//#include "hlavni_program/t_b_ho.h"
 #include "util/prace_s_vektory.h"
 #include "util/souborove_operace.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
@@ -17,6 +17,12 @@
 #include <QThread>
 #include <QMovie>
 #include <QIcon>
+
+extern QString videaKanalyzeAktual;
+extern QString ulozeniVideiAktual;
+extern QString TXTnacteniAktual;
+extern QString TXTulozeniAktual;
+extern QString paramFrangi;
 
 MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
     LicovaniParent(parent),
