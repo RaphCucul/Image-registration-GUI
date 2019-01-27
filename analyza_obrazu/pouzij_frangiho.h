@@ -67,29 +67,4 @@ cv::Point3d frangi_analyza(const cv::Mat vstupni_snimek,
 cv::Point2d vypocet_teziste_frangi(const cv::Mat &frangi,
                                    const double& maximum_frangi,
                                    const cv::Point& souradnice_maxima_frangi);
-
-/**
- * @brief inicializace_frangi_opt
- * @param nactenyObjekt
- * @param parametr
- * @param nacteneParametry
- * @param pozice
- */
-void inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, QVector<double>& nacteneParametry,
-                             int &pozice);
-
-/**
- * @brief data_z_frangi_opt
- * @param pozice
- * @param nacteneParametry
- * @return
- */
-double data_z_frangi_opt(int pozice, QVector<double>& nacteneParametry);
-
-/**
- * @brief velikost_frangi_opt
- * @param velikost
- * @param nacteneParametry
- */
-void velikost_frangi_opt(int velikost, QVector<double>& nacteneParametry);
 #endif // POUZIJ_FRANGIHO_H_INCLUDED

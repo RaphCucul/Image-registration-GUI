@@ -80,7 +80,7 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
 
     frangiMaximumCoords = detekovane_frangiho_maximum;
     connect(ui->verticalAnomaly,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
-    velikost_frangi_opt(6,FrangiParametersVector);    
+    //velikost_frangi_opt(6,FrangiParametersVector);
 
     initChoiceOneInnerWidgets();
     placeChoiceOneWidgets();
@@ -293,14 +293,14 @@ void LicovaniDvou::checkPaths(){
             chosenVideoLE->setText(chosenVideoAnalysis[1]);
         }
     }
-    if (paramFrangi != ""){
+    /*if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
         FrangiParametersFile = readJson(soubor);
         QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
         for (int a = 0; a < 6; a++)
             inicializace_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
-    }
+    }*/
 }
 
 void LicovaniDvou::on_comboBox_activated(int index)

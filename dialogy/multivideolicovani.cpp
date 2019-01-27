@@ -50,7 +50,7 @@ MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
     ui->registratePB->setText(tr("Registrate"));
     ui->saveResultsPB->setText(tr("Save computed results"));
 
-    velikost_frangi_opt(6,parametryFrangi);
+    /*velikost_frangi_opt(6,parametryFrangi);
     if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
@@ -60,11 +60,11 @@ MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
         {
             inicializace_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
         }
-    }
+    }*/
 }
 
 void MultiVideoLicovani::checkPaths(){
-    if (paramFrangi != ""){
+    /*if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
         parametryFrangiJS = readJson(soubor);
@@ -73,7 +73,7 @@ void MultiVideoLicovani::checkPaths(){
         {
             inicializace_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
         }
-    }
+    }*/
 }
 
 void MultiVideoLicovani::populateMM(QHash<QString, QMap<QString, QVector<double> > >  &inputMM)

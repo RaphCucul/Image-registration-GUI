@@ -16,20 +16,8 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="4" column="0" colspan="2">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="1">
-      <widget class="QPushButton" name="vypocetET">
-       <property name="styleSheet">
-        <string notr="true">QPushButton:pressed {
-    border-style: inset;
-    border-color: blue;
-    border-width: 1px;
-    color: white;
-}</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="1">
-      <widget class="QPushButton" name="zobrazGrafET">
+      <widget class="QPushButton" name="showGraphET">
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -41,7 +29,7 @@
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QPushButton" name="ulozeni">
+      <widget class="QPushButton" name="savePB">
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -84,18 +72,30 @@
        </property>
       </spacer>
      </item>
+     <item row="0" column="1" colspan="2">
+      <widget class="QPushButton" name="calculateET">
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="3" column="1">
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QLineEdit" name="oblastMaxima"/>
+      <widget class="QLineEdit" name="areaMaximum"/>
      </item>
      <item>
-      <widget class="QLineEdit" name="uhelRotace"/>
+      <widget class="QLineEdit" name="rotationAngle"/>
      </item>
      <item>
-      <widget class="QLineEdit" name="pocetIteraci"/>
+      <widget class="QLineEdit" name="iterationNumber"/>
      </item>
     </layout>
    </item>
@@ -147,7 +147,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="analyzovaneVideo">
+      <widget class="QLabel" name="analysedVideo_label">
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
@@ -157,7 +157,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="informaceOprubehu">
+      <widget class="QLabel" name="actualAlgorithmPart_label">
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
@@ -173,7 +173,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QProgressBar" name="prubehVypoctu">
+      <widget class="QProgressBar" name="computationProgress">
        <property name="value">
         <number>0</number>
        </property>
@@ -187,7 +187,7 @@
    <item row="2" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QCheckBox" name="casovaZnacka"/>
+      <widget class="QCheckBox" name="horizontalAnomalyCB"/>
      </item>
      <item>
       <spacer name="horizontalSpacer_4">
@@ -203,7 +203,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="svetelnaAnomalie"/>
+      <widget class="QCheckBox" name="verticalAnomalyCB"/>
      </item>
      <item>
       <spacer name="horizontalSpacer_3">
@@ -236,7 +236,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLineEdit" name="cisloReferencnihosnimku">
+      <widget class="QLineEdit" name="referencialNumberLE">
        <property name="placeholderText">
         <string/>
        </property>
@@ -260,7 +260,7 @@
    <item row="0" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLineEdit" name="vybraneVideo">
+      <widget class="QLineEdit" name="chosenVideoLE">
        <property name="maxLength">
         <number>100</number>
        </property>
@@ -273,7 +273,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="vyberVidea">
+      <widget class="QPushButton" name="chooseVideoPB">
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;

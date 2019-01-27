@@ -37,7 +37,8 @@ extern QString TXTnacteniAktual;
 extern QString TXTulozeniAktual;
 extern QString paramFrangi;
 
-SingleVideoLicovani::SingleVideoLicovani(QWidget *parent) : LicovaniParent(parent),
+SingleVideoLicovani::SingleVideoLicovani(QWidget *parent) :
+    LicovaniParent(parent),
     ui(new Ui::SingleVideoLicovani)
 {
     ui->setupUi(this);
@@ -67,7 +68,7 @@ SingleVideoLicovani::SingleVideoLicovani(QWidget *parent) : LicovaniParent(paren
     QStringList columnHeaders = {"X","Y",tr("Angle"),"Status"};
     ui->vysledkyLicovaniTW->setHorizontalHeaderLabels(columnHeaders);
 
-    velikost_frangi_opt(6,parametryFrangi);
+    /*velikost_frangi_opt(6,parametryFrangi);
     if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
@@ -77,7 +78,7 @@ SingleVideoLicovani::SingleVideoLicovani(QWidget *parent) : LicovaniParent(paren
         {
             inicializace_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
         }
-    }
+    }*/
 
     if (videaKanalyzeAktual == "")
         ui->vybraneVideoLE->setPlaceholderText("Vybrane video");
@@ -157,7 +158,7 @@ void SingleVideoLicovani::checkPaths(){
         ui->slicovatPB->setEnabled(true);
     }
 
-    if (paramFrangi != ""){
+    /*if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
         parametryFrangiJS = readJson(soubor);
@@ -166,7 +167,7 @@ void SingleVideoLicovani::checkPaths(){
         {
             inicializace_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
         }
-    }
+    }*/
 }
 
 void SingleVideoLicovani::on_vybraneVideoLE_textChanged(const QString &arg1)

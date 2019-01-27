@@ -78,7 +78,9 @@ SOURCES += \
     multithreadET/qthreadfifthpart.cpp \
     licovani/registrationthread.cpp \
     dialogy/multivideolicovani.cpp \
-    fancy_staff/globalsettings.cpp
+    fancy_staff/globalsettings.cpp \
+    util/etanalysisparent.cpp \
+    fancy_staff/sharedvariables.cpp
 HEADERS += \
     analyza_obrazu/entropie.h \
     analyza_obrazu/frangi.h \
@@ -126,7 +128,9 @@ HEADERS += \
     licovani/registrationthread.h \
     dialogy/multivideolicovani.h \
     fancy_staff/globalsettings.h \
-    fancy_staff/errors.h
+    fancy_staff/errors.h \
+    util/etanalysisparent.h \
+    fancy_staff/sharedvariables.h
 FORMS += \
     ui/t_b_ho.ui \
     ui/zalozky.ui \

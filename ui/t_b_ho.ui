@@ -3,18 +3,18 @@
  <class>t_b_HO</class>
  <widget class="QWidget" name="t_b_HO">
   <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
+   <enum>Qt::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>526</width>
-    <height>343</height>
+    <width>458</width>
+    <height>323</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -26,51 +26,86 @@
    <bool>false</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>60</number>
+   </property>
    <property name="topMargin">
-    <number>32</number>
+    <number>60</number>
+   </property>
+   <property name="rightMargin">
+    <number>60</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,2,1,0">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2">
+     <property name="spacing">
+      <number>10</number>
+     </property>
      <item>
-      <spacer name="horizontalSpacer_5">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+      <widget class="QLineEdit" name="FileFolderDirectory">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="FileFolderDirectory"/>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="ChooseFileFolderDirectory">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string/>
        </property>
       </widget>
      </item>
-     <item>
-      <spacer name="horizontalSpacer_6">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout" columnstretch="1,3,1,1">
+    <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0,0">
+     <item row="0" column="2">
+      <widget class="QPushButton" name="pathToVideos">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="2">
       <widget class="QPushButton" name="SaveVideos">
        <property name="styleSheet">
@@ -86,53 +121,13 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
+     <item row="2" column="0">
       <widget class="QComboBox" name="Combo_VideoDataLoad">
        <property name="editable">
         <bool>false</bool>
        </property>
        <property name="currentIndex">
         <number>-1</number>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="Combo_videoPath">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-       <property name="maxVisibleItems">
-        <number>15</number>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QComboBox" name="Combo_savingVideo"/>
-     </item>
-     <item row="4" column="1">
-      <widget class="QComboBox" name="Combo_FrangiParams"/>
-     </item>
-     <item row="4" column="2">
-      <widget class="QPushButton" name="paramFrangPB">
-       <property name="styleSheet">
-        <string notr="true">QPushButton:pressed {
-    border-style: inset;
-    border-color: blue;
-    border-width: 1px;
-    color: white;
-}</string>
-       </property>
-       <property name="text">
-        <string/>
        </property>
       </widget>
      </item>
@@ -151,8 +146,51 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QComboBox" name="Combo_VideoDataSave"/>
+     <item row="0" column="0">
+      <widget class="QComboBox" name="Combo_videoPath">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="maxVisibleItems">
+        <number>15</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QPushButton" name="paramFrangPB">
+       <property name="styleSheet">
+        <string notr="true">QPushButton:pressed {
+    border-style: inset;
+    border-color: blue;
+    border-width: 1px;
+    color: white;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </item>
      <item row="3" column="2">
       <widget class="QPushButton" name="SavingDataFolder">
@@ -169,42 +207,17 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="pathToVideos">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QPushButton:pressed {
-    border-style: inset;
-    border-color: blue;
-    border-width: 1px;
-    color: white;
-}</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
+     <item row="1" column="0">
+      <widget class="QComboBox" name="Combo_savingVideo"/>
      </item>
-     <item row="0" column="0">
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
+     <item row="3" column="0">
+      <widget class="QComboBox" name="Combo_VideoDataSave"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QComboBox" name="Combo_FrangiParams"/>
      </item>
      <item row="0" column="3">
-      <spacer name="horizontalSpacer_4">
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -219,52 +232,34 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="SaveAllPath">
-       <property name="styleSheet">
-        <string notr="true">QPushButton:pressed {
+    <widget class="QPushButton" name="SaveAllPath">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::StrongFocus</enum>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton:pressed {
     border-style: inset;
     border-color: blue;
     border-width: 1px;
     color: white;
 }</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">

@@ -49,9 +49,6 @@ private:
     int minimum = 0;
     int maximum = 30;
     QVector<QString> analyseChosenFile;
-    QVector<double> FrangiParametersVector;
-    QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-    QJsonObject loadedFrangiParameters;
     cv::VideoCapture actualVideo;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };

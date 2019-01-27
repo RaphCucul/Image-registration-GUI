@@ -1,5 +1,5 @@
 #include "hlavni_program/frangi_detektor.h"
-//#include "hlavni_program/t_b_ho.h"
+#include "fancy_staff/sharedvariables.h"
 #include "ui_frangi_detektor.h"
 #include "analyza_obrazu/upravy_obrazu.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
@@ -66,7 +66,7 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
     localErrorDialogHandling[ui->Frangi_filtr] = new ErrorDialog(ui->Frangi_filtr);
     localErrorDialogHandling[ui->chosenFile] = new ErrorDialog(ui->chosenFile);
 
-    velikost_frangi_opt(6,FrangiParametersVector);
+    //velikost_frangi_opt(6,FrangiParametersVector);
 
     connect(ui->sigma_start_DSB, SIGNAL(editingFinished()),this,
             SLOT(changeValue_slider_start()));
@@ -86,12 +86,12 @@ Frangi_detektor::~Frangi_detektor()
 }
 
 void Frangi_detektor::setParametersToUI(){
-    ui->sigma_start_DSB->setValue(data_z_frangi_opt(0,FrangiParametersVector));
-    ui->sigma_end_DSB->setValue(data_z_frangi_opt(1,FrangiParametersVector));
-    ui->sigma_step_DSB->setValue(data_z_frangi_opt(2,FrangiParametersVector));
-    ui->beta_one_DSB->setValue(data_z_frangi_opt(3,FrangiParametersVector));
-    ui->beta_two_DSB->setValue(data_z_frangi_opt(4,FrangiParametersVector));
-    if (data_z_frangi_opt(5,FrangiParametersVector) == 1.0){
+    ui->sigma_start_DSB->setValue(SharedVariables::getSharedVariables()->getSpecificFrangiParameter(0));
+    ui->sigma_end_DSB->setValue(SharedVariables::getSharedVariables()->getSpecificFrangiParameter(1));
+    ui->sigma_step_DSB->setValue(SharedVariables::getSharedVariables()->getSpecificFrangiParameter(2));
+    ui->beta_one_DSB->setValue(SharedVariables::getSharedVariables()->getSpecificFrangiParameter(3));
+    ui->beta_two_DSB->setValue(SharedVariables::getSharedVariables()->getSpecificFrangiParameter(4));
+    if (SharedVariables::getSharedVariables()->getSpecificFrangiParameter(5) == 1.0){
         ui->RB_standard->setChecked(1);
         ui->RB_reverz->setChecked(0);}
     else{
@@ -108,17 +108,18 @@ void Frangi_detektor::setParametersToUI(){
 
 void Frangi_detektor::checkPaths()
 {
-    if (videaKanalyzeAktual == "")
+    if (SharedVariables::getSharedVariables()->getPath("cestaKvideim") == "")
         ui->chosenFile->setPlaceholderText(tr("Chosen video"));
     else
     {
         QString slozka,jmeno,koncovka;
         QStringList nalezeneSoubory;
         int pocetNalezenych;
-        analyzuj_jmena_souboru_avi(videaKanalyzeAktual,nalezeneSoubory,pocetNalezenych,"avi");
+        QString pathToVideos = SharedVariables::getSharedVariables()->getPath("cestaKvideim");
+        analyzuj_jmena_souboru_avi(pathToVideos,nalezeneSoubory,pocetNalezenych,"avi");
         if (pocetNalezenych != 0)
         {
-            QString celeJmeno = videaKanalyzeAktual+"/"+nalezeneSoubory.at(0);
+            QString celeJmeno = pathToVideos+"/"+nalezeneSoubory.at(0);
             zpracujJmeno(celeJmeno,slozka,jmeno,koncovka);
             if (analyseChosenFile.length() == 0)
             {
@@ -139,16 +140,7 @@ void Frangi_detektor::checkPaths()
             localErrorDialogHandling[ui->chosenFile]->evaluate("left","softError",3);
         }
     }
-    if (paramFrangi != ""){
-        QFile soubor;
-        soubor.setFileName(paramFrangi+"/frangiParameters.json");
-        loadedFrangiParameters = readJson(soubor);
-        for (int a = 0; a < 6; a++)
-        {
-            inicializace_frangi_opt(loadedFrangiParameters,parametry.at(a),FrangiParametersVector,a);
-        }
-        setParametersToUI();
-    }
+    setParametersToUI();
 }
 
 void Frangi_detektor::on_sigma_start_sliderMoved(int value)
@@ -209,7 +201,7 @@ void Frangi_detektor::changeValue_slider_two(){
 
 void Frangi_detektor::on_Frangi_filtr_clicked()
 {
-    if (paramFrangi == "" || vectorSum(FrangiParametersVector)==0.0)
+    if (paramFrangi == "")// || vectorSum(FrangiParametersVector)==0.0)
         localErrorDialogHandling[ui->Frangi_filtr]->evaluate("left","hardError",5);
     else{
         double beta_two = ui->beta_one_DSB->value();
@@ -276,7 +268,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
 void Frangi_detektor::on_fileToAnalyse_clicked()
 {
     QString videoProFrangiFiltr = QFileDialog::getOpenFileName(this,
-       tr("Choose frame for Frangi filter analysis"), videaKanalyzeAktual,"(*.avi);;All files (*)");
+       tr("Choose frame for Frangi filter analysis"), SharedVariables::getSharedVariables()->getPath("cestaKvideim"),"(*.avi);;All files (*)");
     QString slozka,jmeno,koncovka;
     zpracujJmeno(videoProFrangiFiltr,slozka,jmeno,koncovka);
     if (analyseChosenFile.length() == 0)
@@ -337,27 +329,18 @@ void Frangi_detektor::on_chosenFile_textChanged(const QString &arg1)
 
 void Frangi_detektor::on_saveParameters_clicked()
 {
-    QJsonDocument document;
-    QJsonObject object;
-    QString cesta = paramFrangi+"/"+"frangiParameters.json";
-    FrangiParametersVector[0] = ui->sigma_start_DSB->value();
-    FrangiParametersVector[1] = ui->sigma_end_DSB->value();
-    FrangiParametersVector[2] = ui->sigma_step_DSB->value();
-    FrangiParametersVector[3] = ui->beta_one_DSB->value();
-    FrangiParametersVector[4] = ui->beta_two_DSB->value();
+    //localErrorDialogHandling[ui->saveParameters]->evaluate("left","hardError",0);
+    //localErrorDialogHandling[ui->saveParameters]->show();
+    SharedVariables::getSharedVariables()->setSpecificFrangiParameter(0,ui->sigma_start_DSB->value());
+    SharedVariables::getSharedVariables()->setSpecificFrangiParameter(1,ui->sigma_end_DSB->value());
+    SharedVariables::getSharedVariables()->setSpecificFrangiParameter(2,ui->sigma_step_DSB->value());
+    SharedVariables::getSharedVariables()->setSpecificFrangiParameter(3,ui->beta_one_DSB->value());
+    SharedVariables::getSharedVariables()->setSpecificFrangiParameter(4,ui->beta_two_DSB->value());
     if (ui->RB_standard->isChecked())
-        FrangiParametersVector[5] = 1.0;
+        SharedVariables::getSharedVariables()->setSpecificFrangiParameter(5,1.0);
     else
-        FrangiParametersVector[5] = 0.0;
-    for (int indexParameter=0; indexParameter < FrangiParametersVector.length(); indexParameter++)
-        object[parametry.at(indexParameter)] = FrangiParametersVector[indexParameter];
-    document.setObject(object);
-    QString documentString = document.toJson();
-    QFile zapis;
-    zapis.setFileName(cesta);
-    zapis.open(QIODevice::WriteOnly);
-    zapis.write(documentString.toLocal8Bit());
-    zapis.close();
+        SharedVariables::getSharedVariables()->setSpecificFrangiParameter(5,0.0);
+
 }
 /******************************************************************************************/
 // Návod pro práci s OpenCV v Qt - je třeba neustále kontrolovat channels a type Mat objektů

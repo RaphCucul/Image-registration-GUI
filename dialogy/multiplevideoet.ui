@@ -61,7 +61,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="nekolikVideiPB">
+          <widget class="QPushButton" name="afewVideosPB">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -79,7 +79,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="celaSlozkaPB">
+          <widget class="QPushButton" name="wholeFolderPB">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -97,7 +97,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="vymazatZVyberuPB">
+          <widget class="QPushButton" name="deleteChosenFromListPB">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -190,7 +190,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="oblastMaxima">
+        <widget class="QLineEdit" name="areaMaximum">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -217,7 +217,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="uhelRotace">
+        <widget class="QLineEdit" name="rotationAngle">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -244,7 +244,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="pocetIteraci">
+        <widget class="QLineEdit" name="iterationCount">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -260,14 +260,14 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QCheckBox" name="casovaZnacka">
+      <widget class="QCheckBox" name="horizontalAnomaly">
        <property name="enabled">
         <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="svetAnomal">
+      <widget class="QCheckBox" name="verticalAnomaly">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -294,7 +294,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="ETanalyzaVideiPB">
+      <widget class="QPushButton" name="analyzeVideosPB">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -312,7 +312,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="zobrazVysledkyPB">
+      <widget class="QPushButton" name="showResultsPB">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -330,7 +330,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="ulozeni">
+      <widget class="QPushButton" name="savePB">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -387,7 +387,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="aktualniVideo">
+      <widget class="QLabel" name="actualVideo_label">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -412,7 +412,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="aktualniMetoda">
+      <widget class="QLabel" name="actualMethod_label">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -437,7 +437,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QProgressBar" name="prubehVypoctu">
+      <widget class="QProgressBar" name="computationProgress">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
          <horstretch>0</horstretch>

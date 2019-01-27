@@ -294,16 +294,5 @@ cv::Point3d frangi_analyza(const cv::Mat vstupni_snimek,
     return vystup_funkce;
 }
 
-void inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, QVector<double>& nacteneParametry,
-                             int &pozice)
-{
-    nacteneParametry[pozice] = nactenyObjekt[parametr].toDouble();
-}
 
-double data_z_frangi_opt(int pozice,QVector<double>& nacteneParametry)
-{
-    return nacteneParametry[pozice];
-}
-void velikost_frangi_opt(int velikost,QVector<double>& nacteneParametry){
-    nacteneParametry = (QVector<double>(velikost));
-}
+
