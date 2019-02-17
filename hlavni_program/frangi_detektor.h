@@ -14,8 +14,6 @@ namespace Ui {
 class Frangi_detektor;
 }
 
-extern cv::Point3d detekovane_frangiho_maximum;
-
 class Frangi_detektor : public QWidget
 {
     Q_OBJECT

@@ -7,140 +7,140 @@
 #include <QStringList>
 #include <QVector>
 
-qThreadFourthPart::qThreadFourthPart(QStringList &sV,
-                                     QVector<QVector<int> > &sPrvniRozhodovaniK,
-                                     QVector<QVector<int> > &ohodKomplet,
-                                     QVector<QVector<double> > &Rproblematickych,
-                                     QVector<QVector<double> > &FWHMproblematickych,
+qThreadFourthPart::qThreadFourthPart(QStringList &videos,
+                                     QVector<QVector<int> > &framesFirstEvaluationDefinitive,
+                                     QVector<QVector<int> > &evalCompl,
+                                     QVector<QVector<double> > &CCproblematic,
+                                     QVector<QVector<double> > &FWHMproblematic,
                                      QVector<QVector<double> > &POCX,
                                      QVector<QVector<double> > &POCY,
-                                     QVector<QVector<double> > &U,
-                                     QVector<QVector<double> > &F_X,
-                                     QVector<QVector<double> > &F_Y,
-                                     QVector<QVector<double> > &F_E,
-                                     QVector<double> &prumeryR,
-                                     QVector<double> &prumeryFWHM,
+                                     QVector<QVector<double> > &Angles,
+                                     QVector<QVector<double> > &Fr_X,
+                                     QVector<QVector<double> > &Fr_Y,
+                                     QVector<QVector<double> > &Fr_Eu,
+                                     QVector<double> &averageCC,
+                                     QVector<double> &averageFWHM,
                                      QObject* parent):QThread(parent)
 {
-    seznamVidei = sV;
-    snimky_k_provereni_prvni = sPrvniRozhodovaniK;
-    ohodnoceniSnimkuKomplet = ohodKomplet;
-    vypoctene_hodnoty_R = Rproblematickych;
-    vypoctene_hodnoty_FWHM = FWHMproblematickych;
+    videoList = videos;
+    framesFirstEvaluationComplete = framesFirstEvaluationDefinitive;
+    framesCompleteEvaluation = evalCompl;
+    computedCC = CCproblematic;
+    computedFWHM = FWHMproblematic;
     POC_x = POCX;
     POC_y = POCY;
-    uhel = U;
-    frangi_x = F_X;
-    frangi_y = F_Y;
-    frangi_euklid = F_E;
-    prumerny_korelacni_koeficient = prumeryR;
-    prumerne_FWHM = prumeryFWHM;
+    angle = Angles;
+    frangi_x = Fr_X;
+    frangi_y = Fr_Y;
+    frangi_euklid = Fr_Eu;
+    averageCCcomplete = averageCC;
+    averageFWHMcomplete = averageFWHM;
 }
 
 void qThreadFourthPart::run()
 {
     emit typeOfMethod(3);
     emit percentageCompleted(0);
-    pocetVidei = double(seznamVidei.count());
-    for (int indexVidea = 0; indexVidea < seznamVidei.count(); indexVidea++)
+    videoCount = double(videoList.count());
+    for (int indexVidea = 0; indexVidea < videoList.count(); indexVidea++)
     {
         QVector<int> snimky_k_provereni_druhy;
-        pocetSnimku = double(snimky_k_provereni_prvni[indexVidea].length());
-        QString fullPath = seznamVidei.at(indexVidea);
+        frameCount = double(framesFirstEvaluationComplete[indexVidea].length());
+        QString fullPath = videoList.at(indexVidea);
         QString slozka,jmeno,koncovka;
-        zpracujJmeno(fullPath,slozka,jmeno,koncovka);
+        processFilePath(fullPath,slozka,jmeno,koncovka);
         emit actualVideo(indexVidea);
-        for (int b = 0; b < snimky_k_provereni_prvni[indexVidea].length(); b++)
+        for (int b = 0; b < framesFirstEvaluationComplete[indexVidea].length(); b++)
         {
-            emit percentageCompleted(qRound((double(indexVidea)/pocetVidei)*100.0+((double(b)/pocetSnimku)*100.0)/pocetVidei));
-            if ((prumerny_korelacni_koeficient[indexVidea] - vypoctene_hodnoty_R[indexVidea][b]) <= 0.01)
+            emit percentageCompleted(qRound((double(indexVidea)/videoCount)*100.0+((double(b)/frameCount)*100.0)/videoCount));
+            if ((averageCCcomplete[indexVidea] - computedCC[indexVidea][b]) <= 0.01)
             {
-                if (vypoctene_hodnoty_FWHM[indexVidea][b] < (prumerne_FWHM[indexVidea] + 2))
+                if (computedFWHM[indexVidea][b] < (averageFWHMcomplete[indexVidea] + 2))
                 {
-                    qDebug()<< "Snimek "<< snimky_k_provereni_prvni[indexVidea][b]<< " je vhodny ke slicovani.";
-                    ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 0;
+                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " je vhodny ke slicovani.";
+                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
                 }
                 else
                 {
-                    qDebug()<< "Snimek "<< snimky_k_provereni_prvni[indexVidea][b]<< " bude proveren.";
-                    snimky_k_provereni_druhy.push_back(snimky_k_provereni_prvni[indexVidea][b]);
+                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " bude proveren.";
+                    snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
                 }
                 continue;
             }
-            else if ((prumerny_korelacni_koeficient[indexVidea] - vypoctene_hodnoty_R[indexVidea][b]) >0.01)
+            else if ((averageCCcomplete[indexVidea] - computedCC[indexVidea][b]) >0.01)
             {
-                if (vypoctene_hodnoty_FWHM[indexVidea][b] < (prumerne_FWHM[indexVidea] + 2.5))
+                if (computedFWHM[indexVidea][b] < (averageFWHMcomplete[indexVidea] + 2.5))
                 {
-                    qDebug()<< "Snimek "<< snimky_k_provereni_prvni[indexVidea][b]<< " je vhodny ke slicovani.";
-                    ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 0;
+                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " je vhodny ke slicovani.";
+                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
                 }
-                else if (vypoctene_hodnoty_FWHM[indexVidea][b] > (prumerne_FWHM[indexVidea] + 10))
+                else if (computedFWHM[indexVidea][b] > (averageFWHMcomplete[indexVidea] + 10))
                 {
-                    qDebug() << "Snimek "<< snimky_k_provereni_prvni[indexVidea][b]<< " nepripusten k analyze.";
-                    ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 5.0;
-                    POC_x[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 999.0;
-                    POC_y[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 999.0;
-                    uhel[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 999.0;
-                    frangi_x[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 999.0;
-                    frangi_y[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 999.0;
-                    frangi_euklid[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 999.0;
+                    qDebug() << "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " nepripusten k analyze.";
+                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 5.0;
+                    POC_x[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
+                    POC_y[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
+                    angle[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
+                    frangi_x[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
+                    frangi_y[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
+                    frangi_euklid[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
                 }
                 else
                 {
-                    qDebug()<< "Snimek "<< snimky_k_provereni_prvni[indexVidea][b]<< " bude proveren.";
-                    snimky_k_provereni_druhy.push_back(snimky_k_provereni_prvni[indexVidea][b]);
+                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " bude proveren.";
+                    snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
                 }
                 continue;
             }
-            else if ((prumerny_korelacni_koeficient[indexVidea] - vypoctene_hodnoty_R[indexVidea][b]) >= 0.05)
+            else if ((averageCCcomplete[indexVidea] - computedCC[indexVidea][b]) >= 0.05)
             {
-                if (vypoctene_hodnoty_FWHM[indexVidea][b] <= (prumerne_FWHM[indexVidea] + 3))
+                if (computedFWHM[indexVidea][b] <= (averageFWHMcomplete[indexVidea] + 3))
                 {
-                    qDebug()<< "Snimek "<< snimky_k_provereni_prvni[indexVidea][b]<< " je vhodny ke slicovani.";
-                    ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_prvni[indexVidea][b]] = 0;
+                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " je vhodny ke slicovani.";
+                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
                 }
                 else
                 {
-                    qDebug()<< "Snimek "<< snimky_k_provereni_prvni[indexVidea][b]<< " bude proveren.";
-                    snimky_k_provereni_druhy.push_back(snimky_k_provereni_prvni[indexVidea][b]);
+                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " bude proveren.";
+                    snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
                 }
                 continue;
             }
         }
-        snimkyProvereniDruheKomplet.append(snimky_k_provereni_druhy);
+        framesSecondEvaluationComplete.append(snimky_k_provereni_druhy);
     }
-    emit hotovo(4);
+    emit done(4);
 }
 
-QVector<QVector<int>> qThreadFourthPart::snimkyUpdateOhodnoceniKomplet()
+QVector<QVector<int>> qThreadFourthPart::framesUpdateEvaluationComplete()
 {
-    return ohodnoceniSnimkuKomplet;
+    return framesCompleteEvaluation;
 }
-QVector<QVector<int>> qThreadFourthPart::snimkyRozhodovaniDruheKomplet()
+QVector<QVector<int>> qThreadFourthPart::framesSecondEvaluation()
 {
-    return snimkyProvereniDruheKomplet;
+    return framesSecondEvaluationComplete;
 }
-QVector<QVector<double>> qThreadFourthPart::snimkyFrangiXestimated()
+QVector<QVector<double>> qThreadFourthPart::framesFrangiXestimated()
 {
     return frangi_x;
 }
-QVector<QVector<double>> qThreadFourthPart::snimkyFrangiYestimated()
+QVector<QVector<double>> qThreadFourthPart::framesFrangiYestimated()
 {
     return frangi_y;
 }
-QVector<QVector<double>> qThreadFourthPart::snimkyFrangiEuklidestimated()
+QVector<QVector<double>> qThreadFourthPart::framesFrangiEuklidestimated()
 {
     return frangi_euklid;
 }
-QVector<QVector<double>> qThreadFourthPart::snimkyPOCXestimated()
+QVector<QVector<double>> qThreadFourthPart::framesPOCXestimated()
 {
     return POC_x;
 }
-QVector<QVector<double>> qThreadFourthPart::snimkyPOCYestimated()
+QVector<QVector<double>> qThreadFourthPart::framesPOCYestimated()
 {
     return POC_y;
 }
-QVector<QVector<double>> qThreadFourthPart::snimkyUhelestimated()
+QVector<QVector<double>> qThreadFourthPart::framesAngleestimated()
 {
-    return uhel;
+    return angle;
 }

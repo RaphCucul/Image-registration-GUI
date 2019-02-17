@@ -33,14 +33,6 @@ using cv::VideoCapture;
 using cv::Mat;
 using namespace cv;
 
-extern QString videaKanalyzeAktual;
-extern QString ulozeniVideiAktual;
-extern QString TXTnacteniAktual;
-extern QString TXTulozeniAktual;
-extern QString paramFrangi;
-
-cv::Point3d detekovane_frangiho_maximum;
-
 Frangi_detektor::Frangi_detektor(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Frangi_detektor)
@@ -66,7 +58,7 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
     localErrorDialogHandling[ui->Frangi_filtr] = new ErrorDialog(ui->Frangi_filtr);
     localErrorDialogHandling[ui->chosenFile] = new ErrorDialog(ui->chosenFile);
 
-    //velikost_frangi_opt(6,FrangiParametersVector);
+    //size_frangi_opt(6,FrangiParametersVector);
 
     connect(ui->sigma_start_DSB, SIGNAL(editingFinished()),this,
             SLOT(changeValue_slider_start()));
@@ -112,29 +104,29 @@ void Frangi_detektor::checkPaths()
         ui->chosenFile->setPlaceholderText(tr("Chosen video"));
     else
     {
-        QString slozka,jmeno,koncovka;
-        QStringList nalezeneSoubory;
-        int pocetNalezenych;
+        QString folder,filename,suffix;
+        QStringList foundFiles;
+        int foundCount;
         QString pathToVideos = SharedVariables::getSharedVariables()->getPath("cestaKvideim");
-        analyzuj_jmena_souboru_avi(pathToVideos,nalezeneSoubory,pocetNalezenych,"avi");
-        if (pocetNalezenych != 0)
+        analyseFileNames(pathToVideos,foundFiles,foundCount,"avi");
+        if (foundCount != 0)
         {
-            QString celeJmeno = pathToVideos+"/"+nalezeneSoubory.at(0);
-            zpracujJmeno(celeJmeno,slozka,jmeno,koncovka);
+            QString celefilename = pathToVideos+"/"+foundFiles.at(0);
+            processFilePath(celefilename,folder,filename,suffix);
             if (analyseChosenFile.length() == 0)
             {
-                analyseChosenFile.push_back(slozka);
-                analyseChosenFile.push_back(jmeno);
-                analyseChosenFile.push_back(koncovka);
+                analyseChosenFile.push_back(folder);
+                analyseChosenFile.push_back(filename);
+                analyseChosenFile.push_back(suffix);
             }
             else
             {
                 analyseChosenFile.clear();
-                analyseChosenFile.push_back(slozka);
-                analyseChosenFile.push_back(jmeno);
-                analyseChosenFile.push_back(koncovka);
+                analyseChosenFile.push_back(folder);
+                analyseChosenFile.push_back(filename);
+                analyseChosenFile.push_back(suffix);
             }
-            ui->chosenFile->setText(jmeno);
+            ui->chosenFile->setText(filename);
         }
         else{
             localErrorDialogHandling[ui->chosenFile]->evaluate("left","softError",3);
@@ -145,63 +137,63 @@ void Frangi_detektor::checkPaths()
 
 void Frangi_detektor::on_sigma_start_sliderMoved(int value)
 {
-    double hodnota = (value/50.0)*10.0;
-    ui->sigma_start_DSB->setValue(hodnota);
+    double valueD = (value/50.0)*10.0;
+    ui->sigma_start_DSB->setValue(valueD);
 }
 
 void Frangi_detektor::on_sigma_end_sliderMoved(int value)
 {
-    double hodnota = (value/50.0)*10.0;
-    ui->sigma_end_DSB->setValue(hodnota);
+    double valueD = (value/50.0)*10.0;
+    ui->sigma_end_DSB->setValue(valueD);
 }
 
 void Frangi_detektor::on_sigma_step_sliderMoved(int value)
 {
-    double hodnota = (value/50.0)*10.0;
-    ui->sigma_step_DSB->setValue(hodnota);
+    double valueD = (value/50.0)*10.0;
+    ui->sigma_step_DSB->setValue(valueD);
 }
 
 void Frangi_detektor::on_beta_one_sliderMoved(int value)
 {
-    double hodnota = (value/50.0)*10.0;
-    ui->beta_one_DSB->setValue(hodnota);
+    double valueD = (value/50.0)*10.0;
+    ui->beta_one_DSB->setValue(valueD);
 }
 
 void Frangi_detektor::on_beta_two_sliderMoved(int value)
 {
-    double hodnota = (value/50.0)*10.0;
-    ui->beta_two_DSB->setValue(hodnota);
+    double valueD = (value/50.0)*10.0;
+    ui->beta_two_DSB->setValue(valueD);
 }
 
 void Frangi_detektor::changeValue_slider_start(){
-    double hodnota = ui->sigma_start_DSB->value();
-    int hodnota_prepocitana = int((hodnota/10)*50);
-    ui->sigma_start->setValue(hodnota_prepocitana);
+    double valueD = ui->sigma_start_DSB->value();
+    int value_prepocitana = int((valueD/10)*50);
+    ui->sigma_start->setValue(value_prepocitana);
 }
 void Frangi_detektor::changeValue_slider_end(){
-    double hodnota = ui->sigma_end_DSB->value();
-    int hodnota_prepocitana = int((hodnota/10.0)*50.0);
-    ui->sigma_end->setValue(hodnota_prepocitana);
+    double valueD = ui->sigma_end_DSB->value();
+    int value_prepocitana = int((valueD/10.0)*50.0);
+    ui->sigma_end->setValue(value_prepocitana);
 }
 void Frangi_detektor::changeValue_slider_step(){
-    double hodnota = ui->sigma_step_DSB->value();
-    int hodnota_prepocitana = int((hodnota/10.0)*50.0);
-    ui->sigma_step->setValue(hodnota_prepocitana);
+    double valueD = ui->sigma_step_DSB->value();
+    int value_prepocitana = int((valueD/10.0)*50.0);
+    ui->sigma_step->setValue(value_prepocitana);
 }
 void Frangi_detektor::changeValue_slider_one(){
-    double hodnota = ui->beta_one_DSB->value();
-    int hodnota_prepocitana = int((hodnota/10.0)*50.0);
-    ui->beta_one->setValue(hodnota_prepocitana);
+    double valueD = ui->beta_one_DSB->value();
+    int value_prepocitana = int((valueD/10.0)*50.0);
+    ui->beta_one->setValue(value_prepocitana);
 }
 void Frangi_detektor::changeValue_slider_two(){
-    double hodnota = ui->beta_two_DSB->value();
-    int hodnota_prepocitana = int((hodnota/10.0)*50.0);
-    ui->beta_two->setValue(hodnota_prepocitana);
+    double valueD = ui->beta_two_DSB->value();
+    int value_prepocitana = int((valueD/10.0)*50.0);
+    ui->beta_two->setValue(value_prepocitana);
 }
 
 void Frangi_detektor::on_Frangi_filtr_clicked()
 {
-    if (paramFrangi == "")// || vectorSum(FrangiParametersVector)==0.0)
+    if (SharedVariables::getSharedVariables()->getPath("parametryFrangiFiltr") == "")// || vectorSum(FrangiParametersVector)==0.0)
         localErrorDialogHandling[ui->Frangi_filtr]->evaluate("left","hardError",5);
     else{
         double beta_two = ui->beta_one_DSB->value();
@@ -212,21 +204,21 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
         int standardInt=0;
         if(ui->RB_standard->isChecked())
             standardInt = 1;
-        QVector<double> parametry_pro_frangiFiltr = {sigma_start,sigma_step,sigma_end,beta_one,beta_two,double(standardInt)};
-        qDebug()<<parametry_pro_frangiFiltr;
+        QVector<double> parametersForFrangi = {sigma_start,sigma_step,sigma_end,beta_one,beta_two,double(standardInt)};
+        qDebug()<<parametersForFrangi;
         //qDebug()<<FrangiParametersVector.length();
         bool standard = ui->RB_standard->isChecked();
-        int typ_zpracovani;
+        int processingType;
         if (standard == true)
-            typ_zpracovani = 1;
+            processingType = 1;
         else
-            typ_zpracovani = 2;
+            processingType = 2;
 
-        Mat vybrany_snimekFrangi;
+        Mat chosenFrame;
         if (analyseChosenFile[2] == "avi")
         {
-            QString vybrany_soubor = analyseChosenFile[0]+"/"+analyseChosenFile[1]+"."+analyseChosenFile[2];
-            VideoCapture cap = VideoCapture(vybrany_soubor.toLocal8Bit().constData()); // konverze z QString do string
+            QString chosenFile = analyseChosenFile[0]+"/"+analyseChosenFile[1]+"."+analyseChosenFile[2];
+            VideoCapture cap = VideoCapture(chosenFile.toLocal8Bit().constData()); // konverze z QString do string
             if (!cap.isOpened()){
                 localErrorDialogHandling[ui->Frangi_filtr]->evaluate("left","hardError",6);
                 return;
@@ -234,33 +226,33 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
             bool kontrola_zadani_cisla;
             int cislo_snimku = ui->frameNumber->text().toInt(&kontrola_zadani_cisla);
             cap.set(CV_CAP_PROP_POS_FRAMES,cislo_snimku);
-            cap.read(vybrany_snimekFrangi);
+            cap.read(chosenFrame);
         }
-        kontrola_typu_snimku_8C3(vybrany_snimekFrangi);
-        Point3d pt_temp(0,0,0);
-        detekovane_frangiho_maximum = frangi_analyza(vybrany_snimekFrangi,
-                                                     typ_zpracovani,1,1,"Frangi zvoleneho snimku",1,false,
-                                                     pt_temp,parametry_pro_frangiFiltr);
-        qDebug()<<"Detekovane maximum Frangiho filtru je "<<detekovane_frangiho_maximum.x<<" "<<detekovane_frangiho_maximum.y;
-
+        kontrola_typu_snimku_8C3(chosenFrame);
+        Point3d pt_temp(0.0,0.0,0.0);
+        cv::Point3d detectedFrangi = frangi_analysis(chosenFrame,
+                                                     processingType,1,1,tr("Frangi of chosen frame"),1,pt_temp,
+                                                     parametersForFrangi);
+        qDebug()<<"Detekovane maximum Frangiho filtru je "<<detectedFrangi.x<<" "<<detectedFrangi.y;
+        SharedVariables::getSharedVariables()->setFrangiMaximum(detectedFrangi);
         /*cv::Mat src, J, Scale, Directions;
    frangi2d_opts_t opts;
    frangi2d_createopts(&opts);
-   if (typ_zpracovani == 2)
+   if (processingType == 2)
    {
        opts.BlackWhite = false;
    }
-   else if(typ_zpracovani == 1)
+   else if(processingType == 1)
    {
        opts.BlackWhite = true;
    }
-   opts.sigma_start = int(parametry_pro_frangiFiltr[0]);
-   opts.sigma_step = int(parametry_pro_frangiFiltr[1]);
-   opts.sigma_end = int(parametry_pro_frangiFiltr[2]);
-   opts.BetaOne = parametry_pro_frangiFiltr[3];
-   opts.BetaTwo = parametry_pro_frangiFiltr[4];
-   kontrola_typu_snimku_32(vybrany_snimekFrangi);
-   frangi2d(vybrany_snimekFrangi,J,Scale,Directions,opts);
+   opts.sigma_start = int(parametersForFrangi[0]);
+   opts.sigma_step = int(parametersForFrangi[1]);
+   opts.sigma_end = int(parametersForFrangi[2]);
+   opts.BetaOne = parametersForFrangi[3];
+   opts.BetaTwo = parametersForFrangi[4];
+   kontrola_typu_snimku_32(chosenFrame);
+   frangi2d(chosenFrame,J,Scale,Directions,opts);
    imshow("Frangi",J);*/
     }
 }
@@ -269,23 +261,23 @@ void Frangi_detektor::on_fileToAnalyse_clicked()
 {
     QString videoProFrangiFiltr = QFileDialog::getOpenFileName(this,
        tr("Choose frame for Frangi filter analysis"), SharedVariables::getSharedVariables()->getPath("cestaKvideim"),"(*.avi);;All files (*)");
-    QString slozka,jmeno,koncovka;
-    zpracujJmeno(videoProFrangiFiltr,slozka,jmeno,koncovka);
+    QString folder,filename,suffix;
+    processFilePath(videoProFrangiFiltr,folder,filename,suffix);
     if (analyseChosenFile.length() == 0)
     {
-        analyseChosenFile.push_back(slozka);
-        analyseChosenFile.push_back(jmeno);
-        analyseChosenFile.push_back(koncovka);
+        analyseChosenFile.push_back(folder);
+        analyseChosenFile.push_back(filename);
+        analyseChosenFile.push_back(suffix);
     }
     else
     {
         analyseChosenFile.clear();
-        analyseChosenFile.push_back(slozka);
-        analyseChosenFile.push_back(jmeno);
-        analyseChosenFile.push_back(koncovka);
+        analyseChosenFile.push_back(folder);
+        analyseChosenFile.push_back(filename);
+        analyseChosenFile.push_back(suffix);
     }
     QLineEdit cislo_snimku;
-    if (koncovka == "avi"){
+    if (suffix == "avi"){
         this->ui->frameNumber->setEnabled(true);
         ui->chosenFile->setText(analyseChosenFile[1]);
     }

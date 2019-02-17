@@ -44,7 +44,7 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
     Mat plne_slicovany_snimek = cv::Mat::zeros(Size(referencni_snimek.cols,referencni_snimek.rows), CV_32FC3);
     Point3d mira_translace(0.0,0.0,0.0);
     double celkovy_uhel = 0;
-    int uspech_licovani = kompletni_slicovani(cap,
+    int uspech_licovani = completeRegistration(cap,
                                               referencni_snimek,
                                               index_posunuty,
                                               iterace,
@@ -141,7 +141,7 @@ void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
             kontrola_typu_snimku_32C1(mezivysledek32f);
             mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
             double R_prvni = vypocet_KK(referencni_snimek,plne_slicovany_snimek,vyrez_korelace_standard);
-            Point3d frangi_bod_slicovany_reverse = frangi_analyza(plne_slicovany_snimek,2,2,0,"",2,false,mira_translace,parametry_frangi);
+            Point3d frangi_bod_slicovany_reverse = frangi_analysis(plne_slicovany_snimek,2,2,0,"",2,mira_translace,parametry_frangi);
             frangi_x[index_posunuty] = frangi_bod_slicovany_reverse.x;
             frangi_y[index_posunuty] = frangi_bod_slicovany_reverse.y;
             double yydef = bod_RefS_reverse.x - frangi_bod_slicovany_reverse.x;

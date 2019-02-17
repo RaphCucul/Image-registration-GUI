@@ -3,7 +3,6 @@
 #include "analyza_obrazu/entropie.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
 #include "analyza_obrazu/upravy_obrazu.h"
-//#include "hlavni_program/t_b_ho.h"
 #include "hlavni_program/frangi_detektor.h"
 #include "dialogy/grafet.h"
 #include "dialogy/clickimageevent.h"
@@ -12,6 +11,8 @@
 #include "util/prace_s_vektory.h"
 #include "licovani/rozhodovaci_algoritmy.h"
 #include "licovani/multiPOC_Ai1.h"
+#include "fancy_staff/sharedvariables.h"
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core.hpp>
@@ -31,12 +32,6 @@
 
 #include <QtConcurrent/QtConcurrent>
 #include <QFuture>
-
-extern QString videaKanalyzeAktual;
-extern QString ulozeniVideiAktual;
-extern QString TXTnacteniAktual;
-extern QString TXTulozeniAktual;
-extern QString paramFrangi;
 
 MultipleVideoET::MultipleVideoET(QWidget *parent) :
     ETanalysisParent (parent),
@@ -63,7 +58,23 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
     ui->deleteChosenFromListPB->setText(tr("Delete selected"));
     ui->analyzeVideosPB->setText(tr("Analyse videos"));
 
-    /*velikost_frangi_opt(6,FrangiParametersVector);
+    mapDouble["entropie"]=entropy;
+    mapDouble["tennengrad"]=tennengrad;
+    mapDouble["FrangiX"]=framesFrangiX;
+    mapDouble["FrangiX"]=framesFrangiY;
+    mapDouble["FrangiEuklid"]=framesFrangiEuklid;
+    mapDouble["POCX"]=framesPOCX;
+    mapDouble["POCY"]=framesPOCY;
+    mapDouble["Uhel"]=framesAngle;
+    mapInt["Ohodnoceni"]=framesFinalCompleteDecision;
+    mapInt["PrvotOhodEntropie"]=framesFirstFullCompleteEntropyEvaluation;
+    mapInt["PrvotOhodTennengrad"]=framesFirstFullCompleteTennengradEvaluation;
+    mapInt["PrvniRozhod"]=framesFirstFullCompleteDecision;
+    mapInt["DruheRozhod"]=framesSecondFullCompleteDecision;
+    mapAnomalies["VerticalAnomaly"]=horizontalAnomalyPresent;
+    mapAnomalies["HorizontalAnomaly"]=verticalAnomalyPresent;
+
+    /*size_frangi_opt(6,FrangiParametersVector);
     if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
@@ -71,11 +82,11 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
         QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
         for (int a = 0; a < 6; a++)
         {
-            inicializace_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
+            inicialization_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
         }
     }*/
 
-    //QObject::connect()
+    connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
 }
 
 MultipleVideoET::~MultipleVideoET()
@@ -83,18 +94,18 @@ MultipleVideoET::~MultipleVideoET()
     delete ui;
 }
 
-void MultipleVideoET::checkPaths(){
-    if (paramFrangi != ""){
+//void MultipleVideoET::checkPaths(){
+    /*if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
         FrangiParametersFile = readJson(soubor);
         QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
         for (int a = 0; a < 6; a++)
         {
-            //inicializace_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
+            //inicialization_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
         }
-    }
-}
+    }*/
+//}
 void MultipleVideoET::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
@@ -112,7 +123,7 @@ void MultipleVideoET::dropEvent(QDropEvent *event)
        }
        //videoList = seznamVidei;
        qDebug()<<"Aktualizace seznamu videi: "<<videoList;
-       ui->vybranaVidea->addItems(seznamVidei);
+       ui->selectedVideos->addItems(seznamVidei);
 }
 
 void MultipleVideoET::dragEnterEvent(QDragEnterEvent *event)
@@ -121,23 +132,26 @@ void MultipleVideoET::dragEnterEvent(QDragEnterEvent *event)
         event->acceptProposedAction();
 }
 
-void MultipleVideoET::on_nekolikVideiPB_clicked()
+void MultipleVideoET::on_afewVideosPB_clicked()
 {
-    QStringList filenames = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),videaKanalyzeAktual,tr("Video files (*.avi);;;") );
+    QStringList filenames = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),
+                            SharedVariables::getSharedVariables()->getPath("cestaKvideim"),
+                            tr("Video files (*.avi);;;") );
     if( !filenames.isEmpty() )
     {
         for (int i =0;i<filenames.count();i++)
         {
-            ui->vybranaVidea->addItem(filenames.at(i));
+            ui->selectedVideos->addItem(filenames.at(i));
             videoList.append(filenames.at(i));
         }
     }
 }
 
-void MultipleVideoET::on_celaSlozkaPB_clicked()
+void MultipleVideoET::on_wholeFolderPB_clicked()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),videaKanalyzeAktual,
-                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                  SharedVariables::getSharedVariables()->getPath("cestaKvideim"),
+                  QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     QDir chosenDirectory(dir);
     //qDebug()<<"Chosen directory:"<<dir;
     QStringList videosInDirectory = chosenDirectory.entryList(QStringList() << "*.avi" << "*.AVI",QDir::Files);
@@ -148,20 +162,20 @@ void MultipleVideoET::on_celaSlozkaPB_clicked()
         {
             videoList.append(videosInDirectory.at(a));
         }
-        ui->vybranaVidea->addItems(videosInDirectory);
+        ui->selectedVideos->addItems(videosInDirectory);
     }
     qDebug()<<"videoList contains "<<videoList.count()<<" videos.";
 }
 
-void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
+void MultipleVideoET::on_analyzeVideosPB_clicked()
 {
     QString pom = videoList.at(0);
     cv::VideoCapture cap = cv::VideoCapture(pom.toLocal8Bit().constData());
     if (!cap.isOpened())
         qWarning()<<"Error opening video";
-    double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-    if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
+   // double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    //double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    /*if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
     {
         obtainedVerticalAnomaly.x = oznacena_hranice_svetelne_anomalie.x;
         obtainedVerticalAnomaly.y = oznacena_hranice_svetelne_anomalie.y;
@@ -180,11 +194,12 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
     {
         obtainedHorizontalAnomaly.y = 0.0f;
         obtainedHorizontalAnomaly.x = 0.0f;
-    }
+    }*/
     qDebug()<<"videoList contains "<<videoList.count()<<" videos.";
-    TFirstP = new qThreadFirstPart(videoList,obtainedVerticalAnomaly,
-                                          obtainedHorizontalAnomaly,FrangiParametersVector,
-                                          volbaSvetAnomETSingle,volbaCasZnackyETSingle);
+    TFirstP = new qThreadFirstPart(videoList,
+                                   SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
+                                   SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
+                                   SharedVariables::getSharedVariables()->getFrangiParameters());
     connect(TFirstP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
     connect(TFirstP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
     connect(TFirstP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -192,14 +207,14 @@ void MultipleVideoET::on_ETanalyzaVideiPB_clicked()
     TFirstP->start();
 }
 
-void MultipleVideoET::on_zobrazVysledkyPB_clicked()
+void MultipleVideoET::on_showResultsPB_clicked()
 {
     QStringList vektorKzapisu;
     for (int a=0; a<videoList.count(); a++)
     {
         QString fullPath = videoList.at(a);
         QString slozka,jmeno,koncovka;
-        zpracujJmeno(fullPath,slozka,jmeno,koncovka);
+        processFilePath(fullPath,slozka,jmeno,koncovka);
         vektorKzapisu.append(jmeno);
     }
     GrafET* graf_ET = new GrafET(entropy,tennengrad,framesFirstFullCompleteEntropyEvaluation,
@@ -209,26 +224,60 @@ void MultipleVideoET::on_zobrazVysledkyPB_clicked()
     graf_ET->show();
 }
 
-void MultipleVideoET::on_vymazatZVyberuPB_clicked()
+void MultipleVideoET::on_deleteChosenFromListPB_clicked()
 {
-    QList<QListWidgetItem*> selectedVideos = ui->vybranaVidea->selectedItems();
+    QList<QListWidgetItem*> selectedVideos = ui->selectedVideos->selectedItems();
     //qDebug()<<"Selected videos will be deleted: "<<selectedVideos;
     foreach (QListWidgetItem* item,selectedVideos)
     {
-        int index = ui->vybranaVidea->row(item);
+        int index = ui->selectedVideos->row(item);
         videoList.removeAt(index);
-        delete ui->vybranaVidea->takeItem(ui->vybranaVidea->row(item));
+        delete ui->selectedVideos->takeItem(ui->selectedVideos->row(item));
     }
     //qDebug()<<"Number of videos after deletion: "<<ui->vybranaVidea->count();
     //qDebug()<<"Number of videos in the video list: "<<videoList.count();
 }
 
-void MultipleVideoET::on_ulozeni_clicked()
+void MultipleVideoET::on_savePB_clicked()
 {
 
     for (int a = 0; a < videoList.count(); a++)
     {
         QJsonDocument document;
+        QJsonObject object;
+        QString aktualJmeno = chosenVideoETSingle[1];
+        QString cesta = SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+aktualJmeno+".dat";
+        for (int indexVideo=0; indexVideo<entropy.length(); indexVideo++){
+            for (int parameter = 0; parameter < videoParameters.count(); parameter++){
+                if (parameter < 8){
+                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][indexVideo];
+                    QJsonArray pomArray = vector2array(pomDouble);
+                    object[videoParameters.at(parameter)] = pomArray;
+                }
+                if (parameter >= 8 && parameter < 14){
+                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][indexVideo];
+                    if (parameter == 13)
+                        pomInt[framesReferencial[indexVideo]]=2;
+
+                    QJsonArray pomArray = vector2array(pomInt);
+                    object[videoParameters.at(parameter)] = pomArray;
+                }
+                else{
+                    if (videoParameters.at(parameter) == "VerticalAnomaly")
+                        object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y);
+                    else
+                        object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
+                }
+            }
+        }
+        document.setObject(object);
+        QString documentString = document.toJson();
+        QFile zapis;
+        zapis.setFileName(cesta);
+        zapis.open(QIODevice::WriteOnly);
+        zapis.write(documentString.toLocal8Bit());
+        zapis.close();
+        /*QJsonDocument document;
         QJsonObject object;
         QVector<double> pomVecE = entropy[0];
         QVector<double> pomVecT = tennengrad[0];
@@ -258,7 +307,7 @@ void MultipleVideoET::on_ulozeni_clicked()
         QJsonArray poleU = vector2array(pomVecU);
         QString slozka,jmeno,koncovka;
         QString fullPath = videoList.at(a);
-        zpracujJmeno(fullPath,slozka,jmeno,koncovka);
+        processFilePath(fullPath,slozka,jmeno,koncovka);
         QString aktualJmeno = jmeno;
         QString cesta = TXTulozeniAktual+"/"+aktualJmeno+".dat";
         object["entropie"] = poleE;
@@ -280,23 +329,23 @@ void MultipleVideoET::on_ulozeni_clicked()
         zapis.setFileName(cesta);
         zapis.open(QIODevice::WriteOnly);
         zapis.write(documentString.toLocal8Bit());
-        zapis.close();
+        zapis.close();*/
     }
 }
 
-void MultipleVideoET::zpracovano(int dokonceno)
+void MultipleVideoET::done(int finished)
 {
-    if (dokonceno == 1)
+    if (finished == 1)
     {
-        entropy = TFirstP->vypocitanaEntropie();
-        tennengrad = TFirstP->vypocitanyTennengrad();
-        framesFirstFullCompleteEntropyEvaluation = TFirstP->vypocitanePrvotniOhodnoceniEntropie();
-        framesFirstFullCompleteTennengradEvaluation = TFirstP->vypocitanePrvotniOhodnoceniTennengrad();
-        obtainedCutoffStandard = TFirstP->vypocitanyVKstandard();
-        obtainedCutoffExtra = TFirstP->vypocitanyVKextra();
-        framesFinalCompleteDecision = TFirstP->vypocitaneKompletniOhodnoceni();
-        framesReferencial = TFirstP->urceneReferenceVidei();
-        badFramesComplete = TFirstP->vypocitaneSpatneSnimkyKomplet();
+        entropy = TFirstP->computedEntropy();
+        tennengrad = TFirstP->computedTennengrad();
+        framesFirstFullCompleteEntropyEvaluation = TFirstP->computedFirstEntropyEvaluation();
+        framesFirstFullCompleteTennengradEvaluation = TFirstP->computedFirstTennengradEvalueation();
+        obtainedCutoffStandard = TFirstP->computedCOstandard();
+        obtainedCutoffExtra = TFirstP->computedCOextra();
+        framesFinalCompleteDecision = TFirstP->computedCompleteEvaluation();
+        framesReferencial = TFirstP->estimatedReferencialFrames();
+        badFramesComplete = TFirstP->computedBadFrames();
         TFirstP->quit();
         TSecondP = new qThreadSecondPart(videoList,obtainedCutoffStandard,obtainedCutoffExtra,
                                          badFramesComplete,framesReferencial,false);
@@ -306,10 +355,10 @@ void MultipleVideoET::zpracovano(int dokonceno)
         connect(TSecondP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         TSecondP->start();
     }
-    if (dokonceno == 2)
+    if (finished == 2)
     {
-        averageCCcomplete = TSecondP->vypoctenyR();
-        averageFWHMcomplete = TSecondP->vypocteneFWHM();
+        averageCCcomplete = TSecondP->computedCC();
+        averageFWHMcomplete = TSecondP->computedFWHM();
         TSecondP->quit();
         TThirdP = new qThreadThirdPart(videoList,badFramesComplete,framesFinalCompleteDecision,
                                        framesReferencial,averageCCcomplete,averageFWHMcomplete,
@@ -320,18 +369,18 @@ void MultipleVideoET::zpracovano(int dokonceno)
         connect(TThirdP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         TThirdP->start();
     }
-    if (dokonceno == 3)
+    if (finished == 3)
     {
-        framesFinalCompleteDecision = TThirdP->snimkyUpdateOhodnoceni();
-        framesFirstFullCompleteDecision = TThirdP->snimkyProvereniPrvniKompletestimated();
-        QVector<QVector<double>> KKproblematickychSnimku = TThirdP->snimkyProblematicke_R();
-        QVector<QVector<double>> FWHMproblematickychSnimku = TThirdP->snimkyProblematicke_FWHM();
-        framesFrangiX = TThirdP->snimkyFrangiXestimated();
-        framesFrangiY = TThirdP->snimkyFrangiYestimated();
-        framesFrangiEuklid = TThirdP->snimkyFrangiEuklidestimated();
-        framesPOCX = TThirdP->snimkyPOCXestimated();
-        framesPOCY = TThirdP->snimkyPOCYestimated();
-        framesAngle = TThirdP->snimkyUhelestimated();
+        framesFinalCompleteDecision = TThirdP->framesUpdateEvaluation();
+        framesFirstFullCompleteDecision = TThirdP->framesFirstEvaluationComplete();
+        QVector<QVector<double>> KKproblematickychSnimku = TThirdP->framesProblematic_CC();
+        QVector<QVector<double>> FWHMproblematickychSnimku = TThirdP->framesProblematic_FWHM();
+        framesFrangiX = TThirdP->framesFrangiXestimated();
+        framesFrangiY = TThirdP->framesFrangiYestimated();
+        framesFrangiEuklid = TThirdP->framesFrangiEuklidestimated();
+        framesPOCX = TThirdP->framesPOCXestimated();
+        framesPOCY = TThirdP->framesPOCYestimated();
+        framesAngle = TThirdP->framesUhelestimated();
         TThirdP->quit();
         TFourthP = new qThreadFourthPart(videoList,framesFirstFullCompleteDecision,framesFinalCompleteDecision,
                                          KKproblematickychSnimku,FWHMproblematickychSnimku,framesPOCX,
@@ -343,36 +392,46 @@ void MultipleVideoET::zpracovano(int dokonceno)
         connect(TFourthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         TFourthP->start();
     }
-    if (dokonceno == 4)
+    if (finished == 4)
     {
-        framesFinalCompleteDecision = TFourthP->snimkyUpdateOhodnoceniKomplet();
-        framesSecondFullCompleteDecision = TFourthP->snimkyRozhodovaniDruheKomplet();
-        framesFrangiX = TFourthP->snimkyFrangiXestimated();
-        framesFrangiY = TFourthP->snimkyFrangiYestimated();
-        framesFrangiEuklid = TFourthP->snimkyFrangiEuklidestimated();
-        framesPOCX = TFourthP->snimkyPOCXestimated();
-        framesPOCY = TFourthP->snimkyPOCYestimated();
-        framesAngle = TFourthP->snimkyUhelestimated();
+        framesFinalCompleteDecision = TFourthP->framesUpdateEvaluationComplete();
+        framesSecondFullCompleteDecision = TFourthP->framesSecondEvaluation();
+        framesFrangiX = TFourthP->framesFrangiXestimated();
+        framesFrangiY = TFourthP->framesFrangiYestimated();
+        framesFrangiEuklid = TFourthP->framesFrangiEuklidestimated();
+        framesPOCX = TFourthP->framesPOCXestimated();
+        framesPOCY = TFourthP->framesPOCYestimated();
+        framesAngle = TFourthP->framesAngleestimated();
         TFourthP->quit();
-        TFifthP = new qThreadFifthPart(videoList,obtainedCutoffStandard,obtainedCutoffExtra,
-                                       framesPOCX,framesPOCY,framesAngle,framesFrangiX,framesFrangiY,
-                                       framesFrangiEuklid,false,false,framesFinalCompleteDecision,framesSecondFullCompleteDecision,
-                                       framesReferencial,FrangiParametersVector);
+        TFifthP = new qThreadFifthPart(analysedVideos,
+                                       obtainedCutoffStandard,
+                                       obtainedCutoffExtra,
+                                       framesPOCX,
+                                       framesPOCY,
+                                       framesAngle,
+                                       framesFrangiX,
+                                       framesFrangiY,
+                                       framesFrangiEuklid,
+                                       false,
+                                       framesFinalCompleteDecision,
+                                       framesSecondFullCompleteDecision,
+                                       framesReferencial,
+                                       SharedVariables::getSharedVariables()->getFrangiParameters());
         connect(TFifthP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
         connect(TFifthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TFifthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TFifthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         TFifthP->start();
     }
-    if (dokonceno == 5)
+    if (finished == 5)
     {
-        framesFrangiX = TFifthP->snimkyFrangiXestimated();
-        framesFrangiY = TFifthP->snimkyFrangiYestimated();
-        framesFrangiEuklid = TFifthP->snimkyFrangiEuklidestimated();
-        framesPOCX = TFifthP->snimkyPOCXestimated();
-        framesPOCY = TFifthP->snimkyPOCYestimated();
-        framesAngle = TFifthP->snimkyUhelestimated();
-        framesFinalCompleteDecision = TFifthP->snimkyUpdateOhodnoceniKomplet();
+        framesFrangiX = TFifthP->framesFrangiXestimated();
+        framesFrangiY = TFifthP->framesFrangiYestimated();
+        framesFrangiEuklid = TFifthP->framesFrangiEuklidestimated();
+        framesPOCX = TFifthP->framesPOCXestimated();
+        framesPOCY = TFifthP->framesPOCYestimated();
+        framesAngle = TFifthP->framesAngleestimated();
+        framesFinalCompleteDecision = TFifthP->framesUpdateEvaluationComplete();
         TFifthP->quit();
         ui->showResultsPB->setEnabled(true);
         ui->savePB->setEnabled(true);
@@ -398,17 +457,22 @@ void MultipleVideoET::movedToMethod(int metoda)
         ui->actualMethod_label->setText("5/5 Third decision algorithm started");
 }
 
-void MultipleVideoET::terminatedByError(int where)
-{
-
+void MultipleVideoET::evaluateCorrectValues(){
+    if (areaMaximumCorrect && rotationAngleCorrect && iterationCountCorrect){
+        ui->analyzeVideosPB->setEnabled(true);
+    }
+    else
+        ui->analyzeVideosPB->setEnabled(false);
 }
 
-void MultipleVideoET::on_oblastMaxima_textChanged(const QString &arg1)
+void MultipleVideoET::on_areaMaximum_textChanged(const QString &arg1)
 {
-    double oblast_maxima_minimum = 0.0;
-    double oblast_maxima_maximum = 20.0;
-    double zadane_cislo = arg1.toDouble();
-    if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
+    //double oblast_maxima_minimum = 0.0;
+    //double oblast_maxima_maximum = 20.0;
+    double input = arg1.toDouble();
+    checkInputNumber(input,0.0,20.0,ui->areaMaximum,areaMaximum,areaMaximumCorrect);
+    checkValuesPass();
+    /*if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
     {
         ui->areaMaximum->setStyleSheet("color: #FF0000");
         areaMaximum = -1;
@@ -417,15 +481,17 @@ void MultipleVideoET::on_oblastMaxima_textChanged(const QString &arg1)
     {
         ui->areaMaximum->setStyleSheet("color: #339900");
         areaMaximum = zadane_cislo;
-    }
+    }*/
 }
 
-void MultipleVideoET::on_uhelRotace_textChanged(const QString &arg1)
+void MultipleVideoET::on_rotationAngle_textChanged(const QString &arg1)
 {
-    double oblast_maxima_minimum = 0.0;
-    double oblast_maxima_maximum = 0.5;
-    double zadane_cislo = arg1.toDouble();
-    if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
+    //double oblast_maxima_minimum = 0.0;
+    //double oblast_maxima_maximum = 0.5;
+    double input = arg1.toDouble();
+    checkInputNumber(input,0.0,0.5,ui->rotationAngle,rotationAngle,rotationAngleCorrect);
+    checkValuesPass();
+    /*if (zadane_cislo < oblast_maxima_minimum || zadane_cislo > oblast_maxima_maximum)
     {
         ui->rotationAngle->setStyleSheet("color: #FF0000");
         angle = 0.1;
@@ -434,13 +500,15 @@ void MultipleVideoET::on_uhelRotace_textChanged(const QString &arg1)
     {
         ui->rotationAngle->setStyleSheet("color: #339900");
         angle = zadane_cislo;
-    }
+    }*/
 }
 
-void MultipleVideoET::on_pocetIteraci_textChanged(const QString &arg1)
+void MultipleVideoET::on_iterationCount_textChanged(const QString &arg1)
 {
-    int zadane_cislo = arg1.toInt();
-    if (zadane_cislo < 0 && zadane_cislo != -1)
+    int input = arg1.toInt();
+    checkInputNumber(input,-1.0,0.0,ui->iterationCount,iterationCount,iterationCountCorrect);
+    checkValuesPass();
+    /*if (zadane_cislo < 0 && zadane_cislo != -1)
     {
         ui->iterationCount->setStyleSheet("color: #FF0000");
         iteration = -1;
@@ -452,5 +520,5 @@ void MultipleVideoET::on_pocetIteraci_textChanged(const QString &arg1)
             iteration = -1;
         else
             iteration = zadane_cislo;
-    }
+    }*/
 }

@@ -15,47 +15,47 @@ using cv::Rect;
 using cv::Point3d;
 using std::cout;
 using std::endl;
-int kompletni_slicovani(cv::VideoCapture& cap,
-                        cv::Mat& referencni_snimek,
-                        int cislo_posunuty,
-                        int &iterace,
-                        double &oblastMaxima,
-                        double &uhel,
-                        cv::Rect& korelacni_vyrez_navic,
-                        cv::Rect& korelacni_vyrez_standardni,
-                        bool nutnost_zmenit_velikost_snimku,
-                        cv::Mat& slicovany_kompletne,
-                        cv::Point3d& mira_translace,
-                        double& celkovy_uhel)
+bool completeRegistration(cv::VideoCapture& cap,
+                        cv::Mat& referencialImage,
+                        int numberTranslated,
+                        double iteration,
+                        double areaMaximum,
+                        double angle,
+                        cv::Rect& cutoutExtra,
+                        cv::Rect& cutoutStandard,
+                        bool scaleChange,
+                        cv::Mat& fullyRegistratedImage,
+                        cv::Point3d& definitiveTranslation,
+                        double& finalRotationAngle)
 {
     Mat posunuty_temp;//,,posunuty_32f;
-    int uspech_licovani;
-    cap.set(CV_CAP_PROP_POS_FRAMES,cislo_posunuty);
+    bool registrationSuccessfull;
+    cap.set(CV_CAP_PROP_POS_FRAMES,numberTranslated);
     if(!cap.read(posunuty_temp))
     {
-        return uspech_licovani = 0;
+        return registrationSuccessfull = 0;
     }
-    kontrola_typu_snimku_8C3(referencni_snimek);
+    kontrola_typu_snimku_8C3(referencialImage);
     kontrola_typu_snimku_8C3(posunuty_temp);
-    int rows = referencni_snimek.rows;
-    int cols = referencni_snimek.cols;
+    int rows = referencialImage.rows;
+    int cols = referencialImage.cols;
     Mat hann;
-    createHanningWindow(hann, referencni_snimek.size(), CV_32FC1);
+    createHanningWindow(hann, referencialImage.size(), CV_32FC1);
     Mat referencni_snimek_32f,referencni_snimek_vyrez;
-    referencni_snimek.copyTo(referencni_snimek_32f);
+    referencialImage.copyTo(referencni_snimek_32f);
     kontrola_typu_snimku_32C1(referencni_snimek_32f);
-    referencni_snimek_32f(korelacni_vyrez_standardni).copyTo(referencni_snimek_vyrez);
+    referencni_snimek_32f(cutoutStandard).copyTo(referencni_snimek_vyrez);
     Mat posunuty, posunuty_vyrez;
-    if (nutnost_zmenit_velikost_snimku == true)
+    if (scaleChange == true)
     {
-        posunuty_temp(korelacni_vyrez_navic).copyTo(posunuty);
-        posunuty(korelacni_vyrez_standardni).copyTo(posunuty_vyrez);
+        posunuty_temp(cutoutExtra).copyTo(posunuty);
+        posunuty(cutoutStandard).copyTo(posunuty_vyrez);
         posunuty_temp.release();
     }
     else
     {
         posunuty_temp.copyTo(posunuty);
-        posunuty(korelacni_vyrez_standardni).copyTo(posunuty_vyrez);
+        posunuty(cutoutStandard).copyTo(posunuty_vyrez);
         posunuty_temp.release();
     }
     Mat posunuty_32f;
@@ -65,7 +65,7 @@ int kompletni_slicovani(cv::VideoCapture& cap,
     /*******************************************************************************************/
     Mat slicovany1;
     Point3d pt1(0,0,0);
-    if (nutnost_zmenit_velikost_snimku == true)
+    if (scaleChange == true)
     {
         pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
         //qDebug() << "PT1 pri zmene velikosti Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
@@ -78,7 +78,7 @@ int kompletni_slicovani(cv::VideoCapture& cap,
             pt1 = fk_translace(referencni_snimek_vyrez,posunuty_vyrez);
         }
     }
-    if (nutnost_zmenit_velikost_snimku == false)
+    if (scaleChange == false)
     {
         pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
         //qDebug() << "PT1 bez zmeny velikosti Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
@@ -86,9 +86,9 @@ int kompletni_slicovani(cv::VideoCapture& cap,
 
     if (pt1.x>=55 || pt1.y>=55)
     {
-        mira_translace = pt1;
+        definitiveTranslation = pt1;
         //qDebug() << "PT1 nad 55 - Y: "<< (pt1.y) <<" a X: "<<(pt1.x);
-        return uspech_licovani = 0;
+        return registrationSuccessfull = false;
     }
     else
     {
@@ -97,18 +97,18 @@ int kompletni_slicovani(cv::VideoCapture& cap,
         cv::Mat slicovany1_32f_rotace,slicovany1_32f,slicovany1_vyrez;
         slicovany1.copyTo(slicovany1_32f);
         kontrola_typu_snimku_32C1(slicovany1_32f);
-        Point3d vysledek_rotace = fk_rotace(referencni_snimek_32f,slicovany1_32f,uhel,pt1.z,pt1);
+        Point3d vysledek_rotace = fk_rotace(referencni_snimek_32f,slicovany1_32f,angle,pt1.z,pt1);
         if (std::abs(vysledek_rotace.y) > 0.1){vysledek_rotace.y=0;}
         slicovany1_32f_rotace = rotace_snimku(slicovany1_32f,vysledek_rotace.y);
-        slicovany1_32f_rotace(korelacni_vyrez_standardni).copyTo(slicovany1_vyrez);
+        slicovany1_32f_rotace(cutoutStandard).copyTo(slicovany1_vyrez);
         /**************************************************************************************/
         Point3d pt2 = fk_translace(referencni_snimek_vyrez,slicovany1_vyrez);
         if (pt2.x >= 55 || pt2.y >= 55)
         {
-            mira_translace = pt1;
-            slicovany1.copyTo(slicovany_kompletne);
+            definitiveTranslation = pt1;
+            slicovany1.copyTo(fullyRegistratedImage);
             slicovany1.release();
-            return uspech_licovani = 0;
+            return registrationSuccessfull = false;
         }
         else
         {
@@ -127,7 +127,7 @@ int kompletni_slicovani(cv::VideoCapture& cap,
             slicovany2.copyTo(slicovany2_32f);
             kontrola_typu_snimku_32C1(slicovany2_32f);
             Mat slicovany2_rotace = rotace_snimku(slicovany2_32f,vysledek_rotace.y);
-            slicovany2_rotace(korelacni_vyrez_standardni).copyTo(slicovany2_vyrez);
+            slicovany2_rotace(cutoutStandard).copyTo(slicovany2_vyrez);
             Mat mezivysledek_vyrez,mezivysledek;
             slicovany2_rotace.copyTo(mezivysledek);
             slicovany2_vyrez.copyTo(mezivysledek_vyrez);
@@ -135,11 +135,11 @@ int kompletni_slicovani(cv::VideoCapture& cap,
             slicovany2_vyrez.release();
             slicovany2_32f.release();
             slicovany2_rotace.release();
-            celkovy_uhel+=vysledek_rotace.y;
+            finalRotationAngle+=vysledek_rotace.y;
             vysledek_rotace.y = 0;
             /*************************************************************/
             int max_pocet_iteraci = 0;
-            if (iterace == -1)
+            if (iteration == -1)
             {
                 if (FWHM <= 20){max_pocet_iteraci = 2;}
                 else if (FWHM > 20 && FWHM <= 30){max_pocet_iteraci = 4;}
@@ -148,30 +148,30 @@ int kompletni_slicovani(cv::VideoCapture& cap,
                 else if (FWHM > 40 && FWHM <= 45){max_pocet_iteraci = 10;}
                 else if (FWHM > 45){max_pocet_iteraci = 5;};
             }
-            if (iterace >= 1)
+            if (iteration >= 1)
             {
-                max_pocet_iteraci = iterace;
+                max_pocet_iteraci = iteration;
             }
             /*************************************************************/
             for (int i = 0; i < max_pocet_iteraci; i++)
             {
-                Point3d rotace_ForLoop = fk_rotace(referencni_snimek,mezivysledek,uhel,pt3.z,pt3);
+                Point3d rotace_ForLoop = fk_rotace(referencialImage,mezivysledek,angle,pt3.z,pt3);
                 if (std::abs(rotace_ForLoop.y) > 0.1){rotace_ForLoop.y = 0;}
-                else if (std::abs(celkovy_uhel+rotace_ForLoop.y)>0.1){rotace_ForLoop.y=0;}
-                else {celkovy_uhel+=rotace_ForLoop.y;}
+                else if (std::abs(finalRotationAngle+rotace_ForLoop.y)>0.1){rotace_ForLoop.y=0;}
+                else {finalRotationAngle+=rotace_ForLoop.y;}
                 //qDebug() << "rotace " << celkovy_uhel <<" se zmenou " << rotace_ForLoop.y << endl;
                 Mat rotovany = rotace_snimku(mezivysledek,rotace_ForLoop.y);
                 rotace_ForLoop.y = 0;
                 Mat rotovany_vyrez;
-                rotovany(korelacni_vyrez_standardni).copyTo(rotovany_vyrez);
+                rotovany(cutoutStandard).copyTo(rotovany_vyrez);
                 rotovany.release();
                 Point3d pt4 = fk_translace(referencni_snimek_vyrez,rotovany_vyrez);
                 rotovany_vyrez.release();
                 if (pt4.x >= 55 || pt4.y >= 55)
                 {
-                    mira_translace = pt3;
-                    slicovany2.copyTo(slicovany_kompletne);
-                    return uspech_licovani = 1;
+                    definitiveTranslation = pt3;
+                    slicovany2.copyTo(fullyRegistratedImage);
+                    return registrationSuccessfull = true;
                 }
                 else
                 {
@@ -181,152 +181,153 @@ int kompletni_slicovani(cv::VideoCapture& cap,
                     pt3.z = pt4.z;
                     //qDebug() << "Y: "<< (pt3.y) <<" a X: "<<(pt3.x)<<endl<<endl;
                     Mat posunuty_temp = translace_snimku(posunuty,pt3,rows,cols);
-                    Mat rotovany_temp = rotace_snimku(posunuty_temp,celkovy_uhel);
+                    Mat rotovany_temp = rotace_snimku(posunuty_temp,finalRotationAngle);
                     posunuty_temp.release();
                     rotovany_temp.copyTo(mezivysledek);
                     Mat rotovany_temp32f_vyrez;
                     kontrola_typu_snimku_32C1(rotovany_temp);
-                    rotovany_temp(korelacni_vyrez_standardni).copyTo(rotovany_temp32f_vyrez);
+                    rotovany_temp(cutoutStandard).copyTo(rotovany_temp32f_vyrez);
                     rotovany_temp32f_vyrez.copyTo(mezivysledek_vyrez);
                     rotovany_temp.release();
                     rotovany_temp32f_vyrez.release();
                 }
             }
-            mira_translace = pt3;
-            mezivysledek.copyTo(slicovany_kompletne);
-            return uspech_licovani = 1;
+            definitiveTranslation = pt3;
+            mezivysledek.copyTo(fullyRegistratedImage);
+            return registrationSuccessfull = true;
         }
     }
 }
 
-void predzpracovaniKompletnihoLicovani(cv::Mat &reference,
-                                       cv::Mat &obraz,
-                                       QVector<double> &parFrang,
-                                       cv::Point2f &hraniceAnomalie,
-                                       cv::Point2f &hraniceCasu,
+void preprocessingCompleteRegistration(cv::Mat &reference,
+                                       cv::Mat &image,
+                                       QVector<double> parFrang,
+                                       cv::Point2d verticalAnomaly,
+                                       cv::Point2d horizontalAnomaly,
                                        cv::Point3d &fraMax,
-                                       cv::Rect &oblastAnomalie,
-                                       cv::Rect &vyrezKoreEx,
-                                       cv::Rect &vyrezKoreStand,
+                                       cv::Rect &anomalyArea,
+                                       cv::Rect &cutoutStandard,
+                                       cv::Rect &cutoutExtra,
                                        cv::VideoCapture &cap,
-                                       bool pritomnostAnomalie,
-                                       bool casZnacka,
-                                       bool &zmeMer)
+                                       bool& anomalyPresence,
+                                       bool &scalingNeeded)
 {
     cv::Point3d pt_temp(0.0,0.0,0.0);
     cv::Point3d frangi_bod(0.0,0.0,0.0);
-    double sirka_framu = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    double vyska_framu = cap.get(CV_CAP_PROP_FRAME_HEIGHT);    
+    double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
 
-    if (hraniceAnomalie.x != 0.0f && hraniceAnomalie.y != 0.0f) // světelná anomálie
+    if (verticalAnomaly.x != 0.0 && verticalAnomaly.y != 0.0) // světelná anomálie
     {
-        if (hraniceAnomalie.x < float(sirka_framu/2))
+        anomalyPresence = true;
+        if (verticalAnomaly.x < width/2.0)
         {
-            oblastAnomalie.x = 0;
-            oblastAnomalie.y = int(hraniceAnomalie.x);
-            oblastAnomalie.width = int(sirka_framu-int(hraniceAnomalie.x)-1);
-            oblastAnomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+            anomalyArea.x = 0;
+            anomalyArea.y = int(verticalAnomaly.x);
+            anomalyArea.width = int(width-int(verticalAnomaly.x)-1);
+            anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
         }
-        if (hraniceAnomalie.x > float(sirka_framu/2))
+        if (verticalAnomaly.x > width/2.0)
         {
-            oblastAnomalie.x = 0;
-            oblastAnomalie.y = 0;
-            oblastAnomalie.width = int(hraniceAnomalie.x);
-            oblastAnomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+            anomalyArea.x = 0;
+            anomalyArea.y = 0;
+            anomalyArea.width = int(verticalAnomaly.x);
+            anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
         }
     }
-    if (hraniceCasu.x != 0.0f && hraniceCasu.y != 0.0f) // časová anomálie
+    if (horizontalAnomaly.x != 0.0 && horizontalAnomaly.y != 0.0) // časová anomálie
     {
-        if (hraniceCasu.x < float(vyska_framu/2))
+        anomalyPresence = true;
+        if (horizontalAnomaly.x < height/2.0)
         {
-            oblastAnomalie.x = int(hraniceCasu.y);
-            oblastAnomalie.y = 0;
-            oblastAnomalie.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-            oblastAnomalie.height = int(vyska_framu-int(hraniceCasu.y)-1);
+            anomalyArea.x = int(horizontalAnomaly.y);
+            anomalyArea.y = 0;
+            anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
+            anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
         }
-        if (hraniceCasu.x > float(sirka_framu/2))
+        if (horizontalAnomaly.x > height/2.0)
         {
-            oblastAnomalie.x = 0;
-            oblastAnomalie.y = 0;
-            oblastAnomalie.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-            oblastAnomalie.height = int(vyska_framu-int(hraniceCasu.y)-1);
+            anomalyArea.x = 0;
+            anomalyArea.y = 0;
+            anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
+            anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
         }
     }
 
 
+    if (fraMax.x == 0.0 && fraMax.y == 0.0){
+        if (anomalyPresence == true)
+            fraMax = frangi_analysis(reference(anomalyArea),1,1,0,"",1,pt_temp,parFrang);
+        else
+            fraMax = frangi_analysis(reference,1,1,0,"",1,pt_temp,parFrang);
 
-    if (pritomnostAnomalie == true)
-        frangi_bod = frangi_analyza(reference(oblastAnomalie),1,1,0,"",1,casZnacka,pt_temp,parFrang);
+        if (fraMax.z == 0.0)
+        {
+            qDebug()<<"Nalezeni maxima frangiho funkce se nezdarilo, proverte snimek!"<<endl;
+        }
+        qDebug()<<"Frangi analysis completed"<<endl;
+    }    
+
+    bool changeScaling = false;
+    int rows = reference.rows;
+    int cols = reference.cols;
+    int rowFrom = int(round(frangi_bod.y-0.9*frangi_bod.y));
+    int rowTo = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
+    int columnFrom = 0;
+    int columnTo = 0;
+
+    if (anomalyPresence == true && verticalAnomaly.y != 0.0 && int(verticalAnomaly.y)<(cols/2))
+    {
+        columnFrom = int(verticalAnomaly.y);
+        changeScaling = true;
+    }
     else
-        frangi_bod = frangi_analyza(reference,1,1,0,"",1,casZnacka,pt_temp,parFrang);
+        columnFrom = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
 
-    if (frangi_bod.z == 0.0)
+    if (anomalyPresence == true && verticalAnomaly.y != 0.0 &&  int(verticalAnomaly.y)>(cols/2))
     {
-        qDebug()<<"Nalezeni maxima frangiho funkce se nezdarilo, proverte snimek!"<<endl;
+        columnTo = int(verticalAnomaly.y);
+        changeScaling = true;
+    }
+    else
+        columnTo = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
+
+    int cutout_width = columnTo-columnFrom;
+    int cutout_height = rowTo - rowFrom;
+
+    if ((cutout_height>480 || cutout_width>640)|| changeScaling == true)
+    {
+        cutoutExtra.x = columnFrom;
+        cutoutExtra.y = rowFrom;
+        cutoutExtra.width = cutout_width;
+        cutoutExtra.height = cutout_height;
+        reference(cutoutExtra).copyTo(image);
+        frangi_bod = frangi_analysis(image,1,1,0,"",1,pt_temp,parFrang);
+        rows = image.rows;
+        cols = image.cols;
+        rowFrom = int(round(frangi_bod.y-0.9*frangi_bod.y));
+        rowTo = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
+        columnFrom = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
+        columnTo = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
+        cutout_width = columnTo-columnFrom;
+        cutout_height = rowTo - rowFrom;
+        cutoutStandard.x = columnFrom;
+        cutoutStandard.y = rowFrom;
+        cutoutStandard.width = cutout_width;
+        cutoutStandard.height = cutout_height;
+        scalingNeeded = true;
+        fraMax = frangi_bod;
     }
     else
     {
-        bool nutnost_zmenit_velikost = false;
-        int rows = reference.rows;
-        int cols = reference.cols;
-        int radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));
-        int radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-        int sloupec_od = 0;
-        int sloupec_do = 0;
-
-        if (pritomnostAnomalie == true && hraniceAnomalie.y != 0.0f && int(hraniceAnomalie.y)<(cols/2))
-        {
-            sloupec_od = int(hraniceAnomalie.y);
-            nutnost_zmenit_velikost = true;
-        }
-        else
-            sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
-
-        if (pritomnostAnomalie == true && hraniceAnomalie.y != 0.0f &&  int(hraniceAnomalie.y)>(cols/2))
-        {
-            sloupec_do = int(hraniceAnomalie.y);
-            nutnost_zmenit_velikost = true;
-        }
-        else
-            sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
-
-        int vyrez_sirka = sloupec_do-sloupec_od;
-        int vyrez_vyska = radek_do - radek_od;
-
-        if ((vyrez_vyska>480 || vyrez_sirka>640)|| nutnost_zmenit_velikost == true)
-        {
-            vyrezKoreEx.x = sloupec_od;
-            vyrezKoreEx.y = radek_od;
-            vyrezKoreEx.width = vyrez_sirka;
-            vyrezKoreEx.height = vyrez_vyska;
-            reference(vyrezKoreEx).copyTo(obraz);
-            frangi_bod = frangi_analyza(obraz,1,1,0,"",1,false,pt_temp,parFrang);
-            rows = obraz.rows;
-            cols = obraz.cols;
-            radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));
-            radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-            sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
-            sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
-            vyrez_sirka = sloupec_do-sloupec_od;
-            vyrez_vyska = radek_do - radek_od;
-            vyrezKoreStand.x = sloupec_od;
-            vyrezKoreStand.y = radek_od;
-            vyrezKoreStand.width = vyrez_sirka;
-            vyrezKoreStand.height = vyrez_vyska;
-            zmeMer = true;
-            fraMax = frangi_bod;
-        }
-        else
-        {
-            fraMax=frangi_bod;
-            vyrezKoreStand.x = int(round(fraMax.x-0.9*(fraMax.x)));
-            vyrezKoreStand.y = int(round(fraMax.y-0.9*fraMax.y));
-            radek_do = int(round(fraMax.y+0.9*(rows - fraMax.y)));
-            sloupec_do = int(round(fraMax.x+0.9*(cols - fraMax.x)));
-            vyrezKoreStand.width = sloupec_do-vyrezKoreStand.x;
-            vyrezKoreStand.height = radek_do - vyrezKoreStand.y;
-            reference.copyTo(obraz);
-            //obraz_temp.release();
-        }
+        fraMax=frangi_bod;
+        cutoutStandard.x = int(round(fraMax.x-0.9*(fraMax.x)));
+        cutoutStandard.y = int(round(fraMax.y-0.9*fraMax.y));
+        rowTo = int(round(fraMax.y+0.9*(rows - fraMax.y)));
+        columnTo = int(round(fraMax.x+0.9*(cols - fraMax.x)));
+        cutoutStandard.width = columnTo-cutoutStandard.x;
+        cutoutStandard.height = rowTo - cutoutStandard.y;
+        reference.copyTo(image);
+        //obraz_temp.release();
     }
 }

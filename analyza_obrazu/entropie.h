@@ -5,19 +5,25 @@
 #include "analyza_obrazu/upravy_obrazu.h"
 #include <QProgressBar>
 #include <QVector>
-void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad);
-/// pocita entropii snimku
 
-int entropie_tennengrad_videa(cv::VideoCapture& capture, QVector<double>& entropie,
+void calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &tennengrad);
+
+/**
+ * @brief Function wraps calcutaion of entropy and tennengrad of the video
+ * @param capture
+ * @param entropy
+ * @param tennengrad
+ * @param progbar
+ * @return
+ */
+bool entropy_tennengrad_video(cv::VideoCapture& capture, QVector<double>& entropy,
                               QVector<double>& tennengrad,QProgressBar* progbar);
-/// hlavni funkce volajici vypocet_entropie
 
-double frekvence_binu(cv::Mat &vstupni_obraz,int &velikost_histogramu);
-/// soucasti vypocet_entropie
+double binFrequency(cv::Mat &inputImage,int &histogramSize);
 
-void standardizaceVektoruDat(QVector<double>& dataStandardizovana,QVector<double>& dataOriginalni,
+void standardizedData(QVector<double>& dataStandardized,QVector<double>& dataOriginal,
                              double minimum,double maximum);
-/// zajišťuje přepočet hodnot do rozsahu <0,1>
+
 
 //void aktualizaceProgressBaru(QProgressBar* pb, int procento);
 

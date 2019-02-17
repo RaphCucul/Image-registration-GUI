@@ -18,6 +18,9 @@ SharedVariables::SharedVariables()
     chosenActualPathes["adresarTXT_nacteni"] = "";
     chosenActualPathes["adresarTXT_ulozeni"] = "";
     chosenActualPathes["parametryFrangiFiltr"] = "";
+    horizontalAnomalyCoords = cv::Point2d(0.0,0.0);
+    verticalAnomalyCoords = cv::Point2d(0.0,0.0);
+    detectedFrangiMaximum = cv::Point3d(0.0,0.0,0.0);
 }
 
 SharedVariables *SharedVariables::getSharedVariables(){
@@ -41,9 +44,9 @@ void SharedVariables::processFrangiParameters(QString path){
     file.setFileName(path+"/frangiParameters.json");
     QJsonObject FrangiParametersObject;
     FrangiParametersObject = readJson(file);
-    velikost_frangi_opt(FrangiParametersList.count(),FrangiParameters);
+    size_frangi_opt(FrangiParametersList.count(),FrangiParameters);
     for (int a = 0; a < FrangiParametersList.count(); a++)
-        inicializace_frangi_opt(FrangiParametersObject,FrangiParametersList.at(a),FrangiParameters,a);
+        inicialization_frangi_opt(FrangiParametersObject,FrangiParametersList.at(a),FrangiParameters,a);
 }
 
 QVector<double> SharedVariables::getFrangiParameters() const{
@@ -51,22 +54,22 @@ QVector<double> SharedVariables::getFrangiParameters() const{
 }
 
 double SharedVariables::getSpecificFrangiParameter(int parameter){
-    return data_z_frangi_opt(parameter,FrangiParameters);
+    return data_from_frangi_opt(parameter,FrangiParameters);
 }
 
-void SharedVariables::velikost_frangi_opt(int velikost,QVector<double>& nacteneParametry){
-    nacteneParametry = (QVector<double>(velikost));
+void SharedVariables::size_frangi_opt(int size, QVector<double>& loadedParameters){
+    loadedParameters = (QVector<double>(size));
 }
 
-void SharedVariables::inicializace_frangi_opt(QJsonObject nactenyObjekt, QString parametr, QVector<double>& nacteneParametry,
-                             int &pozice)
+void SharedVariables::inicialization_frangi_opt(QJsonObject loadedObject, QString parameter, QVector<double>& loadedParameters,
+                             int &position)
 {
-    nacteneParametry[pozice] = nactenyObjekt[parametr].toDouble();
+    loadedParameters[position] = loadedObject[parameter].toDouble();
 }
 
-double SharedVariables::data_z_frangi_opt(int pozice,QVector<double>& nacteneParametry)
+double SharedVariables::data_from_frangi_opt(int position, QVector<double>& loadedParameters)
 {
-    return nacteneParametry[pozice];
+    return loadedParameters[position];
 }
 
 void SharedVariables::setSpecificFrangiParameter(int parameter, double value){
@@ -87,4 +90,30 @@ void SharedVariables::saveFrangiParameters(){
     writer.open(QIODevice::WriteOnly);
     writer.write(documentString.toLocal8Bit());
     writer.close();
+}
+
+cv::Point3d SharedVariables::getFrangiMaximum(){
+    return detectedFrangiMaximum;
+}
+
+void SharedVariables::setFrangiMaximum(cv::Point3d coordinates){
+    detectedFrangiMaximum = coordinates;
+}
+
+cv::Point2d SharedVariables::getHorizontalAnomalyCoords(){
+    return horizontalAnomalyCoords;
+}
+
+void SharedVariables::setHorizontalAnomalyCoords(QPointF coords){
+    horizontalAnomalyCoords.x = double(coords.x());
+    horizontalAnomalyCoords.y = double(coords.y());
+}
+
+cv::Point2d SharedVariables::getVerticalAnomalyCoords(){
+    return verticalAnomalyCoords;
+}
+
+void SharedVariables::setVerticalAnomalyCoords(QPointF coords){
+    verticalAnomalyCoords.x = double(coords.x());
+    verticalAnomalyCoords.y = double(coords.y());
 }

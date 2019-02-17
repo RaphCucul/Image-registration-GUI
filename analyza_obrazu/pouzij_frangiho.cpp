@@ -11,288 +11,279 @@
 #include <QDebug>
 #include <QVector>
 using namespace cv;
-cv::Mat predzpracovani_obrazu(const cv::Mat& obrazek_vstupni,float sigma_s,float sigma_r)
+cv::Mat imageFiltrationPreprocessing(const cv::Mat& inputImage, float sigma_s, float sigma_r)
 {
-    Mat filtrovany = cv::Mat::zeros(obrazek_vstupni.rows,obrazek_vstupni.cols,CV_8UC3);
-    Mat obrazek_vystupni;
-    medianBlur(obrazek_vstupni,filtrovany,5);    
-    Mat RF_obraz = cv::Mat::zeros(obrazek_vstupni.rows,obrazek_vstupni.cols,CV_8UC3);
-    kontrola_typu_snimku_8C3(filtrovany);
-    edgePreservingFilter(filtrovany,RF_obraz,1,sigma_s,sigma_r);
+    qDebug()<<inputImage.rows<<" "<<inputImage.cols;
+    Mat filtered = cv::Mat::zeros(inputImage.rows,inputImage.cols,CV_8UC3);
+    Mat outputImage;
+    medianBlur(inputImage,filtered,5);
+    Mat RF_obraz = cv::Mat::zeros(inputImage.rows,inputImage.cols,CV_8UC3);
+    kontrola_typu_snimku_8C3(filtered);
+    edgePreservingFilter(filtered,RF_obraz,1,sigma_s,sigma_r);
     //imshow("Filtrovany RF",RF_obraz);
+    qDebug()<<"Filtration completed.";
     if (RF_obraz.channels() == 3)
     {
         Mat ch1, ch3;
         std::vector<Mat> channels(3);
         split(RF_obraz, channels);
         ch1 = channels[0];
-        obrazek_vystupni = channels[1];
+        outputImage = channels[1];
         ch3 = channels[2];
     }
     else{
-        RF_obraz.copyTo(obrazek_vystupni);
+        RF_obraz.copyTo(outputImage);
     }
     //imshow("Vybrany snimek",obrazek_vystupni);
-    //qDebug()<<"Pocet kanalu vystupniho filtrovaneho snimku je "<<obrazek_vystupni.channels();
-    kontrola_typu_snimku_8C1(obrazek_vystupni);
-    return obrazek_vystupni;
+    qDebug()<<"Pocet kanalu vystupniho filtrovaneho snimku je "<<inputImage.channels();
+    kontrola_typu_snimku_8C1(outputImage);
+    return outputImage;
 }
 
-void osetreni_okraju_snimku(cv::Mat &vstupni_obraz,int typ_snimku, int velikost_okraje_r,int velikost_okraje_s)
+void borderProcessing(cv::Mat &inputImage, int imageType, int padding_r, int padding_s)
 {
-    if (typ_snimku == 1)
+    if (imageType == 1)
     {
-        Rect oblast1(0,0,vstupni_obraz.cols,velikost_okraje_r); // prvnich 20 radku
-        Mat oblast11 = vstupni_obraz(oblast1);
-        Scalar tempVal = mean(oblast11);
-        double prumer_oblasti_11 = tempVal.val[0];
-        vstupni_obraz(oblast1).setTo(prumer_oblasti_11,vstupni_obraz(oblast1) > prumer_oblasti_11);
-    /*****************************************************************************************************/
-        Rect oblast2(0,vstupni_obraz.rows-velikost_okraje_r,vstupni_obraz.cols,velikost_okraje_r); // poslednich 20 radku
-        Mat oblast22 = vstupni_obraz(oblast2);
-        tempVal = mean(oblast22);
-        double prumer_oblasti_22 = tempVal.val[0];
-        vstupni_obraz(oblast2).setTo(prumer_oblasti_22,vstupni_obraz(oblast2) > prumer_oblasti_22);
-    /*****************************************************************************************************/
-        Rect oblast3(0,0,velikost_okraje_s,vstupni_obraz.rows); // prvnich 20 sloupcu
-        Mat oblast33 = vstupni_obraz(oblast3);
-        tempVal = mean(oblast33);
-        double prumer_oblasti_33 = tempVal.val[0];
-        vstupni_obraz(oblast3).setTo(prumer_oblasti_33,vstupni_obraz(oblast3) > prumer_oblasti_33);
-    /*****************************************************************************************************/
-        Rect oblast4(vstupni_obraz.cols-velikost_okraje_s,0,velikost_okraje_s,vstupni_obraz.rows); // poslednich 20 sloupcu
-        Mat oblast44 = vstupni_obraz(oblast4);
-        tempVal = mean(oblast44);
-        double prumer_oblasti_44 = tempVal.val[0];
-        vstupni_obraz(oblast4).setTo(prumer_oblasti_44,vstupni_obraz(oblast4) > prumer_oblasti_44);
+        Rect area1(0,0,inputImage.cols,padding_r); // first 20 rows
+        Mat area11 = inputImage(area1);
+        Scalar tempVal = mean(area11);
+        double average_area_11 = tempVal.val[0];
+        inputImage(area1).setTo(average_area_11,inputImage(area1) > average_area_11);
+
+        Rect area2(0,inputImage.rows-padding_r,inputImage.cols,padding_r); // last 20 rows
+        Mat area22 = inputImage(area2);
+        tempVal = mean(area22);
+        double average_area_22 = tempVal.val[0];
+        inputImage(area2).setTo(average_area_22,inputImage(area2) > average_area_22);
+
+        Rect area3(0,0,padding_s,inputImage.rows); // first 20 columns
+        Mat area33 = inputImage(area3);
+        tempVal = mean(area33);
+        double average_area_33 = tempVal.val[0];
+        inputImage(area3).setTo(average_area_33,inputImage(area3) > average_area_33);
+
+        Rect area4(inputImage.cols-padding_s,0,padding_s,inputImage.rows); // last 20 columns
+        Mat area44 = inputImage(area4);
+        tempVal = mean(area44);
+        double average_area_44 = tempVal.val[0];
+        inputImage(area4).setTo(average_area_44,inputImage(area4) > average_area_44);
     }
-    if (typ_snimku == 2)
+    if (imageType == 2)
     {
-        if (velikost_okraje_r <= 0)
+        if (padding_r <= 0)
         {
-            Rect oblast1(0,0,vstupni_obraz.cols,std::abs(velikost_okraje_r)); // prvnich 20 radku
-            Mat oblast11 = vstupni_obraz(oblast1);
-            Scalar tempVal = mean(oblast11);
-            double prumer_oblasti_11 = tempVal.val[0];
-            vstupni_obraz(oblast1).setTo(prumer_oblasti_11,vstupni_obraz(oblast1) > prumer_oblasti_11);
+            Rect area1(0,0,inputImage.cols,std::abs(padding_r)); // prvnich 20 radku
+            Mat area11 = inputImage(area1);
+            Scalar tempVal = mean(area11);
+            double average_area_11 = tempVal.val[0];
+            inputImage(area1).setTo(average_area_11,inputImage(area1) > average_area_11);
         }
-        if (velikost_okraje_r >= 0)
+        if (padding_r >= 0)
         {
-            Rect oblast2(0,vstupni_obraz.rows-std::abs(velikost_okraje_r),vstupni_obraz.cols,std::abs(velikost_okraje_r)); // poslednich 20 radku
-            Mat oblast22 = vstupni_obraz(oblast2);
-            Scalar tempVal = mean(oblast22);
-            double prumer_oblasti_22 = tempVal.val[0];
-            vstupni_obraz(oblast2).setTo(prumer_oblasti_22,vstupni_obraz(oblast2) > prumer_oblasti_22);
+            Rect area2(0,inputImage.rows-std::abs(padding_r),inputImage.cols,std::abs(padding_r)); // poslednich 20 radku
+            Mat area22 = inputImage(area2);
+            Scalar tempVal = mean(area22);
+            double average_area_22 = tempVal.val[0];
+            inputImage(area2).setTo(average_area_22,inputImage(area2) > average_area_22);
         }
-        if (velikost_okraje_s <= 0)
+        if (padding_s <= 0)
         {
-            Rect oblast3(0,0,std::abs(velikost_okraje_s),vstupni_obraz.rows); // prvnich 20 sloupcu
-            Mat oblast33 = vstupni_obraz(oblast3);
-            Scalar tempVal = mean(oblast33);
-            double prumer_oblasti_33 = tempVal.val[0];
-            vstupni_obraz(oblast3).setTo(prumer_oblasti_33,vstupni_obraz(oblast3) > prumer_oblasti_33);
+            Rect area3(0,0,std::abs(padding_s),inputImage.rows); // prvnich 20 sloupcu
+            Mat area33 = inputImage(area3);
+            Scalar tempVal = mean(area33);
+            double average_area_33 = tempVal.val[0];
+            inputImage(area3).setTo(average_area_33,inputImage(area3) > average_area_33);
         }
-        if (velikost_okraje_s >= 0)
+        if (padding_s >= 0)
         {
-            Rect oblast4(vstupni_obraz.cols-std::abs(velikost_okraje_s),0,std::abs(velikost_okraje_s),vstupni_obraz.rows); // poslednich 20 sloupcu
-            Mat oblast44 = vstupni_obraz(oblast4);
-            Scalar tempVal = mean(oblast44);
-            double prumer_oblasti_44 = tempVal.val[0];
-            vstupni_obraz(oblast4).setTo(prumer_oblasti_44,vstupni_obraz(oblast4) > prumer_oblasti_44);
+            Rect area4(inputImage.cols-std::abs(padding_s),0,std::abs(padding_s),inputImage.rows); // poslednich 20 sloupcu
+            Mat area44 = inputImage(area4);
+            Scalar tempVal = mean(area44);
+            double average_area_44 = tempVal.val[0];
+            inputImage(area4).setTo(average_area_44,inputImage(area4) > average_area_44);
         }
     }
-    kontrola_typu_snimku_32C1(vstupni_obraz);
-    /*rectangle(vstupni_obraz, oblast1, Scalar(255), 1, 8, 0);
-    rectangle(vstupni_obraz, oblast2, Scalar(255), 1, 8, 0);
-    rectangle(vstupni_obraz, oblast3, Scalar(255), 1, 8, 0);
-    rectangle(vstupni_obraz, oblast4, Scalar(255), 1, 8, 0);*/
+    kontrola_typu_snimku_32C1(inputImage);
+    /*rectangle(vstupni_obraz, area1, Scalar(255), 1, 8, 0);
+    rectangle(vstupni_obraz, area2, Scalar(255), 1, 8, 0);
+    rectangle(vstupni_obraz, area3, Scalar(255), 1, 8, 0);
+    rectangle(vstupni_obraz, area4, Scalar(255), 1, 8, 0);*/
     //imshow("Okraje",vstupni_obraz);
 }
 
 
-void nulovani_okraju(cv::Mat& vstupni_obraz,int typ_snimku,int velikost_okraje_r,int velikost_okraje_s)
+void zeroBorders(cv::Mat& inputImage, int imageType, int padding_r, int padding_s)
 {
-    if (typ_snimku == 1)
+    if (imageType == 1)
     {
-        Rect oblast1(0,0,vstupni_obraz.cols,velikost_okraje_r); // prvnich 20 radku
-        vstupni_obraz(oblast1).setTo(0);
-        /**************************************************************************/
-        Rect oblast2(0,vstupni_obraz.rows-velikost_okraje_r,vstupni_obraz.cols,velikost_okraje_r); // poslednich 20 radku
-        vstupni_obraz(oblast2).setTo(0);
-        /**************************************************************************/
-        Rect oblast3(0,0,velikost_okraje_s,vstupni_obraz.rows); // prvnich 20 sloupcu
-        vstupni_obraz(oblast3).setTo(0);
-        /**************************************************************************/
-        Rect oblast4(vstupni_obraz.cols-velikost_okraje_s,0,velikost_okraje_s,vstupni_obraz.rows); // poslednich 20 sloupcu
-        vstupni_obraz(oblast4).setTo(0);
+        Rect area1(0,0,inputImage.cols,padding_r); // rows
+        inputImage(area1).setTo(0);
+
+        Rect area2(0,inputImage.rows-padding_r,inputImage.cols,padding_r); // rows
+        inputImage(area2).setTo(0);
+
+        Rect area3(0,0,padding_s,inputImage.rows); // columns
+        inputImage(area3).setTo(0);
+
+        Rect area4(inputImage.cols-padding_s,0,padding_s,inputImage.rows); // columns
+        inputImage(area4).setTo(0);
     }
-    if (typ_snimku == 2)
+    if (imageType == 2)
     {
-        if (velikost_okraje_r <= 0)
+        if (padding_r <= 0)
         {
-            Rect oblast1(0,0,vstupni_obraz.cols,std::abs(velikost_okraje_r)+40); // prvnich 20 radku
-            vstupni_obraz(oblast1).setTo(0);
-            Rect oblast2(0,vstupni_obraz.rows-40,vstupni_obraz.cols,40); // poslednich 20 radku
-            vstupni_obraz(oblast2).setTo(0);
+            Rect area1(0,0,inputImage.cols,std::abs(padding_r)+40);
+            inputImage(area1).setTo(0);
+            Rect area2(0,inputImage.rows-40,inputImage.cols,40);
+            inputImage(area2).setTo(0);
         }
-        if (velikost_okraje_r >= 0)
+        if (padding_r >= 0)
         {
-            Rect oblast2(0,vstupni_obraz.rows-std::abs(velikost_okraje_r)-40,
-                         vstupni_obraz.cols,std::abs(velikost_okraje_r)+40); // poslednich 20 radku
-            vstupni_obraz(oblast2).setTo(0);
-            Rect oblast1(0,0,vstupni_obraz.cols,40); // prvnich 20 radku
-            vstupni_obraz(oblast1).setTo(0);
+            Rect area2(0,inputImage.rows-std::abs(padding_r)-40,
+                         inputImage.cols,std::abs(padding_r)+40);
+            inputImage(area2).setTo(0);
+            Rect area1(0,0,inputImage.cols,40);
+            inputImage(area1).setTo(0);
         }
-        if (velikost_okraje_s <= 0)
+        if (padding_s <= 0)
         {
-            Rect oblast3(0,0,std::abs(velikost_okraje_s)+40,vstupni_obraz.rows); // prvnich 20 sloupcu
-            vstupni_obraz(oblast3).setTo(0);
-            Rect oblast4(vstupni_obraz.cols-40,0,40,vstupni_obraz.rows); // poslednich 20 sloupcu
-            vstupni_obraz(oblast4).setTo(0);
+            Rect area3(0,0,std::abs(padding_s)+40,inputImage.rows);
+            inputImage(area3).setTo(0);
+            Rect area4(inputImage.cols-40,0,40,inputImage.rows);
+            inputImage(area4).setTo(0);
         }
-        if (velikost_okraje_s >= 0)
+        if (padding_s >= 0)
         {
-            Rect oblast4(vstupni_obraz.cols-std::abs(velikost_okraje_s)-40,0,
-                         std::abs(velikost_okraje_s)+40,vstupni_obraz.rows); // poslednich 20 sloupcu
-            vstupni_obraz(oblast4).setTo(0);
-            Rect oblast3(0,0,40,vstupni_obraz.rows); // prvnich 20 sloupcu
-            vstupni_obraz(oblast3).setTo(0);
+            Rect area4(inputImage.cols-std::abs(padding_s)-40,0,
+                         std::abs(padding_s)+40,inputImage.rows);
+            inputImage(area4).setTo(0);
+            Rect area3(0,0,40,inputImage.rows);
+            inputImage(area3).setTo(0);
         }
         //imshow("Nulovani",vstupni_obraz);
     }
 }
 
 
-cv::Point2d vypocet_teziste_frangi(const cv::Mat &frangi,
+cv::Point2d FrangiSubpixel(const cv::Mat &frangi,
                                    const double& maximum_frangi,
-                                   const cv::Point& souradnice_maxima_frangi)
+                                   const cv::Point& maximumFrangiCoords)
 {
-    Point2d vystup(0,0);
-    int pocitadlo = 0;
+    Point2d output(0,0);
+    int counter = 0;
     float euklid = 0;
-    float suma_rozdilu = 0;
-    int rozdil_x = 0;
-    int rozdil_y = 0;
+    float difference_sum = 0;
+    int difference_x = 0;
+    int difference_y = 0;
     float frangi_x = 0;
     float frangi_y = 0;
-    float hodnoty_pixelu_frangi = 0;
+    float pixelValue = 0;
     for (int i = 0; i<frangi.rows; i++)
     {
         for (int j = 0; j<frangi.cols; j++)
         {
             if (frangi.at<float>(i,j)>=float(0.98*maximum_frangi))
             {
-                rozdil_x = souradnice_maxima_frangi.x - j;
-                rozdil_y = souradnice_maxima_frangi.y - i;
-                suma_rozdilu = float(std::pow(rozdil_x,2.0f) + std::pow(rozdil_y,2.0f));
-                euklid = std::sqrt(suma_rozdilu);
+                difference_x = maximumFrangiCoords.x - j;
+                difference_y = maximumFrangiCoords.y - i;
+                difference_sum = float(std::pow(difference_x,2.0f) + std::pow(difference_y,2.0f));
+                euklid = std::sqrt(difference_sum);
                 if (euklid < 3)
                 {
-                    pocitadlo+=1;
-                    hodnoty_pixelu_frangi += frangi.at<float>(i,j);
+                    counter+=1;
+                    pixelValue += frangi.at<float>(i,j);
                     frangi_x += j*frangi.at<float>(i,j);
                     frangi_y += i*frangi.at<float>(i,j);
                 }
             }
         }
     }
-    vystup.x = double(frangi_x/hodnoty_pixelu_frangi);
-    vystup.y = double(frangi_y/hodnoty_pixelu_frangi);
-    return vystup;
+    output.x = double(frangi_x/pixelValue);
+    output.y = double(frangi_y/pixelValue);
+    return output;
 }
 
-cv::Point3d frangi_analyza(const cv::Mat vstupni_snimek,
-                           int mod_zpracovani,
-                           int presnost,
-                           int zobraz_vysledek_detekce,
-                           QString jmeno_okna,
-                           int typ_snimku,
-                           bool pritomnost_casove_znamky,
-                           cv::Point3d mira_posunuti,
-                           QVector<double> parametryFF)
+cv::Point3d frangi_analysis(const cv::Mat inputFrame,
+                           int processingMode,
+                           int accuracy,
+                           int showResult,
+                           QString windowName,
+                           int frameType,
+                           cv::Point3d translation,
+                           QVector<double> FrangiParameters)
 {
-    int uspech_detekce_maxima;
-    Point3d vystup_funkce;
-    qDebug()<<"kontrola vstupu do frangi_analyza.";
-    qDebug()<<parametryFF.length();
-    /******************************/
+    Point3d definitiveCoords;
     frangi2d_opts_t opts;
     frangi2d_createopts(&opts);
-    if (mod_zpracovani == 2)
+    if (processingMode == 2)
     {
         opts.BlackWhite = false;
     }
-    else if(mod_zpracovani == 1)
+    else if(processingMode == 1)
     {
         opts.BlackWhite = true;
     }
-    opts.sigma_start = int(parametryFF[0]);
-    opts.sigma_step = int(parametryFF[1]);
-    opts.sigma_end = int(parametryFF[2]);
-    opts.BetaOne = parametryFF[3];
-    opts.BetaTwo = parametryFF[4];
-    /******************************/
-    int r = int(mira_posunuti.y);
-    int s = int(mira_posunuti.x);
-    Mat obraz_filtrovany,obraz_frangi,obraz_scale, obraz_angles;
-    obraz_filtrovany = predzpracovani_obrazu(vstupni_snimek,60.0f,0.4f);
-    if (typ_snimku == 1 && pritomnost_casove_znamky == 0) {osetreni_okraju_snimku(obraz_filtrovany,1,20,20);}
-    if (typ_snimku == 2 && pritomnost_casove_znamky == 0) {osetreni_okraju_snimku(obraz_filtrovany,2,r,s);}
-    if (typ_snimku == 2 && pritomnost_casove_znamky == 1) {osetreni_okraju_snimku(obraz_filtrovany,2,40,40);}
-    if (typ_snimku == 1 && pritomnost_casove_znamky == 1) {osetreni_okraju_snimku(obraz_filtrovany,1,80,50);}
-    frangi2d(obraz_filtrovany, obraz_frangi, obraz_scale, obraz_angles, opts);
-    //qDebug()<<"Pocet kanalu frangiho vystupu "<<obraz_frangi.channels()<<" "<<obraz_frangi.type();
-    //imwrite(jmeno_okna+"",obraz_frangi);
+    opts.sigma_start = int(FrangiParameters[0]);
+    opts.sigma_step = int(FrangiParameters[1]);
+    opts.sigma_end = int(FrangiParameters[2]);
+    opts.BetaOne = FrangiParameters[3];
+    opts.BetaTwo = FrangiParameters[4];
+
+    int r = int(translation.y);
+    int s = int(translation.x);
+
+    Mat imageFiltered,imageFrangi,obraz_scale, imageAngles;
+    imageFiltered = imageFiltrationPreprocessing(inputFrame,60.0f,0.4f);
+    qDebug()<<"filtration processed";
+    if (frameType == 1) {borderProcessing(imageFiltered,1,20,20);}
+    if (frameType == 2) {borderProcessing(imageFiltered,2,r,s);}
+    qDebug()<<"border processed";
+    //if (frameType == 2 && pritomnost_casove_znamky == 1) {borderProcessing(imageFiltered,2,40,40);}
+    //if (frameType == 1 && pritomnost_casove_znamky == 1) {borderProcessing(imageFiltered,1,80,50);}
+
+    frangi2d(imageFiltered, imageFrangi, obraz_scale, imageAngles, opts);
+
+    qDebug()<<"Pocet kanalu frangiho vystupu "<<imageFrangi.channels()<<" "<<imageFrangi.type();
+    //imwrite(jmeno_okna+"",imageFrangi);
     obraz_scale.release();
-    obraz_angles.release();
-    obraz_filtrovany.release();
-    if (typ_snimku == 1 && pritomnost_casove_znamky == 0) {nulovani_okraju(obraz_frangi,1,50,50);}
-    if (typ_snimku == 2 && pritomnost_casove_znamky == 0) {nulovani_okraju(obraz_frangi,2,r,s);}
-    if (typ_snimku == 2 && pritomnost_casove_znamky == 1) {nulovani_okraju(obraz_frangi,2,80,80);}
-    if (typ_snimku == 1 && pritomnost_casove_znamky == 1) {nulovani_okraju(obraz_frangi,1,250,80);}
-    /*************************************************************************/
-    double maximum_obraz_frangi;
+    imageAngles.release();
+    imageFiltered.release();
+    if (frameType == 1) {zeroBorders(imageFrangi,1,50,50);}
+    if (frameType == 2) {zeroBorders(imageFrangi,2,r,s);}
+    //if (frameType == 2 && pritomnost_casove_znamky == 1) {zeroBorders(imageFrangi,2,80,80);}
+    //if (frameType == 1 && pritomnost_casove_znamky == 1) {zeroBorders(imageFrangi,1,250,80);}
+
+    double maximum_imageFrangi;
     Point max_loc_frangi;
-    cv::minMaxLoc(obraz_frangi, NULL, &maximum_obraz_frangi, NULL, &max_loc_frangi);
+    cv::minMaxLoc(imageFrangi, NULL, &maximum_imageFrangi, NULL, &max_loc_frangi);
     if ((max_loc_frangi.x!=max_loc_frangi.x)== 1 || (max_loc_frangi.y!=max_loc_frangi.y) == 1)
     {
         qDebug()<<"Maximum Frangiho funkce se nepodarilo detekovat!";
-        uspech_detekce_maxima = 0;
-        vystup_funkce.z = uspech_detekce_maxima;
-        vystup_funkce.x = -10;
-        vystup_funkce.y = -10;
-        //return vystup_funkce;
+        definitiveCoords.z = 0.0;
+        definitiveCoords.x = -10;
+        definitiveCoords.y = -10;
     }
     else
     {
-        uspech_detekce_maxima = 1;
         qDebug()<<"Detekce maxima Frangiho funkce se zdarila.";
-        if (presnost == 1)
+        if (accuracy == 1)
         {
-            vystup_funkce.x = max_loc_frangi.x;
-            vystup_funkce.y = max_loc_frangi.y;
-            vystup_funkce.z = uspech_detekce_maxima;
+            definitiveCoords.x = max_loc_frangi.x;
+            definitiveCoords.y = max_loc_frangi.y;
+            definitiveCoords.z = 1.0;
         }
-        if (presnost == 2)
+        if (accuracy == 2)
         {
-            cv::Point2d teziste = vypocet_teziste_frangi(obraz_frangi,maximum_obraz_frangi,max_loc_frangi);
-            vystup_funkce.x = teziste.x;
-            vystup_funkce.y = teziste.y;
-            vystup_funkce.z = uspech_detekce_maxima;
+            cv::Point2d teziste = FrangiSubpixel(imageFrangi,maximum_imageFrangi,max_loc_frangi);
+            definitiveCoords.x = teziste.x;
+            definitiveCoords.y = teziste.y;
+            definitiveCoords.z = 1.0;
         }
-        if (zobraz_vysledek_detekce == 1)
+        if (showResult == 1)
         {
-            drawMarker(obraz_frangi,max_loc_frangi,(0));
-           //imshow(jmeno_okna,obraz_frangi);
-
+            drawMarker(imageFrangi,max_loc_frangi,(0));
+            cv::imshow(windowName.toLocal8Bit().constData(),imageFrangi);
         }
-        /*if(zobraz_vysledek_detekce == 0)
-        {
-            return vystup_funkce;
-        }*/
     }
-    return vystup_funkce;
+    return definitiveCoords;
 }
-
-
-

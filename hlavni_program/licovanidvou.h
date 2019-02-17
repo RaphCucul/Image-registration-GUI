@@ -27,9 +27,17 @@ class LicovaniDvou : public QWidget
 
 public:
     explicit LicovaniDvou(QWidget *parent = nullptr);
-    ~LicovaniDvou();    
+    ~LicovaniDvou();
+
+    /**
+     * @brief Function clears options from Box layout connected with the combobox
+     * @param layout
+     */
     void clearLayout(QGridLayout *layout);
-    //void VideoLE_textChanged(QLineEdit *LE, QString& s);
+
+    /**
+     * @brief Function checks, if path to the video folder exists
+     */
     void checkPaths();
 
 public slots:
@@ -48,9 +56,10 @@ private slots:
     void Slot_VideoLE_textChanged(const QString &s);
     void ReferenceLE_textChanged(const QString &arg1);
     void TranslatedLE_textChanged(const QString &arg1);
-    void on_areaMaximum_textChanged(const QString &arg1);
-    void on_rotationAngle_textChanged(const QString &arg1);
-    void on_iterationCount_textChanged(const QString &arg1);
+    void on_areaMaximum_editingFinished();
+    //const QString &arg1
+    void on_rotationAngle_editingFinished();
+    void on_iterationCount_editingFinished();
     void on_registrateTwo_clicked();
     void showDialog();
     void evaluateCorrectValues();
@@ -62,23 +71,32 @@ private slots:
 private:
     Ui::LicovaniDvou *ui;
 
-    void initChoiceOneInnerWidgets();
+    void initChoiceOneInnerWidgets(); /// functions initalize all widgets which may appear in the
+                                      /// horizontal box layout
     void initChoiceTwoInnerWidgets();
     void placeChoiceOneWidgets();
     void placeChoiceTwoWidgets();
-    void analyseAndSaveFirst(QString analysedFolder, QVector<QString>& whereToSave);
+
+    /**
+     * @brief Similar to analyseAndSaveFirst, this function loads images and save name of the first one on the
+     * list of found images
+     * @param analysedFolder
+     * @param whereToSave
+     */
     void analyseAndSave(QString analysedFolder, QVector<QString>& whereToSave);
     void evaluateVideoImageInput(QString path,QString method);
+
+    void checkInputNumber(double input,double lower,double upper,QLineEdit* editWidget,double& finalValue,bool& evaluation);
 
     QVector<QString> chosenVideoAnalysis;
     QVector<QString> chosenReferencialImgAnalysis;
     QVector<QString> chosenTranslatedImgAnalysis;
     cv::VideoCapture cap;
-    int referenceNumber = -1;
+    int referencialNumber = -1;
     int translatedNumber = -1;
-    int iteration = -1;
-    double areaMaximum = -1;
-    double angle = 0.1;
+    double iteration = -99.0;
+    double areaMaximum = -99.0;
+    double angle = -99.0;
     QString chosenVideo="";
 
     bool videoCorrect = false;
@@ -89,16 +107,11 @@ private:
     bool areaMaximumCorrect = false;
     bool angleCorrect = false;
     bool iterationCorrect = false;
-    bool horizontalAnomalyPresent = false; // time stamp
-    bool verticalAnomalyPresent = false; // light anomaly
+    bool anomalyPresent = false; // time stamp
     bool scaleChanged = false;
 
-    QVector<double> FrangiParametersVector;
-    cv::Point2f horizontalAnomalyCoords;
-    cv::Point2f verticalAnomalyCoords;
     cv::Point3d frangiMaximumCoords;
     int formerIndex = 0;
-    QJsonObject FrangiParametersFile;
     QLineEdit* chosenVideoLE;
     QPushButton* chosenVideoPB;
     QLineEdit* referenceNoLE;

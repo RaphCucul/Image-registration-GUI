@@ -2,6 +2,7 @@
 #include "licovani/fazova_korelace_funkce.h"
 #include "analyza_obrazu/upravy_obrazu.h"
 #include "analyza_obrazu/korelacni_koeficient.h"
+#include "util/souborove_operace.h"
 #include "licovani/multiPOC_Ai1.h"
 
 #include <opencv2/core.hpp>
@@ -20,9 +21,9 @@
 #include <iterator>
 #include <QDebug>
 
-double median_vektoru_cisel(QVector<double> vektor_hodnot)
+double median_VectorDouble(QVector<double> inputValues)
 {
-    int size = vektor_hodnot.length();
+    int size = inputValues.length();
 
     if (size == 0)
     {
@@ -30,234 +31,233 @@ double median_vektoru_cisel(QVector<double> vektor_hodnot)
     }
     else if (size == 1)
     {
-        return vektor_hodnot[0];
+        return inputValues[0];
     }
     else
     {
-        std::sort(vektor_hodnot.begin(), vektor_hodnot.end());
+        std::sort(inputValues.begin(), inputValues.end());
         if (size % 2 == 0)
         {
-            return (vektor_hodnot[size / 2 - 1] + vektor_hodnot[size / 2]) / 2;
+            return (inputValues[size / 2 - 1] + inputValues[size / 2]) / 2;
         }
         else
         {
-            return vektor_hodnot[size / 2];
+            return inputValues[size / 2];
         }
     }
 }
 
-double kontrola_maxima(QVector<double> &vektor_hodnot)
+double checkMaximum(QVector<double> &inputValues)
 {
     QVector<double>::iterator result;
-    result = std::max_element(vektor_hodnot.begin(), vektor_hodnot.end());
-    int pom = std::distance(vektor_hodnot.begin(), result);
+    result = std::max_element(inputValues.begin(), inputValues.end());
+    int pom = std::distance(inputValues.begin(), result);
 
-    double maximum_vektoru = vektor_hodnot[pom];
-    double pom2 = maximum_vektoru;
-    int kontrolni_mnozstvi = 0;
-    while (kontrolni_mnozstvi < 20)
+    double maximum = inputValues[pom];
+    double pom2 = maximum;
+    int controlAmount = 0;
+    while (controlAmount < 20)
     {
-        kontrolni_mnozstvi = 0;
+        controlAmount = 0;
         pom2 -= 0.001;
-        for (int i = 0; i < vektor_hodnot.size(); i++)
+        for (int i = 0; i < inputValues.size(); i++)
         {
-            if(vektor_hodnot[i] > pom2)
+            if(inputValues[i] > pom2)
             {
-                kontrolni_mnozstvi+=1;
+                controlAmount+=1;
             }
         }       
     }
     return pom2;
 }
 
-QVector<int> spojeni_vektoru(QVector<int> &vektor1, QVector<int> &vektor2)
+QVector<int> mergeVectors(QVector<int> &input1, QVector<int> &input2)
 {
     //std::ostream_iterator<double> out_it (std::cout," ");
-    int celkovaVelikost = vektor1.length()+vektor2.length();
-    QVector<int> sjednoceny_vektor(celkovaVelikost,0.0);
+    int totalSize = input1.length()+input2.length();
+    QVector<int> mergedVector(totalSize,0.0);
 
     for (int a = 0; a < 2; a++)
     {
         if (a == 0)
         {
-            for (int b = 0; b < vektor1.length(); b++)
+            for (int b = 0; b < input1.length(); b++)
             {
-                sjednoceny_vektor[b] = int(vektor1[b]);
+                mergedVector[b] = int(input1[b]);
             }
         }
         if (a == 1)
         {
             int c=0;
-            for (int b = vektor1.length(); b < sjednoceny_vektor.length(); b++)
+            for (int b = input1.length(); b < mergedVector.length(); b++)
             {
-                sjednoceny_vektor[b] = int(vektor2[c]);
+                mergedVector[b] = int(input2[c]);
                 c+=1;
             }
         }
     }
-    /*sjednoceny_vektor.insert(sjednoceny_vektor.end(),*vektor1.begin(),*vektor1.end());
-    sjednoceny_vektor.insert(sjednoceny_vektor.end(),*vektor2.begin(),*vektor2.end());*/
-    std::sort( sjednoceny_vektor.begin(), sjednoceny_vektor.end() );
-    auto last = std::unique(sjednoceny_vektor.begin(), sjednoceny_vektor.end());
-    sjednoceny_vektor.erase(last, sjednoceny_vektor.end());
-    //std::copy ( sjednoceny_vektor.begin(), sjednoceny_vektor.end(), out_it );
+    /*mergedVector.insert(mergedVector.end(),*vektor1.begin(),*vektor1.end());
+    mergedVector.insert(mergedVector.end(),*vektor2.begin(),*vektor2.end());*/
+    std::sort( mergedVector.begin(), mergedVector.end() );
+    auto last = std::unique(mergedVector.begin(), mergedVector.end());
+    mergedVector.erase(last, mergedVector.end());
+    //std::copy ( mergedVector.begin(), mergedVector.end(), out_it );
     //cout<<endl;
-    return sjednoceny_vektor;
+    return mergedVector;
 }
 
-void okna_vektoru(QVector<double>& vektor_hodnot, QVector<double>& okna, double &zbytek_do_konce)
+void vectorWindows(QVector<double>& inputValues, QVector<double>& windows, double &restToEnd)
 {
 
-    int velikost_vektoru = vektor_hodnot.size();
-    while (velikost_vektoru%9 != 0)
+    int vectorSize = inputValues.size();
+    while (vectorSize%9 != 0)
     {
-        velikost_vektoru -= 1;
+        vectorSize -= 1;
     }
-    zbytek_do_konce = vektor_hodnot.size() - velikost_vektoru;
-    double krok = velikost_vektoru/9;
-    double kolikrat = velikost_vektoru/krok;
-    for (double i = 0; i < kolikrat; i++)
+    restToEnd = inputValues.size() - vectorSize;
+    double step = vectorSize/9;
+    double howManyTimes = vectorSize/step;
+    for (double i = 0; i < howManyTimes; i++)
     {
-        double pom = (i+1)*krok;
-        okna.push_back(pom);
+        double pom = (i+1)*step;
+        windows.push_back(pom);
         //okna[i] = pom;
     }
 }
 
-QVector<double> mediany_vektoru(QVector<double>& vektor_hodnot,
-                                    QVector<double>& vektor_oken,
-                                    double zbytek_do_konce)
+QVector<double> mediansOfVector(QVector<double>& inputValues,
+                                    QVector<double>& inputWindows,
+                                    double restToEnd)
 {
     //std::ostream_iterator<double> out_it (std::cout," ");
-    double krok = vektor_oken[0];
-    QVector<double> mediany_oken_vektoru(vektor_oken.size(),0.0);
-    double pocitadlo = 1.0;
-    for (int i = 0; i < vektor_oken.size(); i++)
+    double step = inputWindows[0];
+    QVector<double> mediansVectorWindows(inputWindows.size(),0.0);
+    double counter = 1.0;
+    for (int i = 0; i < inputWindows.size(); i++)
     {
         if (i == 0)
         {
-
             //QVector<double> vekpom(*vektor_hodnot.begin(),*(vektor_hodnot.begin()+krok));
-            QVector<double> vekpom;vekpom = vektor_hodnot.mid(0,int(krok));
+            QVector<double> vekpom;vekpom = inputValues.mid(0,int(step));
             //std::copy ( vekpom.begin(), vekpom.end(), out_it );
             //std::cout<<std::endl;
-            double median_okna = median_vektoru_cisel(vekpom);
-            mediany_oken_vektoru[i] = median_okna;
+            double windowMedian = median_VectorDouble(vekpom);
+            mediansVectorWindows[i] = windowMedian;
         }
         else
         {
             QVector<double> vekpom;//(vektor_hodnot.begin()+(pocitadlo*krok),vektor_hodnot.begin()+((pocitadlo+1)*krok+1));
-            vekpom = vektor_hodnot.mid(int(0.0+(pocitadlo*krok)),int(0.0+((pocitadlo+1)*krok+1)));
+            vekpom = inputValues.mid(int(0.0+(counter*step)),int(0.0+((counter+1)*step+1)));
             //std::copy ( vekpom.begin(), vekpom.end(), out_it );
             //std::cout<<std::endl;
-            double median_okna = median_vektoru_cisel(vekpom);
-            mediany_oken_vektoru[i] = median_okna;
-            pocitadlo+=1;
+            double windowMedian = median_VectorDouble(vekpom);
+            mediansVectorWindows[i] = windowMedian;
+            counter+=1;
         }
     }
-    if (zbytek_do_konce != 0.0 && zbytek_do_konce >= 10.0)
+    if (restToEnd != 0.0 && restToEnd >= 10.0)
     {
         QVector<double> vekpom;
-        vekpom = vektor_hodnot.mid(int(vektor_hodnot.length()-zbytek_do_konce+1),vektor_hodnot.length());
-        double median_okna = median_vektoru_cisel(vekpom);
-        mediany_oken_vektoru.push_back(median_okna);
+        vekpom = inputValues.mid(int(inputValues.length()-restToEnd+1),inputValues.length());
+        double windowMedian = median_VectorDouble(vekpom);
+        mediansVectorWindows.push_back(windowMedian);
     }
-    return mediany_oken_vektoru;
+    return mediansVectorWindows;
 }
 
-void analyza_prubehu_funkce(QVector<double>& vektor_hodnot,
-                            QVector<double>& vektor_medianu,
-                            QVector<double>& vektor_oken,
-                            double& prepocitane_maximum,
-                            QVector<double>& prahy,
+void analysisFunctionValues(QVector<double>& inputValues,
+                            QVector<double>& medianVector,
+                            QVector<double>& windowsVector,
+                            double& recalculatedMaximum,
+                            QVector<double>& thresholds,
                             double& tolerance,
                             int& dmin,
-                            double& zbytek_do_konce,
-                            QVector<int> &spatne_snimky,
-                            QVector<double>& pro_provereni)
+                            double& restToEnd,
+                            QVector<int> &badFrames,
+                            QVector<double>& forEvaluation)
 {
-    if ((vektor_hodnot[0] < vektor_medianu[0]) || (vektor_hodnot[0] >= (prepocitane_maximum+prahy[1])))
+    if ((inputValues[0] < medianVector[0]) || (inputValues[0] >= (recalculatedMaximum+thresholds[1])))
     {
-        spatne_snimky.push_back(0);
+        badFrames.push_back(0);
     }
-    for (int i = 0; i <= vektor_oken.size()-1; i++)
+    for (int i = 0; i <= windowsVector.size()-1; i++)
     {
         int od_do[2] = {0};
         if (i == 0)
         {
             od_do[0] = 1;
-            od_do[1] = int(vektor_oken[i]);
+            od_do[1] = int(windowsVector[i]);
         }
-        else if (i == (vektor_oken.size()-1))
+        else if (i == (windowsVector.size()-1))
         {
-            od_do[0] = int(vektor_oken[i-1]);
-            od_do[1] = int(vektor_oken[i]-2.0);
+            od_do[0] = int(windowsVector[i-1]);
+            od_do[1] = int(windowsVector[i]-2.0);
         }
         else
         {
-            od_do[0] = int(vektor_oken[i-1]);
-            od_do[1] = int(vektor_oken[i]);
+            od_do[0] = int(windowsVector[i-1]);
+            od_do[1] = int(windowsVector[i]);
         }
         //cout << od_do[0] <<" "<<od_do[1]<<" ";
-        double aktualni_median = vektor_medianu[i];
-        //cout<<"Aktualni median ke srovnani: "<<aktualni_median<<endl;
+        double actualMedian = medianVector[i];
+        //cout<<"Aktualni median ke srovnani: "<<actualMedian<<endl;
         for (int j = od_do[0]; j < od_do[1]; j++)
         {
-            if (vektor_hodnot[j] < (aktualni_median-prahy[0]))
+            if (inputValues[j] < (actualMedian-thresholds[0]))
             {
-                if ((vektor_hodnot[j-1])>=vektor_hodnot[j] || (vektor_hodnot[j]<=vektor_hodnot[j+1]))
+                if ((inputValues[j-1])>=inputValues[j] || (inputValues[j]<=inputValues[j+1]))
                 {
-                    if (spatne_snimky.empty() == 1)
+                    if (badFrames.empty() == 1)
                     {
-                        spatne_snimky.push_back(j);
+                        badFrames.push_back(j);
                     }
                     else
                     {
-                        if (std::abs(j-spatne_snimky.back())>=dmin)
+                        if (std::abs(j-badFrames.back())>=dmin)
                         {
-                            spatne_snimky.push_back(j);
+                            badFrames.push_back(j);
                         }
                     }
                 }
             }
-            if (vektor_hodnot[j] >= prepocitane_maximum+prahy[1])
+            if (inputValues[j] >= recalculatedMaximum+thresholds[1])
             {
-                spatne_snimky.push_back(j);
+                badFrames.push_back(j);
             }
-            if (prahy.size() == 2)
+            if (thresholds.size() == 2)
             {
-                if ((vektor_hodnot[j] > (aktualni_median-prahy[0]+tolerance))
-                        && (vektor_hodnot[j] < prepocitane_maximum+prahy[1]))
+                if ((inputValues[j] > (actualMedian-thresholds[0]+tolerance))
+                        && (inputValues[j] < recalculatedMaximum+thresholds[1]))
                 {
-                    pro_provereni.push_back(j);
+                    forEvaluation.push_back(j);
                 }
             }
         }
 
     }
-    if (zbytek_do_konce == 0.0)
+    if (restToEnd == 0.0)
     {
-        if ((vektor_hodnot.back() < vektor_medianu.back()) || (vektor_hodnot.back() >= prepocitane_maximum + prahy[1]))
+        if ((inputValues.back() < medianVector.back()) || (inputValues.back() >= recalculatedMaximum + thresholds[1]))
         {
-            spatne_snimky.push_back(vektor_hodnot.size()-1);
+            badFrames.push_back(inputValues.size()-1);
         }
     }
 }
 
-int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& pro_provereni,
+int findReferencialNumber(double& prepocitane_maximum, QVector<double>& forEvaluation,
                                  QVector<double>& vektor_hodnot)
 {
-    double rozdil = 1000.0;
-    int referencni_snimek = 0;
-    for (int i = 0; i < pro_provereni.size(); i++)
+    double difference = 1000.0;
+    int referencialNumber = 0;
+    for (int i = 0; i < forEvaluation.size(); i++)
     {
-        if (std::abs(prepocitane_maximum - vektor_hodnot[int(pro_provereni[i])]) < rozdil)
+        if (std::abs(prepocitane_maximum - vektor_hodnot[int(forEvaluation[i])]) < difference)
         {
-            referencni_snimek = int(pro_provereni[i]);
-            rozdil = prepocitane_maximum - vektor_hodnot[int(pro_provereni[i])];
+            referencialNumber = int(forEvaluation[i]);
+            difference = prepocitane_maximum - vektor_hodnot[int(forEvaluation[i])];
         }
     }
-    return referencni_snimek;
+    return referencialNumber;
 }
 
 /*void analyza_FWHM(cv::VideoCapture& capture,
@@ -377,7 +377,7 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
             }
             if (zmena_meritka == false)
             {
-                kompletni_slicovani(capture,
+                completeRegistration(capture,
                                     referencni_snimek,
                                     cisloSnimku,
                                     iter,obl,u,
@@ -407,17 +407,17 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
     //cout << endl;
     //std::copy ( zaznamenane_R.begin(), zaznamenane_R.end(), out_it );
     //cout<<endl;
-    vypocteneFWHM = median_vektoru_cisel(zaznamenane_FWHM);
-    vypocteneR = median_vektoru_cisel(zaznamenane_R);
+    vypocteneFWHM = median_VectorDouble(zaznamenane_FWHM);
+    vypocteneR = median_VectorDouble(zaznamenane_R);
 }*/
 
-void kontrola_celistvosti(QVector<int> &spatne_snimky)
+void integrityCheck(QVector<int> &badFrames)
 {
-    QVector<int> vektor_rozdilu(spatne_snimky.size(),0);
+    QVector<int> vektor_rozdilu(badFrames.size(),0);
     //std::ostream_iterator<double> out_it (std::cout," ");
-    for (int j = 0; j < spatne_snimky.size()-1; j++)
+    for (int j = 0; j < badFrames.size()-1; j++)
     {
-        vektor_rozdilu[j] = spatne_snimky[j+1] - spatne_snimky[j];
+        vektor_rozdilu[j] = badFrames[j+1] - badFrames[j];
     }
     //std::copy ( vektor_rozdilu.begin(), vektor_rozdilu.end(), out_it );
     //cout<<endl;
@@ -426,7 +426,7 @@ void kontrola_celistvosti(QVector<int> &spatne_snimky)
     {
         if (vektor_rozdilu[b]==2.0)
         {
-            spatne_snimky.insert(spatne_snimky.begin()+b+1,1,spatne_snimky[b]+1);
+            badFrames.insert(badFrames.begin()+b+1,1,badFrames[b]+1);
             vektor_rozdilu.insert(vektor_rozdilu.begin()+b+1,1,1);
             b+=2;
             //std::copy ( vektor_rozdilu.begin(), vektor_rozdilu.end(), out_it );
@@ -495,6 +495,28 @@ QVector<QVector<int> > divideIntoPeaces(int totalLength, int threadCount)
     output.append(lowerBoundary);
     output.append(upperBoundary);
     return output;
+}
+
+void analyseAndSaveFirst(QString analysedFolder,QVector<QString> &whereToSave){
+    QString folder,filename,suffix;
+    QStringList filesFound;
+    int foundCount = 0;
+    analyseFileNames(analysedFolder,filesFound,foundCount,"avi");
+    if (foundCount != 0){
+        QString fullName = analysedFolder+"/"+filesFound.at(0);
+        processFilePath(fullName,folder,filename,suffix);
+        if (whereToSave.length() == 0){
+            whereToSave.push_back(folder);
+            whereToSave.push_back(filename);
+            whereToSave.push_back(suffix);
+        }
+        else{
+            whereToSave.clear();
+            whereToSave.push_back(folder);
+            whereToSave.push_back(filename);
+            whereToSave.push_back(suffix);
+        }
+    }
 }
 
 int vectorSum(QVector<int> input)

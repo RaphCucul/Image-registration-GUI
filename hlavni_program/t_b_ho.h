@@ -16,12 +16,6 @@ namespace Ui {
 class t_b_HO;
 }
 
-extern QString videaKanalyzeAktual;
-extern QString ulozeniVideiAktual;
-extern QString TXTnacteniAktual;
-extern QString TXTulozeniAktual;
-extern QString paramFrangi;
-
 class t_b_HO : public QWidget
 {
     Q_OBJECT
@@ -87,8 +81,6 @@ private:
     bool loadJsonPaths();
 
     QJsonObject fileWithPaths;
-    QJsonArray videosForAnalysis,savingVideos,videoDataLoad,videoDataSave,frangiParameters;
-    QStringList videosForAnalysisList,savingVideosList,videoDataLoadList,videoDataSaveList,frangiParametersList;
     QStringList pathTypes = {"cestaKvideim","ulozeniVidea","adresarTXT_nacteni","adresarTXT_ulozeni","parametryFrangiFiltr"};
     QHash<QString,QJsonArray> typeArrays;
     QHash<QString,QStringList> typeLists;

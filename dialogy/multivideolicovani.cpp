@@ -1,9 +1,9 @@
 #include "multivideolicovani.h"
 #include "ui_multivideolicovani.h"
-//#include "hlavni_program/t_b_ho.h"
 #include "util/prace_s_vektory.h"
 #include "util/souborove_operace.h"
 #include "analyza_obrazu/pouzij_frangiho.h"
+#include "fancy_staff/sharedvariables.h"
 
 #include <QDebug>
 #include <QMimeType>
@@ -17,12 +17,6 @@
 #include <QThread>
 #include <QMovie>
 #include <QIcon>
-
-extern QString videaKanalyzeAktual;
-extern QString ulozeniVideiAktual;
-extern QString TXTnacteniAktual;
-extern QString TXTulozeniAktual;
-extern QString paramFrangi;
 
 MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
     LicovaniParent(parent),
@@ -50,7 +44,7 @@ MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
     ui->registratePB->setText(tr("Registrate"));
     ui->saveResultsPB->setText(tr("Save computed results"));
 
-    /*velikost_frangi_opt(6,parametryFrangi);
+    /*size_frangi_opt(6,parametryFrangi);
     if (paramFrangi != ""){
         QFile soubor;
         soubor.setFileName(paramFrangi+"/frangiParameters.json");
@@ -58,7 +52,7 @@ MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
         QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
         for (int a = 0; a < 6; a++)
         {
-            inicializace_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
+            inicialization_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
         }
     }*/
 }
@@ -71,7 +65,7 @@ void MultiVideoLicovani::checkPaths(){
         QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
         for (int a = 0; a < 6; a++)
         {
-            inicializace_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
+            inicialization_frangi_opt(parametryFrangiJS,parametry.at(a),parametryFrangi,a);
         }
     }*/
 }
@@ -174,7 +168,7 @@ void MultiVideoLicovani::dropEvent(QDropEvent *event)
                  videoListFull.append(addedVideo);
                  QString path = addedVideo;
                  QString slozka,jmeno,koncovka;
-                 zpracujJmeno(path,slozka,jmeno,koncovka);
+                 processFilePath(path,slozka,jmeno,koncovka);
                  videoListNames.append(jmeno);
             }
         }
@@ -201,7 +195,7 @@ void MultiVideoLicovani::dropEvent(QDropEvent *event)
                 videoListFull.append(url.toLocalFile());
                 QString path = url.toLocalFile();
                 QString slozka,jmeno,koncovka;
-                zpracujJmeno(path,slozka,jmeno,koncovka);
+                processFilePath(path,slozka,jmeno,koncovka);
                 videoListNames.append(jmeno);
                 QTableWidgetItem* newVideo = new QTableWidgetItem(jmeno);
                 ui->listOfVideos->setItem(TableRowCounter,1,newVideo);
@@ -229,7 +223,9 @@ MultiVideoLicovani::~MultiVideoLicovani()
 
 void MultiVideoLicovani::on_chooseMultiVPB_clicked()
 {
-    QStringList filenames = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),videaKanalyzeAktual,tr("Video files (*.avi);;;") );
+    QStringList filenames = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),
+                            SharedVariables::getSharedVariables()->getPath("cestaKvideim"),
+                            tr("Video files (*.avi);;;") );
     if( !filenames.isEmpty() )
     {
         ui->listOfVideos->setRowCount(filenames.count());
@@ -241,7 +237,7 @@ void MultiVideoLicovani::on_chooseMultiVPB_clicked()
                 videoListFull.append(filenames.at(i));
                 QString path = filenames.at(i);
                 QString slozka,jmeno,koncovka;
-                zpracujJmeno(path,slozka,jmeno,koncovka);
+                processFilePath(path,slozka,jmeno,koncovka);
                 videoListNames.append(jmeno);
                 QTableWidgetItem* newVideo = new QTableWidgetItem(jmeno);
                 ui->listOfVideos->setItem(i,1,newVideo);
@@ -259,7 +255,8 @@ void MultiVideoLicovani::on_chooseMultiVPB_clicked()
 
 void MultiVideoLicovani::on_chooseFolderPB_clicked()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),videaKanalyzeAktual,
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                  SharedVariables::getSharedVariables()->getPath("cestaKvideim"),
                                                     QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     QDir chosenDirectory(dir);
     //qDebug()<<"Chosen directory:"<<dir;
@@ -276,7 +273,7 @@ void MultiVideoLicovani::on_chooseFolderPB_clicked()
                 videoListFull.append(videosInDirectory.at(a));
                 QString path = videosInDirectory.at(a);
                 QString slozka,jmeno,koncovka;
-                zpracujJmeno(path,slozka,jmeno,koncovka);
+                processFilePath(path,slozka,jmeno,koncovka);
                 videoListNames.append(jmeno);
                 QTableWidgetItem* newVideo = new QTableWidgetItem(jmeno);
                 ui->listOfVideos->setItem(a,1,newVideo);
@@ -306,7 +303,7 @@ void MultiVideoLicovani::on_deleteChosenPB_clicked()
         if (actuallyDeleted == "")
             continue;
         indexOfDeletion.push_back(index);
-        zpracujJmeno(actuallyDeleted,slozka,jmeno,koncovka);
+        processFilePath(actuallyDeleted,slozka,jmeno,koncovka);
         qDebug()<<"video "<<item->text()<<" will be deleted";
         //delete ui->listOfVideos->takeItem(ui->listOfVideos->row(item),1);
 
@@ -345,7 +342,7 @@ void MultiVideoLicovani::on_deleteChosenPB_clicked()
 void MultiVideoLicovani::on_registratePB_clicked()
 {
     for (int videoIndex = 0; videoIndex < videoListNames.count(); videoIndex++) {
-        QFile videoParametersFile(TXTnacteniAktual+"/"+videoListNames.at(videoIndex)+".dat");
+        QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("adresarTXT_nacteni")+"/"+videoListNames.at(videoIndex)+".dat");
         QJsonObject videoParametersJson = readJson(videoParametersFile);
         processVideoParameters(videoParametersJson,videoPropertiesDouble,videoPropertiesInt);
     }
@@ -385,7 +382,7 @@ void MultiVideoLicovani::createAndRunThreads(int indexProcVid, int indexThread, 
     regThread = new RegistrationThread(cap,
                                        indexThread,
                                        videoListNames.at(indexProcVid),
-                                       parametryFrangi,
+                                       SharedVariables::getSharedVariables()->getFrangiParameters(),
                                        ohodnoceniActualVideo,
                                        referencniSnimek,
                                        lowerLimit,upperLimit,
@@ -454,7 +451,7 @@ int MultiVideoLicovani::writeToVideo()
         double FPSvidea = cap.get(CV_CAP_PROP_FPS);
         cv::Size velikostSnimku = cv::Size(int(sirka_framu),int(vyska_framu));
         double frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
-        QString cestaZapis = ulozeniVideiAktual+"/"+videoListNames.at(indexVideo)+"_GUI.avi";
+        QString cestaZapis = SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+videoListNames.at(indexVideo)+"_GUI.avi";
         cv::VideoWriter writer = cv::VideoWriter(cestaZapis.toLocal8Bit().constData(),
                 CV_FOURCC('F','F','V','1'),FPSvidea,velikostSnimku,true);
         if (!writer.isOpened())

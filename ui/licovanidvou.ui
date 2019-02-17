@@ -143,7 +143,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,1">
          <item>
           <widget class="QLabel" name="tennengrad_referencial"/>
          </item>
@@ -215,12 +215,25 @@
      </item>
      <item>
       <widget class="QPushButton" name="registrateTwo">
+       <property name="minimumSize">
+        <size>
+         <width>49</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>51</width>
+         <height>21</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
     border-color: blue;
     border-width: 1px;
     color: white;
+	font-size: 12px;
 }</string>
        </property>
        <property name="default">

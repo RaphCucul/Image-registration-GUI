@@ -94,7 +94,7 @@ GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<Q
         QCustomPlot* GrafickyObjekt = new QCustomPlot(WSCustomPlot);
         QString slozka,jmeno,koncovka;
         QString celek = JmenoVidea.at(b);
-        zpracujJmeno(celek,slozka,jmeno,koncovka);
+        processFilePath(celek,slozka,jmeno,koncovka);
         ui->grafyTBW->addTab(GrafickyObjekt,jmeno);
     }
 

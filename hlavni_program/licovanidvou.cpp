@@ -10,8 +10,9 @@
 #include "dialogy/clickimageevent.h"
 #include "hlavni_program/frangi_detektor.h"
 //#include "hlavni_program/vysledeklicovani.h"
-//#include "hlavni_program/t_b_ho.h"
+#include "fancy_staff/sharedvariables.h"
 #include "util/souborove_operace.h"
+#include "util/prace_s_vektory.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -32,15 +33,10 @@
 #include <QSpacerItem>
 #include <array>
 #include <QSignalMapper>
+#include <typeinfo>
 
 static cv::Mat src1;
 static cv::Mat src2;
-
-extern QString videaKanalyzeAktual;
-extern QString ulozeniVideiAktual;
-extern QString TXTnacteniAktual;
-extern QString TXTulozeniAktual;
-extern QString paramFrangi;
 
 LicovaniDvou::LicovaniDvou(QWidget *parent) :
     QWidget(parent),
@@ -67,20 +63,19 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     setStyleSheet(styleSheet);
 
     ui->areaMaximum->setPlaceholderText("0 - 20");
-    areaMaximum = 10.0;
     ui->areaMaximum->setEnabled(false);
     ui->rotationAngle->setPlaceholderText("0 - 0.5");
-    angle = 0.1;
     ui->rotationAngle->setEnabled(false);
     ui->iterationCount->setPlaceholderText("1 - Inf; -1~automatic settings");
-    iteration = -1;
     ui->iterationCount->setEnabled(false);
     ui->horizontalAnomaly->setChecked(false);
     ui->verticalAnomaly->setChecked(false);
+    ui->horizontalAnomaly->setEnabled(false);
+    ui->verticalAnomaly->setEnabled(false);
 
-    frangiMaximumCoords = detekovane_frangiho_maximum;
+    frangiMaximumCoords = SharedVariables::getSharedVariables()->getFrangiMaximum();
     connect(ui->verticalAnomaly,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
-    //velikost_frangi_opt(6,FrangiParametersVector);
+    connect(ui->horizontalAnomaly,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
 
     initChoiceOneInnerWidgets();
     placeChoiceOneWidgets();
@@ -176,31 +171,9 @@ void LicovaniDvou::placeChoiceTwoWidgets(){
     ui->nabidkaAnalyzy->addItem(horizontalSpacer2,0,4);
 }
 
-void LicovaniDvou::analyseAndSaveFirst(QString analysedFolder,QVector<QString> &whereToSave){
-    QString folder,filename,suffix;
-    QStringList filesFound;
-    int foundCount = 0;
-    analyzuj_jmena_souboru_avi(analysedFolder,filesFound,foundCount,"avi");
-    if (foundCount != 0){
-        QString fullName = analysedFolder+"/"+filesFound.at(0);
-        zpracujJmeno(fullName,folder,filename,suffix);
-        if (whereToSave.length() == 0){
-            whereToSave.push_back(folder);
-            whereToSave.push_back(filename);
-            whereToSave.push_back(suffix);
-        }
-        else{
-            whereToSave.clear();
-            whereToSave.push_back(folder);
-            whereToSave.push_back(filename);
-            whereToSave.push_back(suffix);
-        }
-    }
-}
-
 void LicovaniDvou::analyseAndSave(QString analysedFolder, QVector<QString> &whereToSave){
     QString folder,filename,suffix;
-    zpracujJmeno(analysedFolder,folder,filename,suffix);
+    processFilePath(analysedFolder,folder,filename,suffix);
     if (whereToSave.length() == 0)
     {
         whereToSave.push_back(folder);
@@ -222,7 +195,6 @@ void LicovaniDvou::evaluateVideoImageInput(QString path, QString method){
         if (!cap.isOpened())
         {
             chosenVideoLE->setStyleSheet("color: #FF0000");
-            //qDebug()<<"video nelze otevrit pro potreby zpracovani";
             videoCorrect = false;
             referenceNoLE->setText("");
             translatedNoLE->setText("");
@@ -246,7 +218,6 @@ void LicovaniDvou::evaluateVideoImageInput(QString path, QString method){
         if (referencialImg.empty())
         {
             referenceImgLE->setStyleSheet("color: #FF0000");
-            //qDebug()<<"Obrazek zvoleny jako referenční nelze otevřít.";
             referencialImgCorrect = false;
             ui->areaMaximum->setEnabled(false);
             ui->rotationAngle->setEnabled(false);
@@ -265,7 +236,6 @@ void LicovaniDvou::evaluateVideoImageInput(QString path, QString method){
         if (translatedImg.empty())
         {
             translatedImgLE->setStyleSheet("color: #FF0000");
-            qDebug()<<"Obrazek zvoleny jako posunutý nelze otevřít.";
             translatedImgCorrect = false;
         }
         else
@@ -280,32 +250,27 @@ void LicovaniDvou::evaluateVideoImageInput(QString path, QString method){
 void LicovaniDvou::evaluateCorrectValues(){
     if (areaMaximumCorrect && angleCorrect && iterationCorrect){
         ui->registrateTwo->setEnabled(true);
+        ui->horizontalAnomaly->setEnabled(true);
+        ui->verticalAnomaly->setEnabled(true);
     }
+    else
+        ui->registrateTwo->setEnabled(false);
 }
 
 void LicovaniDvou::checkPaths(){
     if (formerIndex == 0){
 
-        if (videaKanalyzeAktual == "")
+        if (SharedVariables::getSharedVariables()->getPath("cestaKvideim") == "")
             chosenVideoLE->setPlaceholderText(tr("Chosen video"));
         else{
-            analyseAndSaveFirst(videaKanalyzeAktual,chosenVideoAnalysis);
+            analyseAndSaveFirst(SharedVariables::getSharedVariables()->getPath("cestaKvideim"),chosenVideoAnalysis);
             chosenVideoLE->setText(chosenVideoAnalysis[1]);
         }
     }
-    /*if (paramFrangi != ""){
-        QFile soubor;
-        soubor.setFileName(paramFrangi+"/frangiParameters.json");
-        FrangiParametersFile = readJson(soubor);
-        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-        for (int a = 0; a < 6; a++)
-            inicializace_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
-    }*/
 }
 
 void LicovaniDvou::on_comboBox_activated(int index)
 {
-    qDebug()<<"Index Comboboxu: "<<index;
     if (index == 2)
     {
         if (formerIndex != 2)
@@ -337,8 +302,8 @@ void LicovaniDvou::on_comboBox_activated(int index)
 
         QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
         referenceNoLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
-        QWidget* widgetPosunutyLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
-        translatedNoLE = qobject_cast<QLineEdit*>(widgetPosunutyLE);
+        QWidget* widgettranslatedImageLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
+        translatedNoLE = qobject_cast<QLineEdit*>(widgettranslatedImageLE);
         QObject::connect(referenceNoLE,SIGNAL(textChanged(const QString &)),
                          this,SLOT(ReferenceLE_textChanged(const QString&)));
         QObject::connect(translatedNoLE,SIGNAL(textChanged(const QString &)),
@@ -356,12 +321,12 @@ void LicovaniDvou::on_comboBox_activated(int index)
 
         QWidget* widgetReferencePB = ui->nabidkaAnalyzy->itemAt(1)->widget();
         QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-        QWidget* widgetPosunutyPB = ui->nabidkaAnalyzy->itemAt(3)->widget();
-        QWidget* widgetPosunutyLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
+        QWidget* widgettranslatedImagePB = ui->nabidkaAnalyzy->itemAt(3)->widget();
+        QWidget* widgettranslatedImageLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
         chooseReferencialImagePB = qobject_cast<QPushButton*>(widgetReferencePB);
-        chooseTranslatedImagePB = qobject_cast<QPushButton*>(widgetPosunutyPB);
+        chooseTranslatedImagePB = qobject_cast<QPushButton*>(widgettranslatedImagePB);
         referenceImgLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
-        translatedImgLE = qobject_cast<QLineEdit*>(widgetPosunutyLE);
+        translatedImgLE = qobject_cast<QLineEdit*>(widgettranslatedImageLE);
 
         QSignalMapper* m_sigmapper1 = new QSignalMapper(this);
 
@@ -384,12 +349,11 @@ void LicovaniDvou::on_comboBox_activated(int index)
 
 void LicovaniDvou::clearLayout(QGridLayout *layout)
 {
-    int pocetSLoupcu = layout->columnCount();
-    int pocetRadku = layout->rowCount();
-    qDebug()<<"pocetSLoupcu: "<<pocetSLoupcu<<" pocetRadku: "<<pocetRadku;
-    for (int a = 1; a <= pocetRadku; a++)
+    int columnCount = layout->columnCount();
+    int rowCount = layout->rowCount();
+    for (int a = 1; a <= rowCount; a++)
     {
-        for (int b = 1; b <= pocetSLoupcu; b++)
+        for (int b = 1; b <= columnCount; b++)
         {
             QWidget* widget = layout->itemAtPosition(a-1,b-1)->widget();
             layout->removeWidget(widget);
@@ -400,7 +364,6 @@ void LicovaniDvou::clearLayout(QGridLayout *layout)
 
 void LicovaniDvou::chosenVideoPBWrapper()
 {
-    //vyberVideaPB_clicked(dynamic_cast<QLineEdit*>(sender()));
     QWidget* widgetVideoLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
     chosenVideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
     emit chosenVideoPB_clicked(chosenVideoLE);
@@ -409,8 +372,7 @@ void LicovaniDvou::chosenVideoPBWrapper()
 void LicovaniDvou::chosenVideoPB_clicked(QWidget *W)
 {
     QString pathToVideo = QFileDialog::getOpenFileName(this,
-         "Vyberte snímek pro Frangiho filtr", "","*.avi;;Všechny soubory (*)");
-    //qDebug()<<"vybrane video: "<<videoProDvojiciSnimku;
+         "Choose video", "","*.avi;;All files (*)");
     analyseAndSaveFirst(pathToVideo,chosenVideoAnalysis);
     chosenVideoLE = qobject_cast<QLineEdit*>(W);
     //qDebug()<<rozborVybranehoSouboru[0];
@@ -423,7 +385,7 @@ void LicovaniDvou::chosenVideoPB_clicked(QWidget *W)
 void LicovaniDvou::chosenReferenceImgPB_clicked(QWidget* W)
 {
     QString referencialImagePath = QFileDialog::getOpenFileName(this,
-         "Vyberte referenční obrázek", "","*.bmp;;Všechny soubory (*)");
+         "Choose referencial image", "","*.bmp;;All files (*)");
     analyseAndSave(referencialImagePath,chosenReferencialImgAnalysis);
     referenceImgLE = qobject_cast<QLineEdit*>(W);
     referenceImgLE->setText(chosenReferencialImgAnalysis[1]);
@@ -433,7 +395,7 @@ void LicovaniDvou::chosenReferenceImgPB_clicked(QWidget* W)
 void LicovaniDvou::chosenTranslatedImgPB_clicked(QWidget* W)
 {
     QString translatedImgPath = QFileDialog::getOpenFileName(this,
-         "Vyberte posunutý obrázek", "","*.bmp;;Všechny soubory (*)");
+         "Choose translated image", "","*.bmp;;All files (*)");
     analyseAndSave(translatedImgPath,chosenTranslatedImgAnalysis);
     translatedImgLE = qobject_cast<QLineEdit*>(W);
     translatedImgLE->setText(chosenTranslatedImgAnalysis[1]);
@@ -442,8 +404,6 @@ void LicovaniDvou::chosenTranslatedImgPB_clicked(QWidget* W)
 
 void LicovaniDvou::ReferenceImgLE_textChanged(const QString &arg1)
 {
-    //QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-    //QLineEdit* ReferenceLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
     QString fullPath = chosenReferencialImgAnalysis[0]+"/"+arg1+"."+chosenReferencialImgAnalysis[2];
     evaluateVideoImageInput(fullPath,"referencialImage");
     if (referencialImgCorrect && translatedImgCorrect){
@@ -455,8 +415,6 @@ void LicovaniDvou::ReferenceImgLE_textChanged(const QString &arg1)
 
 void LicovaniDvou::TranslatedImgLE_textChanged(const QString &arg1)
 {
-    //QWidget* widgetPosunutyLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
-    //QLineEdit* PosunutyLE = qobject_cast<QLineEdit*>(widgetPosunutyLE);
     QString fullPath = chosenTranslatedImgAnalysis[0]+"/"+arg1+"."+chosenTranslatedImgAnalysis[2];
     evaluateVideoImageInput(fullPath,"translatedImage");
     if (referencialImgCorrect && translatedImgCorrect){
@@ -466,50 +424,27 @@ void LicovaniDvou::TranslatedImgLE_textChanged(const QString &arg1)
     }
 }
 
-/*void LicovaniDvou::VideoLE_textChanged(QLineEdit *LE, QString &s)
-{
-    QString kompletni_cesta = rozborVybranehoSouboru[0]+"/"+s+"."+rozborVybranehoSouboru[2];
-    cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
-    if (!cap.isOpened())
-    {
-        LE->setStyleSheet("color: #FF0000");
-        qDebug()<<"video nelze otevrit pro potreby zpracovani";
-        spravnostVidea = false;
-    }
-    else
-    {
-        LE->setStyleSheet("color: #339900");
-        spravnostVidea = true;
-        rozborVybranehoSouboru[1] = s;
-    }
-}*/
-
 void LicovaniDvou::Slot_VideoLE_textChanged(const QString &s)
 {
-    //QWidget* widgetVideoLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-    //chosenVideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
     QString fullPath = chosenVideoAnalysis[0]+"/"+s+"."+chosenVideoAnalysis[2];
     evaluateVideoImageInput(fullPath,"video");
 }
 
 void LicovaniDvou::ReferenceLE_textChanged(const QString &arg1)
 {
-    //QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
-    //QLineEdit* ReferenceLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
     int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
     int referenceFrameNo = arg1.toInt();
     if (referenceFrameNo < 0 || referenceFrameNo > frameCount)
     {
         referenceNoLE->setStyleSheet("color: #FF0000");
-        //qDebug()<<"Referencni snimek nelze ve videu dohledat";
         referenceCorrect = false;
-        referenceNumber = -1;
+        referencialNumber = -1;
     }
     else
     {
         referenceNoLE->setStyleSheet("color: #339900");
         referenceCorrect = true;
-        referenceNumber = referenceFrameNo;
+        referencialNumber = referenceFrameNo;
         if (referenceCorrect && translatedCorrect){
             ui->areaMaximum->setEnabled(true);
             ui->rotationAngle->setEnabled(true);
@@ -520,14 +455,11 @@ void LicovaniDvou::ReferenceLE_textChanged(const QString &arg1)
 
 void LicovaniDvou::TranslatedLE_textChanged(const QString &arg1)
 {
-    //QWidget* widgetPosunutyLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
-    //QLineEdit* PosunutyLE = qobject_cast<QLineEdit*>(widgetPosunutyLE);
     int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
     int translatedFrameNo = arg1.toInt();
     if (translatedFrameNo < 0 || translatedFrameNo > frameCount)
     {
         translatedNoLE->setStyleSheet("color: #FF0000");
-        qDebug()<<"Snimek posunuty nelze ve videu dohledat";
         translatedCorrect = false;
         translatedNumber = -1;
     }
@@ -544,196 +476,161 @@ void LicovaniDvou::TranslatedLE_textChanged(const QString &arg1)
     }
 }
 
-void LicovaniDvou::on_areaMaximum_textChanged(const QString &arg1)
+void LicovaniDvou::checkInputNumber(double input, double lower, double upper, QLineEdit *editWidget, double &finalValue, bool &evaluation){
+
+    if (input < lower || (input > upper && upper != 0.0)){
+        editWidget->setStyleSheet("color: #FF0000");
+        editWidget->setText("");
+        finalValue = -99;
+        evaluation = false;
+    }
+    else if (input < lower || (upper == 0.0 && input == 0.0)){
+        editWidget->setStyleSheet("color: #FF0000");
+        editWidget->setText("");
+        finalValue = -99;
+        evaluation = false;
+    }
+    else{
+        editWidget->setStyleSheet("color: #339900");
+        evaluation = true;
+        finalValue = input;
+        emit checkRegistrationPass();
+    }
+
+}
+
+void LicovaniDvou::on_areaMaximum_editingFinished()
 {
-    double inputNumber = arg1.toDouble();
-    if (inputNumber < 1.0 || inputNumber > 20.0)
-    {
-        ui->areaMaximum->setStyleSheet("color: #FF0000");
+    bool ok;
+    double inputNumber = ui->areaMaximum->text().toDouble(&ok);
+    if (ok)
+        checkInputNumber(inputNumber,1.0,20.0,ui->areaMaximum,areaMaximum,areaMaximumCorrect);
+    else
         ui->areaMaximum->setText("");
-        areaMaximumCorrect = false;
-        areaMaximum = -1;
-    }
-    else
-    {
-        ui->areaMaximum->setStyleSheet("color: #339900");
-        areaMaximumCorrect = true;
-        areaMaximum = inputNumber;
-        emit checkRegistrationPass();
-    }
 }
 
-void LicovaniDvou::on_rotationAngle_textChanged(const QString &arg1)
+void LicovaniDvou::on_rotationAngle_editingFinished()
 {
-    double inputNumber = arg1.toDouble();
-    if (inputNumber < 0.0 || inputNumber > 0.5)
-    {
-        ui->rotationAngle->setStyleSheet("color: #FF0000");
-        angleCorrect = false;
-        angle = 0.1;
-    }
+    bool ok;
+    double inputNumber = ui->rotationAngle->text().toDouble(&ok);
+    if (ok)
+        checkInputNumber(inputNumber,0.0,0.5,ui->rotationAngle,angle,angleCorrect);
     else
-    {
-        ui->rotationAngle->setStyleSheet("color: #339900");
-        angleCorrect = true;
-        angle = inputNumber;
-        emit checkRegistrationPass();
-    }
+        ui->rotationAngle->setText("");
 }
 
-void LicovaniDvou::on_iterationCount_textChanged(const QString &arg1)
+void LicovaniDvou::on_iterationCount_editingFinished()
 {
-    int inputNumber = arg1.toInt();
-    if (inputNumber < -1.0 && inputNumber == 0.0)
-    {
-        ui->iterationCount->setStyleSheet("color: #FF0000");
-        iterationCorrect = false;
-        iteration = -1;
-    }
-    if (inputNumber == -1 || inputNumber > 1)
-    {
-        ui->iterationCount->setStyleSheet("QLineEdit#pocetIteraci{color: #339900}");
-        iterationCorrect = true;
-        if (inputNumber == -1)
-            iteration = -1;
-        else        
-            iteration = inputNumber;
-        emit checkRegistrationPass();
-    }
+    bool ok;
+    double inputNumber = ui->iterationCount->text().toDouble(&ok);
+    if (ok)
+        checkInputNumber(inputNumber,-1.0,0.0,ui->iterationCount,iteration,iterationCorrect);
+    else
+        ui->iterationCount->setText("");
 }
 
 void LicovaniDvou::on_registrateTwo_clicked()
 {
-    //this->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-    //MainWindow* mojeplikace = new MainWindow();
-    //mojeplikace->showMinimized();
-    //qDebug()<<parametry_frangi;
-    //qDebug()<<parametry_frangi.length();
     QString filePath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
     cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
-    cap.set(CV_CAP_PROP_POS_FRAMES,double(referenceNumber));
-    cv::Mat referencni_snimek,posunuty;
-    cap.read(referencni_snimek);
-    kontrola_typu_snimku_8C3(referencni_snimek);
-    qDebug()<<"reference má "<<referencni_snimek.channels()<<" kanálů a typu "<<referencni_snimek.type();
+    cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber));
+    cv::Mat referencialImage,translatedImage;
+    cap.read(referencialImage);
+    kontrola_typu_snimku_8C3(referencialImage);
     cap.set(CV_CAP_PROP_POS_FRAMES,double(translatedNumber));
-    cap.read(posunuty);
-    kontrola_typu_snimku_8C3(posunuty);
-    double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-    double entropie_posunuteho,entropie_reference;
-    cv::Scalar tennengrad_posunuteho,tennengrad_reference;
-    vypocet_entropie(referencni_snimek,entropie_reference,tennengrad_reference);
-    vypocet_entropie(posunuty,entropie_posunuteho,tennengrad_posunuteho);
-    //cout << "E: " << entropie_reference <<" T: " << tennengrad_reference[0] << endl;
-    //cout << "E: " << entropie_posunuteho << " T: " << tennengrad_posunuteho[0] << endl;
-    ui->ER->setText(QString::number(entropie_reference));
-    ui->TR->setText(QString::number(tennengrad_reference[0]));
-    ui->EM->setText(QString::number(entropie_posunuteho));
-    ui->TM->setText(QString::number(tennengrad_posunuteho[0]));
+    cap.read(translatedImage);
+    kontrola_typu_snimku_8C3(translatedImage);
+    //double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    //double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    double entropyTranslated,entropyReference;
+    cv::Scalar tennengradTranslated,tennengradReference;
+    calculateParametersET(referencialImage,entropyReference,tennengradReference);
+    calculateParametersET(translatedImage,entropyTranslated,tennengradTranslated);
+    qDebug() << "E: " << entropyReference <<" T: " << tennengradReference[0];
+    qDebug() << "E: " << entropyTranslated << " T: " << tennengradTranslated[0];
+    ui->ER->setText(QString::number(entropyReference));
+    ui->TR->setText(QString::number(tennengradReference[0]));
+    ui->EM->setText(QString::number(entropyTranslated));
+    ui->TM->setText(QString::number(tennengradTranslated[0]));
 
-    cv::Rect vyrez_korelace_extra(0,0,0,0);
-    cv::Rect vyrez_korelace_standard(0,0,0,0);
-    cv::Rect vyrez_anomalie(0,0,0,0);
+    cv::Rect cutoutExtra(0,0,0,0);
+    cv::Rect cutoutStandard(0,0,0,0);
+    cv::Rect cutoutAnomaly(0,0,0,0);
     cv::Point3d pt_temp(0.0,0.0,0.0);
-    cv::Mat obraz;
-    if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
-    {
-        verticalAnomalyCoords.x = oznacena_hranice_svetelne_anomalie.x;
-        verticalAnomalyCoords.y = oznacena_hranice_svetelne_anomalie.y;
-    }
-    else
-    {
-        verticalAnomalyCoords.x = 0.0f;
-        verticalAnomalyCoords.y = 0.0f;
-    }
-    if (oznacena_hranice_casove_znacky.y > 0.0f && oznacena_hranice_casove_znacky.y < float(vyska))
-    {
-        horizontalAnomalyCoords.y = oznacena_hranice_casove_znacky.y;
-        horizontalAnomalyCoords.x = oznacena_hranice_casove_znacky.x;
-    }
-    else
-    {
-        horizontalAnomalyCoords.y = 0.0f;
-        horizontalAnomalyCoords.x = 0.0f;
-    }
-    predzpracovaniKompletnihoLicovani(referencni_snimek,
-                                      obraz,
-                                      FrangiParametersVector,
-                                      verticalAnomalyCoords,
-                                      horizontalAnomalyCoords,
+    cv::Point2d horizontalAnomaly = SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords();
+    cv::Point2d verticalAnomaly = SharedVariables::getSharedVariables()->getVerticalAnomalyCoords();
+    cv::Mat image;
+    qDebug()<<referencialImage.rows<<" "<<referencialImage.cols;
+    preprocessingCompleteRegistration(referencialImage,
+                                      image,
+                                      SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                      verticalAnomaly,
+                                      horizontalAnomaly,
                                       frangiMaximumCoords,
-                                      vyrez_anomalie,
-                                      vyrez_korelace_extra,
-                                      vyrez_korelace_standard,
+                                      cutoutAnomaly,
+                                      cutoutExtra,
+                                      cutoutStandard,
                                       cap,
-                                      verticalAnomalyPresent,
-                                      horizontalAnomalyPresent,
+                                      anomalyPresent,
                                       scaleChanged);
 
-    int rows = referencni_snimek.rows;
-    int cols = referencni_snimek.cols;
-    cv::Mat obraz_32f,obraz_vyrez;
-    obraz.copyTo(obraz_32f);
-    //posunuty.copyTo(posunuty_32f);
-    kontrola_typu_snimku_32C1(obraz_32f);
-    //kontrola_typu_snimku_32C1(posunuty_32f);
-    //qDebug()<<"Obraz "<<obraz.channels();
-    //qDebug()<<"Posunuty"<<posunuty.channels();
-    //qDebug()<<"Obraz 32"<<obraz_32f.channels();
-    //qDebug()<<"Posunuty 320"<<posunuty_32f.channels();
-    obraz_32f(vyrez_korelace_standard).copyTo(obraz_vyrez);
-    cv::Point3d maximum_frangi_reverse = frangi_analyza(obraz,2,2,0,"",1,false,pt_temp,FrangiParametersVector);
+    int rows = referencialImage.rows;
+    int cols = referencialImage.cols;
+    qDebug()<<"preprocessing completed."<<image.rows<<" "<<image.cols;
+    //qDebug()<<"image "<<image.channels();
+    //qDebug()<<"translatedImage"<<translatedImage.channels();
+    cv::Point3d maximum_frangi_reverse = frangi_analysis(image,2,2,0,"",1,pt_temp,
+                                                         SharedVariables::getSharedVariables()->getFrangiParameters());
     qDebug()<<"Maximum frangi reverse "<<maximum_frangi_reverse.x<<" "<<maximum_frangi_reverse.y;
-    /// Začátek
-    cv::Mat mezivysledek = cv::Mat::zeros(obraz.size(), CV_32FC3);
-    cv::Point3d pt3;
-    double uhel = 0;
-    double celkovy_uhel = 0;
-    int uspech_slicovani = kompletni_slicovani(cap,
-                                               referencni_snimek,
+    /// Beginning
+    cv::Mat intermediate_result = cv::Mat::zeros(image.size(), CV_32FC3);
+    cv::Point3d pt3(0.0,0.0,0.0);
+    double l_angle = 0.0;
+    double l_angleSum = 0.0;
+    bool registrationSuccessfull = completeRegistration(cap,
+                                               referencialImage,
                                                translatedNumber,
                                                iteration,
                                                areaMaximum,
-                                               uhel,
-                                               vyrez_korelace_extra,
-                                               vyrez_korelace_standard,
+                                               l_angle,
+                                               cutoutExtra,
+                                               cutoutStandard,
                                                scaleChanged,
-                                               mezivysledek,
+                                               intermediate_result,
                                                pt3,
-                                               celkovy_uhel);
+                                               l_angleSum);
     /// Konec
-    if (uspech_slicovani==0)
+    if (!registrationSuccessfull)
         qDebug()<<"Licovani skoncilo chybou";
     else
     {
         qDebug()<<"PT3 - posunutí po multiPOC "<<pt3.x<<" "<<pt3.y;
-        cv::Mat korekce = eventualni_korekce_translace(mezivysledek,obraz,vyrez_korelace_standard,pt3,areaMaximum);
-        qDebug()<<"Mezivýsledek "<<mezivysledek.channels()<<" "<<mezivysledek.type();
-        cv::Point3d pt5 = fk_translace_hann(obraz,korekce);
-        qDebug()<<"PT5 obraz vs korekce"<<pt5.x<<" "<<pt5.y;
+        cv::Mat correction = eventualni_korekce_translace(intermediate_result,image,cutoutStandard,pt3,areaMaximum);
+        qDebug()<<"Mezivýsledek "<<intermediate_result.channels()<<" "<<intermediate_result.type();
+        cv::Point3d pt5 = fk_translace_hann(image,correction);
+        qDebug()<<"PT5 image vs correction"<<pt5.x<<" "<<pt5.y;
         double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt5.z);
         double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
         qDebug()<<"FWHM: "<<FWHM;
-        cv::Point3d pt6 = fk_translace(obraz,korekce);
+        cv::Point3d pt6 = fk_translace(image,correction);
         qDebug()<<"Pt6 "<<pt6.x<<" "<<pt6.y;
-        cv::Point3d souradnice_slicovany_frangi_reverse = frangi_analyza(mezivysledek,2,2,0,"",2,false,pt3,FrangiParametersVector);
-        //cv::Point3d souradnice_slicovany_frangi = frangi_analyza(mezivysledek,1,1,0,"",2,false,pt3,parametry_frangi);
-        double yydef = maximum_frangi_reverse.x - souradnice_slicovany_frangi_reverse.x;
-        double xxdef = maximum_frangi_reverse.y - souradnice_slicovany_frangi_reverse.y;
-        cv::Point3d vysledne_posunuti;
-        vysledne_posunuti.y = pt3.y - yydef;
-        vysledne_posunuti.x = pt3.x - xxdef;
-        vysledne_posunuti.z = 0;
-        cv::Mat posunuty_temp2 = translace_snimku(posunuty,vysledne_posunuti,rows,cols);
-        cv::Mat finalni_licovani = rotace_snimku(posunuty_temp2,uhel);
-        cv::Mat finalni_licovani_32f,finalni_licovani_32f_vyrez;
-        finalni_licovani.copyTo(finalni_licovani_32f);
-        kontrola_typu_snimku_32C1(finalni_licovani_32f);
-        finalni_licovani_32f(vyrez_korelace_standard).copyTo(finalni_licovani_32f_vyrez);
+        cv::Point3d registrated_FrangiReverse = frangi_analysis(intermediate_result,2,2,0,"",2,pt3,
+                                                                SharedVariables::getSharedVariables()->getFrangiParameters());
+        //cv::Point3d souradnice_slicovany_frangi = frangi_analysis(intermediate_result,1,1,0,"",2,false,pt3,parametry_frangi);
+        double yydef = maximum_frangi_reverse.x - registrated_FrangiReverse.x;
+        double xxdef = maximum_frangi_reverse.y - registrated_FrangiReverse.y;
+        cv::Point3d resulting_translation;
+        resulting_translation.y = pt3.y - yydef;
+        resulting_translation.x = pt3.x - xxdef;
+        resulting_translation.z = 0;
+        cv::Mat translatedImage_temp2 = translace_snimku(translatedImage,resulting_translation,rows,cols);
+        cv::Mat final_registration = rotace_snimku(translatedImage_temp2,l_angle);
+        cv::Mat final_registration_32f;
+        final_registration.copyTo(final_registration_32f);
+        kontrola_typu_snimku_32C1(final_registration_32f);
         qDebug()<<"Licovani dokonceno";
-        src1 = obraz;
-        src2 = mezivysledek;
+        src1 = image;
+        src2 = intermediate_result;
         kontrola_typu_snimku_8C3(src1);
         kontrola_typu_snimku_8C3(src2);
 
@@ -754,14 +651,14 @@ void LicovaniDvou::showDialog()
     if (ui->verticalAnomaly->isChecked())
     {
         QString fullPath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referenceNumber,1);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,1);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
     if (ui->horizontalAnomaly->isChecked())
     {
         QString fullPath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referenceNumber,2);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,2);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }

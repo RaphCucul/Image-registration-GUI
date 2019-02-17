@@ -21,25 +21,24 @@ public slots:
 
 protected:
     int licovaniDokonceno = 0;
-    QVector<QVector<double>> entropie;
+    QVector<QVector<double>> entropy;
     QVector<QVector<double>> tennengrad;
-    QVector<QVector<int>> snimkyPrvotniOhodnoceniEntropieKomplet;
-    QVector<QVector<int>> snimkyPrvotniOhodnoceniTennengradKomplet;
-    QVector<QVector<int>> snimkyPrvniRozhodovaniKomplet;
-    QVector<QVector<int>> snimkyDruheRozhodovaniKomplet;
-    QVector<QVector<int>> snimkyOhodnoceniKomplet;
-    QVector<QVector<double>> snimkyFrangiX;
-    QVector<QVector<double>> snimkyFrangiY;
-    QVector<QVector<double>> snimkyFrangiEuklid;
-    QVector<QVector<double>> snimkyPOCX;
-    QVector<QVector<double>> snimkyPOCY;
-    QVector<QVector<double>> snimkyUhel;
+    QVector<QVector<int>> framesFirstFullCompleteEntropyEvaluation; //snimkyPrvotniOhodnoceniEntropieKomplet;
+    QVector<QVector<int>> framesFirstFullCompleteTennengradEvaluation; //snimkyPrvotniOhodnoceniTennengradKomplet;
+    QVector<QVector<int>> framesFirstFullCompleteDecision; //snimkyPrvniRozhodovaniKomplet;
+    QVector<QVector<int>> framesSecondFullCompleteDecision; //snimkyDruheRozhodovaniKomplet;
+    QVector<QVector<int>> framesFinalCompleteDecision; //snimkyOhodnoceniKomplet;
+    QVector<QVector<int>> badFramesComplete; //spatnesnimkyohodnocenikomplet
+    QVector<QVector<double>> framesFrangiX; //snimkyFrangiX;
+    QVector<QVector<double>> framesFrangiY; //snimkyFrangiY;
+    QVector<QVector<double>> framesFrangiEuklid; //snimkyFrangiEuklid;
+    QVector<QVector<double>> framesPOCX; //snimkyPOCX;
+    QVector<QVector<double>> framesPOCY; //snimkyPOCY;
+    QVector<QVector<double>> framesAngle; //snimkyUhel;
 
-    QVector<int> PritomnostCasoveZnacky;
-    QVector<int> PritomnostSvetelneAnomalie;
-    QJsonObject parametryFrangiJS;
-    QVector<double> parametryFrangi;
-    QStringList seznamVidei;
+    QVector<int> horizontalAnomalyPresent;
+    QVector<int> verticalAnomalyPresent;
+    QStringList videoList;
     QStringList videoListFull;
     QStringList videoListNames;
 

@@ -116,7 +116,7 @@ void RegistrationThread::run()
                        capture,
                        scaling);
     obraz(correl_standard).copyTo(obraz_vyrez);
-    Point3d frangiMaxReversal = frangi_analyza(obraz,2,2,0,"",1,false,pt_temp,frangiParameters);
+    Point3d frangiMaxReversal = frangi_analysis(obraz,2,2,0,"",1,pt_temp,frangiParameters);
     for (int indexFrame = startingFrame; indexFrame <= stoppingFrame; indexFrame++){
         if (ohodnoceniSnimku[indexFrame] == 0){
             registrateTheBest(capture,referencialImage,frangiMaxReversal,indexFrame,iteration,maximalArea,
@@ -137,7 +137,7 @@ void RegistrationThread::run()
                 {
                     Mat posunuty;
                     posunuty_temp(correl_extra).copyTo(posunuty);
-                    Point3d frangi_bod_obraz_reverse = frangi_analyza(posunuty,2,2,0,"",1,timeStampPresent,pt_temp,frangiParameters);
+                    Point3d frangi_bod_obraz_reverse = frangi_analysis(posunuty,2,2,0,"",1,pt_temp,frangiParameters);
                     frangiX[indexFrame] = frangi_bod_obraz_reverse.x;
                     frangiY[indexFrame] = frangi_bod_obraz_reverse.y;
                     frangiEuklidean[indexFrame] = 0.0;
@@ -147,7 +147,7 @@ void RegistrationThread::run()
                 }
                 else
                 {
-                    Point3d frangi_bod_obraz_reverse = frangi_analyza(posunuty_temp,2,2,0,"",1,timeStampPresent,pt_temp,frangiParameters);
+                    Point3d frangi_bod_obraz_reverse = frangi_analysis(posunuty_temp,2,2,0,"",1,pt_temp,frangiParameters);
                     qDebug() << "Referencni snimek "<<indexFrame<<" zapsan.";
                     posunuty_temp.release();
                     frangiX[indexFrame] = frangi_bod_obraz_reverse.x;
@@ -586,7 +586,7 @@ int RegistrationThread::registrateTheBest(cv::VideoCapture& cap,
                 kontrola_typu_snimku_32C1(mezivysledek32f);
                 mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
                 double R_prvni = vypocet_KK(referencni_snimek,plneSlicovanyKorekce,vyrez_korelace_standard);
-                Point3d frangi_bod_slicovany_reverse = frangi_analyza(plneSlicovanyKorekce,2,2,0,"",2,false,mira_translace,parametry_frangi);
+                Point3d frangi_bod_slicovany_reverse = frangi_analysis(plneSlicovanyKorekce,2,2,0,"",2,mira_translace,parametry_frangi);
                 frangiX[index_posunuty] = frangi_bod_slicovany_reverse.x;
                 frangiY[index_posunuty] = frangi_bod_slicovany_reverse.y;
                 double yydef = bod_RefS_reverse.x - frangi_bod_slicovany_reverse.x;
@@ -728,9 +728,9 @@ int RegistrationThread::imagePreprocessing(cv::Mat &reference,
         pritomnostCasZn = true;
     }
     if (pritomnostAnomalie == true || pritomnostCasZn == true)
-        frangi_bod = frangi_analyza(reference(oblastAnomalie),1,1,0,"",1,pritomnostCasZn,pt_temp,parFrang);
+        frangi_bod = frangi_analysis(reference(oblastAnomalie),1,1,0,"",1,pt_temp,parFrang);
     else
-        frangi_bod = frangi_analyza(reference,1,1,0,"",1,pritomnostCasZn,pt_temp,parFrang);
+        frangi_bod = frangi_analysis(reference,1,1,0,"",1,pt_temp,parFrang);
 
     if (frangi_bod.z == 0.0)
     {
@@ -772,7 +772,7 @@ int RegistrationThread::imagePreprocessing(cv::Mat &reference,
             vyrezKoreEx.width = vyrez_sirka;
             vyrezKoreEx.height = vyrez_vyska;
             reference(vyrezKoreEx).copyTo(obraz);
-            frangi_bod = frangi_analyza(obraz,1,1,0,"",1,false,pt_temp,parFrang);
+            frangi_bod = frangi_analysis(obraz,1,1,0,"",1,pt_temp,parFrang);
             rows = obraz.rows;
             cols = obraz.cols;
             radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));

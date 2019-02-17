@@ -28,28 +28,35 @@ public:
     explicit MultipleVideoET(QWidget *parent = nullptr);
     ~MultipleVideoET();
     void aktualizujProgBar(int procento);
-    void checkPaths();
+    //void checkPaths();
 protected:
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
 private slots:
-    void on_nekolikVideiPB_clicked();
-    void on_celaSlozkaPB_clicked();
-    void on_ETanalyzaVideiPB_clicked();
-    void on_zobrazVysledkyPB_clicked();
-    void on_vymazatZVyberuPB_clicked();
-    void zpracovano(int dokonceno);
+    void on_afewVideosPB_clicked();
+    void on_wholeFolderPB_clicked();
+    void on_analyzeVideosPB_clicked();
+    void on_showResultsPB_clicked();
+    void on_deleteChosenFromListPB_clicked();
+    void done(int finished);
     void newVideoProcessed(int index);
-    void movedToMethod(int metoda);
-    void terminatedByError(int where);
-    void on_ulozeni_clicked();
-    void on_oblastMaxima_textChanged(const QString &arg1);
-    void on_uhelRotace_textChanged(const QString &arg1);
-    void on_pocetIteraci_textChanged(const QString &arg1);
-
+    void movedToMethod(int method);
+    void on_savePB_clicked();
+    void on_areaMaximum_textChanged(const QString &arg1);
+    void on_rotationAngle_textChanged(const QString &arg1);
+    void on_iterationCount_textChanged(const QString &arg1);
+    void evaluateCorrectValues();
+signals:
+    void checkValuesPass();
 private:
     Ui::MultipleVideoET *ui;
     QStringList videoList;
+    QMap<QString,QVector<QVector<double>>> mapDouble;
+    QMap<QString,QVector<QVector<int>>> mapInt;
+    QMap<QString,QVector<int>> mapAnomalies;
+    QStringList videoParameters = {"entropy","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
+                                 "Angle","Rating","PrvotOhodEntropie","PrvotOhodTennengrad"
+                                 "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
 };
 
 #endif // MULTIPLEVIDEOET_H

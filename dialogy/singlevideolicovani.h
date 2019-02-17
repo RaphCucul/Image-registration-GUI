@@ -3,6 +3,7 @@
 
 #include "util/licovaniparent.h"
 #include "licovani/registrationthread.h"
+#include "fancy_staff/sharedvariables.h"
 #include <QWidget>
 #include <QVector>
 #include <QList>
@@ -22,14 +23,14 @@ public:
     ~SingleVideoLicovani();
     void processVideoParameters(QJsonObject& videoData);
     void checkPaths();
-    void licuj(cv::VideoCapture& cap,
+    /*void licuj(cv::VideoCapture& cap,
                QVector<double> frangiParam,
                cv::Mat& referencni_snimek,
                int startFrame,
                int stopFrame,
                int iterace,
                double oblastMaxima,
-               double uhel,
+               double angle,
                float timeStamp,
                float lightAnomaly);
     int registrateTheBest(cv::VideoCapture& cap,
@@ -70,7 +71,7 @@ public:
                                cv::Mat& obraz,
                                cv::Mat& snimek_korigovany,
                                cv::Rect& vyrez_korelace_standard,
-                               cv::Point3d& korekce_bod);
+                               cv::Point3d& korekce_bod);*/
     int writeToVideo();
 
     void createAndRunThreads(int indexProcVid, cv::VideoCapture& cap, int lowerLimit,
@@ -86,17 +87,15 @@ private:
     RegistrationThread *regThread;
     QString fullVideoPath;
     QTableWidget* widgetForScrollArea;
-    QVector<QString> vybraneVideoLicovaniSingle;
-    QVector<QString> vybranyJSONLicovaniSingle;
+    QVector<QString> chosenVideo;
+    QVector<QString> chosenJson;
     QList<QPointer<RegistrationThread>> registrationThreadsList;
     QJsonObject videoParametersJson;
     QVector<double> frangiX,frangiY,frangiEuklidean,finalPOCx,finalPOCy,maximalAngles;
-    cv::Point2f ziskane_hranice_anomalie;
-    cv::Point2f ziskane_hranice_CasZnac;
     cv::Rect correl_standard;
     cv::Rect correl_extra;
     cv::Rect anomalyCutoff;
-    double uhel = 0.0;
+    double angle = 0.0;
     int internalCounter = 0;
     double actualFrameCount = 0.0;
 };

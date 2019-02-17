@@ -7,16 +7,33 @@
 #include <QJsonArray>
 #include <QVector>
 using namespace std;
-void analyzuj_jmena_souboru_avi(QString vybrana_cesta_k_souborum,
-                                QStringList &seznam_jmen_souboru,
-                                int &celkovy_pocet_souboru_s_koncovkou,
-                                QString koncovka_co_hledam);
-/// funkce analyzujici obsah slozky a hledajici soubory se zadanou koncovkou, vyuziva nize uvedene funkce
-void zpracujJmeno(QString celeJmeno, QString& slozka, QString& zkraceneJmeno, QString& koncovka);
-QJsonObject readJson(QFile& soubor);
-void writeJson(QJsonObject& object, QJsonArray& pole, QString typ, QString pathAndName);
-QJsonArray vector2array(QVector<double>& vektor);
-QJsonArray vector2array(QVector<int>& vektor);
+/**
+ * @brief Funcion analyse the content of the provided directory, tries to find all files with the given
+ * suffix
+ * @param chosenPathToFiles
+ * @param filenameList
+ * @param filenameWithSuffixCount
+ * @param searchedSuffix
+ */
+void analyseFileNames(QString chosenPathToFiles,
+                                QStringList &filenameList,
+                                int &filenameWithSuffixCount,
+                                QString searchedSuffix);
+
+/**
+ * @brief Function split given file path into pieces to provide folder path, filename and suffix of the chosen
+ * file
+ * @param wholePaht
+ * @param folder
+ * @param onlyFilename
+ * @param suffix
+ */
+void processFilePath(QString wholePaht, QString& folder, QString& onlyFilename, QString& suffix);
+
+QJsonObject readJson(QFile& file);
+void writeJson(QJsonObject& object, QJsonArray& array, QString type, QString pathAndName);
+QJsonArray vector2array(QVector<double>& vector);
+QJsonArray vector2array(QVector<int>& vector);
 QVector<int> arrayInt2vector(QJsonArray& array);
 QVector<double> arrayDouble2vector(QJsonArray& array);
 #endif // SOUBOROVE_OPERACE_H_INCLUDED

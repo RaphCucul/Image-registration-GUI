@@ -95,7 +95,7 @@
       <widget class="QLineEdit" name="rotationAngle"/>
      </item>
      <item>
-      <widget class="QLineEdit" name="iterationNumber"/>
+      <widget class="QLineEdit" name="iterationCount"/>
      </item>
     </layout>
    </item>

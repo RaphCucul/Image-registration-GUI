@@ -22,21 +22,24 @@ public:
     //void temp(QStringList pomList);
     void checkPaths();
 private slots:
-    void on_vyberVidea_clicked();
-    void on_vybraneVideo_textChanged(const QString &arg1);
-    void on_casovaZnacka_stateChanged(int arg1);
-    void on_svetelnaAnomalie_stateChanged(int arg1);
-    void on_vypocetET_clicked();
-    void on_zobrazGrafET_clicked();
-    void zpracovano(int dokonceno);
+    void on_chooseVideoPB_clicked();
+    void on_chosenVideoLE_textChanged(const QString &arg1);
+    void on_horizontalAnomalyCB_stateChanged(int arg1);
+    void on_verticalAnomalyCB_stateChanged(int arg1);
+    void on_calculateET_clicked();
+    void on_showGraphET_clicked();
+    void done(int done);
     void newVideoProcessed(int index);
-    void movedToMethod(int metoda);
-    void on_ulozeni_clicked();
-    void on_oblastMaxima_textChanged(const QString &arg1);
-    void on_uhelRotace_textChanged(const QString &arg1);
-    void on_pocetIteraci_textChanged(const QString &arg1);
-    void on_cisloReferencnihosnimku_textChanged(const QString &arg1);
-
+    void movedToMethod(int method);
+    void on_savePB_clicked();
+    void on_areaMaximum_editingFinished();
+    void on_rotationAngle_editingFinished();
+    void on_iterationCount_editingFinished();
+    void on_referencialNumberLE_textChanged(const QString &arg1);
+    void evaluateCorrectValues();
+    void showDialog();
+signals:
+    void checkValuesPass();
 private:
     Ui::SingleVideoET *ui;
     int formerIndex = 0;
@@ -44,7 +47,7 @@ private:
     QMap<QString,QVector<QVector<int>>> mapInt;
     QMap<QString,QVector<int>> mapAnomalies;
     QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
-                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad"
+                                 "Angle","Rating","PrvotOhodEntropie","PrvotOhodTennengrad"
                                  "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
 };
 

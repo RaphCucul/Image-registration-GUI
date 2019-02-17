@@ -11,47 +11,46 @@ class qThreadFifthPart : public QThread
 {
     Q_OBJECT
 public:
-    explicit qThreadFifthPart(QStringList& sV,
-                              cv::Rect& VK_s,
-                              cv::Rect& VK_e,
+    explicit qThreadFifthPart(QStringList& videos,
+                              cv::Rect& CO_s,
+                              cv::Rect& CO_e,
                               QVector<QVector<double>>& POCX,
                               QVector<QVector<double>>& POCY,
-                              QVector<QVector<double>>& U,
-                              QVector<QVector<double>>& F_X,
-                              QVector<QVector<double>>& F_Y,
-                              QVector<QVector<double>>& F_E,
-                              bool zmenaMeritka,
-                              bool casovaZnacka,
-                              QVector<QVector<int>> &hodnoceni_vsech_snimku_videa,
-                              QVector<QVector<int>>& sProverDruhy,
-                              QVector<int>& referencniSnimkyVidei,
-                              QVector<double>& parametryFrangianalyzy,
+                              QVector<QVector<double>>& Angle,
+                              QVector<QVector<double>>& Fr_X,
+                              QVector<QVector<double>>& Fr_Y,
+                              QVector<QVector<double>>& Fr_E,
+                              bool scaleChanged,
+                              QVector<QVector<int>> &EvaluationComplete,
+                              QVector<QVector<int>>& frEvalSec,
+                              QVector<int>& referFrames,
+                              QVector<double> FrangiParams,
                               QObject* parent = nullptr);
     void run() override;
-    QVector<QVector<int>> snimkyUpdateOhodnoceniKomplet();
-    QVector<QVector<double>> snimkyFrangiXestimated();
-    QVector<QVector<double>> snimkyFrangiYestimated();
-    QVector<QVector<double>> snimkyFrangiEuklidestimated();
-    QVector<QVector<double>> snimkyPOCXestimated();
-    QVector<QVector<double>> snimkyPOCYestimated();
-    QVector<QVector<double>> snimkyUhelestimated();
+    QVector<QVector<int>> framesUpdateEvaluationComplete();
+    QVector<QVector<double>> framesFrangiXestimated();
+    QVector<QVector<double>> framesFrangiYestimated();
+    QVector<QVector<double>> framesFrangiEuklidestimated();
+    QVector<QVector<double>> framesPOCXestimated();
+    QVector<QVector<double>> framesPOCYestimated();
+    QVector<QVector<double>> framesAngleestimated();
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
-    void hotovo(int);
+    void done(int);
     void actualVideo(int);
     void unexpectedTermination();
 private:
-    double pocetVidei;
-    double pocetSnimku;
-    QStringList seznamVidei;
-    QVector<QVector<int>> snimky_k_provereni_druhy,ohodnoceniSnimkuKomplet;
-    QVector<QVector<double>> POC_x,POC_y,uhel,frangi_x,frangi_y,frangi_euklid;
-    QVector<double> prumerny_korelacni_koeficient,prumerne_FWHM,parametryFrangi;
-    QVector<int> referenceKompletni;
-    cv::Rect vyrez_korelace_standard;
-    cv::Rect vyrez_korelace_extra;
-    bool zmena_meritka,casova_znacka;
+    double videoCount;
+    double frameCount;
+    QStringList videoList;
+    QVector<QVector<int>> framesSecondEval,framesCompleteEvaluation;
+    QVector<QVector<double>> POC_x,POC_y,angle,frangi_x,frangi_y,frangi_euklid;
+    QVector<double> average_CC,average_FWHM,FrangiParameters;
+    QVector<int> referencialFrames;
+    cv::Rect obtainedCutoffStandard;//ziskany_VK_standard;
+    cv::Rect obtainedCutoffExtra;//ziskany_VK_extra;
+    bool scaleCh;
 };
 
 #endif // QTHREADFIFTHPART_H

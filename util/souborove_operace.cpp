@@ -9,32 +9,32 @@
 #include "util/souborove_operace.h"
 using namespace std;
 
-void analyzuj_jmena_souboru_avi(QString vybrana_cesta_k_souborum,
-                                QStringList &seznam_jmen_souboru,
-                                int &celkovy_pocet_souboru_s_koncovkou,
-                                QString koncovka_co_hledam)
+void analyseFileNames(QString chosenPathToFiles,
+                                QStringList &filenameList,
+                                int &filenameWithSuffixCount,
+                                QString searchedSuffix)
 {
-     QDir chosenDirectory(vybrana_cesta_k_souborum);
-     seznam_jmen_souboru = chosenDirectory.entryList(QStringList() << "*."+koncovka_co_hledam << "*."+koncovka_co_hledam.toUpper(),QDir::Files);
-     celkovy_pocet_souboru_s_koncovkou = seznam_jmen_souboru.size();
+     QDir chosenDirectory(chosenPathToFiles);
+     filenameList = chosenDirectory.entryList(QStringList() << "*."+searchedSuffix << "*."+searchedSuffix.toUpper(),QDir::Files);
+     filenameWithSuffixCount = filenameList.size();
 }
 
-void zpracujJmeno(QString celeJmeno,QString& slozka,QString& zkraceneJmeno,QString& koncovka)
+void processFilePath(QString wholePaht, QString& folder, QString& onlyFilename, QString& suffix)
 {
-    int lastindexSlash = celeJmeno.lastIndexOf("/");
-    int lastIndexDot = celeJmeno.length() - celeJmeno.lastIndexOf(".");
-    slozka = celeJmeno.left(lastindexSlash);
-    zkraceneJmeno = celeJmeno.mid(lastindexSlash+1,
-         (celeJmeno.length()-lastindexSlash-lastIndexDot-1));
-    koncovka = celeJmeno.right(lastIndexDot-1);
+    int lastindexSlash = wholePaht.lastIndexOf("/");
+    int lastIndexDot = wholePaht.length() - wholePaht.lastIndexOf(".");
+    folder = wholePaht.left(lastindexSlash);
+    onlyFilename = wholePaht.mid(lastindexSlash+1,
+         (wholePaht.length()-lastindexSlash-lastIndexDot-1));
+    suffix = wholePaht.right(lastIndexDot-1);
 }
 
-QJsonObject readJson(QFile& soubor)
+QJsonObject readJson(QFile& file)
 {
     QByteArray val;
-    soubor.open(QIODevice::ReadOnly | QIODevice::Text);
-    val = soubor.readAll();
-    soubor.close();
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    val = file.readAll();
+    file.close();
     //qDebug() << val;
     QJsonDocument d = QJsonDocument::fromJson(val);
     QJsonObject sett2 = d.object();
@@ -45,9 +45,9 @@ QJsonObject readJson(QFile& soubor)
     return sett2;
 }
 
-void writeJson(QJsonObject &object, QJsonArray &pole, QString typ, QString pathAndName)
+void writeJson(QJsonObject &object, QJsonArray &array, QString type, QString pathAndName)
 {
-    object[typ] = pole;
+    object[type] = array;
     QJsonDocument document;
     document.setObject(object);
     QString documentString = document.toJson();
@@ -58,17 +58,17 @@ void writeJson(QJsonObject &object, QJsonArray &pole, QString typ, QString pathA
     zapis.close();
 }
 
-QJsonArray vector2array(QVector<double> &vektor)
+QJsonArray vector2array(QVector<double> &vector)
 {
     QJsonArray pole;
-    copy(vektor.begin(), vektor.end(), back_inserter(pole));
+    copy(vector.begin(), vector.end(), back_inserter(pole));
     return pole;
 }
 
-QJsonArray vector2array(QVector<int>& vektor)
+QJsonArray vector2array(QVector<int>& vector)
 {
     QJsonArray pole;
-    copy(vektor.begin(), vektor.end(), back_inserter(pole));
+    copy(vector.begin(), vector.end(), back_inserter(pole));
     return pole;
 }
 

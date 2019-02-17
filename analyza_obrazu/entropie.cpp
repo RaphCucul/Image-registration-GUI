@@ -16,21 +16,21 @@
 #include <QObject>
 using namespace cv;
 
-double frekvence_binu(cv::Mat &histogram, int &velikost_histogramu)
+double binFrequency(cv::Mat &inputImage, int &histogramSize)
 {
-    double frekvence = 0.0;
-    for( int i = 0; i < velikost_histogramu; i++ )
+    double frequency = 0.0;
+    for( int i = 0; i < histogramSize; i++ )
     {
-        double Hc = double(abs(histogram.at<float>(i)));
-        frekvence += Hc;
+        double Hc = double(abs(inputImage.at<float>(i)));
+        frequency += Hc;
     }
-    return frekvence;
+    return frequency;
 }
-void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &tennengrad)
+void calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &tennengrad)
 {
-    Mat filtrovany;//,filtrovany32f;
+    Mat filtered;//,filtrovany32f;
 
-    medianBlur(zkoumany_snimek,filtrovany,5);
+    medianBlur(specificImage,filtered,5);
     //imshow("Filtrovany",filtrovany);
     //Mat ch1, ch2, ch3;
     /*if (zkoumany_snimek.channels() == 3)
@@ -47,8 +47,8 @@ void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &te
     Mat Sobelx,Sobely;
     Mat abs_grad_x, abs_grad_y,grad,suma,sum_abs_x,sum_abs_y;
 
-    Sobel(filtrovany, Sobelx, CV_32FC1, 1, 0);
-    Sobel(filtrovany,Sobely,CV_32FC1,0,1);
+    Sobel(filtered, Sobelx, CV_32FC1, 1, 0);
+    Sobel(filtered,Sobely,CV_32FC1,0,1);
     convertScaleAbs(Sobelx, abs_grad_x);
     convertScaleAbs(Sobely, abs_grad_y);
     abs_grad_x.convertTo(abs_grad_x, CV_32FC1);
@@ -84,41 +84,28 @@ void vypocet_entropie(cv::Mat &zkoumany_snimek, double &entropie, cv::Scalar &te
         f+= abs(hist.at<float>(i));
     }*/
     double f,p,e = 0.0;
-    f = frekvence_binu(hist,histSize);
+    f = binFrequency(hist,histSize);
     for (int i=0; i<histSize; i++)
     {
         p=double(abs(hist.at<float>(i)))/f;
         if (p>0)
             e+=-p*log2(p);
     }
-    entropie = e;
+    entropy = e;
     f=0;e=0;p=0;
     hist.release();
 
 }
-int entropie_tennengrad_videa(cv::VideoCapture& capture,
-                              QVector<double> &entropie,
+bool entropy_tennengrad_video(cv::VideoCapture& capture,
+                              QVector<double> &entropy,
                               QVector<double> &tennengrad, QProgressBar *progbar)
 {
-    int uspech_analyzy = 0;
-    int procento;
-    /*QTimer * timer = new QTimer();
-    QObject::connect(timer, SIGNAL(timeout()), progbar, SLOT(updateProgress()));
-    timer->start(100);*/
-
-    //qDebug() << "Progress: " << QString::number(percent);
-    //return 0;
-
-    /*if (!entropie.empty() || !tennengrad.empty())
-    {
-        entropie.clear();
-        tennengrad.clear();
-    }*/ // protože ukládání do vektorů řeším už jinak, toto není potřeba - jen to dělá binec
+    int uspech_analyzy = false;
+    int percentage = 0;
 
     if (capture.isOpened() == 0)
     {
-        qDebug()<<"Video nelze pouzit pro analyzu entropie a tennengrada!";
-        uspech_analyzy = 0;
+        uspech_analyzy = false;
     }
     else
     {
@@ -128,44 +115,45 @@ int entropie_tennengrad_videa(cv::VideoCapture& capture,
         {
             //qDebug()<<a;
             if (a == 0)
-                procento = 0;
+                percentage = 0;
             else if (a == (pocet_snimku_videa-1))
-                procento = 100;
+                percentage = 100;
             else
-                procento = ((a/pocet_snimku_videa)*100);
+                percentage = ((a/pocet_snimku_videa)*100);
 
             QCoreApplication::processEvents(); // tato funkce frčí v jiném vlákně - mohu sledovat
-            progbar->setValue(procento);
+            progbar->setValue(percentage);
             //percentageComplete(procento);
             // vytížení procesoru v reálném čase
 
-            cv::Mat snimek;
-            double hodnota_entropie = 0;
-            cv::Scalar hodnota_tennengrad;
+            cv::Mat image;
+            double entropyValue = 0;
+            cv::Scalar tennengradValue;
             capture.set(CAP_PROP_POS_FRAMES,double(a));
-            if (!capture.read(snimek))
-                    return uspech_analyzy;
+            if (!capture.read(image)){
+
+            }
             else
             {
-                vypocet_entropie(snimek,hodnota_entropie,hodnota_tennengrad); /// výpočty proběhnou v pořádku
-                double pom = hodnota_tennengrad[0];
+                calculateParametersET(image,entropyValue,tennengradValue); /// výpočty proběhnou v pořádku
+                double pom = tennengradValue[0];
                 //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
-                entropie[a] = (hodnota_entropie);
+                entropy[a] = (entropyValue);
                 tennengrad[a] = (pom);
-                snimek.release();
+                image.release();
             }
         }
-        uspech_analyzy = 1;
-        return uspech_analyzy;
+        uspech_analyzy = true;
     }
+    return uspech_analyzy;
 }
 
-void standardizaceVektoruDat(QVector<double>& dataStandardizovana, QVector<double> &dataOriginalni, double minimum, double maximum)
+void standardizedData(QVector<double>& dataStandardized, QVector<double> &dataOriginal, double minimum, double maximum)
 {
-    for (int a = 0; a < dataStandardizovana.length(); a++)
+    for (int a = 0; a < dataStandardized.length(); a++)
     {
-        double hodnotaStandardizovana = (dataOriginalni[a]-minimum)/(maximum-minimum);
-        dataStandardizovana[a] = (hodnotaStandardizovana);
+        double hodnotaStandardizovana = (dataOriginal[a]-minimum)/(maximum-minimum);
+        dataStandardized[a] = (hodnotaStandardizovana);
     }
 }
 

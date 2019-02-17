@@ -144,7 +144,8 @@ FORMS += \
     dialogy/errordialog.ui \
     ui/vysledeklicovani.ui \
     dialogy/singlevideolicovani.ui \
-    dialogy/multivideolicovani.ui
+    dialogy/multivideolicovani.ui \
+    dialogy/clickimageevent.ui
 RESOURCES += \
     ikonky.qrc
 

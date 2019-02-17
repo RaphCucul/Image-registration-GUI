@@ -13,16 +13,16 @@
 #include "util/prace_s_vektory.h"
 #include "util/souborove_operace.h"
 
-qThreadSecondPart::qThreadSecondPart(QStringList &seznamVidei, cv::Rect &VK_standard, cv::Rect &VK_extra,
-                                     QVector<QVector<int> > &spatneSnimkyVideiKomplet,
-                                     QVector<int> &seznamReferenci, bool zM)
+qThreadSecondPart::qThreadSecondPart(QStringList &videos, cv::Rect &CO_standard, cv::Rect &CO_extra,
+                                     QVector<QVector<int> > &badFramesCompleteList,
+                                     QVector<int> &videoReferences, bool sC)
 {
-    sezVid = seznamVidei;
-    vyrez_korelace_standard = VK_standard;
-    vyrez_korelace_extra = VK_extra;
-    spatne_snimky_komplet = spatneSnimkyVideiKomplet;
-    zmenaMeritka = zM;
-    referenceVidei = seznamReferenci;
+    videoList = videos;
+    obtainedCutoffStandard = CO_standard;
+    obtainedCutoffExtra = CO_extra;
+    badFramesComplete = badFramesCompleteList;
+    scaleChanged = sC;
+    referencialFrames = videoReferences;
 }
 
 void qThreadSecondPart::run()
@@ -31,13 +31,13 @@ void qThreadSecondPart::run()
     /// for decision algorithms
     emit percentageCompleted(0);
     emit typeOfMethod(1);
-    pocetVidei = double(sezVid.count());
-    qDebug()<<"Pocet videi: "<<pocetVidei;
-    for (int kolikateVideo = 0; kolikateVideo < sezVid.count(); kolikateVideo++)
+    videoCount = double(videoList.count());
+    qDebug()<<"Pocet videi: "<<videoCount;
+    for (int kolikateVideo = 0; kolikateVideo < videoList.count(); kolikateVideo++)
     {
-        QString fullPath = sezVid.at(kolikateVideo);
+        QString fullPath = videoList.at(kolikateVideo);
         QString slozka,jmeno,koncovka;
-        zpracujJmeno(fullPath,slozka,jmeno,koncovka);
+        processFilePath(fullPath,slozka,jmeno,koncovka);
         emit actualVideo(kolikateVideo);
         cv::VideoCapture capture = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!capture.isOpened())
@@ -49,7 +49,7 @@ void qThreadSecondPart::run()
         QVector<double> pom(frameCount,0);
         //emit typeOfMethod(4);
         QVector<double> snimky_pro_sigma;
-        QVector<int> spatne_snimky_videa = spatne_snimky_komplet[kolikateVideo];
+        QVector<int> spatne_snimky_videa = badFramesComplete[kolikateVideo];
         snimky_pro_sigma = vectorForFWHM(spatne_snimky_videa,frameCount);
         if (capture.isOpened() == 0)
         {
@@ -57,16 +57,16 @@ void qThreadSecondPart::run()
             //return 0.0;
         }
         cv::Mat referencni_snimek_temp,referencni_snimek,referencni_snimek32f,referencni_vyrez;
-        capture.set(CV_CAP_PROP_POS_FRAMES,referenceVidei[kolikateVideo]);
+        capture.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[kolikateVideo]);
         capture.read(referencni_snimek_temp);
         int rows = 0;
         int cols = 0;
-        if (zmenaMeritka == true)
+        if (scaleChanged == true)
         {
-            referencni_snimek_temp(vyrez_korelace_extra).copyTo(referencni_snimek);
+            referencni_snimek_temp(obtainedCutoffExtra).copyTo(referencni_snimek);
             rows = referencni_snimek.rows;
             cols = referencni_snimek.cols;
-            referencni_snimek(vyrez_korelace_standard).copyTo(referencni_vyrez);
+            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
             referencni_snimek_temp.release();
         }
         else
@@ -74,7 +74,7 @@ void qThreadSecondPart::run()
             referencni_snimek_temp.copyTo(referencni_snimek);
             rows = referencni_snimek.rows;
             cols = referencni_snimek.cols;
-            referencni_snimek(vyrez_korelace_standard).copyTo(referencni_vyrez);
+            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
             referencni_snimek_temp.release();
         }
         QVector<double> zaznamenane_FWHM(snimky_pro_sigma.size(),0.0);
@@ -84,12 +84,12 @@ void qThreadSecondPart::run()
         //kontrola_typu_snimku_32(referencni_snimek32f);
         //cout << snimky_pro_sigma.size()<<" "<<zaznamenane_FWHM.size()<<endl;
         qDebug()<< "Analyza snimku pro urceni prumerneho korelacniho koeficientu a hodnoty FWHM";
-        pocetSnimku = double(snimky_pro_sigma.size());
-        qDebug()<<"Pocet snimku: "<<pocetSnimku;
+        frameCount = snimky_pro_sigma.size();
+        qDebug()<<"Pocet snimku: "<<frameCount;
         for (int j = 0; j < snimky_pro_sigma.size(); j++)
         {
-            //qDebug()<<((kolikateVideo/pocetVidei)*100+((j/pocetSnimku)*100.0)/pocetVidei);
-            emit percentageCompleted(qRound((double(kolikateVideo)/pocetVidei)*100.0+(double(j)/pocetSnimku)*100.0));
+            //qDebug()<<((kolikateVideo/videoCount)*100+((j/frameCount)*100.0)/videoCount);
+            emit percentageCompleted(qRound((double(kolikateVideo)/videoCount)*100.0+(double(j)/frameCount)*100.0));
             cv::Mat posunuty_temp,posunuty,posunuty_vyrez;
             capture.set(CV_CAP_PROP_POS_FRAMES,snimky_pro_sigma[j]);
             if (capture.read(posunuty_temp) != 1)
@@ -99,16 +99,16 @@ void qThreadSecondPart::run()
             }
             else
             {
-                if (zmenaMeritka == true)
+                if (scaleChanged == true)
                 {
-                    posunuty_temp(vyrez_korelace_extra).copyTo(posunuty);
-                    posunuty(vyrez_korelace_standard).copyTo(posunuty_vyrez);
+                    posunuty_temp(obtainedCutoffExtra).copyTo(posunuty);
+                    posunuty(obtainedCutoffStandard).copyTo(posunuty_vyrez);
                     posunuty_temp.release();
                 }
                 else
                 {
                     posunuty_temp.copyTo(posunuty);
-                    posunuty(vyrez_korelace_standard).copyTo(posunuty_vyrez);
+                    posunuty(obtainedCutoffStandard).copyTo(posunuty_vyrez);
                     posunuty_temp.release();
                 }
                 //emit percentageCompleted(qRound((j/snimky_pro_sigma.size())*100.0));
@@ -117,7 +117,7 @@ void qThreadSecondPart::run()
                 cv::Point3d pt;
                 pt.x = 0.0;pt.y = 0.0;pt.z = 0.0;
                 //kontrola_typu_snimku_32C1(posunuty);
-                if (zmenaMeritka == true)
+                if (scaleChanged == true)
                 {
                     pt = fk_translace_hann(referencni_snimek,posunuty);
                     if (std::abs(pt.x)>=55 || std::abs(pt.y)>=55)
@@ -126,7 +126,7 @@ void qThreadSecondPart::run()
                         pt = fk_translace(referencni_snimek,posunuty);
                     }
                 }
-                if (zmenaMeritka == false)
+                if (scaleChanged == false)
                 {
                     pt = fk_translace_hann(referencni_snimek,posunuty);
                 }
@@ -134,14 +134,14 @@ void qThreadSecondPart::run()
                 //qDebug()<<pt.x<<pt.y<<pt.z;
                 slicovany = translace_snimku(posunuty,pt,rows,cols);
                 posunuty.release();
-                slicovany(vyrez_korelace_standard).copyTo(slicovany_vyrez);
+                slicovany(obtainedCutoffStandard).copyTo(slicovany_vyrez);
                 double zSouradnice = pt.z;
                 double sigma_gauss = 0.0;
                 sigma_gauss = 1/(std::sqrt(2*CV_PI)*zSouradnice);
                 double FWHM = 0.0;
                 FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
                 zaznamenane_FWHM[j] = FWHM;
-                double kk = vypocet_KK(referencni_snimek,slicovany,vyrez_korelace_standard);
+                double kk = vypocet_KK(referencni_snimek,slicovany,obtainedCutoffStandard);
                 slicovany.release();
                 slicovany_vyrez.release();
                 zaznamenane_R[j] = kk;
@@ -152,35 +152,35 @@ void qThreadSecondPart::run()
         //cout << endl;
         //std::copy ( zaznamenane_R.begin(), zaznamenane_R.end(), out_it );
         //cout<<endl;
-        double vypocteneFWHM = median_vektoru_cisel(zaznamenane_FWHM);
-        double vypocteneR = median_vektoru_cisel(zaznamenane_R);
+        double vypocteneFWHM = median_VectorDouble(zaznamenane_FWHM);
+        double vypocteneR = median_VectorDouble(zaznamenane_R);
         qDebug()<<"Medians: FWHM: "<<vypocteneFWHM<<" and CC: "<<vypocteneR;
-        R.push_back(vypocteneR);
+        CC.push_back(vypocteneR);
         FWHM.push_back(vypocteneFWHM);
     }
     emit percentageCompleted(100);
-    emit hotovo(2);
+    emit done(2);
 }
-QVector<double> qThreadSecondPart::vypoctenyR()
+QVector<double> qThreadSecondPart::computedCC()
 {
-    return R;
+    return CC;
 }
-QVector<double> qThreadSecondPart::vypocteneFWHM()
+QVector<double> qThreadSecondPart::computedFWHM()
 {
     return  FWHM;
 }
-QVector<double> qThreadSecondPart::vectorForFWHM(QVector<int>& spatne_snimky_komplet,
-                                                 int pocet_snimku_videa)
+QVector<double> qThreadSecondPart::vectorForFWHM(QVector<int>& badFrames,
+                                                 int frameCount)
 {
-    int velikost_spojeneho_vektoru = spatne_snimky_komplet.size();
-    QVector<double> snimky_pro_sigma((pocet_snimku_videa-velikost_spojeneho_vektoru-10),0);
-    QVector<double> cisla_pro_generator(pocet_snimku_videa,0);
+    int velikost_spojeneho_vektoru = badFrames.size();
+    QVector<double> snimky_pro_sigma((frameCount-velikost_spojeneho_vektoru-10),0);
+    QVector<double> cisla_pro_generator(frameCount,0);
     //std::iota(cisla_pro_generator.begin(),cisla_pro_generator.end(),0);
     std::generate(cisla_pro_generator.begin(), cisla_pro_generator.end(), [n = 0] () mutable { return n++; });
 
     std::random_device rd;
     std::mt19937 eng(rd());
-    std::uniform_int_distribution<> distr(0, pocet_snimku_videa-1);
+    std::uniform_int_distribution<> distr(0, frameCount-1);
     QVector<int>::iterator it;
     for (int i = 0; i < snimky_pro_sigma.size(); i++)
     {
@@ -192,8 +192,8 @@ QVector<double> qThreadSecondPart::vectorForFWHM(QVector<int>& spatne_snimky_kom
             {
                 vygenerovane_cislo = distr(eng);
             }
-            it = std::find(spatne_snimky_komplet.begin(), spatne_snimky_komplet.end(), cisla_pro_generator[vygenerovane_cislo]);
-            if (it != spatne_snimky_komplet.end())
+            it = std::find(badFrames.begin(), badFrames.end(), cisla_pro_generator[vygenerovane_cislo]);
+            if (it != badFrames.end())
             {kontrola_ulozeni = 0;}
             else
             {snimky_pro_sigma[i] = vygenerovane_cislo;

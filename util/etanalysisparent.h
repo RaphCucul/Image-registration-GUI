@@ -14,6 +14,7 @@
 #include <QJsonObject>
 #include <QMap>
 #include <QWidget>
+#include <QLineEdit>
 
 class ETanalysisParent : public QWidget
 {
@@ -21,6 +22,9 @@ class ETanalysisParent : public QWidget
 public:
     ETanalysisParent(QWidget *parent);
 protected:
+    void checkInputNumber(double input,double lower,double upper,QLineEdit* editWidget,double& finalValue,bool& evaluation);
+    void evaluateCorrectValues();
+
     qThreadFirstPart* TFirstP;
     qThreadSecondPart* TSecondP;
     qThreadThirdPart* TThirdP;
@@ -30,10 +34,10 @@ protected:
     double frameCountActualVideo;
     int analysisCompleted = 0;
     QStringList analysedVideos;
-    QVector<QString> vybraneVideoETSingle;
-    bool spravnostVideaETSingle = false;
-    bool volbaCasZnackyETSingle = false;
-    bool volbaSvetAnomETSingle = false;
+    QVector<QString> chosenVideoETSingle;
+    bool videoETScorrect = false;
+    bool horizontalAnomalySelected = false;
+    bool verticalAnomalySelected = false;
     QVector<double> actualEntropy, actualTennengrad;
     QVector<QVector<double>> entropy;
     QVector<QVector<double>> tennengrad;
@@ -55,14 +59,13 @@ protected:
 
     QVector<int> horizontalAnomalyPresent; //PritomnostCasoveZnacky;
     QVector<int> verticalAnomalyPresent; //PritomnostSvetelneAnomalie;
-    int iteration = -1;
-    double areaMaximum = -1;
-    double angle = 0.1;
-    QVector<double> FrangiParametersVector;
-    QJsonObject FrangiParametersFile;
+    double iterationCount = -99.0;
+    double areaMaximum = -99.0;
+    double rotationAngle = -99.0;
+    bool areaMaximumCorrect = false;
+    bool rotationAngleCorrect = false;
+    bool iterationCountCorrect = false;
 
-    cv::Point2f obtainedVerticalAnomaly;//ziskane_hranice_anomalie;
-    cv::Point2f obtainedHorizontalAnomaly;//ziskane_hranice_casZnac;
     cv::Rect obtainedCutoffStandard;//ziskany_VK_standard;
     cv::Rect obtainedCutoffExtra;//ziskany_VK_extra;
     cv::Point3d maximum_frangi;

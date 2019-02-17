@@ -8,63 +8,65 @@
 #include <QJsonObject>
 
 /**
- * @brief predzpracovani_obrazu
- * @param obrazek_vstupni
+ * @brief In function, recursive and median filtration is applied on the image
+ * @param inputImage
  * @param sigma_s
  * @param sigma_r
- * @return Image after recursive and median filtration
+ * @return
  */
-cv::Mat predzpracovani_obrazu(const cv::Mat &obrazek_vstupni, float sigma_s, float sigma_r);
+cv::Mat imageFiltrationPreprocessing(const cv::Mat &inputImage, float sigma_s, float sigma_r);
+
+/** Function eliminates the borders of the image to get rid of undesirable light artefacts etc. to minimize chance
+ * frangi filter will be analysing these artefacts too
+ * @brief borderProcessing
+ * @param inputImage
+ * @param imageType
+ * @param padding_r
+ * @param padding_s
+ */
+void borderProcessing(cv::Mat &inputImage,int imageType, int padding_r,int padding_s);
 
 /**
- * @brief osetreni_okraju_snimku
+ * @brief Function set zeros to specific pixels
  * @param vstupni_obraz
  * @param typ_snimku
  * @param velikost_okraje_r
  * @param velikost_okraje_s
  */
-void osetreni_okraju_snimku(cv::Mat &vstupni_obraz,int typ_snimku, int velikost_okraje_r,int velikost_okraje_s);
+void zeroBorders(cv::Mat &inputImage,int imageType, int padding_r,int padding_s);
 
 /**
- * @brief nulovani_okraju
- * @param vstupni_obraz
- * @param typ_snimku
- * @param velikost_okraje_r
- * @param velikost_okraje_s
+ * @brief Function calculates frangi maximum coords. Frame type indicates, if the maximum is calculated from
+ * the translated image or from referencial image. Translated image is supposed to have black corners. The accuracy
+ * of the calculation can be pixel or subpixel. If you choose to show the calculation and detection result,
+ * the name of the window can be set. The processing mode says, if the frangi filter should be standard or reverse.
+ * @param inputFrame
+ * @param processingMode
+ * @param accuracy
+ * @param showResult
+ * @param windowName
+ * @param frameType
+ * @param translation
+ * @param FrangiParameters
+ * @return
  */
-void nulovani_okraju(cv::Mat &vstupni_obraz, int typ_snimku, int velikost_okraje_r,int velikost_okraje_s);
+cv::Point3d frangi_analysis(const cv::Mat inputFrame,
+                           int processingMode,
+                           int accuracy,
+                           int showResult,
+                           QString windowName,
+                           int frameType,
+                           cv::Point3d translation,
+                           QVector<double> FrangiParameters);
 
 /**
- * @brief frangi_analyza
- * @param vstupni_snimek
- * @param mod_zpracovani
- * @param presnost
- * @param zobraz_vysledek_detekce
- * @param jmeno_okna
- * @param typ_snimku
- * @param pritomnost_casove_znamky
- * @param mira_posunuti
- * @param parametryFF
- * @return Coordinates of pixel with maximal value after Frangi filtration
- */
-cv::Point3d frangi_analyza(const cv::Mat vstupni_snimek,
-                           int mod_zpracovani,
-                           int presnost,
-                           int zobraz_vysledek_detekce,
-                           QString jmeno_okna,
-                           int typ_snimku,
-                           bool pritomnost_casove_znamky,
-                           cv::Point3d mira_posunuti,
-                           QVector<double> parametryFF);
-
-/**
- * @brief vypocet_teziste_frangi
+ * @brief Computing subpixel accuracy of the Frangi maximum
  * @param frangi
  * @param maximum_frangi
- * @param souradnice_maxima_frangi
- * @return Weighted coordinates of maximal value pixel
+ * @param maximumFrangiCoords
+ * @return
  */
-cv::Point2d vypocet_teziste_frangi(const cv::Mat &frangi,
+cv::Point2d FrangiSubpixel(const cv::Mat &frangi,
                                    const double& maximum_frangi,
-                                   const cv::Point& souradnice_maxima_frangi);
+                                   const cv::Point& maximumFrangiCoords);
 #endif // POUZIJ_FRANGIHO_H_INCLUDED

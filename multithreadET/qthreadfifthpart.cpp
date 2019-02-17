@@ -17,50 +17,49 @@ using cv::Mat;
 using cv::Rect;
 using cv::Point3d;
 
-qThreadFifthPart::qThreadFifthPart(QStringList &sV,
-                                   cv::Rect &VK_s,
-                                   cv::Rect &VK_e,
-                                   QVector<QVector<double> > &POCX,
-                                   QVector<QVector<double> > &POCY,
-                                   QVector<QVector<double> > &U,
-                                   QVector<QVector<double> > &F_X,
-                                   QVector<QVector<double> > &F_Y,
-                                   QVector<QVector<double> > &F_E,
-                                   bool zmenaMeritka,
-                                   bool casovaZnacka,
-                                   QVector<QVector<int>> &hodnoceni_vsech_snimku_videa,
-                                   QVector<QVector<int>>& sProverDruhy, QVector<int> &referencniSnimkyVidei,
-                                   QVector<double> &parametryFrangianalyzy,
+qThreadFifthPart::qThreadFifthPart(QStringList& videos,
+                                   cv::Rect& CO_s,
+                                   cv::Rect& CO_e,
+                                   QVector<QVector<double>>& POCX,
+                                   QVector<QVector<double>>& POCY,
+                                   QVector<QVector<double>>& Angle,
+                                   QVector<QVector<double>>& Fr_X,
+                                   QVector<QVector<double>>& Fr_Y,
+                                   QVector<QVector<double>>& Fr_E,
+                                   bool scaleChanged,
+                                   QVector<QVector<int>> &EvaluationComplete,
+                                   QVector<QVector<int>>& frEvalSec,
+                                   QVector<int>& referFrames,
+                                   QVector<double> FrangiParams,
                                    QObject *parent):QThread(parent)
 {
-    seznamVidei = sV;
-    vyrez_korelace_standard = VK_s;
-    vyrez_korelace_extra = VK_e;
+    videoList = videos;
+    obtainedCutoffStandard = CO_s;
+    obtainedCutoffExtra = CO_e;
     POC_x = POCX;
     POC_y = POCY;
-    uhel = U;
-    frangi_x = F_X;
-    frangi_y = F_Y;
-    frangi_euklid = F_E;
-    zmena_meritka = zmenaMeritka;
-    casova_znacka = casovaZnacka;
-    ohodnoceniSnimkuKomplet = hodnoceni_vsech_snimku_videa;
-    snimky_k_provereni_druhy = sProverDruhy;
-    parametryFrangi = parametryFrangianalyzy;
-    referenceKompletni = referencniSnimkyVidei;
+    angle = Angle;
+    frangi_x = Fr_X;
+    frangi_y = Fr_Y;
+    frangi_euklid = Fr_E;
+    scaleCh = scaleChanged;
+    framesCompleteEvaluation = EvaluationComplete;
+    framesSecondEval = frEvalSec;
+    FrangiParameters = FrangiParams;
+    referencialFrames = referFrames;
 }
 
 void qThreadFifthPart::run()
 {
     emit typeOfMethod(4);
     emit percentageCompleted(0);
-    pocetVidei = double(seznamVidei.count());
-    for (int indexVidea = 0; indexVidea < seznamVidei.count(); indexVidea++)
+    videoCount = double(videoList.count());
+    for (int indexVidea = 0; indexVidea < videoList.count(); indexVidea++)
     {
-        pocetSnimku = double(snimky_k_provereni_druhy[indexVidea].length());
-        QString fullPath = seznamVidei.at(indexVidea);
+        frameCount = double(framesSecondEval[indexVidea].length());
+        QString fullPath = videoList.at(indexVidea);
         QString slozka,jmeno,koncovka;
-        zpracujJmeno(fullPath,slozka,jmeno,koncovka);
+        processFilePath(fullPath,slozka,jmeno,koncovka);
         emit actualVideo(indexVidea);
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!cap.isOpened())
@@ -69,7 +68,7 @@ void qThreadFifthPart::run()
             break;
         }
         cv::Mat referencni_snimek_temp,referencni_snimek,referencni_snimek32f,referencni_vyrez;
-        cap.set(CV_CAP_PROP_POS_FRAMES,referenceKompletni[indexVidea]);
+        cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[indexVidea]);
         if (!cap.read(referencni_snimek_temp))
         {
                 qWarning()<<"Referrence image cannot be read!";
@@ -77,12 +76,12 @@ void qThreadFifthPart::run()
         }
         int rows;
         int cols;
-        if (zmena_meritka == true)
+        if (scaleCh == true)
         {
-            referencni_snimek_temp(vyrez_korelace_extra).copyTo(referencni_snimek);
+            referencni_snimek_temp(obtainedCutoffExtra).copyTo(referencni_snimek);
             rows = referencni_snimek.rows;
             cols = referencni_snimek.cols;
-            referencni_snimek(vyrez_korelace_standard).copyTo(referencni_vyrez);
+            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
             referencni_snimek_temp.release();
         }
         else
@@ -90,44 +89,44 @@ void qThreadFifthPart::run()
             referencni_snimek_temp.copyTo(referencni_snimek);
             rows = referencni_snimek.rows;
             cols = referencni_snimek.cols;
-            referencni_snimek(vyrez_korelace_standard).copyTo(referencni_vyrez);
+            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
             referencni_snimek_temp.release();
         }
         cv::Point3d pt_temp(0,0,0);
-        Point3d obraz_frangi_reverse = frangi_analyza(referencni_snimek,2,2,0,"",1,false,pt_temp,parametryFrangi);
+        Point3d obraz_frangi_reverse = frangi_analysis(referencni_snimek,2,2,0,"",1,pt_temp,FrangiParameters);
         Mat obraz_vyrez;
-        referencni_snimek(vyrez_korelace_standard).copyTo(referencni_vyrez);
+        referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
         //for (unsigned int i = 0; i < 1; i++)
-        pocetSnimku = double(snimky_k_provereni_druhy[indexVidea].length());
-        for (int i = 0; i < snimky_k_provereni_druhy[indexVidea].length(); i++) //snimky_k_provereni2.size()
+        frameCount = double(framesSecondEval[indexVidea].length());
+        for (int i = 0; i < framesSecondEval[indexVidea].length(); i++) //snimky_k_provereni2.size()
         {
-            emit percentageCompleted(qRound((indexVidea/pocetVidei)*100+((i/pocetSnimku)*100.0)/pocetVidei));
+            emit percentageCompleted(qRound((indexVidea/videoCount)*100+((i/frameCount)*100.0)/videoCount));
             Mat slicovan_kompletne = cv::Mat::zeros(referencni_snimek.size(), CV_32FC3);
             Point3d mira_translace(0.0,0.0,0.0);
-            double celkovy_uhel = 0.0;
-            int iterace = -1;double oblastMaxima = 5.0;double uhelMaximalni = 0.1;
-            int uspech_licovani = kompletni_slicovani(cap,referencni_snimek,
-                                                      snimky_k_provereni_druhy[indexVidea][i],
+            double celkovy_angle = 0.0;
+            int iterace = -1;double oblastMaxima = 5.0;double angleMaximalni = 0.1;
+            int uspech_licovani = completeRegistration(cap,referencni_snimek,
+                                                      framesSecondEval[indexVidea][i],
                                                       iterace,
                                                       oblastMaxima,
-                                                      uhelMaximalni,
-                                                      vyrez_korelace_extra,
-                                                      vyrez_korelace_standard,
-                                                      zmena_meritka,
+                                                      angleMaximalni,
+                                                      obtainedCutoffExtra,
+                                                      obtainedCutoffStandard,
+                                                      scaleCh,
                                                       slicovan_kompletne,
-                                                      mira_translace,celkovy_uhel);
-            qDebug() << snimky_k_provereni_druhy[indexVidea][i] <<" -> ";
+                                                      mira_translace,celkovy_angle);
+            qDebug() << framesSecondEval[indexVidea][i] <<" -> ";
             if (uspech_licovani == 0)
             {
 
                 qDebug()  << "nelze slicovat, ohodnocení: 5";
-                ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 5.0;
-                POC_x[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                POC_y[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                uhel[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                frangi_x[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                frangi_y[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                frangi_euklid[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
+                framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 5.0;
+                POC_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                POC_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                angle[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
                 continue;
             }
             else
@@ -135,12 +134,12 @@ void qThreadFifthPart::run()
                 Mat mezivysledek32f,mezivysledek32f_vyrez;
                 slicovan_kompletne.copyTo(mezivysledek32f);
                 kontrola_typu_snimku_32C1(mezivysledek32f);
-                mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
-                double R1 = vypocet_KK(referencni_snimek,slicovan_kompletne,vyrez_korelace_standard);
+                mezivysledek32f(obtainedCutoffStandard).copyTo(mezivysledek32f_vyrez);
+                double R1 = vypocet_KK(referencni_snimek,slicovan_kompletne,obtainedCutoffStandard);
                 mezivysledek32f.release();
                 mezivysledek32f_vyrez.release();
                 Point3d korekce_bod(0,0,0);
-                if (zmena_meritka == true)
+                if (scaleCh == true)
                 {
                     korekce_bod = fk_translace(referencni_snimek,slicovan_kompletne);
                     if (std::abs(korekce_bod.x)>=290 || std::abs(korekce_bod.y)>=290)
@@ -155,8 +154,8 @@ void qThreadFifthPart::run()
                 Mat korekce = translace_snimku(slicovan_kompletne,korekce_bod,rows,cols);
                 korekce.copyTo(mezivysledek32f);
                 kontrola_typu_snimku_32C1(mezivysledek32f);
-                mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
-                double R2 = vypocet_KK(referencni_snimek,korekce,vyrez_korelace_standard);
+                mezivysledek32f(obtainedCutoffStandard).copyTo(mezivysledek32f_vyrez);
+                double R2 = vypocet_KK(referencni_snimek,korekce,obtainedCutoffStandard);
                 Point3d slicovany_frangi_reverse(0,0,0);
                 double rozdil = R2-R1;
                 if (rozdil>0.015)
@@ -166,24 +165,24 @@ void qThreadFifthPart::run()
                     extra_translace.y = mira_translace.y+korekce_bod.y;
                     extra_translace.z = mira_translace.z;
                     qDebug()<< "Provedena korekce posunuti pro objektivnejsi analyzu skrze cevy.";
-                    slicovany_frangi_reverse = frangi_analyza(korekce,2,2,0,"",2,false,extra_translace,parametryFrangi);
+                    slicovany_frangi_reverse = frangi_analysis(korekce,2,2,0,"",2,extra_translace,FrangiParameters);
                 }
                 else
                 {
-                    slicovany_frangi_reverse = frangi_analyza(slicovan_kompletne,2,2,0,"",2,false,mira_translace,parametryFrangi);
+                    slicovany_frangi_reverse = frangi_analysis(slicovan_kompletne,2,2,0,"",2,mira_translace,FrangiParameters);
                 }
                 slicovan_kompletne.release();
                 if (slicovany_frangi_reverse.z == 0.0)
                 {
 
                     qDebug()<< "Nelze zjistit maximum Frangiho funkce, ohodnoceni: 5";
-                    ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 5.0;
-                    POC_x[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                    POC_y[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                    uhel[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                    frangi_x[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                    frangi_y[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
-                    frangi_euklid[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 999.0;
+                    framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 5.0;
+                    POC_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                    POC_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                    angle[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                    frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                    frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                    frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
                     continue;
                 }
                 else
@@ -194,24 +193,24 @@ void qThreadFifthPart::run()
                     double euklid = std::sqrt(suma_rozdilu);
                     if (euklid <= 1.2)
                     {
-                        ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 0;
+                        framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 0;
                         qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 0";
                     }
                     else if (euklid > 1.2 && euklid < 10)
                     {
-                        ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 1;
+                        framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 1;
                         qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 1";
-                        frangi_x[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = slicovany_frangi_reverse.x;
-                        frangi_y[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = slicovany_frangi_reverse.y;
-                        frangi_euklid[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = euklid;
+                        frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.x;
+                        frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.y;
+                        frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = euklid;
                     }
                     else if (euklid >=10)
                     {
-                        ohodnoceniSnimkuKomplet[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = 4;
+                        framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 4;
                         qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 4";
-                        frangi_x[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = slicovany_frangi_reverse.x;
-                        frangi_y[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = slicovany_frangi_reverse.y;
-                        frangi_euklid[indexVidea][snimky_k_provereni_druhy[indexVidea][i]] = euklid;
+                        frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.x;
+                        frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.y;
+                        frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = euklid;
                     }
                     rozdil_x = 0;
                     rozdil_y = 0;
@@ -224,34 +223,34 @@ void qThreadFifthPart::run()
 
     }
     emit percentageCompleted(100);
-    emit hotovo(5);
+    emit done(5);
 }
 
-QVector<QVector<int>> qThreadFifthPart::snimkyUpdateOhodnoceniKomplet()
+QVector<QVector<int>> qThreadFifthPart::framesUpdateEvaluationComplete()
 {
-    return ohodnoceniSnimkuKomplet;
+    return framesCompleteEvaluation;
 }
-QVector<QVector<double>> qThreadFifthPart::snimkyFrangiXestimated()
+QVector<QVector<double>> qThreadFifthPart::framesFrangiXestimated()
 {
     return frangi_x;
 }
-QVector<QVector<double>> qThreadFifthPart::snimkyFrangiYestimated()
+QVector<QVector<double>> qThreadFifthPart::framesFrangiYestimated()
 {
     return frangi_y;
 }
-QVector<QVector<double>> qThreadFifthPart::snimkyFrangiEuklidestimated()
+QVector<QVector<double>> qThreadFifthPart::framesFrangiEuklidestimated()
 {
     return frangi_euklid;
 }
-QVector<QVector<double>> qThreadFifthPart::snimkyPOCXestimated()
+QVector<QVector<double>> qThreadFifthPart::framesPOCXestimated()
 {
     return POC_x;
 }
-QVector<QVector<double>> qThreadFifthPart::snimkyPOCYestimated()
+QVector<QVector<double>> qThreadFifthPart::framesPOCYestimated()
 {
     return POC_y;
 }
-QVector<QVector<double>> qThreadFifthPart::snimkyUhelestimated()
+QVector<QVector<double>> qThreadFifthPart::framesAngleestimated()
 {
-    return uhel;
+    return angle;
 }

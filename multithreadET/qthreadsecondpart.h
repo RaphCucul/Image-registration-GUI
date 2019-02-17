@@ -11,30 +11,30 @@ class qThreadSecondPart : public QThread
 {
     Q_OBJECT
 public:
-    explicit qThreadSecondPart(QStringList& seznamVidei,cv::Rect& VK_standard,cv::Rect& VK_extra,
-                               QVector<QVector<int>>& spatneSnimkyVideiKomplet,QVector<int>& seznamReferenci,
-                               bool zM);
+    explicit qThreadSecondPart(QStringList& videos, cv::Rect& CO_standard, cv::Rect& CO_extra,
+                               QVector<QVector<int>>& badFramesCompleteList, QVector<int>& videoReferences,
+                               bool sC);
     void run() override;
-    QVector<double> vectorForFWHM(QVector<int> &spatne_snimky_komplet, int pocet_snimku_videa);
-    QVector<double> vypoctenyR();
-    QVector<double> vypocteneFWHM();
+    QVector<double> vectorForFWHM(QVector<int> &badFrames, int frameCount);
+    QVector<double> computedCC();
+    QVector<double> computedFWHM();
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
-    void hotovo(int);
+    void done(int);
     void actualVideo(int);
     void unexpectedTermination();
 private:
-    QStringList sezVid;
-    double pocetVidei;
-    double pocetSnimku;
-    cv::Rect vyrez_korelace_standard;
-    cv::Rect vyrez_korelace_extra;
-    QVector<QVector<int>> spatne_snimky_komplet;
-    bool zmenaMeritka;
-    QVector<double> R;
+    QStringList videoList;
+    double videoCount;
+    double frameCount;
+    cv::Rect obtainedCutoffStandard;//ziskany_VK_standard;
+    cv::Rect obtainedCutoffExtra;//ziskany_VK_extra;
+    QVector<QVector<int>> badFramesComplete;
+    bool scaleChanged;
+    QVector<double> CC;
     QVector<double> FWHM;
-    QVector<int> referenceVidei;
+    QVector<int> referencialFrames;
 };
 
 #endif // QTHREADSECONDPART_H

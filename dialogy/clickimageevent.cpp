@@ -1,6 +1,7 @@
 #include "dialogy/clickimageevent.h"
 #include "ui_clickimageevent.h"
 #include "analyza_obrazu/upravy_obrazu.h"
+#include "fancy_staff/sharedvariables.h"
 
 #include <QGraphicsView>
 #include <QPoint>
@@ -20,51 +21,41 @@
 #include <opencv2/imgcodecs/imgcodecs_c.h>
 #include "opencv2/imgproc/types_c.h"
 
-cv::Point2f oznacena_hranice_svetelne_anomalie;
-cv::Point2f oznacena_hranice_casove_znacky;
-
-ClickImageEvent::ClickImageEvent(QString kompletni_cesta,int cisloReference,int TypAnomalie,QDialog *parent) :
+ClickImageEvent::ClickImageEvent(QString i_fullPath, int i_referencialNumber, int i_anomalyType, QDialog *parent) :
     QDialog(parent),
     ui(new Ui::ClickImageEvent)
 {
     ui->setupUi(this);
-    cesta_k_souboru = kompletni_cesta;
-    typ_anomalie = TypAnomalie;
-    ui->klikniNaObrazek->setMouseTracking(true);
-    cv::VideoCapture cap = cv::VideoCapture(cesta_k_souboru.toLocal8Bit().constData());
-    cap.set(CV_CAP_PROP_POS_FRAMES,double(cisloReference));
-    cv::Mat referencni_snimek;
-    cap.read(referencni_snimek);
-    sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-    //qDebug()<<"Referece má "<<referencni_snimek.channels()<<" kanálů a je typu"<<referencni_snimek.type();
-    kontrola_typu_snimku_8C3(referencni_snimek);
-    //qDebug()<<"Referece má "<<referencni_snimek.channels()<<" kanálů a je typu"<<referencni_snimek.type();
+    filePath = i_fullPath;
+    anomalyType = i_anomalyType;
+    ui->clickImage->setMouseTracking(true);
+    cv::VideoCapture cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
+    cap.set(CV_CAP_PROP_POS_FRAMES,double(i_referencialNumber));
+    cv::Mat referencialImage;
+    cap.read(referencialImage);
+    width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    kontrola_typu_snimku_8C3(referencialImage);
 
-    imageObject = new QImage(referencni_snimek.data,
-                             referencni_snimek.cols,
-                             referencni_snimek.rows,
-                             static_cast<int>(referencni_snimek.step),
+    imageObject = new QImage(referencialImage.data,
+                             referencialImage.cols,
+                             referencialImage.rows,
+                             static_cast<int>(referencialImage.step),
                              QImage::Format_RGB888);//
 
-    //imageObject->load(kompletni_cesta);
-    //image = QPixmap::fromImage(*imageObject);
     QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageObject));
-    scena = new QGraphicsScene();
-    pohled = new QGraphicsView(scena);
-    pohled->setFixedSize(referencni_snimek.cols,referencni_snimek.rows);
-    ui->klikniNaObrazek->setScene(scena);
-    scena->addItem(image);
-    //pohled->show();
-    ui->klikniNaObrazek->setFixedSize(referencni_snimek.cols+30,referencni_snimek.rows+30);
-    ui->klikniNaObrazek->setSceneRect(0,0,referencni_snimek.cols+30,referencni_snimek.rows+30);
-    this->setGeometry(50,50,referencni_snimek.cols,referencni_snimek.rows);
-    //ui->klikniNaObrazek->fitInView(scena->sceneRect(),Qt::KeepAspectRatio); // nefunguje
+    scene = new QGraphicsScene();
+    view = new QGraphicsView(scene);
+    view->setFixedSize(referencialImage.cols,referencialImage.rows);
+    ui->clickImage->setScene(scene);
+    scene->addItem(image);
+    ui->clickImage->setFixedSize(referencialImage.cols+30,referencialImage.rows+30);
+    ui->clickImage->setSceneRect(0,0,referencialImage.cols+30,referencialImage.rows+30);
+    this->setGeometry(50,50,referencialImage.cols,referencialImage.rows);
 
-
-    /*QPoint viewPoint = ui->klikniNaObrazek->mapFromGlobal(QCursor::pos());
-    QPointF scenePoint = ui->klikniNaObrazek->mapToScene(viewPoint);
-    graphicalWidget->setPos(scenePoint);*/
+    //QPoint viewPoint = ui->clickImage->mapFromGlobal(QCursor::pos());
+    //QPointF scenePoint = ui->clickImage->mapToScene(viewPoint);
+    //graphicalWidget->setPos(scenePoint);
 }
 
 ClickImageEvent::~ClickImageEvent()
@@ -72,30 +63,56 @@ ClickImageEvent::~ClickImageEvent()
     delete ui;
 }
 
-void ClickImageEvent::nastav_velikost_okna(int sirka,int vyska)
+void ClickImageEvent::setWindowSize(int width, int height)
 {
-    this->setFixedSize(sirka,vyska);
+    this->setFixedSize(width,height);
 }
 
 void ClickImageEvent::mousePressEvent(QMouseEvent *press)
 {
-    QPointF pt = ui->klikniNaObrazek->mapToScene(press->pos());
-    //qDebug()<<pt.x()<<pt.y();
-    if (typ_anomalie == 1)
+    QPointF pt = ui->clickImage->mapToScene(press->pos());
+    qDebug()<<pt.x()<<pt.y();
+    if (anomalyType == 2)
     {
-        oznacena_hranice_svetelne_anomalie.x = float(pt.x());
-        oznacena_hranice_svetelne_anomalie.y = float(pt.y());
-        oznacena_hranice_casove_znacky.x = 0;
-        oznacena_hranice_casove_znacky.y = 0;
+        if (SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x == 0.0 ||
+                SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().y == 0.0){
+            SharedVariables::getSharedVariables()->setVerticalAnomalyCoords(pt);
+            QPainterPath crossPath;
+            paintCross(crossPath,pt.x(),pt.y());
+            //pathItem = new QGraphicsPathItem(crossPath);
+            pathItem = scene->addPath(crossPath,QPen(QColor(0, 0, 255), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
+        }
+        else{
+            SharedVariables::getSharedVariables()->setVerticalAnomalyCoords(pt);
+            scene->removeItem(pathItem);
+            QPainterPath crossPath;
+            paintCross(crossPath,pt.x(),pt.y());
+            pathItem = scene->addPath(crossPath,QPen(QColor(0, 0, 255), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
+        }
     }
-    if (typ_anomalie == 2)
+    if (anomalyType == 1)
     {
-        oznacena_hranice_casove_znacky.x = float(pt.x());
-        oznacena_hranice_casove_znacky.y = float(pt.y());
-        oznacena_hranice_svetelne_anomalie.x = 0;
-        oznacena_hranice_svetelne_anomalie.y = 0;
+        if (SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x == 0.0 ||
+                SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y == 0.0){
+            SharedVariables::getSharedVariables()->setHorizontalAnomalyCoords(pt);
+            QPainterPath crossPath;
+            paintCross(crossPath,pt.x(),pt.y());
+            //pathItem = new QGraphicsPathItem(crossPath);
+            pathItem = scene->addPath(crossPath,QPen(QColor(0, 0, 255), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
+        }
+        else{
+            SharedVariables::getSharedVariables()->setHorizontalAnomalyCoords(pt);
+            scene->removeItem(pathItem);
+            QPainterPath crossPath;
+            paintCross(crossPath,pt.x(),pt.y());
+            pathItem = scene->addPath(crossPath,QPen(QColor(0, 0, 255), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
+        }
     }
-    qDebug()<<"MousePressEvent: "<<oznacena_hranice_svetelne_anomalie.x<<" "<<oznacena_hranice_svetelne_anomalie.y;
-    qDebug()<<"MousePressEvent: "<<oznacena_hranice_casove_znacky.x<<" "<<oznacena_hranice_casove_znacky.y;
-    //emit SendClickCoordinates(pt);
+}
+
+void ClickImageEvent::paintCross(QPainterPath &path, double x, double y){
+    path.moveTo(x, y-10);
+    path.lineTo(x, y+10);
+    path.moveTo(x-10, y);
+    path.lineTo(x+10, y);
 }

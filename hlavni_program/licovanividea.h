@@ -19,7 +19,6 @@ class LicovaniVidea : public QWidget
 public:
     explicit LicovaniVidea(QWidget *parent = nullptr);
     ~LicovaniVidea();
-    void checkPaths();
 private:
     Ui::LicovaniVidea *ui;    
 };

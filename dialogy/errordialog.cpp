@@ -222,39 +222,3 @@ void ErrorDialog::hide()
         animation->stop();
     errorLabelinitialized = false;
 }
-/*void ErrorDialog::createInfoDialog(QString &text, int typeOfEvent)
-{
-    errorStatementToDisplay = text;
-    errorSeverity = typeOfEvent;
-    ui->textError->setText(text);
-    if (typeOfEvent == 0) // soft error
-    {
-        QIcon soft(":/images/softError.png");
-        setWindowIcon(soft);
-        ui->tlacitko1->setEnabled(true);
-        ui->tlacitko1->setText(tr("OK"));
-    }
-    if (typeOfEvent == 1){ // hard error
-        QIcon hard(":/images/hardError.png");
-        setWindowIcon(hard);
-        ui->tlacitko1->setEnabled(true);
-        ui->tlacitko2->setEnabled(true);
-        ui->tlacitko1->setText(tr("Terminate"));
-        ui->tlacitko2->setText(tr("Continue"));
-    }
-}
-
-void ErrorDialog::on_tlacitko2_clicked()
-{
-    emit continueInCalculations();
-    close();
-}
-
-void ErrorDialog::on_tlacitko1_clicked()
-{
-    if (errorSeverity == 0)
-        emit ok();
-    else
-        emit abort();
-    close();
-}*/

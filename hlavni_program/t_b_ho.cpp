@@ -18,13 +18,6 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
-QString videaKanalyzeAktual;
-QString ulozeniVideiAktual;
-QString TXTnacteniAktual;
-QString TXTulozeniAktual;
-QString paramFrangi;
-
-
 t_b_HO::t_b_HO(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::t_b_HO)
@@ -51,7 +44,6 @@ t_b_HO::t_b_HO(QWidget *parent) :
     localErrorDialogHandling[ui->Combo_VideoDataLoad] = new ErrorDialog(ui->Combo_VideoDataLoad);
     localErrorDialogHandling[ui->Combo_VideoDataSave] = new ErrorDialog(ui->Combo_VideoDataSave);
     localErrorDialogHandling[ui->Combo_FrangiParams] = new ErrorDialog(ui->Combo_FrangiParams);
-
 }
 
 t_b_HO::~t_b_HO()
@@ -79,7 +71,7 @@ bool t_b_HO::checkFileFolderExistence()
     QString checkIniPath = GlobalSettings::getSettings()->getIniPath();
     int numberOfIni=-1;
     QStringList foundSettingsFiles;
-    analyzuj_jmena_souboru_avi(checkIniPath,foundSettingsFiles,numberOfIni,"ini");
+    analyseFileNames(checkIniPath,foundSettingsFiles,numberOfIni,"ini");
     bool fileExistence = false;
 
     if (numberOfIni == 1){
@@ -92,7 +84,7 @@ bool t_b_HO::checkFileFolderExistence()
         else{
             int numberOfJson = -1;
             QStringList foundFiles;
-            analyzuj_jmena_souboru_avi(pathToFileFolderDirectory,foundFiles,numberOfJson,"json");
+            analyseFileNames(pathToFileFolderDirectory,foundFiles,numberOfJson,"json");
             if (numberOfJson == 1){
                 fileFolderDirectoryName = foundFiles.at(0);
                 ui->FileFolderDirectory->setText(pathToFileFolderDirectory+"/"+fileFolderDirectoryName);
@@ -266,7 +258,7 @@ void t_b_HO::on_ChooseFileFolderDirectory_clicked()
         ui->paramFrangPB->setEnabled(true);
         int numberOfJson = -1;
         QStringList foundFiles;
-        analyzuj_jmena_souboru_avi(pathToFileFolderDirectory,foundFiles,numberOfJson,"json");
+        analyseFileNames(pathToFileFolderDirectory,foundFiles,numberOfJson,"json");
         if (numberOfJson == 1){
             fileFolderDirectoryName = foundFiles.at(0);
             ui->FileFolderDirectory->setText(pathToFileFolderDirectory+"/"+fileFolderDirectoryName);

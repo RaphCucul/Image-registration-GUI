@@ -1,38 +1,84 @@
 #ifndef PRACE_S_VEKTORY_H_INCLUDED
 #define PRACE_S_VEKTORY_H_INCLUDED
 #include <QVector>
+#include <QString>
 #include <opencv2/opencv.hpp>
-double median_vektoru_cisel(QVector<double> vektor_hodnot);
-/// pocita median z pridelenych hodnot
 
-double kontrola_maxima(QVector<double>& vektor_hodnot);
-/// zjistuje, jestli neni maximum prilis velke
+/**
+ * @brief Calculate median of the vector
+ * @param values
+ * @return
+ */
+double median_VectorDouble(QVector<double> inputValues);
 
-QVector<int> spojeni_vektoru(QVector<int>& vektor1,QVector<int>& vektor2);
+/**
+ * @brief Check if the maximum of entropy or tennenfrad is not to high and find better value if so
+ * @param inputValues
+ * @return
+ */
+double checkMaximum(QVector<double>& inputValues);
 
-void okna_vektoru(QVector<double>& vektor_hodnot, QVector<double>& okna, double& zbytek_do_konce);
-/// rozdeleni prubehu entropie/tenengradu na okna
+/**
+ * @brief Simply merge two vectors into the only one and preserve only unique unputs
+ * @param input1
+ * @param input2
+ * @return
+ */
+QVector<int> mergeVectors(QVector<int>& input1,QVector<int>& input2);
 
-QVector<double> mediany_vektoru(QVector<double>& vektor_hodnot,
-                                    QVector<double>& vektor_oken,
-                                    double zbytek_do_konce);
-/// prochazi okna a pocita mediany
+/**
+ * @brief Creates implicitaly 9 windows = parts of the vector
+ * @param inputValues
+ * @param windows
+ * @param restToEnd
+ */
+void vectorWindows(QVector<double>& inputValues, QVector<double>& windows, double& restToEnd);
 
-void analyza_prubehu_funkce(QVector<double>& vektor_hodnot,
-                            QVector<double>& vektor_medianu,
-                            QVector<double>& vektor_oken,
-                            double& prepocitane_maximum,
-                            QVector<double>& prahy,
+/**
+ * @brief Calculate median from the values in the vector window part
+ * @param inputValues
+ * @param inputWindows
+ * @param restToEnd
+ * @return
+ */
+QVector<double> mediansOfVector(QVector<double>& inputValues,
+                                    QVector<double>& inputWindows,
+                                    double restToEnd);
+
+/**
+ * @brief Function takes vector of entropy or tennengrad values and look for frames with values not fitting into
+ * the value range defined by thresholds and tolerance. This is the first step of bad frames elimination process.
+ * @param inputValues
+ * @param medianVector
+ * @param windowsVector
+ * @param recalculatedMaximum
+ * @param thresholds
+ * @param tolerance
+ * @param dmin
+ * @param restToEnd
+ * @param badFrames
+ * @param forEvaluation
+ */
+void analysisFunctionValues(QVector<double>& inputValues,
+                            QVector<double>& medianVector,
+                            QVector<double>& windowsVector,
+                            double& recalculatedMaximum,
+                            QVector<double>& thresholds,
                             double& tolerance,
                             int& dmin,
-                            double& zbytek_do_konce,
-                            QVector<int>& spatne_snimky,
-                            QVector<double>& pro_provereni);
-/// realizuje prvni cast algoritmu
+                            double& restToEnd,
+                            QVector<int>& badFrames,
+                            QVector<double>& forEvaluation);
 
-int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& pro_provereni,
-                                 QVector<double>& vektor_hodnot);
-/// hleda nejvhodnejsi snimek k prepocitane hodnote maxima
+/**
+ * @brief Find referencial frame.
+ * @param recalculatedMaximum
+ * @param forEvaluation
+ * @param inputValues
+ * @return
+ */
+int findReferencialNumber(double& recalculatedMaximum, QVector<double>& forEvaluation,
+                                 QVector<double>& inputValues);
 
 /*void analyza_FWHM(cv::VideoCapture& capture,
                   int referencni_snimek_cislo,
@@ -45,13 +91,30 @@ int nalezeni_referencniho_snimku(double& prepocitane_maximum, QVector<double>& p
                   QVector<double>& spatne_snimky_komplet);
 /// pocita prumerny R a PMPf*/
 
-void kontrola_celistvosti(QVector<int>& spatne_snimky);
-/// kontroluje, jestli v rade vadnych snimku lze doplnit snimek pro kompletaci sekvence (v pripade nekolika vadnych
-/// snimku za sebou zabrani preskoceni pripadneho spatneho snimku)
+/**
+ * @brief Function checks the "integrity" of the bad frames vector and add those frames which could be skipped
+ * by mistake
+ * @param badFrames
+ */
+void integrityCheck(QVector<int>& badFrames);
 
 int findReferenceFrame(QVector<int> vectorEvaluation);
 
+/**
+ * @brief Function creates ranges of values for each qthread object
+ * @param totalLength
+ * @param threadCount
+ * @return
+ */
 QVector<QVector<int>> divideIntoPeaces(int totalLength, int threadCount);
+
+/**
+ * @brief Function analyse given path to videos, check the present *.avi files and load first video from the
+ * list of found videos to cap variable and put the video name into line edit
+ * @param analysedFolder
+ * @param whereToSave
+ */
+void analyseAndSaveFirst(QString analysedFolder, QVector<QString>& whereToSave);
 
 int vectorSum(QVector<int> input);
 double vectorSum(QVector<double> input);

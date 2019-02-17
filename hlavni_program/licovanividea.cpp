@@ -51,30 +51,26 @@ LicovaniVidea::~LicovaniVidea()
     delete ui;
 }
 
-void LicovaniVidea::checkPaths(){
-
-}
-
 /*void LicovaniVidea::zobrazKliknutelnyDialog()
 {
     QWidget* widgetCasZnacCB = ui->checkboxy->itemAtPosition(0,0)->widget();
     QCheckBox* CasZnacCB = qobject_cast<QCheckBox*>(widgetCasZnacCB);
     QWidget* widgetSvetAnomCB = ui->checkboxy->itemAtPosition(0,2)->widget();
     QCheckBox* SvetAnomCB = qobject_cast<QCheckBox*>(widgetSvetAnomCB);
-    if (SvetAnomCB->isChecked() && volbaSvetAnomETSingle == false)
+    if (SvetAnomCB->isChecked() && verticalAnomalySelected == false)
     {
-        QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
+        QString kompletni_cesta = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
         ClickImageEvent* vyznac_anomalii = new ClickImageEvent(kompletni_cesta,1,1);
         vyznac_anomalii->setModal(true);
         vyznac_anomalii->show();
-        volbaSvetAnomETSingle = true;
+        verticalAnomalySelected = true;
     }
-    if (CasZnacCB->isChecked() && volbaCasZnackyETSingle == false)
+    if (CasZnacCB->isChecked() && horizontalAnomalySelected == false)
     {
-        QString kompletni_cesta = vybraneVideoETSingle[0]+"/"+vybraneVideoETSingle[1]+"."+vybraneVideoETSingle[2];
+        QString kompletni_cesta = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
         ClickImageEvent* vyznac_anomalii = new ClickImageEvent(kompletni_cesta,1,2);
         vyznac_anomalii->setModal(true);
         vyznac_anomalii->show();
-        volbaCasZnackyETSingle = true;
+        horizontalAnomalySelected = true;
     }
 }*/
