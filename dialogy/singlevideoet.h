@@ -47,7 +47,7 @@ private:
     QMap<QString,QVector<QVector<int>>> mapInt;
     QMap<QString,QVector<int>> mapAnomalies;
     QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
-                                 "Angle","Rating","PrvotOhodEntropie","PrvotOhodTennengrad"
+                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
                                  "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
 };
 

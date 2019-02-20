@@ -42,9 +42,9 @@ private slots:
     void newVideoProcessed(int index);
     void movedToMethod(int method);
     void on_savePB_clicked();
-    void on_areaMaximum_textChanged(const QString &arg1);
-    void on_rotationAngle_textChanged(const QString &arg1);
-    void on_iterationCount_textChanged(const QString &arg1);
+    void on_areaMaximum_editingFinished();
+    void on_rotationAngle_editingFinished();
+    void on_iterationCount_editingFinished();
     void evaluateCorrectValues();
 signals:
     void checkValuesPass();
@@ -54,8 +54,8 @@ private:
     QMap<QString,QVector<QVector<double>>> mapDouble;
     QMap<QString,QVector<QVector<int>>> mapInt;
     QMap<QString,QVector<int>> mapAnomalies;
-    QStringList videoParameters = {"entropy","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
-                                 "Angle","Rating","PrvotOhodEntropie","PrvotOhodTennengrad"
+    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
+                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
                                  "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
 };
 

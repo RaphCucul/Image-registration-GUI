@@ -237,15 +237,16 @@ void SingleVideoET::on_savePB_clicked()
     qDebug()<<mapDouble["entropie"].length()<<" "<<videoParameters.at(0);
     for (int indexVideo=0; indexVideo<mapDouble["entropie"].length(); indexVideo++){
         for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-            qDebug()<<mapDouble[videoParameters.at(parameter)][indexVideo];
+            qDebug()<<videoParameters.at(parameter);
+            //qDebug()<<mapDouble[videoParameters.at(parameter)][indexVideo];
             if (parameter < 8){
                 QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][indexVideo];
                 QJsonArray pomArray = vector2array(pomDouble);
                 object[videoParameters.at(parameter)] = pomArray;
             }
-            if (parameter >= 8 && parameter < 14){
+            else if (parameter >= 8 && parameter <= 12){
                 QVector<int> pomInt = mapInt[videoParameters.at(parameter)][indexVideo];
-                if (parameter == 13)
+                if (videoParameters.at(parameter) == "Ohodnoceni")
                     pomInt[framesReferencial[indexVideo]]=2;
 
                 QJsonArray pomArray = vector2array(pomInt);
