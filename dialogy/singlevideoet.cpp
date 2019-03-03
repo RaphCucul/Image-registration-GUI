@@ -75,6 +75,8 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
     connect(ui->verticalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
     connect(ui->horizontalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+
+    localErrorDialogHandling[ui->calculateET] = new ErrorDialog(ui->calculateET);
 }
 
 SingleVideoET::~SingleVideoET()
@@ -92,7 +94,7 @@ void SingleVideoET::checkPaths(){
 void SingleVideoET::on_chooseVideoPB_clicked()
 {
     QString referencialImagePath = QFileDialog::getOpenFileName(this,
-         "Choose referencial image", SharedVariables::getSharedVariables()->getPath("cestaKvideim"),"*.avi;;All files (*)");
+         tr("Choose referencial image"), SharedVariables::getSharedVariables()->getPath("cestaKvideim"),"*.avi;;All files (*)");
     QString folder,filename,suffix;
     processFilePath(referencialImagePath,folder,filename,suffix);
     if (chosenVideoETSingle.length() == 0)
@@ -117,7 +119,7 @@ void SingleVideoET::on_chooseVideoPB_clicked()
     }
     else
     {
-        ui->chosenVideoLE->setStyleSheet("color: #339900");
+        ui->chosenVideoLE->setStyleSheet("color: #33aa00");
         videoETScorrect = true;
         ui->referencialNumberLE->setEnabled(true);
         int pocet_snimku = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
@@ -171,41 +173,8 @@ void SingleVideoET::on_verticalAnomalyCB_stateChanged(int arg1)
 void SingleVideoET::on_calculateET_clicked()
 {
     QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-    //double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    //double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-    //pocetSnimkuVidea = cap.get(CV_CAP_PROP_FRAME_COUNT);*/
-    /*int uspech_analyzy = entropy_tennengrad_video(cap,ui->actualEntropy,aktualniTennengrad,ui->computationProgress);
-    if (uspech_analyzy == 0)
-        qDebug()<<"Výpočty skončily chybou.";
-    else
-    {
-        entropie.push_back(ui->actualEntropy);
-        tennengrad.push_back(aktualniTennengrad);
-        ui->showGraphET->setEnabled(true);
-    }*/
-    /*if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
-    {
-        obtainedVerticalAnomaly.x = oznacena_hranice_svetelne_anomalie.x;
-        obtainedVerticalAnomaly.y = oznacena_hranice_svetelne_anomalie.y;
-    }
-    else
-    {
-        obtainedVerticalAnomaly.x = 0.0f;
-        obtainedVerticalAnomaly.y = 0.0f;
-    }
-    if (oznacena_hranice_casove_znacky.y > 0.0f && oznacena_hranice_casove_znacky.y < float(vyska))
-    {
-        obtainedHorizontalAnomaly.y = oznacena_hranice_casove_znacky.y;
-        obtainedHorizontalAnomaly.x = oznacena_hranice_casove_znacky.x;
-    }
-    else
-    {
-        obtainedHorizontalAnomaly.y = 0.0f;
-        obtainedHorizontalAnomaly.x = 0.0f;
-    }*/
+    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());    
     analysedVideos.append(fullPath);
-    //temp(pom);
     TFirstP = new qThreadFirstPart(analysedVideos,
                                    SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
                                    SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
@@ -214,6 +183,7 @@ void SingleVideoET::on_calculateET_clicked()
     connect(TFirstP,SIGNAL(done(int)),this,SLOT(done(int)));
     connect(TFirstP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
     connect(TFirstP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
+    connect(TFirstP,SIGNAL(unexpectedTermination(QString,int,QString)),this,SLOT(onUnexpectedTermination(QString,int,QString)));
     TFirstP->start();
 }
 
@@ -259,58 +229,14 @@ void SingleVideoET::on_savePB_clicked()
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
             }
         }
-
-        /*QVector<double> pomVecE = entropie[indexVideo];
-        QVector<double> pomVecT = tennengrad[indexVideo];
-        QVector<int> pomVecPOE = framesFirstFullCompleteEntropyEvaluation[indexVideo];
-        QVector<int> pomVecPOT = framesFirstFullCompleteTennengradEvaluation[indexVideo];
-        QVector<int> pomVecPR = framesFirstFullCompleteDecision[indexVideo];
-        QVector<int> pomVecDR = framesSecondFullCompleteDecision[indexVideo];
-        QVector<int> pomVecO = framesFinalCompleteDecision[indexVideo];
-        pomVecO[framesReferencial[indexVideo]] = 2;
-        QVector<double> pomVecFX = framesFrangiX[indexVideo];
-        QVector<double> pomVecFY = framesFrangiY[indexVideo];
-        QVector<double> pomVecFE = framesFrangiEuklid[indexVideo];
-        QVector<double> pomVecPX = framesPOCX[indexVideo];
-        QVector<double> pomVecPY = framesPOCY[indexVideo];
-        QVector<double> pomVecU = framesAngle[indexVideo];*/
+        document.setObject(object);
+        QString documentString = document.toJson();
+        QFile zapis;
+        zapis.setFileName(cesta);
+        zapis.open(QIODevice::WriteOnly);
+        zapis.write(documentString.toLocal8Bit());
+        zapis.close();
     }
-    /*
-    QJsonArray poleE = vector2array(pomVecE);
-    QJsonArray poleT = vector2array(pomVecT);
-    QJsonArray polePOE = vector2array(pomVecPOE);
-    QJsonArray polePOT = vector2array(pomVecPOT);
-    QJsonArray poleO = vector2array(pomVecO);
-    QJsonArray polePR = vector2array(pomVecPR);
-    QJsonArray poleDR = vector2array(pomVecDR);
-    QJsonArray poleFX = vector2array(pomVecFX);
-    QJsonArray poleFY = vector2array(pomVecFY);
-    QJsonArray poleFE = vector2array(pomVecFE);
-    QJsonArray polePX = vector2array(pomVecPX);
-    QJsonArray polePY = vector2array(pomVecPY);
-    QJsonArray poleU = vector2array(pomVecU);
-    QString aktualJmeno = chosenVideoETSingle[1];
-    QString cesta = TXTulozeniAktual+"/"+aktualJmeno+".dat";
-    object[] = poleE;
-    object[] = poleT;
-    object[] = poleO;
-    object[] = polePOE;
-    object[] = polePOT;
-    object[] = polePR;
-    object[] = poleDR;
-    object[] = poleFX;
-    object[] = poleFY;
-    object[] = poleFE;
-    object[] = polePX;
-    object[] = polePY;
-    object[] = poleU;*/
-    document.setObject(object);
-    QString documentString = document.toJson();
-    QFile zapis;
-    zapis.setFileName(cesta);
-    zapis.open(QIODevice::WriteOnly);
-    zapis.write(documentString.toLocal8Bit());
-    zapis.close();
 }
 
 void SingleVideoET::done(int done)
@@ -375,6 +301,7 @@ void SingleVideoET::done(int done)
         connect(TFourthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TFourthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TFourthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
+
         qDebug()<<"Third done, starting fourth";
         TFourthP->start();
     }
@@ -422,7 +349,7 @@ void SingleVideoET::done(int done)
         TFifthP->quit();
         ui->showGraphET->setEnabled(true);
         ui->savePB->setEnabled(true);
-        qDebug()<<"Fifth done. Analysis completed";
+        ui->actualAlgorithmPart_label->setText(tr("Fifth part done. Analysis completed"));
     }
 }
 
@@ -443,6 +370,21 @@ void SingleVideoET::movedToMethod(int method)
         ui->actualAlgorithmPart_label->setText("4/5 Second decision algorithm started");
     if (method == 4)
         ui->actualAlgorithmPart_label->setText("5/5 Third decision algorithm started");
+}
+
+void SingleVideoET::onUnexpectedTermination(QString message, int threadNumber, QString errorType){
+    localErrorDialogHandling[ui->calculateET]->evaluate("left",errorType,message);
+    localErrorDialogHandling[ui->calculateET]->show();
+    if (errorType == "hardError"){
+        if (threadNumber == 1)
+            TFirstP->quit();
+        if(threadNumber == 2)
+            TSecondP->quit();
+        if(threadNumber == 3)
+            TThirdP->quit();
+        if(threadNumber == 5)
+            TFifthP->quit();
+    }
 }
 
 void SingleVideoET::on_areaMaximum_editingFinished()
@@ -502,7 +444,7 @@ void SingleVideoET::on_referencialNumberLE_textChanged(const QString &arg1)
     }
     else
     {
-        ui->referencialNumberLE->setStyleSheet("color: #339900");
+        ui->referencialNumberLE->setStyleSheet("color: #33aa00");
         referencialNumber = zadane_cislo;
         ui->horizontalAnomalyCB->setEnabled(true);
         ui->verticalAnomalyCB->setEnabled(true);

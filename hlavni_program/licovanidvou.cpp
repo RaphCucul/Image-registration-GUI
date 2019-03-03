@@ -105,8 +105,7 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     translatedNoLE->setEnabled(false);
 
     QObject::connect(this,SIGNAL(checkRegistrationPass()),this,SLOT(evaluateCorrectValues()));
-    //ui->nabidkaAnalyzy->itemAt(2)->widget()->setEnabled(false);
-    //ui->nabidkaAnalyzy->itemAt(3)->widget()->setEnabled(false);
+    localErrorDialogHandling[ui->registrateTwo] = new ErrorDialog(ui->registrateTwo);
 }
 
 LicovaniDvou::~LicovaniDvou()
@@ -372,12 +371,9 @@ void LicovaniDvou::chosenVideoPBWrapper()
 void LicovaniDvou::chosenVideoPB_clicked(QWidget *W)
 {
     QString pathToVideo = QFileDialog::getOpenFileName(this,
-         "Choose video", "","*.avi;;All files (*)");
+         tr("Choose video"), "","*.avi;;All files (*)");
     analyseAndSaveFirst(pathToVideo,chosenVideoAnalysis);
     chosenVideoLE = qobject_cast<QLineEdit*>(W);
-    //qDebug()<<rozborVybranehoSouboru[0];
-    //qDebug()<<rozborVybranehoSouboru[1];
-    //qDebug()<<rozborVybranehoSouboru[2];
     chosenVideoLE->setText(chosenVideoAnalysis[1]);
     evaluateVideoImageInput(pathToVideo,"video");
 }
@@ -442,7 +438,7 @@ void LicovaniDvou::ReferenceLE_textChanged(const QString &arg1)
     }
     else
     {
-        referenceNoLE->setStyleSheet("color: #339900");
+        referenceNoLE->setStyleSheet("color: #33aa00");
         referenceCorrect = true;
         referencialNumber = referenceFrameNo;
         if (referenceCorrect && translatedCorrect){
@@ -465,7 +461,7 @@ void LicovaniDvou::TranslatedLE_textChanged(const QString &arg1)
     }
     else
     {
-        translatedNoLE->setStyleSheet("color: #339900");
+        translatedNoLE->setStyleSheet("color: #33aa00");
         translatedCorrect = true;
         translatedNumber = translatedFrameNo;
         if (referenceCorrect && translatedCorrect){
@@ -491,7 +487,7 @@ void LicovaniDvou::checkInputNumber(double input, double lower, double upper, QL
         evaluation = false;
     }
     else{
-        editWidget->setStyleSheet("color: #339900");
+        editWidget->setStyleSheet("color: #33aa00");
         evaluation = true;
         finalValue = input;
         emit checkRegistrationPass();
@@ -540,14 +536,18 @@ void LicovaniDvou::on_registrateTwo_clicked()
     cap.set(CV_CAP_PROP_POS_FRAMES,double(translatedNumber));
     cap.read(translatedImage);
     kontrola_typu_snimku_8C3(translatedImage);
-    //double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    //double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
     double entropyTranslated,entropyReference;
     cv::Scalar tennengradTranslated,tennengradReference;
-    calculateParametersET(referencialImage,entropyReference,tennengradReference);
-    calculateParametersET(translatedImage,entropyTranslated,tennengradTranslated);
-    qDebug() << "E: " << entropyReference <<" T: " << tennengradReference[0];
-    qDebug() << "E: " << entropyTranslated << " T: " << tennengradTranslated[0];
+    if (!calculateParametersET(referencialImage,entropyReference,tennengradReference)){
+        localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",8);
+        localErrorDialogHandling[ui->registrateTwo]->show();
+        return;
+    }
+    if(!calculateParametersET(translatedImage,entropyTranslated,tennengradTranslated)){
+        localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",9);
+        localErrorDialogHandling[ui->registrateTwo]->show();
+        return;
+    }
     ui->ER->setText(QString::number(entropyReference));
     ui->TR->setText(QString::number(tennengradReference[0]));
     ui->EM->setText(QString::number(entropyTranslated));
@@ -560,8 +560,8 @@ void LicovaniDvou::on_registrateTwo_clicked()
     cv::Point2d horizontalAnomaly = SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords();
     cv::Point2d verticalAnomaly = SharedVariables::getSharedVariables()->getVerticalAnomalyCoords();
     cv::Mat image;
-    qDebug()<<referencialImage.rows<<" "<<referencialImage.cols;
-    preprocessingCompleteRegistration(referencialImage,
+    //qDebug()<<referencialImage.rows<<" "<<referencialImage.cols;
+    if (!preprocessingCompleteRegistration(referencialImage,
                                       image,
                                       SharedVariables::getSharedVariables()->getFrangiParameters(),
                                       verticalAnomaly,
@@ -572,13 +572,14 @@ void LicovaniDvou::on_registrateTwo_clicked()
                                       cutoutStandard,
                                       cap,
                                       anomalyPresent,
-                                      scaleChanged);
-
+                                      scaleChanged)){
+        localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",10);
+        localErrorDialogHandling[ui->registrateTwo]->show();
+        return;
+    }
     int rows = referencialImage.rows;
     int cols = referencialImage.cols;
     qDebug()<<"preprocessing completed."<<image.rows<<" "<<image.cols;
-    //qDebug()<<"image "<<image.channels();
-    //qDebug()<<"translatedImage"<<translatedImage.channels();
     cv::Point3d maximum_frangi_reverse = frangi_analysis(image,2,2,0,"",1,pt_temp,
                                                          SharedVariables::getSharedVariables()->getFrangiParameters());
     qDebug()<<"Maximum frangi reverse "<<maximum_frangi_reverse.x<<" "<<maximum_frangi_reverse.y;
@@ -600,13 +601,16 @@ void LicovaniDvou::on_registrateTwo_clicked()
                                                pt3,
                                                l_angleSum);
     /// Konec
-    if (!registrationSuccessfull)
-        qDebug()<<"Licovani skoncilo chybou";
+    if (!registrationSuccessfull){
+        localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",11);
+        localErrorDialogHandling[ui->registrateTwo]->show();
+        return;
+    }
     else
     {
-        qDebug()<<"PT3 - posunutí po multiPOC "<<pt3.x<<" "<<pt3.y;
+        qDebug()<<"PT3 - translation after multiPOC "<<pt3.x<<" "<<pt3.y;
         cv::Mat correction = eventualni_korekce_translace(intermediate_result,image,cutoutStandard,pt3,areaMaximum);
-        qDebug()<<"Mezivýsledek "<<intermediate_result.channels()<<" "<<intermediate_result.type();
+        qDebug()<<"Intermediate result "<<intermediate_result.channels()<<" "<<intermediate_result.type();
         cv::Point3d pt5 = fk_translace_hann(image,correction);
         qDebug()<<"PT5 image vs correction"<<pt5.x<<" "<<pt5.y;
         double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt5.z);
@@ -616,7 +620,6 @@ void LicovaniDvou::on_registrateTwo_clicked()
         qDebug()<<"Pt6 "<<pt6.x<<" "<<pt6.y;
         cv::Point3d registrated_FrangiReverse = frangi_analysis(intermediate_result,2,2,0,"",2,pt3,
                                                                 SharedVariables::getSharedVariables()->getFrangiParameters());
-        //cv::Point3d souradnice_slicovany_frangi = frangi_analysis(intermediate_result,1,1,0,"",2,false,pt3,parametry_frangi);
         double yydef = maximum_frangi_reverse.x - registrated_FrangiReverse.x;
         double xxdef = maximum_frangi_reverse.y - registrated_FrangiReverse.y;
         cv::Point3d resulting_translation;
@@ -628,17 +631,12 @@ void LicovaniDvou::on_registrateTwo_clicked()
         cv::Mat final_registration_32f;
         final_registration.copyTo(final_registration_32f);
         kontrola_typu_snimku_32C1(final_registration_32f);
-        qDebug()<<"Licovani dokonceno";
+        qDebug()<<"Registration done.";
         src1 = image;
         src2 = intermediate_result;
         kontrola_typu_snimku_8C3(src1);
         kontrola_typu_snimku_8C3(src2);
 
-        /// originální verze z DP, která však tvoří okno ovladatelné až po ukončení samotné aplikace
-        /*alpha_slider = 0;
-            cv::namedWindow("Kontrola_licovani", CV_WINDOW_AUTOSIZE); // Create Window
-            cv::createTrackbar("Vybrany snimek","Kontrola_licovani",&slider_position,1,on_trackbar);
-            on_trackbar( alpha_slider, 0 );*/
         /// nová verze prohlížeče, která umožní ovládání bez vypnutí hlavního programu
         /*VysledekLicovani *vysledekLicovani = new VysledekLicovani();
             vysledekLicovani->setModal(true);
@@ -662,8 +660,4 @@ void LicovaniDvou::showDialog()
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
-
-        /*QObject::connect(vyznac_anomalii,SIGNAL(SendClickCoordinates(QPointF)),
-                         this,SLOT(GetClickCoordinates(QPointF)));*/
-        //connect(vyznac_anomalii, vyznac_anomalii->SendClickCoordinates, (=)[const auto &myString] {ui->label->setText(myString);});
 }

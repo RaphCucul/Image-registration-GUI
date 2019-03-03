@@ -4,6 +4,7 @@
 #include "util/licovaniparent.h"
 #include "licovani/registrationthread.h"
 #include "fancy_staff/sharedvariables.h"
+#include "dialogy/errordialog.h"
 #include <QWidget>
 #include <QVector>
 #include <QList>
@@ -23,65 +24,19 @@ public:
     ~SingleVideoLicovani();
     void processVideoParameters(QJsonObject& videoData);
     void checkPaths();
-    /*void licuj(cv::VideoCapture& cap,
-               QVector<double> frangiParam,
-               cv::Mat& referencni_snimek,
-               int startFrame,
-               int stopFrame,
-               int iterace,
-               double oblastMaxima,
-               double angle,
-               float timeStamp,
-               float lightAnomaly);
-    int registrateTheBest(cv::VideoCapture& cap,
-                          cv::Mat& referencni_snimek,
-                          cv::Point3d bod_RefS_reverse,
-                          int index_posunuty,
-                          int iterace,
-                          double oblastMaxima,
-                          double uhel,
-                          cv::Rect& vyrez_korelace_extra,
-                          cv::Rect& vyrez_korelace_standard,
-                          bool zmena_meritka,
-                          QVector<double> &parametry_frangi);
-    int fullRegistration(cv::VideoCapture& cap,
-                         cv::Mat& referencni_snimek,
-                         int cislo_posunuty,
-                         int iterace,
-                         double oblastMaxima,
-                         double uhel,
-                         cv::Rect& korelacni_vyrez_navic,
-                         cv::Rect& korelacni_vyrez_standardni,
-                         bool nutnost_zmenit_velikost_snimku,
-                         cv::Mat& slicovany_kompletne,
-                         cv::Point3d& mira_translace,
-                         double& celkovy_uhel);
-    int imagePreprocessing(cv::Mat &reference,
-                           cv::Mat &obraz,
-                           QVector<double> &parFrang,
-                           cv::Point3d& frangiMaxEstimated,
-                           cv::Point2f &hraniceAnomalie,
-                           cv::Point2f &hraniceCasu,
-                           cv::Rect &oblastAnomalie,
-                           cv::Rect &vyrezKoreEx,
-                           cv::Rect &vyrezKoreStand,
-                           cv::VideoCapture &cap,
-                           bool &zmeMer);
-    int registrationCorrection(cv::Mat& slicovany_snimek,
-                               cv::Mat& obraz,
-                               cv::Mat& snimek_korigovany,
-                               cv::Rect& vyrez_korelace_standard,
-                               cv::Point3d& korekce_bod);*/
     int writeToVideo();
 
     void createAndRunThreads(int indexProcVid, cv::VideoCapture& cap, int lowerLimit,
                              int upperLimit);
 private slots:
-    void on_vybraneVideoLE_textChanged(const QString &arg1);
-    void on_vyberVideaPB_clicked();
-    void slicovatSnimkyVidea();
+    void on_chooseVideoLE_textChanged(const QString &arg1);
+    void on_chooseVideoPB_clicked();
+    void registrateVideoframes();
     void totalFramesCompleted(int frameCounter);
     void addItem(int row,int column,QTableWidgetItem* item);
+    void addStatus(int row, int column, QString status);
+    void errorHandler(QString errorMessage);
+    void processAnother(int processed);
 private:
     Ui::SingleVideoLicovani *ui;
     RegistrationThread *regThread;
@@ -98,6 +53,11 @@ private:
     double angle = 0.0;
     int internalCounter = 0;
     double actualFrameCount = 0.0;
+    int videoCounter = 0;
+    int numberOfThreads = 2;//QThread::idealThreadCount()-1;
+    int threadProcessed = 0;
+
+    QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };
 
 #endif // SINGLEVIDEOLICOVANI_H

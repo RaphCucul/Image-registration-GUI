@@ -6,7 +6,7 @@
 #include <QProgressBar>
 #include <QVector>
 
-void calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &tennengrad);
+bool calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &tennengrad);
 
 /**
  * @brief Function wraps calcutaion of entropy and tennengrad of the video

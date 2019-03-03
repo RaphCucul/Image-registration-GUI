@@ -59,7 +59,7 @@ QVector<double> mediansOfVector(QVector<double>& inputValues,
  * @param badFrames
  * @param forEvaluation
  */
-void analysisFunctionValues(QVector<double>& inputValues,
+bool analysisFunctionValues(QVector<double>& inputValues,
                             QVector<double>& medianVector,
                             QVector<double>& windowsVector,
                             double& recalculatedMaximum,

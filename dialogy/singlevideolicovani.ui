@@ -44,7 +44,7 @@
    <item>
     <layout class="QHBoxLayout" name="vyberVideaLayout" stretch="2,1">
      <item>
-      <widget class="QLineEdit" name="vybraneVideoLE">
+      <widget class="QLineEdit" name="chooseVideoLE">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -54,7 +54,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="vyberVideaPB">
+      <widget class="QPushButton" name="chooseVideoPB">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -76,22 +76,9 @@
    <item>
     <layout class="QHBoxLayout" name="tlacitkaLayout">
      <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="slicovatPB">
+      <widget class="QPushButton" name="registratePB">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -107,9 +94,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="zobrazVysledekLicovaniPB">
+      <widget class="QPushButton" name="showResultsPB">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -134,9 +121,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="ulozitPB">
+      <widget class="QPushButton" name="savePB">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -151,25 +138,12 @@
        </property>
       </widget>
      </item>
-     <item>
-      <spacer name="horizontalSpacer_4">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
     </layout>
    </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLabel" name="jmenoVidea_Stav">
+      <widget class="QLabel" name="name_state">
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
@@ -220,6 +194,12 @@
        </item>
        <item>
         <widget class="QTableWidget" name="vysledkyLicovaniTW">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
          </property>
@@ -229,8 +209,14 @@
          <property name="dragDropOverwriteMode">
           <bool>false</bool>
          </property>
+         <property name="textElideMode">
+          <enum>Qt::ElideNone</enum>
+         </property>
          <property name="sortingEnabled">
           <bool>true</bool>
+         </property>
+         <property name="cornerButtonEnabled">
+          <bool>false</bool>
          </property>
          <attribute name="horizontalHeaderCascadingSectionResizes">
           <bool>true</bool>
@@ -265,7 +251,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QProgressBar" name="prubehVypoctu">
+      <widget class="QProgressBar" name="progress">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -282,7 +268,10 @@
         <number>0</number>
        </property>
        <property name="textVisible">
-        <bool>false</bool>
+        <bool>true</bool>
+       </property>
+       <property name="format">
+        <string>%p.0%</string>
        </property>
       </widget>
      </item>

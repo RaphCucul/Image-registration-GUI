@@ -19,15 +19,15 @@
 
 using cv::Mat;
 using cv::Point3d;
-qThreadFirstPart::qThreadFirstPart(QStringList videosForAnalysis, cv::Point2d verticalAnomalyCoords,
-                                   cv::Point2d horizontalAnomalyCoords, QVector<double> FrangiParametersValues,
+qThreadFirstPart::qThreadFirstPart(QStringList _videosForAnalysis, cv::Point2d _verticalAnomalyCoords,
+                                   cv::Point2d _horizontalAnomalyCoords, QVector<double> _FrangiParametersValues,
                                    QObject *parent):QThread(parent)
 {
-    processVideos = videosForAnalysis;
-    videoCount = videosForAnalysis.count();
-    verticalAnomaly = verticalAnomalyCoords;
-    horizontalAnomaly = horizontalAnomalyCoords;
-    FrangiParameters = FrangiParametersValues;
+    processVideos = _videosForAnalysis;
+    videoCount = _videosForAnalysis.count();
+    verticalAnomaly = _verticalAnomalyCoords;
+    horizontalAnomaly = _horizontalAnomalyCoords;
+    FrangiParameters = _FrangiParametersValues;
 
     if (horizontalAnomaly.y != 0.0 || verticalAnomaly.x != 0.0)
         anomalyPresence = true;
@@ -40,100 +40,54 @@ void qThreadFirstPart::run()
     emit typeOfMethod(0);
     emit percentageCompleted(0);
     percent = 0;
-    for (int kolikateVideo = 0; kolikateVideo < processVideos.count(); kolikateVideo++)
+    bool errorOccured = false;
+    for (int videoIndex = 0; videoIndex < processVideos.count(); videoIndex++)
     {
-        QString fullPath = processVideos.at(kolikateVideo);
+        QString fullPath = processVideos.at(videoIndex);
         QString slozka,jmeno,koncovka;
         processFilePath(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(kolikateVideo);
+        emit actualVideo(videoIndex);
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-        if (!cap.isOpened())
-        {
-            qWarning()<<"Unable to open"+fullPath;
+        if (!cap.isOpened()){
+            emit unexpectedTermination("Cannot open a video for analysis",1,"hardError");
+            errorOccured = true;
             break;
         }
+
         int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
         QVector<double> pomVecD(frameCount,0);
         QVector<int> pomVecI(frameCount,0);
-        /*QVector<double> frangi_x,frangi_y,frangi_euklid,
-        POC_x,POC_y,uhel;
-        frangi_x = pomVecD;frangi_y=pomVecD;frangi_euklid=pomVecD;
-        POC_x=pomVecD;POC_y=pomVecD;uhel=pomVecD;*/
 
-        //double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-        //double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
         cv::Rect anomalyArea(0,0,0,0);
-        /*if (verticalAnomaly.x != 0.0 && verticalAnomaly.y != 0.0) // světelná anomálie
-        {
-            anomalyPresence = true;
-            if (verticalAnomaly.x < width/2.0)
-            {
-                anomalyArea.x = 0;
-                anomalyArea.y = int(verticalAnomaly.x);
-                anomalyArea.width = int(width-int(verticalAnomaly.x)-1);
-                anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-            }
-            if (verticalAnomaly.x > width/2.0)
-            {
-                anomalyArea.x = 0;
-                anomalyArea.y = 0;
-                anomalyArea.width = int(verticalAnomaly.x);
-                anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-            }
-        }
-        if (horizontalAnomaly.x != 0.0 && horizontalAnomaly.y != 0.0) // časová anomálie
-        {
-            anomalyPresence = true;
-            if (horizontalAnomaly.x < height/2.0)
-            {
-                anomalyArea.x = int(horizontalAnomaly.y);
-                anomalyArea.y = 0;
-                anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-                anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
-            }
-            if (horizontalAnomaly.x > height/2.0)
-            {
-                anomalyArea.x = 0;
-                anomalyArea.y = 0;
-                anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-                anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
-            }
-        }*/
         QVector<double> entropyActual,tennengradActual;
         entropyActual.fill(0.0,frameCount);
         tennengradActual.fill(0.0,frameCount);
-        int uspech_analyzy = 0;
-        if (cap.isOpened() == 0)
-            continue;
-        else
+
+        double pocet_snimku_videa = (cap.get(CV_CAP_PROP_FRAME_COUNT));
+        qDebug()<< "Video analysis: "<<videoIndex;
+        for (double a = 0; a < pocet_snimku_videa; a++)
         {
-            double pocet_snimku_videa = (cap.get(CV_CAP_PROP_FRAME_COUNT));
-            qDebug()<< "Analyza videa: "<<kolikateVideo;
-            for (double a = 0; a < pocet_snimku_videa; a++)
-            {
-                //qDebug()<<(kolikateVideo/videoCount)*100;//+((a/pocet_snimku_videa)*100.0)/videoCount;
-                emit percentageCompleted(qRound((double(kolikateVideo)/double(videoCount))*100.0+1.0+((double(a)/pocet_snimku_videa)*100.0)/double(videoCount)));
-                //emit percentageCompleted(qRound(((a/pocet_snimku_videa)*100.0)));
-                cv::Mat snimek;
-                double hodnota_entropie;
-                cv::Scalar hodnota_tennengrad;
-                cap.set(CV_CAP_PROP_POS_FRAMES,(a));
-                if (!cap.read(snimek))
-                    continue;
-                else
-                {
-                    kontrola_typu_snimku_8C3(snimek);
-                    calculateParametersET(snimek,hodnota_entropie,hodnota_tennengrad);
-                    double pom = hodnota_tennengrad[0];
-                    //qDebug()<<"Zpracovan snimek "<<a<<" s E: "<<hodnota_entropie<<" a T: "<<pom; // hodnoty v normě
-                    entropyActual[int(a)] = (hodnota_entropie);
-                    tennengradActual[int(a)] = (pom);
-                    snimek.release();
-                }
+            emit percentageCompleted(qRound((double(videoIndex)/double(videoCount))*100.0+1.0+((double(a)/pocet_snimku_videa)*100.0)/double(videoCount)));
+            cv::Mat snimek;
+            double hodnota_entropie;
+            cv::Scalar hodnota_tennengrad;
+            cap.set(CV_CAP_PROP_POS_FRAMES,(a));
+            if (!cap.read(snimek)){
+                QString errorMessage = QString("Frame number %1 could not be opened").arg(a);
+                unexpectedTermination(errorMessage,1,"softError");
+                continue;
             }
-            uspech_analyzy = 1;
-            //procento = qRound(100.0/kolikateVideo+2);
+            else
+            {
+                kontrola_typu_snimku_8C3(snimek);
+                calculateParametersET(snimek,hodnota_entropie,hodnota_tennengrad);
+                double pom = hodnota_tennengrad[0];
+                entropyActual[int(a)] = (hodnota_entropie);
+                tennengradActual[int(a)] = (pom);
+                snimek.release();
+            }
         }
+
         entropyComplete.push_back(entropyActual);
         tennengradComplete.push_back(tennengradActual);
         qDebug()<<entropyComplete.size()<<tennengradComplete.size();
@@ -142,22 +96,17 @@ void qThreadFirstPart::run()
         /// Secondly, it is necessary to select proper maximal value for later selection of bad images
         /// after this procedure, windows for detail analysis of entropy and tennengrad vectors are computed
         /// medians of values in the windows are computed
-        //emit percentageCompleted(0);
-        //emit typeOfMethod(1);
-        double correctEntropyMax = checkMaximum(entropyComplete[kolikateVideo]);
-        double correctTennengradMax = checkMaximum(tennengradComplete[kolikateVideo]);
+        double correctEntropyMax = checkMaximum(entropyComplete[videoIndex]);
+        double correctTennengradMax = checkMaximum(tennengradComplete[videoIndex]);
         QVector<double> windows_tennengrad,windows_entropy,windowsEntropy_medians,windowsTennengrad_medians;
         double restEntropy = 0.0,restTennengrad = 0.0;
-        vectorWindows(entropyComplete[kolikateVideo],windows_entropy,restEntropy);
-        vectorWindows(tennengradComplete[kolikateVideo],windows_tennengrad,restTennengrad);
-        windowsEntropy_medians = mediansOfVector(entropyComplete[kolikateVideo],windows_entropy,restEntropy);
-        windowsTennengrad_medians = mediansOfVector(tennengradComplete[kolikateVideo],windows_tennengrad,restTennengrad);
-        //emit percentageCompleted(100);
+        vectorWindows(entropyComplete[videoIndex],windows_entropy,restEntropy);
+        vectorWindows(tennengradComplete[videoIndex],windows_tennengrad,restTennengrad);
+        windowsEntropy_medians = mediansOfVector(entropyComplete[videoIndex],windows_entropy,restEntropy);
+        windowsTennengrad_medians = mediansOfVector(tennengradComplete[videoIndex],windows_tennengrad,restTennengrad);
 
         /// Thirdly, values of entropy and tennengrad are evaluated and frames get mark good/bad, if they are
         /// or they are not suitable for image registration
-        //emit typeOfMethod(2);
-        //emit percentageCompleted(0);
         QVector<double> thresholdsEntropy(2,0);
         QVector<double> thresholdsTennengrad(2,0);
         thresholdsEntropy[0] = 0.01;thresholdsEntropy[1] = 0.01;
@@ -167,47 +116,57 @@ void qThreadFirstPart::run()
         int dmin = 1;
         QVector<int> badFramesEntropy, badFramesTennengrad;
         QVector<double> nextAnalysisEntropy, nextAnalysisTennengrad;
-        analysisFunctionValues(entropyComplete[kolikateVideo],windowsEntropy_medians,windows_entropy,
+        bool analysisOfValuesResult = analysisFunctionValues(entropyComplete[videoIndex],windowsEntropy_medians,windows_entropy,
                                correctEntropyMax,thresholdsEntropy,toleranceEntropy,dmin,restEntropy,
                                badFramesEntropy,nextAnalysisEntropy);
-        //emit percentageCompleted(50);
-        analysisFunctionValues(tennengradComplete[kolikateVideo],windowsTennengrad_medians,windows_tennengrad,
+        if (!analysisOfValuesResult){
+            emit unexpectedTermination("Entropy analysis of frames was interrupted by an error.",1,"hardError");
+            errorOccured = true;
+        }
+        analysisOfValuesResult = analysisFunctionValues(tennengradComplete[videoIndex],windowsTennengrad_medians,windows_tennengrad,
                                correctTennengradMax,thresholdsTennengrad,toleranceTennengrad,dmin,restTennengrad,
                                badFramesTennengrad,nextAnalysisTennengrad);
-        int referencni_snimek = findReferencialNumber(correctEntropyMax,nextAnalysisEntropy,
-                                                             entropyComplete[kolikateVideo]);
-        referencialFrames.push_back(referencni_snimek);
-        //emit percentageCompleted(100);
+        if (!analysisOfValuesResult){
+            emit unexpectedTermination("Tennengrad analysis of frames was interrupted by an error.",1,"hardError");
+            errorOccured = true;
+        }
+        int referencialImageNo = findReferencialNumber(correctEntropyMax,nextAnalysisEntropy,
+                                                             entropyComplete[videoIndex]);
+        referencialFrames.push_back(referencialImageNo);
 
         /// Fourth part - frangi filter is applied on the frame marked as the reference
-        //emit typeOfMethod(3);
-        //emit percentageCompleted(0);
         Mat reference, reference_vyrez;
-        cap.set(CV_CAP_PROP_POS_FRAMES,referencni_snimek);
+        cap.set(CV_CAP_PROP_POS_FRAMES,referencialImageNo);
         cap.read(reference);
 
-        cv::Rect vyrez_korelace_extra(0,0,0,0);
-        cv::Rect vyrez_korelace_standard(0,0,0,0);
+        cv::Rect cutoutExtra(0,0,0,0);
+        cv::Rect cutoutStandard(0,0,0,0);
         cv::Point3d pt_temp(0.0,0.0,0.0);
         cv::Mat obraz;
         cv::Point3d frangi_bod(0,0,0);
         bool zmenaMeritka;
-        preprocessingCompleteRegistration(reference,
-                                          obraz,
-                                          FrangiParameters,
-                                          verticalAnomaly,
-                                          horizontalAnomaly,
-                                          frangi_bod,
-                                          anomalyArea,
-                                          vyrez_korelace_standard,
-                                          vyrez_korelace_extra,
-                                          cap,
-                                          anomalyPresence,
-                                          zmenaMeritka);
-        qDebug()<<"Standard "<<vyrez_korelace_standard.height<<" "<<vyrez_korelace_standard.width;
-        qDebug()<<"Extra "<<vyrez_korelace_extra.height<<" "<<vyrez_korelace_extra.width;
-        obtainedCutoffStandard = vyrez_korelace_standard;
-        obtainedCutoffExtra = vyrez_korelace_extra;
+        bool preprocessingSuccessfull = preprocessingCompleteRegistration(
+                                        reference,
+                                        obraz,
+                                        FrangiParameters,
+                                        verticalAnomaly,
+                                        horizontalAnomaly,
+                                        frangi_bod,
+                                        anomalyArea,
+                                        cutoutStandard,
+                                        cutoutExtra,
+                                        cap,
+                                        anomalyPresence,
+                                        zmenaMeritka);
+        if(!preprocessingSuccessfull){
+            emit unexpectedTermination("Preprocessing failed",1,"hardError");
+            errorOccured = true;
+            break;
+        }
+        qDebug()<<"Standard "<<cutoutStandard.height<<" "<<cutoutStandard.width;
+        qDebug()<<"Extra "<<cutoutExtra.height<<" "<<cutoutExtra.width;
+        obtainedCutoffStandard = cutoutStandard;
+        obtainedCutoffExtra = cutoutExtra;
         QVector<int> spatne_snimky_komplet = mergeVectors(badFramesEntropy,badFramesTennengrad);
         integrityCheck(spatne_snimky_komplet);
         QVector<int> hodnoceniSnimku;
@@ -234,9 +193,11 @@ void qThreadFirstPart::run()
         badFramesComplete.append(spatne_snimky_komplet);
         framesFirstFullCompleteEntropyEvaluation.append(badFramesEntropy);
         framesFirstFullCompleteTennengradEvaluation.append(badFramesTennengrad);
-        emit percentageCompleted(100);
     }
-    emit done(1);
+    if (!errorOccured){
+        emit percentageCompleted(100);
+        emit done(1);
+    }
 }
 
 QVector<QVector<double> > qThreadFirstPart::computedEntropy()
@@ -338,7 +299,7 @@ QVector<QVector<double>> VicevlaknoveZpracovani::vypocitaneOhodnoceni()
                        double prumerne_FWHM,
                        cv::VideoCapture& cap,
                        cv::Mat& referencni_snimek,
-                       cv::Rect& vyrez_korelace_standardni,
+                       cv::Rect& cutoutStandardni,
                        cv::Rect& vyrez_korelace_navic,
                        bool zmena_velikosti_obrazu,
                        QVector<double> &snimky_k_provereni_prvni,
@@ -350,7 +311,7 @@ QVector<QVector<double>> VicevlaknoveZpracovani::vypocitaneOhodnoceni()
         Mat posunuty_temp,posunuty,posunuty_vyrez,slicovany,slicovany_vyrez;
         Mat obraz, obraz_vyrez;
         referencni_snimek.copyTo(obraz);
-        obraz(vyrez_korelace_standardni).copyTo(obraz_vyrez);
+        obraz(cutoutStandardni).copyTo(obraz_vyrez);
         int rows = obraz.rows;
         int cols = obraz.cols;
         cap.set(CV_CAP_PROP_POS_FRAMES,spatne_snimky_prvotni_ohodnoceni[i]);
@@ -368,7 +329,7 @@ QVector<QVector<double>> VicevlaknoveZpracovani::vypocitaneOhodnoceni()
         if (zmena_velikosti_obrazu == true)
         {
             posunuty_temp(vyrez_korelace_navic).copyTo(posunuty);
-            posunuty(vyrez_korelace_standardni).copyTo(posunuty_vyrez);
+            posunuty(cutoutStandardni).copyTo(posunuty_vyrez);
             posunuty_temp.release();
         }
         else

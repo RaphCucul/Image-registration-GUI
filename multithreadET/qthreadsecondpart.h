@@ -11,9 +11,10 @@ class qThreadSecondPart : public QThread
 {
     Q_OBJECT
 public:
-    explicit qThreadSecondPart(QStringList& videos, cv::Rect& CO_standard, cv::Rect& CO_extra,
-                               QVector<QVector<int>>& badFramesCompleteList, QVector<int>& videoReferences,
-                               bool sC);
+    explicit qThreadSecondPart(QStringList& _videosForAnalysis, cv::Rect& _cutoutStandard,
+                               cv::Rect& _cutoutExtra,
+                               QVector<QVector<int>>& _badFramesCompleteList, QVector<int>& _videoReferencialFramesList,
+                               bool _scaleChange);
     void run() override;
     QVector<double> vectorForFWHM(QVector<int> &badFrames, int frameCount);
     QVector<double> computedCC();
@@ -23,7 +24,7 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination();
+    void unexpectedTermination(QString,int,QString);
 private:
     QStringList videoList;
     double videoCount;

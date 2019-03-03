@@ -38,7 +38,7 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination();
+    void unexpectedTermination(QString,int,QString);
 private:
     QStringList videoList;
     QVector<QVector<int>> framesFirstEvaluationComplete,framesSecondEvaluationComplete,framesCompleteEvaluation;

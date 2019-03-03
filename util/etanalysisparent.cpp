@@ -19,7 +19,7 @@ void ETanalysisParent::checkInputNumber(double input, double lower, double upper
         evaluation = false;
     }
     else{
-        editWidget->setStyleSheet("color: #339900");
+        editWidget->setStyleSheet("color: #33aa00");
         evaluation = true;
         finalValue = input;
     }

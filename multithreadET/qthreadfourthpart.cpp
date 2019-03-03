@@ -39,6 +39,8 @@ qThreadFourthPart::qThreadFourthPart(QStringList &videos,
 
 void qThreadFourthPart::run()
 {
+    /// Sevent part - based on the previous part, this is the second chance for bad frame to be marked as suitable
+    /// for registration
     emit typeOfMethod(3);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
@@ -57,12 +59,12 @@ void qThreadFourthPart::run()
             {
                 if (computedFWHM[indexVidea][b] < (averageFWHMcomplete[indexVidea] + 2))
                 {
-                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " je vhodny ke slicovani.";
+                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " suitable for registration.";
                     framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
                 }
                 else
                 {
-                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " bude proveren.";
+                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will be analysed in the next step.";
                     snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
                 }
                 continue;
@@ -71,12 +73,12 @@ void qThreadFourthPart::run()
             {
                 if (computedFWHM[indexVidea][b] < (averageFWHMcomplete[indexVidea] + 2.5))
                 {
-                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " je vhodny ke slicovani.";
+                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " suitable for registration.";
                     framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
                 }
                 else if (computedFWHM[indexVidea][b] > (averageFWHMcomplete[indexVidea] + 10))
                 {
-                    qDebug() << "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " nepripusten k analyze.";
+                    qDebug() << "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will not be registrated.";
                     framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 5.0;
                     POC_x[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
                     POC_y[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
@@ -87,7 +89,7 @@ void qThreadFourthPart::run()
                 }
                 else
                 {
-                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " bude proveren.";
+                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will be analysed in the next step.";
                     snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
                 }
                 continue;
@@ -96,12 +98,12 @@ void qThreadFourthPart::run()
             {
                 if (computedFWHM[indexVidea][b] <= (averageFWHMcomplete[indexVidea] + 3))
                 {
-                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " je vhodny ke slicovani.";
+                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " suitable for registration.";
                     framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
                 }
                 else
                 {
-                    qDebug()<< "Snimek "<< framesFirstEvaluationComplete[indexVidea][b]<< " bude proveren.";
+                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will be analysed in the next step.";
                     snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
                 }
                 continue;

@@ -39,7 +39,7 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination();
+    void unexpectedTermination(QString,int,QString);
 private:
     double videoCount;
     double frameCount;

@@ -22,10 +22,29 @@ public:
     };
     explicit ErrorDialog(QWidget* widgetWithNotification,QWidget *parent = nullptr);
     ~ErrorDialog();
-
     /**
-     * @brief Function adds hover event to the error label - if user hover over the label, signal
-     * is emitted and the error message is shown
+     * @brief The main function where all parameters of the error are set. Everything else
+     * is hidden in this function, therefore user needs to set only 3 parameters and then call
+     * show() function. The third parameter can be int or string (used in thread classes).
+     * @param position - where to place the error label
+     * @param EventType
+     * @param errorNumber - errors.h
+     */
+    void evaluate(QString position,QString EventType,int errorNumber);
+    void evaluate(QString position,QString EventType,QString errorMessage);
+
+    bool isEvaluated();
+    void show();
+    void hide();
+
+signals:
+    void mouseClicked();
+private slots:
+    void hideErrorIcon();
+private:
+    /**
+     * @brief The function adds the hover event to the error label - if user hover over the label, signal
+     * is emitted and the error message is shown.
      * @param obj = error QLabel
      * @param event - mouse hover
      * @return
@@ -49,18 +68,6 @@ public:
      */
     void setErrorType(ErrorDialog::ErrorType errorType);
 
-    /**
-     * @brief The main function where all parameters of the error are set. Everything else
-     * is hidden in this function, therefore user needs to set only 3 parameters and then call
-     * show() function
-     * @param position - where to place the error label
-     * @param EventType
-     * @param errorNumber - errors.h
-     */
-    void evaluate(QString position,QString EventType,int errorNumber);
-    bool isEvaluated();
-
-    /// initialization functions
     void initialiseErrorLabel();
     void Info();
     void SoftError();
@@ -69,14 +76,8 @@ public:
     void initShadowEffect();
     void initColorEffect();
     void initAnimation();
-    void show();
     void showMessage(const QString errorMessage);
-    void hide();
 
-signals:
-    void mouseHovered(QLabel*);
-
-private:
     QString errorStatementToDisplay;
     int errorSeverity;
     QLabel* errorLabel = nullptr;

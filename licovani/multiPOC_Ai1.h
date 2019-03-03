@@ -49,7 +49,7 @@ bool completeRegistration(cv::VideoCapture& cap,
  * @param anomalyPresence
  * @param scalingNeeded
  */
-void preprocessingCompleteRegistration(cv::Mat &reference,
+bool preprocessingCompleteRegistration(cv::Mat &reference,
                                        cv::Mat &image,
                                        QVector<double> parFrang,
                                        cv::Point2d verticalAnomaly,

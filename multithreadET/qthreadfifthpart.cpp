@@ -51,9 +51,13 @@ qThreadFifthPart::qThreadFifthPart(QStringList& videos,
 
 void qThreadFifthPart::run()
 {
+    /// The last part - the coordinates of Frangi Filter maximum pixel are calculated and compared with the coords
+    /// of referencial frame. The euclidean distance of these two pixels can show, if the Frangi filter is usable
+    /// for this frame.
     emit typeOfMethod(4);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
+    bool errorOccured = false;
     for (int indexVidea = 0; indexVidea < videoList.count(); indexVidea++)
     {
         frameCount = double(framesSecondEval[indexVidea].length());
@@ -64,15 +68,17 @@ void qThreadFifthPart::run()
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!cap.isOpened())
         {
-            qWarning()<<"Unable to open"+fullPath;
+            emit unexpectedTermination("Cannot open a video for analysis",5,"hardError");
+            errorOccured = true;
             break;
         }
         cv::Mat referencni_snimek_temp,referencni_snimek,referencni_snimek32f,referencni_vyrez;
         cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[indexVidea]);
         if (!cap.read(referencni_snimek_temp))
         {
-                qWarning()<<"Referrence image cannot be read!";
-                break;
+            emit unexpectedTermination("Referencial frame could not be loaded.",5,"hardError");
+            errorOccured = true;
+            break;
         }
         int rows;
         int cols;
@@ -119,7 +125,9 @@ void qThreadFifthPart::run()
             if (uspech_licovani == 0)
             {
 
-                qDebug()  << "nelze slicovat, ohodnocení: 5";
+                emit unexpectedTermination("Cannot open a video for analysis",5,"hardError");
+                errorOccured = true;
+                break;
                 framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 5.0;
                 POC_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
                 POC_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
@@ -164,7 +172,7 @@ void qThreadFifthPart::run()
                     extra_translace.x = mira_translace.x+korekce_bod.x;
                     extra_translace.y = mira_translace.y+korekce_bod.y;
                     extra_translace.z = mira_translace.z;
-                    qDebug()<< "Provedena korekce posunuti pro objektivnejsi analyzu skrze cevy.";
+                    qDebug()<< "Frame was translated for more objective frangi filter analysis.";
                     slicovany_frangi_reverse = frangi_analysis(korekce,2,2,0,"",2,extra_translace,FrangiParameters);
                 }
                 else
@@ -174,8 +182,8 @@ void qThreadFifthPart::run()
                 slicovan_kompletne.release();
                 if (slicovany_frangi_reverse.z == 0.0)
                 {
-
-                    qDebug()<< "Nelze zjistit maximum Frangiho funkce, ohodnoceni: 5";
+                    QString errorMessage = QString("The Franfi filter maximum could not be obtained for frame %1"),arg(i);
+                    emit unexpectedTermination(errorMessage,5,"soft");
                     framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 5.0;
                     POC_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
                     POC_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
@@ -194,12 +202,12 @@ void qThreadFifthPart::run()
                     if (euklid <= 1.2)
                     {
                         framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 0;
-                        qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 0";
+                        qDebug()<< "euclidean "<<euklid<<", category: 0";
                     }
                     else if (euklid > 1.2 && euklid < 10)
                     {
                         framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 1;
-                        qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 1";
+                        qDebug()<< "euclidean "<<euklid<<", category: 1";
                         frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.x;
                         frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.y;
                         frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = euklid;
@@ -207,7 +215,7 @@ void qThreadFifthPart::run()
                     else if (euklid >=10)
                     {
                         framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 4;
-                        qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 4";
+                        qDebug()<< "euclidean "<<euklid<<", category: 4";
                         frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.x;
                         frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.y;
                         frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = euklid;
@@ -222,8 +230,10 @@ void qThreadFifthPart::run()
         }
 
     }
-    emit percentageCompleted(100);
-    emit done(5);
+    if (!errorOccured){
+        emit percentageCompleted(100);
+        emit done(5);
+    }
 }
 
 QVector<QVector<int>> qThreadFifthPart::framesUpdateEvaluationComplete()

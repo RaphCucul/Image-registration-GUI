@@ -2,6 +2,7 @@
 #define SINGLEVIDEOET_H
 
 #include "util/etanalysisparent.h"
+#include "dialogy/errordialog.h"
 
 #include <QWidget>
 #include <opencv2/opencv.hpp>
@@ -31,6 +32,7 @@ private slots:
     void done(int done);
     void newVideoProcessed(int index);
     void movedToMethod(int method);
+    void onUnexpectedTermination(QString message,int threadNumber, QString errorType);
     void on_savePB_clicked();
     void on_areaMaximum_editingFinished();
     void on_rotationAngle_editingFinished();
@@ -49,6 +51,7 @@ private:
     QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
                                  "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
                                  "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
+    QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };
 
 #endif // SINGLEVIDEOET_H

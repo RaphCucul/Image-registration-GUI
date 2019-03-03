@@ -28,18 +28,18 @@ public:
                        bool nutnost_zmenit_velikost_snimku);
     void run() override;
     QMap<QString,QVector<double>> provideResults();
-    int registrateTheBest(cv::VideoCapture& cap,
-                          cv::Mat& referencni_snimek,
-                          cv::Point3d bod_RefS_reverse,
-                          int index_posunuty,
-                          int iterace,
-                          double oblastMaxima,
-                          double uhel,
-                          cv::Rect& vyrez_korelace_extra,
-                          cv::Rect& vyrez_korelace_standard,
-                          bool zmena_meritka,
+    bool registrateTheBest(cv::VideoCapture& i_cap,
+                          cv::Mat& i_referencialFrame,
+                          cv::Point3d i_coordsFrangiStandardReferencialReverse,
+                          int i_index_translated,
+                          int i_iteration,
+                          double i_areaMaximum,
+                          double i_angle,
+                          cv::Rect& i_cutoutExtra,
+                          cv::Rect& i_cutoutStandard,
+                          bool i_scaleChanged,
                           QVector<double> &parametry_frangi);
-    int fullRegistration(cv::VideoCapture& cap,
+    bool fullRegistration(cv::VideoCapture& cap,
                          cv::Mat& referencni_snimek,
                          int cislo_posunuty,
                          int iterace,
@@ -51,7 +51,7 @@ public:
                          cv::Mat& slicovany_kompletne,
                          cv::Point3d& mira_translace,
                          double& celkovy_uhel);
-    int imagePreprocessing(cv::Mat &reference,
+    bool imagePreprocessing(cv::Mat &reference,
                            cv::Mat &obraz,
                            QVector<double> &parFrang,
                            cv::Point3d& frangiMaxEstimated,
@@ -62,16 +62,18 @@ public:
                            cv::Rect &vyrezKoreStand,
                            cv::VideoCapture &cap,
                            bool &zmeMer);
-    int registrationCorrection(cv::Mat& slicovany_snimek,
+    bool registrationCorrection(cv::Mat& slicovany_snimek,
                                cv::Mat& obraz,
                                cv::Mat& snimek_korigovany,
                                cv::Rect& vyrez_korelace_standard,
                                cv::Point3d& korekce_bod);
 signals:
     void allWorkDone(int);
-    //void frameCompleted(int);
-    void numberOfFrame(int,int,QTableWidgetItem*);
-
+    void errorDetected(QString);
+    void x_coordInfo(int,int,QTableWidgetItem*);
+    void y_coordInfo(int,int,QTableWidgetItem*);
+    void angleInfo(int,int,QTableWidgetItem*);
+    void statusInfo(int,int,QString);
 private:
     cv::VideoCapture capture;
     cv::Mat referencialImage;

@@ -20,6 +20,7 @@
 #include <random>
 #include <iterator>
 #include <QDebug>
+#include <exception>
 
 double median_VectorDouble(QVector<double> inputValues)
 {
@@ -165,7 +166,7 @@ QVector<double> mediansOfVector(QVector<double>& inputValues,
     return mediansVectorWindows;
 }
 
-void analysisFunctionValues(QVector<double>& inputValues,
+bool analysisFunctionValues(QVector<double>& inputValues,
                             QVector<double>& medianVector,
                             QVector<double>& windowsVector,
                             double& recalculatedMaximum,
@@ -176,71 +177,76 @@ void analysisFunctionValues(QVector<double>& inputValues,
                             QVector<int> &badFrames,
                             QVector<double>& forEvaluation)
 {
-    if ((inputValues[0] < medianVector[0]) || (inputValues[0] >= (recalculatedMaximum+thresholds[1])))
-    {
-        badFrames.push_back(0);
-    }
-    for (int i = 0; i <= windowsVector.size()-1; i++)
-    {
-        int od_do[2] = {0};
-        if (i == 0)
+    try {
+        if ((inputValues[0] < medianVector[0]) || (inputValues[0] >= (recalculatedMaximum+thresholds[1])))
         {
-            od_do[0] = 1;
-            od_do[1] = int(windowsVector[i]);
+            badFrames.push_back(0);
         }
-        else if (i == (windowsVector.size()-1))
+        for (int i = 0; i <= windowsVector.size()-1; i++)
         {
-            od_do[0] = int(windowsVector[i-1]);
-            od_do[1] = int(windowsVector[i]-2.0);
-        }
-        else
-        {
-            od_do[0] = int(windowsVector[i-1]);
-            od_do[1] = int(windowsVector[i]);
-        }
-        //cout << od_do[0] <<" "<<od_do[1]<<" ";
-        double actualMedian = medianVector[i];
-        //cout<<"Aktualni median ke srovnani: "<<actualMedian<<endl;
-        for (int j = od_do[0]; j < od_do[1]; j++)
-        {
-            if (inputValues[j] < (actualMedian-thresholds[0]))
+            int od_do[2] = {0};
+            if (i == 0)
             {
-                if ((inputValues[j-1])>=inputValues[j] || (inputValues[j]<=inputValues[j+1]))
+                od_do[0] = 1;
+                od_do[1] = int(windowsVector[i]);
+            }
+            else if (i == (windowsVector.size()-1))
+            {
+                od_do[0] = int(windowsVector[i-1]);
+                od_do[1] = int(windowsVector[i]-2.0);
+            }
+            else
+            {
+                od_do[0] = int(windowsVector[i-1]);
+                od_do[1] = int(windowsVector[i]);
+            }
+            //cout << od_do[0] <<" "<<od_do[1]<<" ";
+            double actualMedian = medianVector[i];
+            //cout<<"Aktualni median ke srovnani: "<<actualMedian<<endl;
+            for (int j = od_do[0]; j < od_do[1]; j++)
+            {
+                if (inputValues[j] < (actualMedian-thresholds[0]))
                 {
-                    if (badFrames.empty() == 1)
+                    if ((inputValues[j-1])>=inputValues[j] || (inputValues[j]<=inputValues[j+1]))
                     {
-                        badFrames.push_back(j);
-                    }
-                    else
-                    {
-                        if (std::abs(j-badFrames.back())>=dmin)
+                        if (badFrames.empty() == 1)
                         {
                             badFrames.push_back(j);
                         }
+                        else
+                        {
+                            if (std::abs(j-badFrames.back())>=dmin)
+                            {
+                                badFrames.push_back(j);
+                            }
+                        }
+                    }
+                }
+                if (inputValues[j] >= recalculatedMaximum+thresholds[1])
+                {
+                    badFrames.push_back(j);
+                }
+                if (thresholds.size() == 2)
+                {
+                    if ((inputValues[j] > (actualMedian-thresholds[0]+tolerance))
+                            && (inputValues[j] < recalculatedMaximum+thresholds[1]))
+                    {
+                        forEvaluation.push_back(j);
                     }
                 }
             }
-            if (inputValues[j] >= recalculatedMaximum+thresholds[1])
-            {
-                badFrames.push_back(j);
-            }
-            if (thresholds.size() == 2)
-            {
-                if ((inputValues[j] > (actualMedian-thresholds[0]+tolerance))
-                        && (inputValues[j] < recalculatedMaximum+thresholds[1]))
-                {
-                    forEvaluation.push_back(j);
-                }
-            }
-        }
 
-    }
-    if (restToEnd == 0.0)
-    {
-        if ((inputValues.back() < medianVector.back()) || (inputValues.back() >= recalculatedMaximum + thresholds[1]))
-        {
-            badFrames.push_back(inputValues.size()-1);
         }
+        if (restToEnd == 0.0)
+        {
+            if ((inputValues.back() < medianVector.back()) || (inputValues.back() >= recalculatedMaximum + thresholds[1]))
+            {
+                badFrames.push_back(inputValues.size()-1);
+            }
+        }
+        return true;
+    } catch (std::exception e) {
+        return false;
     }
 }
 

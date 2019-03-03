@@ -199,7 +199,7 @@ bool completeRegistration(cv::VideoCapture& cap,
     }
 }
 
-void preprocessingCompleteRegistration(cv::Mat &reference,
+bool preprocessingCompleteRegistration(cv::Mat &reference,
                                        cv::Mat &image,
                                        QVector<double> parFrang,
                                        cv::Point2d verticalAnomaly,
@@ -212,122 +212,127 @@ void preprocessingCompleteRegistration(cv::Mat &reference,
                                        bool& anomalyPresence,
                                        bool &scalingNeeded)
 {
-    cv::Point3d pt_temp(0.0,0.0,0.0);
-    cv::Point3d frangi_bod(0.0,0.0,0.0);
-    double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    try {
+        cv::Point3d pt_temp(0.0,0.0,0.0);
+        cv::Point3d frangi_bod(0.0,0.0,0.0);
+        double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+        double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
 
-    if (verticalAnomaly.x != 0.0 && verticalAnomaly.y != 0.0) // světelná anomálie
-    {
-        anomalyPresence = true;
-        if (verticalAnomaly.x < width/2.0)
+        if (verticalAnomaly.x != 0.0 && verticalAnomaly.y != 0.0) // světelná anomálie
         {
-            anomalyArea.x = 0;
-            anomalyArea.y = int(verticalAnomaly.x);
-            anomalyArea.width = int(width-int(verticalAnomaly.x)-1);
-            anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+            anomalyPresence = true;
+            if (verticalAnomaly.x < width/2.0)
+            {
+                anomalyArea.x = 0;
+                anomalyArea.y = int(verticalAnomaly.x);
+                anomalyArea.width = int(width-int(verticalAnomaly.x)-1);
+                anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+            }
+            if (verticalAnomaly.x > width/2.0)
+            {
+                anomalyArea.x = 0;
+                anomalyArea.y = 0;
+                anomalyArea.width = int(verticalAnomaly.x);
+                anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+            }
         }
-        if (verticalAnomaly.x > width/2.0)
+        if (horizontalAnomaly.x != 0.0 && horizontalAnomaly.y != 0.0) // časová anomálie
         {
-            anomalyArea.x = 0;
-            anomalyArea.y = 0;
-            anomalyArea.width = int(verticalAnomaly.x);
-            anomalyArea.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+            anomalyPresence = true;
+            if (horizontalAnomaly.x < height/2.0)
+            {
+                anomalyArea.x = int(horizontalAnomaly.y);
+                anomalyArea.y = 0;
+                anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
+                anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
+            }
+            if (horizontalAnomaly.x > height/2.0)
+            {
+                anomalyArea.x = 0;
+                anomalyArea.y = 0;
+                anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
+                anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
+            }
         }
-    }
-    if (horizontalAnomaly.x != 0.0 && horizontalAnomaly.y != 0.0) // časová anomálie
-    {
-        anomalyPresence = true;
-        if (horizontalAnomaly.x < height/2.0)
-        {
-            anomalyArea.x = int(horizontalAnomaly.y);
-            anomalyArea.y = 0;
-            anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-            anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
-        }
-        if (horizontalAnomaly.x > height/2.0)
-        {
-            anomalyArea.x = 0;
-            anomalyArea.y = 0;
-            anomalyArea.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-            anomalyArea.height = int(height-int(horizontalAnomaly.y)-1);
-        }
-    }
 
 
-    if (fraMax.x == 0.0 && fraMax.y == 0.0){
-        if (anomalyPresence == true)
-            fraMax = frangi_analysis(reference(anomalyArea),1,1,0,"",1,pt_temp,parFrang);
+        if (fraMax.x == 0.0 && fraMax.y == 0.0){
+            if (anomalyPresence == true)
+                fraMax = frangi_analysis(reference(anomalyArea),1,1,0,"",1,pt_temp,parFrang);
+            else
+                fraMax = frangi_analysis(reference,1,1,0,"",1,pt_temp,parFrang);
+
+            if (fraMax.z == 0.0)
+            {
+                qDebug()<<"Nalezeni maxima frangiho funkce se nezdarilo, proverte snimek!"<<endl;
+            }
+            qDebug()<<"Frangi analysis completed"<<endl;
+        }
+
+        bool changeScaling = false;
+        int rows = reference.rows;
+        int cols = reference.cols;
+        int rowFrom = int(round(frangi_bod.y-0.9*frangi_bod.y));
+        int rowTo = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
+        int columnFrom = 0;
+        int columnTo = 0;
+
+        if (anomalyPresence == true && verticalAnomaly.y != 0.0 && int(verticalAnomaly.y)<(cols/2))
+        {
+            columnFrom = int(verticalAnomaly.y);
+            changeScaling = true;
+        }
         else
-            fraMax = frangi_analysis(reference,1,1,0,"",1,pt_temp,parFrang);
+            columnFrom = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
 
-        if (fraMax.z == 0.0)
+        if (anomalyPresence == true && verticalAnomaly.y != 0.0 &&  int(verticalAnomaly.y)>(cols/2))
         {
-            qDebug()<<"Nalezeni maxima frangiho funkce se nezdarilo, proverte snimek!"<<endl;
+            columnTo = int(verticalAnomaly.y);
+            changeScaling = true;
         }
-        qDebug()<<"Frangi analysis completed"<<endl;
-    }    
+        else
+            columnTo = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
 
-    bool changeScaling = false;
-    int rows = reference.rows;
-    int cols = reference.cols;
-    int rowFrom = int(round(frangi_bod.y-0.9*frangi_bod.y));
-    int rowTo = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-    int columnFrom = 0;
-    int columnTo = 0;
+        int cutout_width = columnTo-columnFrom;
+        int cutout_height = rowTo - rowFrom;
 
-    if (anomalyPresence == true && verticalAnomaly.y != 0.0 && int(verticalAnomaly.y)<(cols/2))
-    {
-        columnFrom = int(verticalAnomaly.y);
-        changeScaling = true;
-    }
-    else
-        columnFrom = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
-
-    if (anomalyPresence == true && verticalAnomaly.y != 0.0 &&  int(verticalAnomaly.y)>(cols/2))
-    {
-        columnTo = int(verticalAnomaly.y);
-        changeScaling = true;
-    }
-    else
-        columnTo = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
-
-    int cutout_width = columnTo-columnFrom;
-    int cutout_height = rowTo - rowFrom;
-
-    if ((cutout_height>480 || cutout_width>640)|| changeScaling == true)
-    {
-        cutoutExtra.x = columnFrom;
-        cutoutExtra.y = rowFrom;
-        cutoutExtra.width = cutout_width;
-        cutoutExtra.height = cutout_height;
-        reference(cutoutExtra).copyTo(image);
-        frangi_bod = frangi_analysis(image,1,1,0,"",1,pt_temp,parFrang);
-        rows = image.rows;
-        cols = image.cols;
-        rowFrom = int(round(frangi_bod.y-0.9*frangi_bod.y));
-        rowTo = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-        columnFrom = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
-        columnTo = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
-        cutout_width = columnTo-columnFrom;
-        cutout_height = rowTo - rowFrom;
-        cutoutStandard.x = columnFrom;
-        cutoutStandard.y = rowFrom;
-        cutoutStandard.width = cutout_width;
-        cutoutStandard.height = cutout_height;
-        scalingNeeded = true;
-        fraMax = frangi_bod;
-    }
-    else
-    {
-        fraMax=frangi_bod;
-        cutoutStandard.x = int(round(fraMax.x-0.9*(fraMax.x)));
-        cutoutStandard.y = int(round(fraMax.y-0.9*fraMax.y));
-        rowTo = int(round(fraMax.y+0.9*(rows - fraMax.y)));
-        columnTo = int(round(fraMax.x+0.9*(cols - fraMax.x)));
-        cutoutStandard.width = columnTo-cutoutStandard.x;
-        cutoutStandard.height = rowTo - cutoutStandard.y;
-        reference.copyTo(image);
-        //obraz_temp.release();
+        if ((cutout_height>480 || cutout_width>640)|| changeScaling == true)
+        {
+            cutoutExtra.x = columnFrom;
+            cutoutExtra.y = rowFrom;
+            cutoutExtra.width = cutout_width;
+            cutoutExtra.height = cutout_height;
+            reference(cutoutExtra).copyTo(image);
+            frangi_bod = frangi_analysis(image,1,1,0,"",1,pt_temp,parFrang);
+            rows = image.rows;
+            cols = image.cols;
+            rowFrom = int(round(frangi_bod.y-0.9*frangi_bod.y));
+            rowTo = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
+            columnFrom = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
+            columnTo = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
+            cutout_width = columnTo-columnFrom;
+            cutout_height = rowTo - rowFrom;
+            cutoutStandard.x = columnFrom;
+            cutoutStandard.y = rowFrom;
+            cutoutStandard.width = cutout_width;
+            cutoutStandard.height = cutout_height;
+            scalingNeeded = true;
+            fraMax = frangi_bod;
+        }
+        else
+        {
+            fraMax=frangi_bod;
+            cutoutStandard.x = int(round(fraMax.x-0.9*(fraMax.x)));
+            cutoutStandard.y = int(round(fraMax.y-0.9*fraMax.y));
+            rowTo = int(round(fraMax.y+0.9*(rows - fraMax.y)));
+            columnTo = int(round(fraMax.x+0.9*(cols - fraMax.x)));
+            cutoutStandard.width = columnTo-cutoutStandard.x;
+            cutoutStandard.height = rowTo - cutoutStandard.y;
+            reference.copyTo(image);
+            //obraz_temp.release();
+        }
+        return true;
+    } catch (std::exception e) {
+        return false;
     }
 }

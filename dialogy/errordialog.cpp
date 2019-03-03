@@ -10,6 +10,7 @@ ErrorDialog::ErrorDialog(QWidget *widgetWithNotification, QWidget *parent) :
     QObject(parent)
 {
     widgetWithError = widgetWithNotification;
+    connect(this,SIGNAL(mouseClicked()),this,SLOT(hideErrorIcon()));
 }
 
 ErrorDialog::~ErrorDialog()
@@ -61,6 +62,28 @@ void ErrorDialog::evaluate(QString position, QString EventType, int errorNumber)
     }
     else{
         showMessage(errorList[errorNumber].toString());
+        What_todo();
+    }
+    errorLabelinitialized = true;
+}
+
+void ErrorDialog::evaluate(QString position, QString EventType, QString errorMessage){
+    analyseParents();
+    evaluatePosition(position);
+    if (EventType == "info"){
+        showMessage(errorMessage);
+        Info();
+    }
+    else if (EventType == "softError"){
+        showMessage(errorMessage);
+        SoftError();
+    }
+    else if (EventType == "hardError"){
+        showMessage(errorMessage);
+        HardError();
+    }
+    else{
+        showMessage(errorMessage);
         What_todo();
     }
     errorLabelinitialized = true;
@@ -193,10 +216,10 @@ void ErrorDialog::What_todo()
 
 bool ErrorDialog::eventFilter(QObject *obj, QEvent *event)
 {
-    if (event->type() == QEvent::HoverEnter)
+    if (event->type() == QEvent::MouseButtonPress)
         {
-            emit mouseHovered(dynamic_cast<QLabel*>(obj) );
-            qDebug() << "HoverEnter";
+            emit mouseClicked();
+            qDebug() << "Click event";
         }
     return false;
 }
@@ -215,6 +238,9 @@ void ErrorDialog::show()
         animation->start();
 }
 
+void ErrorDialog::hideErrorIcon(){
+    hide();
+}
 void ErrorDialog::hide()
 {
     errorLabelParent->setVisible(false);

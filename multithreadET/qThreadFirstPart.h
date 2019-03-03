@@ -9,9 +9,9 @@ class qThreadFirstPart : public QThread
 {
     Q_OBJECT
 public:
-   explicit qThreadFirstPart(QStringList videosForAnalysis, cv::Point2d verticalAnomalyCoords,
-                                   cv::Point2d horizontalAnomalyCoords,QVector<double>FrangiParametersValues,
-                                   QObject* parent=nullptr);
+   explicit qThreadFirstPart(QStringList _videosForAnalysis, cv::Point2d _verticalAnomalyCoords,
+                             cv::Point2d _horizontalAnomalyCoords,QVector<double>_FrangiParametersValues,
+                             QObject* parent=nullptr);
     QVector<QVector<double>> computedEntropy();
     QVector<QVector<double>> computedTennengrad();
     QVector<QVector<int>> computedFirstEntropyEvaluation();
@@ -46,7 +46,7 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination();
+    void unexpectedTermination(QString,int,QString);
 };
 
 #endif // QTHREADFIRSTPART_H

@@ -201,7 +201,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
                                    SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
                                    SharedVariables::getSharedVariables()->getFrangiParameters());
     connect(TFirstP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
-    connect(TFirstP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+    connect(TFirstP,SIGNAL(done(int)),this,SLOT(done(int)));
     connect(TFirstP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
     connect(TFirstP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
     TFirstP->start();
@@ -245,7 +245,10 @@ void MultipleVideoET::on_savePB_clicked()
     {
         QJsonDocument document;
         QJsonObject object;
-        QString aktualJmeno = chosenVideoETSingle[1];
+        QString folder,filename,suffix;
+        QString fullPath = videoList.at(a);
+        processFilePath(fullPath,folder,filename,suffix);
+        QString aktualJmeno = filename;
         QString cesta = SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+aktualJmeno+".dat";
         for (int indexVideo=0; indexVideo<mapDouble["entropie"].length(); indexVideo++){
             for (int parameter = 0; parameter < videoParameters.count(); parameter++){
@@ -349,9 +352,12 @@ void MultipleVideoET::done(int finished)
         framesReferencial = TFirstP->estimatedReferencialFrames();
         badFramesComplete = TFirstP->computedBadFrames();
         TFirstP->quit();
-        TSecondP = new qThreadSecondPart(videoList,obtainedCutoffStandard,obtainedCutoffExtra,
-                                         badFramesComplete,framesReferencial,false);
-        connect(TSecondP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        TSecondP = new qThreadSecondPart(videoList,
+                                         obtainedCutoffStandard,
+                                         obtainedCutoffExtra,
+                                         badFramesComplete,
+                                         framesReferencial,false);
+        connect(TSecondP,SIGNAL(done(int)),this,SLOT(done(int)));
         connect(TSecondP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TSecondP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TSecondP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
@@ -363,10 +369,15 @@ void MultipleVideoET::done(int finished)
         averageCCcomplete = TSecondP->computedCC();
         averageFWHMcomplete = TSecondP->computedFWHM();
         TSecondP->quit();
-        TThirdP = new qThreadThirdPart(videoList,badFramesComplete,mapInt["Ohodnoceni"],
-                                       framesReferencial,averageCCcomplete,averageFWHMcomplete,
-                                       obtainedCutoffStandard,obtainedCutoffExtra,false);
-        connect(TThirdP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        TThirdP = new qThreadThirdPart(videoList,
+                                       badFramesComplete,
+                                       mapInt["Ohodnoceni"],
+                                       framesReferencial,
+                                       averageCCcomplete,
+                                       averageFWHMcomplete,
+                                       obtainedCutoffStandard,
+                                       obtainedCutoffExtra,false);
+        connect(TThirdP,SIGNAL(done(int)),this,SLOT(done(int)));
         connect(TThirdP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TThirdP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TThirdP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
@@ -386,11 +397,20 @@ void MultipleVideoET::done(int finished)
         mapDouble["POCY"] = TThirdP->framesPOCYestimated();
         mapDouble["Uhel"] = TThirdP->framesUhelestimated();
         TThirdP->quit();
-        TFourthP = new qThreadFourthPart(videoList,mapInt["PrvniRozhod"],mapInt["Ohodnoceni"],
-                                         KKproblematickychSnimku,FWHMproblematickychSnimku,mapDouble["POCX"],
-                                         mapDouble["POCY"],mapDouble["Uhel"],mapDouble["FrangiX"],mapDouble["FrangiY"],mapDouble["FrangiEuklid"],
-                                         averageCCcomplete,averageFWHMcomplete);
-        connect(TFourthP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        TFourthP = new qThreadFourthPart(videoList,
+                                         mapInt["PrvniRozhod"],
+                                         mapInt["Ohodnoceni"],
+                                         KKproblematickychSnimku,
+                                         FWHMproblematickychSnimku,
+                                         mapDouble["POCX"],
+                                         mapDouble["POCY"],
+                                         mapDouble["Uhel"],
+                                         mapDouble["FrangiX"],
+                                         mapDouble["FrangiY"],
+                                         mapDouble["FrangiEuklid"],
+                                         averageCCcomplete,
+                                         averageFWHMcomplete);
+        connect(TFourthP,SIGNAL(done(int)),this,SLOT(done(int)));
         connect(TFourthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TFourthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TFourthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
@@ -422,7 +442,7 @@ void MultipleVideoET::done(int finished)
                                        mapInt["DruheRozhod"],
                                        framesReferencial,
                                        SharedVariables::getSharedVariables()->getFrangiParameters());
-        connect(TFifthP,SIGNAL(hotovo(int)),this,SLOT(zpracovano(int)));
+        connect(TFifthP,SIGNAL(done(int)),this,SLOT(done(int)));
         connect(TFifthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TFifthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TFifthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
@@ -441,7 +461,7 @@ void MultipleVideoET::done(int finished)
         TFifthP->quit();
         ui->showResultsPB->setEnabled(true);
         ui->savePB->setEnabled(true);
-        ui->actualMethod_label->setText(tr("Fifth done. Analysis completed"));
+        ui->actualMethod_label->setText(tr("Fifth part done. Analysis completed"));
     }
 }
 

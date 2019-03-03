@@ -11,6 +11,8 @@
 #include <QSignalMapper>
 #include <QJsonObject>
 
+#include "dialogy/errordialog.h"
+
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -30,13 +32,14 @@ public:
     ~LicovaniDvou();
 
     /**
-     * @brief Function clears options from Box layout connected with the combobox
-     * @param layout
+     * @brief The function clears options from Box layout connected with the combobox
+     * @param layout.
      */
     void clearLayout(QGridLayout *layout);
 
     /**
-     * @brief Function checks, if path to the video folder exists
+     * @brief The function checks, if the path to the video folder exists. If so, the first video from the list of files
+     * found in the folder is placed into the line edit.
      */
     void checkPaths();
 
@@ -78,7 +81,7 @@ private:
     void placeChoiceTwoWidgets();
 
     /**
-     * @brief Similar to analyseAndSaveFirst, this function loads images and save name of the first one on the
+     * @brief Similar to analyseAndSaveFirst, this function loads images and save the name of the first one on the
      * list of found images
      * @param analysedFolder
      * @param whereToSave
@@ -86,6 +89,17 @@ private:
     void analyseAndSave(QString analysedFolder, QVector<QString>& whereToSave);
     void evaluateVideoImageInput(QString path,QString method);
 
+    /**
+     * @brief Function check if the input values of area maximum, rotation angle and iteration count
+     * are correct and if so, it calls the signal to check if all inputs are correct and the button of the main
+     * computation algorithm can be then enabled.
+     * @param input
+     * @param lower
+     * @param upper
+     * @param editWidget
+     * @param finalValue
+     * @param evaluation
+     */
     void checkInputNumber(double input,double lower,double upper,QLineEdit* editWidget,double& finalValue,bool& evaluation);
 
     QVector<QString> chosenVideoAnalysis;
@@ -124,6 +138,8 @@ private:
     QPushButton* chooseTranslatedImagePB;
     QLineEdit* referenceImgLE;
     QLineEdit* translatedImgLE;
+
+    QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };
 
 #endif // LICOVANIDVOU_H

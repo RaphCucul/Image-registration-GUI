@@ -35,9 +35,13 @@ qThreadThirdPart::qThreadThirdPart(QStringList &sV, QVector<QVector<int> >& sSpr
 
 void qThreadThirdPart::run()
 {
+    /// Sixth part - using average values of FWHM and correlation coefficient, the bad frames are split into multiple
+    /// categories according to the their values of FWHM and correlation coefficient.
+
     emit typeOfMethod(2);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
+    bool errorOccured = false;
     for (int indexVidea=0; indexVidea < videoList.count(); indexVidea++)
     {
         QVector<int> spatneSnimky;
@@ -47,20 +51,21 @@ void qThreadThirdPart::run()
         processFilePath(fullPath,slozka,jmeno,koncovka);
         emit actualVideo(indexVidea);
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-        if (!cap.isOpened())
-        {
-            qWarning()<<"Unable to open"+fullPath;
+        if (!cap.isOpened()){
+            emit unexpectedTermination("Cannot open a video for analysis",3,"hardError");
+            errorOccured = true;
             break;
         }
         cv::Mat referencni_snimek_temp,referencni_snimek,referencni_snimek32f,referencni_vyrez;
         cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[indexVidea]);
         if (!cap.read(referencni_snimek_temp))
         {
-                qWarning()<<"Referrence image cannot be read!";
-                break;
+            emit unexpectedTermination("Referencial image cannot be read!",3,"hardError");
+            errorOccured = true;
+            break;
         }
-        int rows;
-        int cols;
+        int rows = 0;
+        int cols = 0;
         if (scaleChanged == true)
         {
             referencni_snimek_temp(obtainedCutoffExtra).copyTo(referencni_snimek);
@@ -87,17 +92,17 @@ void qThreadThirdPart::run()
         frameCount = spatneSnimky.length();
         for (int i = 0;i < spatneSnimky.length(); i++)
         {
-            emit percentageCompleted(qRound((double(indexVidea)/videoCount)*100.0+((i/frameCount)*100.0)/videoCount));
+            emit percentageCompleted(qRound((double(indexVidea)/videoCount)*100.0+((double(i)/double(frameCount))*100.0)/videoCount));
             Mat posunuty_temp,posunuty,posunuty_vyrez,slicovany,slicovany_vyrez;
             Mat obraz, obraz_vyrez;
             referencni_snimek.copyTo(obraz);
             obraz(obtainedCutoffStandard).copyTo(obraz_vyrez);
-            int rows = obraz.rows;
-            int cols = obraz.cols;
+
             cap.set(CV_CAP_PROP_POS_FRAMES,spatneSnimky[i]);
             if (cap.read(posunuty_temp) != 1)
             {
-                qWarning()<<"Snimek "<<spatneSnimky[i]<<" nelze slicovat!";
+                QString errorMessage = QString("Frame number %1 could not be opened").arg(i);
+                unexpectedTermination(errorMessage,1,"softError");
                 POC_x[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
                 POC_y[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
                 uhel[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
@@ -133,7 +138,7 @@ void qThreadThirdPart::run()
             }
             if (pt.x >= 55 || pt.y >= 55)
             {
-                qDebug()<< "Snimek "<< spatneSnimky[i]<< " nepripusten k analyze.";
+                qDebug()<< "Frame "<< spatneSnimky[i]<< " will not be analysed.";
                 framesEvaluationCompelte[indexVidea][spatneSnimky[i]] = 5;
                 POC_x[badFrames_firstEvaluation[indexVidea][i]] = 999;
                 POC_y[badFrames_firstEvaluation[indexVidea][i]] = 999;
@@ -150,7 +155,7 @@ void qThreadThirdPart::run()
                 slicovany = translace_snimku(posunuty,pt,rows,cols);
                 slicovany(obtainedCutoffStandard).copyTo(slicovany_vyrez);
                 double R = vypocet_KK(obraz,slicovany,obtainedCutoffStandard);
-                qDebug() <<"Zkoumam snimek"<<spatneSnimky[i]<< "R " << R <<" a FWHM " << FWHM;
+                qDebug() <<"Tested frame has "<<spatneSnimky[i]<< "R " << R <<" a FWHM " << FWHM;
                 slicovany.release();
                 slicovany_vyrez.release();
                 posunuty.release();
@@ -158,25 +163,25 @@ void qThreadThirdPart::run()
                 double rozdilnostFWHM = averageFWHMcomplete[indexVidea]-FWHM;
                 if ((std::abs(rozdilnostKK) < 0.02) && (FWHM < averageFWHMcomplete[indexVidea])) //1.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " je vhodny ke slicovani.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " ready for registration.";
                     framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 0.0;
                     continue;
                 }
                 else if (R > averageCCcomplete[indexVidea] && (std::abs(rozdilnostFWHM)<=2||(FWHM < averageFWHMcomplete[indexVidea]))) //5.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " je vhodny ke slicovani.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " ready for registration.";
                     framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 0.0;
                     continue;
                 }
                 else if (R >= averageCCcomplete[indexVidea] && FWHM > averageFWHMcomplete[indexVidea]) //4.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " je vhodny ke slicovani.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " ready for registration.";
                     framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 0.0;
                     continue;
                 }
                 else if ((std::abs(rozdilnostKK) <= 0.02) && (FWHM > averageFWHMcomplete[indexVidea])) //2.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " bude proveren.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
                     snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
                     vypoctene_hodnoty_FWHM.push_back(FWHM);
                     vypoctene_hodnoty_R.push_back(R);
@@ -184,7 +189,7 @@ void qThreadThirdPart::run()
                 }
                 else if ((rozdilnostKK > 0.02) && (rozdilnostKK < 0.18)) //3.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " bude proveren.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
                     snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
                     vypoctene_hodnoty_FWHM.push_back(FWHM);
                     vypoctene_hodnoty_R.push_back(R);
@@ -192,7 +197,7 @@ void qThreadThirdPart::run()
                 }
                 else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && ((FWHM < averageFWHMcomplete[indexVidea]) || averageFWHMcomplete[indexVidea] > 35.0)) //6.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " bude proveren.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
                     snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
                     vypoctene_hodnoty_FWHM.push_back(FWHM);
                     vypoctene_hodnoty_R.push_back(R);
@@ -200,7 +205,7 @@ void qThreadThirdPart::run()
                 }
                 else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && (FWHM <= (averageFWHMcomplete[indexVidea]+10))) //8.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " bude proveren.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
                     snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
                     vypoctene_hodnoty_FWHM.push_back(FWHM);
                     vypoctene_hodnoty_R.push_back(R);
@@ -209,7 +214,7 @@ void qThreadThirdPart::run()
 
                 else if ((rozdilnostKK >= 0.2) && (FWHM > (averageFWHMcomplete[indexVidea]+10))) //7.
                 {
-                    qDebug()<< "Snimek "<< spatneSnimky[i]<< " nepripusten k analyze.";
+                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will not be registrated.";
                     framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 5;
                     POC_x[badFrames_firstEvaluation[indexVidea][i]] = 999;
                     POC_y[badFrames_firstEvaluation[indexVidea][i]] = 999;
@@ -221,7 +226,7 @@ void qThreadThirdPart::run()
                 }
                 else
                 {
-                    qDebug() << "Snimek "<< spatneSnimky[i]<< " bude proveren - nevyhovel nikde.";
+                    qDebug() << "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
                     snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
                     vypoctene_hodnoty_FWHM.push_back(FWHM);
                     vypoctene_hodnoty_R.push_back(R);
@@ -240,8 +245,10 @@ void qThreadThirdPart::run()
         framesPOCY.append(POC_y);
         framesUhel.append(uhel);
     }
-    emit percentageCompleted(100);
-    emit done(3);
+    if (!errorOccured){
+        emit percentageCompleted(100);
+        emit done(3);
+    }
 }
 QVector<QVector<int>> qThreadThirdPart::framesUpdateEvaluation()
 {
