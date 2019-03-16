@@ -91,7 +91,7 @@ cv::Point3d fk_rotace(const Mat &referencni_snimek,
     kontrola_typu_snimku_32C1(referencni_snimek32f);
 
     cv::Point3d vysledek_translace_po_rotaci(0.0,0.0,0.0);
-    vysledek_translace_po_rotaci = cv::phaseCorrelate(referencni_snimek32f,vysledny_snimek_rotace,5,hann);
+    vysledek_translace_po_rotaci = cv::phaseCorrelate(referencni_snimek32f,vysledny_snimek_rotace,10,hann);
 
     //if ((vysledek_translace_po_rotaci.z - hodnota_maxima_fk_translace)>=0.0001)
     if (vysledek_translace_po_rotaci.z > hodnota_maxima_fk_translace)

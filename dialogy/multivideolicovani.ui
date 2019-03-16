@@ -16,6 +16,15 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>10</number>
+     </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>10</number>
+     </property>
      <item>
       <widget class="QPushButton" name="chooseMultiVPB">
        <property name="styleSheet">
@@ -79,7 +88,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout" columnstretch="1,2" columnminimumwidth="0,0">
+    <layout class="QGridLayout" name="gridLayout" columnstretch="3,4" columnminimumwidth="0,0">
      <item row="1" column="0">
       <widget class="QTableWidget" name="listOfVideos">
        <property name="sizeAdjustPolicy">
@@ -118,49 +127,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QPushButton" name="leftArrowPB">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>17</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTableWidget" name="videoParameters"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="rightArrowPB">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>17</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <layout class="QHBoxLayout" name="horizontalLayout_2"/>
      </item>
      <item row="2" column="0" colspan="2">
       <widget class="QProgressBar" name="progressBar">

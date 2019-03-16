@@ -56,21 +56,24 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->showGraphET->setText(tr("Show computed results"));
     ui->savePB->setText(tr("Save results"));
 
-    mapDouble["entropie"]=entropy;
-    mapDouble["tennengrad"]=tennengrad;
-    mapDouble["FrangiX"]=framesFrangiX;
-    mapDouble["FrangiY"]=framesFrangiY;
-    mapDouble["FrangiEuklid"]=framesFrangiEuklid;
-    mapDouble["POCX"]=framesPOCX;
-    mapDouble["POCY"]=framesPOCY;
-    mapDouble["Uhel"]=framesAngle;
-    mapInt["Ohodnoceni"]=framesFinalCompleteDecision;
-    mapInt["PrvotOhodEntropie"]=framesFirstFullCompleteEntropyEvaluation;
-    mapInt["PrvotOhodTennengrad"]=framesFirstFullCompleteTennengradEvaluation;
-    mapInt["PrvniRozhod"]=framesFirstFullCompleteDecision;
-    mapInt["DruheRozhod"]=framesSecondFullCompleteDecision;
-    mapAnomalies["VerticalAnomaly"]=horizontalAnomalyPresent;
-    mapAnomalies["HorizontalAnomaly"]=verticalAnomalyPresent;
+    QVector<QVector<double>> pomD;
+    QVector<QVector<int>> pomI;
+    QVector<int> pomI_;
+    mapDouble["entropie"]=pomD;
+    mapDouble["tennengrad"]=pomD;
+    mapDouble["FrangiX"]=pomD;
+    mapDouble["FrangiY"]=pomD;
+    mapDouble["FrangiEuklid"]=pomD;
+    mapDouble["POCX"]=pomD;
+    mapDouble["POCY"]=pomD;
+    mapDouble["Uhel"]=pomD;
+    mapInt["Ohodnoceni"]=pomI;
+    mapInt["PrvotOhodEntropie"]=pomI;
+    mapInt["PrvotOhodTennengrad"]=pomI;
+    mapInt["PrvniRozhod"]=pomI;
+    mapInt["DruheRozhod"]=pomI;
+    mapAnomalies["VerticalAnomaly"]=pomI_;
+    mapAnomalies["HorizontalAnomaly"]=pomI_;
 
     connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
     connect(ui->verticalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
@@ -189,11 +192,18 @@ void SingleVideoET::on_calculateET_clicked()
 
 void SingleVideoET::on_showGraphET_clicked()
 {
-    QStringList vektorKzapisu;
-    vektorKzapisu.append(chosenVideoETSingle[1]);
-    GrafET* graf_ET = new GrafET(entropy,tennengrad,framesFirstFullCompleteEntropyEvaluation,
-                                 framesFirstFullCompleteTennengradEvaluation,framesFirstFullCompleteDecision,
-                                 framesSecondFullCompleteDecision,framesFinalCompleteDecision,vektorKzapisu,this);
+    QStringList videoList;
+    videoList.append(chosenVideoETSingle[1]);
+    GrafET* graf_ET = new GrafET(
+                mapDouble["entropie"],
+                mapDouble["tennengrad"],
+                mapInt["PrvotOhodEntropie"],
+                mapInt["PrvotOhodTennengrad"],
+                mapInt["PrvniRozhod"],
+                mapInt["DruheRozhod"],
+                mapInt["Ohodnoceni"],
+                videoList,
+                this);
     graf_ET->setModal(true);
     graf_ET->show();
 }
@@ -224,9 +234,9 @@ void SingleVideoET::on_savePB_clicked()
             }
             else{
                 if (videoParameters.at(parameter) == "VerticalAnomaly")
-                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y);
+                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().y);
                 else
-                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
+                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x);
             }
         }
         document.setObject(object);
@@ -252,22 +262,22 @@ void SingleVideoET::done(int done)
         mapInt["Ohodnoceni"] = TFirstP->computedCompleteEvaluation();
         framesReferencial = TFirstP->estimatedReferencialFrames();
         badFramesComplete = TFirstP->computedBadFrames();
-        TFirstP->quit();
         TSecondP = new qThreadSecondPart(analysedVideos,obtainedCutoffStandard,obtainedCutoffExtra,
                                          badFramesComplete,framesReferencial,false);
         connect(TSecondP,SIGNAL(done(int)),this,SLOT(done(int)));
         connect(TSecondP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TSecondP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TSecondP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-        qDebug()<<"First done, starting second...";
-        TSecondP->start();
-
+        //if (TFirstP->isFinished()){
+            qDebug()<<"First done, starting second...";
+            TFirstP->terminate();
+            TSecondP->start();
+        //}
     }
     if (done == 2)
     {
         averageCCcomplete = TSecondP->computedCC();
         averageFWHMcomplete = TSecondP->computedFWHM();
-        TSecondP->quit();
         TThirdP = new qThreadThirdPart(analysedVideos,badFramesComplete,mapInt["Ohodnoceni"],
                                        framesReferencial,averageCCcomplete,averageFWHMcomplete,
                                        obtainedCutoffStandard,obtainedCutoffExtra,false);
@@ -275,9 +285,11 @@ void SingleVideoET::done(int done)
         connect(TThirdP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TThirdP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TThirdP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-        qDebug()<<"Second done, starting third";
-        TThirdP->start();
-
+        //if (TSecondP->isFinished()){
+            qDebug()<<"Second done, starting third...";
+            TSecondP->terminate();
+            TThirdP->start();
+        //}
     }
     if (done == 3)
     {
@@ -291,7 +303,6 @@ void SingleVideoET::done(int done)
         mapDouble["POCX"] = TThirdP->framesPOCXestimated();
         mapDouble["POCY"] = TThirdP->framesPOCYestimated();
         mapDouble["Uhel"] = TThirdP->framesUhelestimated();
-        TThirdP->quit();
         TFourthP = new qThreadFourthPart(analysedVideos,mapInt["PrvniRozhod"],mapInt["Ohodnoceni"],
                                          KKproblematickychSnimku,FWHMproblematickychSnimku,mapDouble["POCX"],
                                          mapDouble["POCY"],mapDouble["Uhel"],mapDouble["FrangiX"],mapDouble["FrangiY"],
@@ -301,9 +312,11 @@ void SingleVideoET::done(int done)
         connect(TFourthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TFourthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TFourthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-
-        qDebug()<<"Third done, starting fourth";
-        TFourthP->start();
+        //if (TThirdP->isFinished()){
+            qDebug()<<"Third done, starting fourth...";
+            TThirdP->terminate();
+            TFourthP->start();
+        //}
     }
     if (done == 4)
     {
@@ -315,7 +328,6 @@ void SingleVideoET::done(int done)
         mapDouble["POCX"] = TFourthP->framesPOCXestimated();
         mapDouble["POCY"] = TFourthP->framesPOCYestimated();
         mapDouble["Uhel"] = TFourthP->framesAngleestimated();
-        TFourthP->quit();
         TFifthP = new qThreadFifthPart(analysedVideos,
                                        obtainedCutoffStandard,
                                        obtainedCutoffExtra,
@@ -334,8 +346,11 @@ void SingleVideoET::done(int done)
         connect(TFifthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         connect(TFifthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         connect(TFifthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-        qDebug()<<"Fourth done, starting fifth";
-        TFifthP->start();
+        //if (TFourthP->isFinished()){
+            qDebug()<<"Fourth done, starting fifth";
+            TFourthP->terminate();
+            TFifthP->start();
+        //}
     }
     if (done == 5)
     {
@@ -346,10 +361,13 @@ void SingleVideoET::done(int done)
         mapDouble["POCY"] = TFifthP->framesPOCYestimated();
         mapDouble["Uhel"] = TFifthP->framesAngleestimated();
         mapInt["Ohodnoceni"] = TFifthP->framesUpdateEvaluationComplete();
-        TFifthP->quit();
         ui->showGraphET->setEnabled(true);
         ui->savePB->setEnabled(true);
         ui->actualAlgorithmPart_label->setText(tr("Fifth part done. Analysis completed"));
+        //if (TFifthP->isFinished()){
+            qDebug()<<"Fifth done.";
+            TFifthP->terminate();
+       // }
     }
 }
 
@@ -361,15 +379,15 @@ void SingleVideoET::newVideoProcessed(int index)
 void SingleVideoET::movedToMethod(int method)
 {
     if (method == 0)
-        ui->actualAlgorithmPart_label->setText("1/5 Entropy and tennengrad computation");
+        ui->actualAlgorithmPart_label->setText(tr("1/5 Entropy and tennengrad computation"));
     if (method == 1)
-        ui->actualAlgorithmPart_label->setText("2/5 Average correlation and FWHM");
+        ui->actualAlgorithmPart_label->setText(tr("2/5 Average correlation and FWHM"));
     if (method == 2)
-        ui->actualAlgorithmPart_label->setText("3/5 First decision algorithm started");
+        ui->actualAlgorithmPart_label->setText(tr("3/5 First decision algorithm started"));
     if (method == 3)
-        ui->actualAlgorithmPart_label->setText("4/5 Second decision algorithm started");
+        ui->actualAlgorithmPart_label->setText(tr("4/5 Second decision algorithm started"));
     if (method == 4)
-        ui->actualAlgorithmPart_label->setText("5/5 Third decision algorithm started");
+        ui->actualAlgorithmPart_label->setText(tr("5/5 Third decision algorithm started"));
 }
 
 void SingleVideoET::onUnexpectedTermination(QString message, int threadNumber, QString errorType){

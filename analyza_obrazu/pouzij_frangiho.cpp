@@ -13,7 +13,7 @@
 using namespace cv;
 cv::Mat imageFiltrationPreprocessing(const cv::Mat& inputImage, float sigma_s, float sigma_r)
 {
-    qDebug()<<inputImage.rows<<" "<<inputImage.cols;
+    //qDebug()<<inputImage.rows<<" "<<inputImage.cols;
     Mat filtered = cv::Mat::zeros(inputImage.rows,inputImage.cols,CV_8UC3);
     Mat outputImage;
     medianBlur(inputImage,filtered,5);
@@ -21,7 +21,7 @@ cv::Mat imageFiltrationPreprocessing(const cv::Mat& inputImage, float sigma_s, f
     kontrola_typu_snimku_8C3(filtered);
     edgePreservingFilter(filtered,RF_obraz,1,sigma_s,sigma_r);
     //imshow("Filtrovany RF",RF_obraz);
-    qDebug()<<"Filtration completed.";
+    //qDebug()<<"Filtration completed.";
     if (RF_obraz.channels() == 3)
     {
         Mat ch1, ch3;
@@ -35,7 +35,7 @@ cv::Mat imageFiltrationPreprocessing(const cv::Mat& inputImage, float sigma_s, f
         RF_obraz.copyTo(outputImage);
     }
     //imshow("Vybrany snimek",obrazek_vystupni);
-    qDebug()<<"Pocet kanalu vystupniho filtrovaneho snimku je "<<inputImage.channels();
+    //qDebug()<<"Pocet kanalu vystupniho filtrovaneho snimku je "<<inputImage.channels();
     kontrola_typu_snimku_8C1(outputImage);
     return outputImage;
 }
@@ -234,16 +234,16 @@ cv::Point3d frangi_analysis(const cv::Mat inputFrame,
 
     Mat imageFiltered,imageFrangi,obraz_scale, imageAngles;
     imageFiltered = imageFiltrationPreprocessing(inputFrame,60.0f,0.4f);
-    qDebug()<<"filtration processed";
+    //qDebug()<<"filtration processed";
     if (frameType == 1) {borderProcessing(imageFiltered,1,20,20);}
     if (frameType == 2) {borderProcessing(imageFiltered,2,r,s);}
-    qDebug()<<"border processed";
+    //qDebug()<<"border processed";
     //if (frameType == 2 && pritomnost_casove_znamky == 1) {borderProcessing(imageFiltered,2,40,40);}
     //if (frameType == 1 && pritomnost_casove_znamky == 1) {borderProcessing(imageFiltered,1,80,50);}
 
     frangi2d(imageFiltered, imageFrangi, obraz_scale, imageAngles, opts);
 
-    qDebug()<<"Pocet kanalu frangiho vystupu "<<imageFrangi.channels()<<" "<<imageFrangi.type();
+    //qDebug()<<"Pocet kanalu frangiho vystupu "<<imageFrangi.channels()<<" "<<imageFrangi.type();
     //imwrite(jmeno_okna+"",imageFrangi);
     obraz_scale.release();
     imageAngles.release();
@@ -258,14 +258,14 @@ cv::Point3d frangi_analysis(const cv::Mat inputFrame,
     cv::minMaxLoc(imageFrangi, NULL, &maximum_imageFrangi, NULL, &max_loc_frangi);
     if ((max_loc_frangi.x!=max_loc_frangi.x)== 1 || (max_loc_frangi.y!=max_loc_frangi.y) == 1)
     {
-        qDebug()<<"Maximum Frangiho funkce se nepodarilo detekovat!";
+        //qDebug()<<"Maximum Frangiho funkce se nepodarilo detekovat!";
         definitiveCoords.z = 0.0;
         definitiveCoords.x = -10;
         definitiveCoords.y = -10;
     }
     else
     {
-        qDebug()<<"Detekce maxima Frangiho funkce se zdarila.";
+        //qDebug()<<"Detekce maxima Frangiho funkce se zdarila.";
         if (accuracy == 1)
         {
             definitiveCoords.x = max_loc_frangi.x;

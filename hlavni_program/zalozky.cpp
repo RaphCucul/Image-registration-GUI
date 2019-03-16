@@ -41,12 +41,12 @@ zalozky::zalozky(QWidget *parent) :
 
     bool folderPresent = volba_slozek->checkFileFolderExistence();
     if (!folderPresent){
-        ui->stranky->setTabEnabled(1,false);
-        ui->stranky->setTabEnabled(2,false);
-        ui->stranky->setTabEnabled(3,false);
+        disableTabs();
     }
 
     connect(volba_slozek,SIGNAL(fileFolderDirectoryFound()),this,SLOT(fileFolderDirectoryLocated()));
+    connect(licovaniVidea,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
+    connect(licovaniVidea,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
 }
 
 QIcon zalozky::rotace_ikonky(QIcon ikona_vstup)
@@ -66,11 +66,31 @@ zalozky::~zalozky()
     delete ui;
 }
 
+void zalozky::enableTabs_slot(){
+    enableTabs();
+}
+
+void zalozky::enableTabs(){
+    for (int var = 0; var < ui->stranky->tabBar()->count(); var++) {
+        if (var != ui->stranky->currentIndex())
+            ui->stranky->setTabEnabled(var,true);
+    }
+}
+
+void zalozky::disableTabs_slot(){
+    disableTabs();
+}
+
+void zalozky::disableTabs(){
+    for (int var = 0; var < ui->stranky->tabBar()->count(); var++) {
+        if (var != ui->stranky->currentIndex())
+            ui->stranky->setTabEnabled(var,false);
+    }
+}
+
 void zalozky::fileFolderDirectoryLocated()
 {
-    ui->stranky->setTabEnabled(1,true);
-    ui->stranky->setTabEnabled(2,true);
-    ui->stranky->setTabEnabled(3,true);
+    enableTabs();
 }
 void zalozky::on_stranky_tabBarClicked(int index)
 {

@@ -39,26 +39,26 @@ protected:
     bool horizontalAnomalySelected = false;
     bool verticalAnomalySelected = false;
     QVector<double> actualEntropy, actualTennengrad;
-    QVector<QVector<double>> entropy;
+    /*QVector<QVector<double>> entropy;
     QVector<QVector<double>> tennengrad;
     QVector<QVector<int>> framesFirstFullCompleteEntropyEvaluation; //snimkyPrvotniOhodnoceniEntropieKomplet;
     QVector<QVector<int>> framesFirstFullCompleteTennengradEvaluation; //snimkyPrvotniOhodnoceniTennengradKomplet;
     QVector<QVector<int>> framesFirstFullCompleteDecision; //snimkyPrvniRozhodovaniKomplet;
     QVector<QVector<int>> framesSecondFullCompleteDecision; //snimkyDruheRozhodovaniKomplet;
-    QVector<QVector<int>> framesFinalCompleteDecision; //snimkyOhodnoceniKomplet;
-    QVector<QVector<int>> badFramesComplete; //spatnesnimkyohodnocenikomplet
+    QVector<QVector<int>> framesFinalCompleteDecision; //snimkyOhodnoceniKomplet;    
     QVector<QVector<double>> framesFrangiX; //snimkyFrangiX;
     QVector<QVector<double>> framesFrangiY; //snimkyFrangiY;
     QVector<QVector<double>> framesFrangiEuklid; //snimkyFrangiEuklid;
     QVector<QVector<double>> framesPOCX; //snimkyPOCX;
     QVector<QVector<double>> framesPOCY; //snimkyPOCY;
-    QVector<QVector<double>> framesAngle; //snimkyUhel;
+    QVector<QVector<double>> framesAngle; //snimkyUhel;*/
     QVector<int> framesReferencial;
     QVector<double> averageCCcomplete; //prumerneRkomplet
     QVector<double> averageFWHMcomplete; //prumerneFWHMkomplet
+    QVector<QVector<int>> badFramesComplete; //spatnesnimkyohodnocenikomplet
 
-    QVector<int> horizontalAnomalyPresent; //PritomnostCasoveZnacky;
-    QVector<int> verticalAnomalyPresent; //PritomnostSvetelneAnomalie;
+    //QVector<int> horizontalAnomalyPresent; //PritomnostCasoveZnacky;
+    //QVector<int> verticalAnomalyPresent; //PritomnostSvetelneAnomalie;
     double iterationCount = -99.0;
     double areaMaximum = -99.0;
     double rotationAngle = -99.0;

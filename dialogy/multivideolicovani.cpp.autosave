@@ -435,8 +435,8 @@ void MultiVideoLicovani::processResuluts(int analysedThread){
     for (int parameterIndex = 0; parameterIndex < 6; parameterIndex++){
         qDebug()<<"Processing "<<videoParameters.at(parameterIndex);
         for (int position = range[0]; position <= range[1]; position++){
-            if (videoParametersDouble[videoParameters.at(parameterIndex)][videoCounter][position] != 0.0)
-                videoParametersDouble[videoParameters.at(parameterIndex)][videoCounter][position] = measuredData[videoParameters.at(parameterIndex)][position];
+            if (videoPropertiesDouble[videoListNames.at(videoCounter)][videoParameters.at(parameterIndex)][position] != 0.0)
+                videoPropertiesDouble[videoListNames.at(videoCounter)][videoParameters.at(parameterIndex)][position] = measuredData[videoParameters.at(parameterIndex)][position];
         }
     }
 }
@@ -482,17 +482,17 @@ int MultiVideoLicovani::writeToVideo()
                 localErrorDialogHandling[ui->registratePB]->show();
                 return false;
             }
-            else if (videoParametersDouble["POCX"][0][indexImage] == 999.0){
+            else if (videoPropertiesDouble[videoListNames.at(videoCounter)]["POCX"][indexImage] == 999.0){
                 writer.write(posunutyOrig);
                 posunutyOrig.release();
             }
             else{
                 cv::Point3d finalTranslation;
-                finalTranslation.x = videoParametersDouble["POCX"][0][indexImage];
-                finalTranslation.y = videoParametersDouble["POCY"][0][indexImage];
+                finalTranslation.x = videoPropertiesDouble[videoListNames.at(videoCounter)]["POCX"][indexImage];
+                finalTranslation.y = videoPropertiesDouble[videoListNames.at(videoCounter)]["POCY"][indexImage];
                 finalTranslation.z = 0.0;
                 posunutyLicovani = translace_snimku(posunutyOrig,finalTranslation,posunutyOrig.rows,posunutyOrig.cols);
-                posunutyLicovaniFinal = rotace_snimku(posunutyLicovani,videoParametersDouble["Uhel"][0][indexImage]);
+                posunutyLicovaniFinal = rotace_snimku(posunutyLicovani,videoPropertiesDouble[videoListNames.at(videoCounter)]["Uhel"][indexImage]);
                 writer.write(posunutyLicovaniFinal);
                 posunutyOrig.release();
                 posunutyLicovani.release();

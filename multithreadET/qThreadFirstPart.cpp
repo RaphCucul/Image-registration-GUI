@@ -91,7 +91,6 @@ void qThreadFirstPart::run()
         entropyComplete.push_back(entropyActual);
         tennengradComplete.push_back(tennengradActual);
         qDebug()<<entropyComplete.size()<<tennengradComplete.size();
-        emit percentageCompleted(100);
 
         /// Secondly, it is necessary to select proper maximal value for later selection of bad images
         /// after this procedure, windows for detail analysis of entropy and tennengrad vectors are computed

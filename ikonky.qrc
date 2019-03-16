@@ -18,5 +18,6 @@
         <file>images/circularHardError16_2.png</file>
         <file>images/circularInfo16_2.png</file>
         <file>images/circularSoftError16_2.png</file>
+        <file>images/rejected.png</file>
     </qresource>
 </RCC>

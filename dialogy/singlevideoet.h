@@ -20,7 +20,6 @@ class SingleVideoET : public ETanalysisParent
 public:
     explicit SingleVideoET(QWidget *parent = nullptr);
     virtual ~SingleVideoET();
-    //void temp(QStringList pomList);
     void checkPaths();
 private slots:
     void on_chooseVideoPB_clicked();
@@ -48,7 +47,7 @@ private:
     QMap<QString,QVector<QVector<double>>> mapDouble;
     QMap<QString,QVector<QVector<int>>> mapInt;
     QMap<QString,QVector<int>> mapAnomalies;
-    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
+    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
                                  "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
                                  "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;

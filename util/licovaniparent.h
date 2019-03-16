@@ -21,7 +21,7 @@ public slots:
 
 protected:
     int licovaniDokonceno = 0;
-    QVector<QVector<double>> entropy;
+    /*QVector<QVector<double>> entropy;
     QVector<QVector<double>> tennengrad;
     QVector<QVector<int>> framesFirstFullCompleteEntropyEvaluation; //snimkyPrvotniOhodnoceniEntropieKomplet;
     QVector<QVector<int>> framesFirstFullCompleteTennengradEvaluation; //snimkyPrvotniOhodnoceniTennengradKomplet;
@@ -34,10 +34,10 @@ protected:
     QVector<QVector<double>> framesFrangiEuklid; //snimkyFrangiEuklid;
     QVector<QVector<double>> framesPOCX; //snimkyPOCX;
     QVector<QVector<double>> framesPOCY; //snimkyPOCY;
-    QVector<QVector<double>> framesAngle; //snimkyUhel;
+    QVector<QVector<double>> framesAngle; //snimkyUhel;*/
 
-    QVector<int> horizontalAnomalyPresent;
-    QVector<int> verticalAnomalyPresent;
+    //QVector<int> horizontalAnomalyPresent;
+    //QVector<int> verticalAnomalyPresent;
     QStringList videoList;
     QStringList videoListFull;
     QStringList videoListNames;

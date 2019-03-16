@@ -49,7 +49,7 @@ void ErrorDialog::evaluate(QString position, QString EventType, int errorNumber)
     analyseParents();
     evaluatePosition(position);
     if (EventType == "info"){
-        showMessage(errorList[errorNumber].toString());
+        showMessage(infoList[errorNumber].toString());
         Info();
     }
     else if (EventType == "softError"){

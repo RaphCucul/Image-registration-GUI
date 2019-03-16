@@ -44,11 +44,32 @@ LicovaniVidea::LicovaniVidea(QWidget *parent) :
     qssFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);
+
+    QObject::connect(SVreg,SIGNAL(calculationStarted()),this,SLOT(disableTabs()));
+    QObject::connect(SVreg,SIGNAL(calculationStopped()),this,SLOT(enableTabs()));
 }
 
 LicovaniVidea::~LicovaniVidea()
 {
     delete ui;
+}
+
+void LicovaniVidea::enableTabs(){
+    for (int var = 0; var < ui->metody->tabBar()->count(); var++) {
+        qDebug()<<"Calculating in the index "<<ui->metody->currentIndex();
+        if (var != ui->metody->currentIndex())
+            ui->metody->setTabEnabled(var,true);
+    }
+    emit calculationStopped();
+}
+
+void LicovaniVidea::disableTabs(){
+    for (int var = 0; var < ui->metody->tabBar()->count(); var++) {
+        qDebug()<<"Calculating in the index "<<ui->metody->currentIndex();
+        if (var != ui->metody->currentIndex())
+            ui->metody->setTabEnabled(var,false);
+    }
+    emit calculationStarted();
 }
 
 /*void LicovaniVidea::zobrazKliknutelnyDialog()

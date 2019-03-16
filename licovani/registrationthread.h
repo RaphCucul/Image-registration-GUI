@@ -12,69 +12,40 @@ class RegistrationThread : public QThread
 {
     Q_OBJECT
 public:
-    RegistrationThread(cv::VideoCapture& cap,
-                       int indexOfThread,
-                       QString nameOfVideo,
-                       QVector<double> frangiParam,
-                       QVector<int> frameEvaluation,
-                       cv::Mat& referencni_snimek,
-                       int startFrame,
-                       int stopFrame,
-                       int iterace,
-                       double oblastMaxima,
-                       double uhel,
-                       float timeStamp,
-                       float lightAnomaly,
-                       bool nutnost_zmenit_velikost_snimku);
-    void run() override;
+    explicit RegistrationThread(int& indexOfThread,
+                                QString &fullVideoPath,
+                                QString& nameOfVideo,
+                                QVector<double>& frangiParam,
+                                QVector<int>& frameEvaluation,
+                                cv::Mat& referencni_snimek,
+                                int& startFrame,
+                                int& stopFrame,
+                                int& iterace,
+                                double& oblastMaxima,
+                                double& uhel,
+                                int &timeStamp,
+                                int &lightAnomaly,
+                                bool nutnost_zmenit_velikost_snimku,
+                                QObject *parent = nullptr);
     QMap<QString,QVector<double>> provideResults();
-    bool registrateTheBest(cv::VideoCapture& i_cap,
-                          cv::Mat& i_referencialFrame,
-                          cv::Point3d i_coordsFrangiStandardReferencialReverse,
-                          int i_index_translated,
-                          int i_iteration,
-                          double i_areaMaximum,
-                          double i_angle,
-                          cv::Rect& i_cutoutExtra,
-                          cv::Rect& i_cutoutStandard,
-                          bool i_scaleChanged,
-                          QVector<double> &parametry_frangi);
-    bool fullRegistration(cv::VideoCapture& cap,
-                         cv::Mat& referencni_snimek,
-                         int cislo_posunuty,
-                         int iterace,
-                         double oblastMaxima,
-                         double uhel,
-                         cv::Rect& korelacni_vyrez_navic,
-                         cv::Rect& korelacni_vyrez_standardni,
-                         bool nutnost_zmenit_velikost_snimku,
-                         cv::Mat& slicovany_kompletne,
-                         cv::Point3d& mira_translace,
-                         double& celkovy_uhel);
-    bool imagePreprocessing(cv::Mat &reference,
-                           cv::Mat &obraz,
-                           QVector<double> &parFrang,
-                           cv::Point3d& frangiMaxEstimated,
-                           cv::Point2f &hraniceAnomalie,
-                           cv::Point2f &hraniceCasu,
-                           cv::Rect &oblastAnomalie,
-                           cv::Rect &vyrezKoreEx,
-                           cv::Rect &vyrezKoreStand,
-                           cv::VideoCapture &cap,
-                           bool &zmeMer);
-    bool registrationCorrection(cv::Mat& slicovany_snimek,
-                               cv::Mat& obraz,
-                               cv::Mat& snimek_korigovany,
-                               cv::Rect& vyrez_korelace_standard,
-                               cv::Point3d& korekce_bod);
+    QVector<int> threadFrameRange();
+
 signals:
     void allWorkDone(int);
-    void errorDetected(QString);
-    void x_coordInfo(int,int,QTableWidgetItem*);
+    void errorDetected(int,QString);
+    /*void x_coordInfo(int,int,QTableWidgetItem*);
     void y_coordInfo(int,int,QTableWidgetItem*);
-    void angleInfo(int,int,QTableWidgetItem*);
+    void angleInfo(int,int,QTableWidgetItem*);*/
+    void x_coordInfo(int,int,QString);
+    void y_coordInfo(int,int,QString);
+    void angleInfo(int,int,QString);
+    //void finalParameter(int,int,double);
     void statusInfo(int,int,QString);
 private:
+    void run();
+
+
+
     cv::VideoCapture capture;
     cv::Mat referencialImage;
     QVector<double> frangiParameters;
@@ -101,6 +72,7 @@ private:
     cv::Point2f ziskane_hranice_CasZnac;
     int threadIndex = -1;
     QString videoName;
+    QString videoPath;
 };
 
 #endif // REGISTRATIONTHREAD_H
