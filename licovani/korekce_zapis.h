@@ -2,28 +2,28 @@
 #define KOREKCE_ZAPIS_H_INCLUDED
 #include <opencv2/opencv.hpp>
 #include <QVector>
-void licovani_nejvhodnejsich_snimku(cv::VideoCapture& cap,
-                                    cv::VideoWriter& zap,
-                                    cv::Mat& referencni_snimek,
-                                    cv::Point3d bod_RefS_reverse,
-                                    int index_posunuty,
-                                    int &iterace,
-                                    double &oblastMaxima,
-                                    double &uhel,
-                                    cv::Rect& vyrez_korelace_extra,
-                                    cv::Rect& vyrez_korelace_standard,
-                                    bool zmena_meritka,
-                                    QVector<double> &parametry_frangi,
-                                    QVector<double>& frangi_x,
-                                    QVector<double>& frangi_y,
-                                    QVector<double>& frangi_euklid,
-                                    QVector<double>& POC_x,
-                                    QVector<double>& POC_y,
-                                    QVector<double>& celkovyUhel,
-                                    QVector<double>& finalPOC_x,
-                                    QVector<double>& finalPOC_y);
+bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
+                                    cv::Mat& i_referencialFrame,
+                                    cv::Point3d i_coordsFrangiStandardReferencialReverse,
+                                    int i_index_translated,
+                                    int i_iteration,
+                                    double i_areaMaximum,
+                                    double i_angle,
+                                    cv::Rect& i_cutoutExtra,
+                                    cv::Rect& i_cutoutStandard,
+                                    bool i_scaleChanged,
+                                    QVector<double> parametry_frangi,
+                                    QVector<double> &_pocX,
+                                    QVector<double> &_pocY,
+                                    QVector<double> &_frangiX,
+                                    QVector<double> &_frangiY,
+                                    QVector<double> &_frangiEucl,
+                                    QVector<double> &_maxAngles);
 
-cv::Mat eventualni_korekce_translace(cv::Mat& slicovany_snimek,cv::Mat& obraz,cv::Rect& vyrez_korelace_standard,
-                                     cv::Point3d& korekce_bod,double &oblastMaxima);
+bool eventualni_korekce_translace(cv::Mat& slicovany_snimek,
+                                  cv::Mat& obraz,
+                                  cv::Mat& snimek_korigovany,
+                                  cv::Rect& vyrez_korelace_standard,
+                                  cv::Point3d& korekce_bod);
 
 #endif // KOREKCE_ZAPIS_H_INCLUDED

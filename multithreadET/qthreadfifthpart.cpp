@@ -109,7 +109,9 @@ void qThreadFifthPart::run()
             emit percentageCompleted(qRound((indexVidea/videoCount)*100+((i/frameCount)*100.0)/videoCount));
             Mat slicovan_kompletne = cv::Mat::zeros(referencni_snimek.size(), CV_32FC3);
             Point3d mira_translace(0.0,0.0,0.0);
-            double celkovy_angle = 0.0;
+            QVector<double> pocX;
+            QVector<double> pocY;
+            QVector<double> celkovy_angle;
             int iterace = -1;double oblastMaxima = 5.0;double angleMaximalni = 0.1;
             int uspech_licovani = completeRegistration(cap,referencni_snimek,
                                                       framesSecondEval[indexVidea][i],
@@ -120,14 +122,13 @@ void qThreadFifthPart::run()
                                                       obtainedCutoffStandard,
                                                       scaleCh,
                                                       slicovan_kompletne,
-                                                      mira_translace,celkovy_angle);
+                                                      pocX,pocY,celkovy_angle);
             qDebug() << framesSecondEval[indexVidea][i] <<" -> ";
             if (uspech_licovani == 0)
             {
 
                 emit unexpectedTermination("Cannot open a video for analysis",5,"hardError");
                 errorOccured = true;
-                break;
                 framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 5.0;
                 POC_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
                 POC_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;

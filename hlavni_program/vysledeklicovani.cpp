@@ -15,11 +15,15 @@
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include "opencv2/imgproc/types_c.h"
 
-VysledekLicovani::VysledekLicovani(QDialog *parent) : QDialog(parent),
+VysledekLicovani::VysledekLicovani(cv::Mat& _referencial, cv::Mat& _translated, QDialog *parent) : QDialog(parent),
     ui(new Ui::VysledekLicovani)
 {
     ui->setupUi(this);
-
+    _referencial.copyTo(referencniSnimek);
+    _translated.copyTo(slicovanySnimek);
+    //_referencial.release();
+    //_translated.release();
+    connect(ui->vyberSnimek,SIGNAL(valueChanged(int)),this,SLOT(changeDisplayed(int)));
 }
 
 VysledekLicovani::~VysledekLicovani()
@@ -27,10 +31,10 @@ VysledekLicovani::~VysledekLicovani()
     delete ui;
 }
 
-void VysledekLicovani::displayTwo(cv::Mat reference, cv::Mat moved)
+void VysledekLicovani::displayTwo()
 {
-    reference.copyTo(referencniSnimek);
-    moved.copyTo(slicovanySnimek);
+    //reference.copyTo(referencniSnimek);
+    //moved.copyTo(slicovanySnimek);
     nastav_velikost_okna(referencniSnimek.cols,referencniSnimek.rows);
 
     imageReference = new QImage(referencniSnimek.data,
@@ -60,16 +64,19 @@ void VysledekLicovani::displayVideo(cv::VideoCapture video)
                              QImage::Format_RGB888);
 }
 
-void VysledekLicovani::on_vyberSnimek_valueChanged(int value)
+void VysledekLicovani::changeDisplayed(int value)
 {
     if (wantToDisplay == 1){
+        //qDebug()<<value;
         if (value == 0)
         {
+            qDebug()<<value;
             QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageReference));
             scena->addItem(image);
         }
         if (value == 1)
         {
+            qDebug()<<value;
             QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageSlicovany));
             scena->addItem(image);
         }
@@ -101,7 +108,7 @@ void VysledekLicovani::nastav_velikost_okna(int sirka,int vyska)
 
 void VysledekLicovani::callTwo()
 {
-    displayTwo(referencniSnimek,slicovanySnimek);
+    displayTwo();
 }
 
 void VysledekLicovani::callVideo()
@@ -122,6 +129,7 @@ void VysledekLicovani::start(int startMethod)
         ui->vysledekLicovani->setFixedSize(referencniSnimek.cols+30,referencniSnimek.rows+30);
         ui->vysledekLicovani->setSceneRect(0,0,referencniSnimek.cols+30,referencniSnimek.rows+30);
         this->setGeometry(50,50,referencniSnimek.cols,referencniSnimek.rows);
+        wantToDisplay = startMethod;
     }
     if (startMethod == 2){
         callVideo();
@@ -134,5 +142,6 @@ void VysledekLicovani::start(int startMethod)
         ui->vysledekLicovani->setFixedSize(frame0.cols+30,frame0.rows+30);
         ui->vysledekLicovani->setSceneRect(0,0,frame0.cols+30,frame0.rows+30);
         this->setGeometry(50,50,frame0.cols,frame0.rows);
+        wantToDisplay = startMethod;
     }
 }

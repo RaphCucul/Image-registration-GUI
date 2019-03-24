@@ -17,18 +17,19 @@ class VysledekLicovani : public QDialog
     Q_OBJECT
 
 public:
-    explicit VysledekLicovani(QDialog *parent = nullptr);
+    explicit VysledekLicovani(cv::Mat &_referencial, cv::Mat &_translated, QDialog *parent = nullptr);
     ~VysledekLicovani();
     void nastav_velikost_okna(int sirka, int vyska);
-    void displayTwo(cv::Mat reference, cv::Mat moved);
+    void displayTwo();
     void displayVideo(cv::VideoCapture video);
     void callTwo();
     void callVideo();
     void start(int startMethod);
 private slots:
-    void on_vyberSnimek_valueChanged(int value);
-
+    void changeDisplayed(int value);
 private:
+
+
     Ui::VysledekLicovani *ui;
     int wantToDisplay = 0;
     QPixmap image;

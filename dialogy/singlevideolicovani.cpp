@@ -404,7 +404,7 @@ bool SingleVideoLicovani::writeToVideo()
         cap.set(CV_CAP_PROP_POS_FRAMES,indexImage);
         if (cap.read(posunutyOrig)!=1)
         {
-            QString errorMessage = QString("Frame %1 could not be loaded from the video for registration. Process interrupted").arg(indexImage);
+            QString errorMessage = QString(tr("Frame %1 could not be loaded from the video for registration. Process interrupted")).arg(indexImage);
             localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",errorMessage);
             localErrorDialogHandling[ui->registratePB]->show();
             return false;

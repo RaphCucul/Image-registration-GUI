@@ -139,9 +139,6 @@ bool registrationCorrection(cv::Mat& slicovany_snimek,
 
 void RegistrationThread::run()
 {
-
-
-
     /// define helpers for frame preprocessing
     bool lightAnomalyPresent = false;
     bool timeStampPresent = false;
@@ -190,13 +187,13 @@ void RegistrationThread::run()
                            correl_standard,
                            capture,
                            scaling)){
-        emit errorDetected(threadIndex,tr("Frame preprocessing failed."));
+        emit errorDetected(threadIndex,QString(tr("Frame preprocessing failed for %1.")).arg(videoName));
         return;
     }
     obraz(correl_standard).copyTo(obraz_vyrez);
     Point3d frangiMaxReversal = frangi_analysis(obraz,2,2,0,"",1,pt_temp,frangiParameters);
     if (frangiMaxReversal.z == 0.0){
-        emit errorDetected(threadIndex,tr("Frangi filter for referencial image failed."));
+        emit errorDetected(threadIndex,QString(tr("Frangi filter for referencial image failed for %1.")).arg(videoName));
         return;
     }
     qDebug()<<"Frangi reversal: "<<frangiMaxReversal.x<<" "<<frangiMaxReversal.y;
@@ -347,7 +344,16 @@ void RegistrationThread::run()
                 }
             }
         }
+        else {
+            emit x_coordInfo(indexFrame,0,QString::number(999.0));
+            emit y_coordInfo(indexFrame,1,QString::number(999.0));
+            emit angleInfo(indexFrame,2,QString::number(999.0));
+            emit statusInfo(indexFrame,3,QString("error"));
+        }
         if (errorOccured){
+            emit x_coordInfo(indexFrame,0,QString::number(999.0));
+            emit y_coordInfo(indexFrame,1,QString::number(999.0));
+            emit angleInfo(indexFrame,2,QString::number(999.0));
             emit statusInfo(indexFrame,3,QString("error"));
         }
         else if (!errorOccured){
@@ -366,6 +372,18 @@ void RegistrationThread::run()
             emit statusInfo(indexFrame,3,QString("done"));
         }
         qDebug()<<"####################################################";
+    }
+    if (ohodnoceniSnimku[startingFrame] == 0 || ohodnoceniSnimku[startingFrame] == 1 ||
+            ohodnoceniSnimku[startingFrame] == 4){
+        qDebug()<<"Recalculating starting frame "<<startingFrame;
+        if (registrateTheBest(capture,referencialImage,frangiMaxReversal,startingFrame,iteration,maximalArea,
+                               totalAngle,correl_extra,correl_standard,scaling,frangiParameters,
+                               finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles)){
+            emit x_coordInfo(startingFrame,0,QString::number(finalPOCx[startingFrame]));
+            emit y_coordInfo(startingFrame,1,QString::number(finalPOCy[startingFrame]));
+            emit angleInfo(startingFrame,2,QString::number(maximalAngles[startingFrame]));
+            emit statusInfo(startingFrame,3,QString("done"));
+        }
     }
     emit allWorkDone(threadIndex);
 }
@@ -634,7 +652,7 @@ bool fullRegistration(cv::VideoCapture& cap,
             _pocX[cislo_posunuty] = pt1.x;
             _pocY[cislo_posunuty] = pt1.y;
             qDebug()<<"pt1 filled.";
-            if (cislo_posunuty == 43)
+            if (cislo_posunuty == 0)
                 qDebug()<<"PT1: "<<pt1.x<<" "<<pt1.y;
             slicovany1 = translace_snimku(posunuty,pt1,rows,cols);
             cv::Mat slicovany1_32f_rotace,slicovany1_32f,slicovany1_vyrez;
@@ -667,8 +685,7 @@ bool fullRegistration(cv::VideoCapture& cap,
                 slicovany1.release();
                 slicovany1_32f.release();
                 slicovany1_vyrez.release();
-
-                if (cislo_posunuty == 43)
+                if (cislo_posunuty == 0)
                     qDebug()<<"PT2: "<<pt2.x<<" "<<pt2.y;
 
                 Point3d pt3(0.0,0.0,0.0);
@@ -741,7 +758,7 @@ bool fullRegistration(cv::VideoCapture& cap,
                         pt3.x += pt4.x;
                         pt3.y += pt4.y;
                         pt3.z = pt4.z;
-                        if (cislo_posunuty == 43)
+                        if (cislo_posunuty == 0)
                             qDebug()<<"PT3 loop: "<<pt3.x<<" "<<pt3.y;
                         _pocX[cislo_posunuty] = pt3.x;
                         _pocY[cislo_posunuty] = pt3.y;

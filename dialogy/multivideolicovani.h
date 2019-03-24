@@ -36,7 +36,6 @@ private slots:
     void on_deleteChosenPB_clicked();
     void on_registratePB_clicked();
     void on_saveResultsPB_clicked();
-    void totalFramesCompleted(int frameCounter);
     void addItem(int row,int column,QString parameter);
     void addStatus(int row, int column, QString status);
     void errorHandler(int indexOfThread,QString errorMessage);
@@ -59,7 +58,13 @@ private:
     void saveTheResults(QMap<QString,QVector<double>> input,int from, int to);
 
     bool checkPath(QString filenameToAnalyse);
+    bool checkVideo(cv::VideoCapture& capture);
+
     void populateProperties(QStringList chosenVideos);
+
+    void displayStatus(QString status);
+
+    void startCalculations(cv::VideoCapture& capture);
 
     Ui::MultiVideoLicovani *ui;
     RegistrationThread *regThread;
@@ -87,7 +92,7 @@ private:
     QHash<QString,QMap<QString,QVector<int>>> videoPropertiesAnomaly;
 
     QHash<QString,QTableWidget*> videoPool;
-    QMap<QString,QString> videoStatus;
+    QHash<QString,QString> videoStatus;
     QJsonObject videoParametersJson;
     QStringList columnHeaders = {"X","Y",tr("Angle"),"Status"};
 };

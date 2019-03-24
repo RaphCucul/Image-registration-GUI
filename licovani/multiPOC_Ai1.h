@@ -20,17 +20,18 @@
  * @return
  */
 bool completeRegistration(cv::VideoCapture& cap,
-                        cv::Mat& referencialImage,
-                        int numberTranslated,
-                        double iteration,
-                        double areaMaximum,
-                        double angle,
-                        cv::Rect& cutoutExtra,
-                        cv::Rect& cutoutStandard,
-                        bool scaleChange,
-                        cv::Mat& fullyRegistratedImage,
-                        cv::Point3d& definitiveTranslation,
-                        double& finalRotationAngle);
+                          cv::Mat& referencni_snimek,
+                          int cislo_posunuty,
+                          int iterace,
+                          double oblastMaxima,
+                          double uhel,
+                          cv::Rect& korelacni_vyrez_navic,
+                          cv::Rect& korelacni_vyrez_standardni,
+                          bool nutnost_zmenit_velikost_snimku,
+                          cv::Mat& slicovany_kompletne,
+                          QVector<double> &_pocX,
+                          QVector<double> &_pocY,
+                          QVector<double> &_maxAngles);
 
 /**
  * @brief Function does preprocessing before main registration function. It populates cutouts cv::Rect variables
@@ -50,15 +51,13 @@ bool completeRegistration(cv::VideoCapture& cap,
  * @param scalingNeeded
  */
 bool preprocessingCompleteRegistration(cv::Mat &reference,
-                                       cv::Mat &image,
+                                       cv::Mat &obraz,
                                        QVector<double> parFrang,
-                                       cv::Point2d verticalAnomaly,
-                                       cv::Point2d horizontalAnomaly,
-                                       cv::Point3d &fraMax,
-                                       cv::Rect &anomalyArea,
-                                       cv::Rect &cutoutStandard,
-                                       cv::Rect &cutoutExtra,
+                                       cv::Point2d &hraniceAnomalie,
+                                       cv::Point2d &hraniceCasu,
+                                       cv::Rect &oblastAnomalie,
+                                       cv::Rect &vyrezKoreEx,
+                                       cv::Rect &vyrezKoreStand,
                                        cv::VideoCapture &cap,
-                                       bool& anomalyPresence,
-                                       bool &scalingNeeded);
+                                       bool &zmeMer);
 #endif // MULTIPOC_AI1_H_INCLUDED

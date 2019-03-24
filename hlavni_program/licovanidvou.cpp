@@ -9,7 +9,7 @@
 #include "dialogy/errordialog.h"
 #include "dialogy/clickimageevent.h"
 #include "hlavni_program/frangi_detektor.h"
-//#include "hlavni_program/vysledeklicovani.h"
+#include "hlavni_program/vysledeklicovani.h"
 #include "fancy_staff/sharedvariables.h"
 #include "util/souborove_operace.h"
 #include "util/prace_s_vektory.h"
@@ -529,11 +529,11 @@ void LicovaniDvou::on_registrateTwo_clicked()
 {
     QString filePath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
     cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
-    cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber));
+    cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber)-1);
     cv::Mat referencialImage,translatedImage;
     cap.read(referencialImage);
     kontrola_typu_snimku_8C3(referencialImage);
-    cap.set(CV_CAP_PROP_POS_FRAMES,double(translatedNumber));
+    cap.set(CV_CAP_PROP_POS_FRAMES,double(translatedNumber)-1);
     cap.read(translatedImage);
     kontrola_typu_snimku_8C3(translatedImage);
     double entropyTranslated,entropyReference;
@@ -562,17 +562,15 @@ void LicovaniDvou::on_registrateTwo_clicked()
     cv::Mat image;
     //qDebug()<<referencialImage.rows<<" "<<referencialImage.cols;
     if (!preprocessingCompleteRegistration(referencialImage,
-                                      image,
-                                      SharedVariables::getSharedVariables()->getFrangiParameters(),
-                                      verticalAnomaly,
-                                      horizontalAnomaly,
-                                      frangiMaximumCoords,
-                                      cutoutAnomaly,
-                                      cutoutExtra,
-                                      cutoutStandard,
-                                      cap,
-                                      anomalyPresent,
-                                      scaleChanged)){
+                                           image,
+                                           SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                           verticalAnomaly,
+                                           horizontalAnomaly,
+                                           cutoutAnomaly,
+                                           cutoutExtra,
+                                           cutoutStandard,
+                                           cap,
+                                           scaleChanged)){
         localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",10);
         localErrorDialogHandling[ui->registrateTwo]->show();
         return;
@@ -587,19 +585,27 @@ void LicovaniDvou::on_registrateTwo_clicked()
     cv::Mat intermediate_result = cv::Mat::zeros(image.size(), CV_32FC3);
     cv::Point3d pt3(0.0,0.0,0.0);
     double l_angle = 0.0;
-    double l_angleSum = 0.0;
-    bool registrationSuccessfull = completeRegistration(cap,
-                                               referencialImage,
-                                               translatedNumber,
-                                               iteration,
-                                               areaMaximum,
-                                               l_angle,
-                                               cutoutExtra,
-                                               cutoutStandard,
-                                               scaleChanged,
-                                               intermediate_result,
-                                               pt3,
-                                               l_angleSum);
+    QVector<double> l_angleSum;
+    QVector<double> fr_x;
+    QVector<double> fr_y;
+    QVector<double> fr_eukl;
+    QVector<double> _pocX;
+    QVector<double> _pocY;
+    QVector<double> pomD(static_cast<int>(cap.get(CV_CAP_PROP_FRAME_COUNT)),0.0);
+    fr_x = pomD;fr_y = pomD;fr_eukl = pomD;_pocX = pomD;_pocY = pomD;l_angleSum = pomD;
+    bool registrationSuccessfull = licovani_nejvhodnejsich_snimku(cap,
+                                                                  referencialImage,
+                                                                  maximum_frangi_reverse,
+                                                                  translatedNumber,
+                                                                  iteration,
+                                                                  areaMaximum,
+                                                                  l_angle,
+                                                                  cutoutExtra,
+                                                                  cutoutStandard,
+                                                                  scaleChanged,
+                                                                  SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                                                  _pocX,_pocY,fr_x,fr_y,fr_eukl,
+                                                                  l_angleSum);
     /// Konec
     if (!registrationSuccessfull){
         localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",11);
@@ -608,39 +614,23 @@ void LicovaniDvou::on_registrateTwo_clicked()
     }
     else
     {
-        qDebug()<<"PT3 - translation after multiPOC "<<pt3.x<<" "<<pt3.y;
-        cv::Mat correction = eventualni_korekce_translace(intermediate_result,image,cutoutStandard,pt3,areaMaximum);
-        qDebug()<<"Intermediate result "<<intermediate_result.channels()<<" "<<intermediate_result.type();
-        cv::Point3d pt5 = fk_translace_hann(image,correction);
-        qDebug()<<"PT5 image vs correction"<<pt5.x<<" "<<pt5.y;
-        double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt5.z);
-        double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-        qDebug()<<"FWHM: "<<FWHM;
-        cv::Point3d pt6 = fk_translace(image,correction);
-        qDebug()<<"Pt6 "<<pt6.x<<" "<<pt6.y;
-        cv::Point3d registrated_FrangiReverse = frangi_analysis(intermediate_result,2,2,0,"",2,pt3,
-                                                                SharedVariables::getSharedVariables()->getFrangiParameters());
-        double yydef = maximum_frangi_reverse.x - registrated_FrangiReverse.x;
-        double xxdef = maximum_frangi_reverse.y - registrated_FrangiReverse.y;
-        cv::Point3d resulting_translation;
-        resulting_translation.y = pt3.y - yydef;
-        resulting_translation.x = pt3.x - xxdef;
-        resulting_translation.z = 0;
-        cv::Mat translatedImage_temp2 = translace_snimku(translatedImage,resulting_translation,rows,cols);
-        cv::Mat final_registration = rotace_snimku(translatedImage_temp2,l_angle);
-        cv::Mat final_registration_32f;
-        final_registration.copyTo(final_registration_32f);
-        kontrola_typu_snimku_32C1(final_registration_32f);
-        qDebug()<<"Registration done.";
-        src1 = image;
-        src2 = intermediate_result;
-        kontrola_typu_snimku_8C3(src1);
-        kontrola_typu_snimku_8C3(src2);
+        qDebug()<<"translation after multiPOC "<<_pocX[translatedNumber]<<" "<<_pocY[translatedNumber];
+        cv::Mat plneSlicovany = cv::Mat::zeros(cv::Size(cols,rows), CV_32FC3);
+        cv::Mat posunuty;
+        cv::Point3d translation(_pocX[translatedNumber],_pocY[translatedNumber],0.0);
+        cap.set(CV_CAP_PROP_POS_FRAMES,translatedNumber);
+        if(!cap.read(posunuty))
+        {
+            return;
+        }
+        kontrola_typu_snimku_8C3(posunuty);
+        plneSlicovany = translace_snimku(posunuty,translation,rows,cols);
+        plneSlicovany = rotace_snimku(plneSlicovany,l_angleSum[translatedNumber]);
 
-        /// nová verze prohlížeče, která umožní ovládání bez vypnutí hlavního programu
-        /*VysledekLicovani *vysledekLicovani = new VysledekLicovani();
-            vysledekLicovani->setModal(true);
-            vysledekLicovani->show();*/
+        VysledekLicovani *vysledekLicovani = new VysledekLicovani(referencialImage,plneSlicovany);
+        vysledekLicovani->start(1);
+        vysledekLicovani->setModal(true);
+        vysledekLicovani->show();
     }
 }
 

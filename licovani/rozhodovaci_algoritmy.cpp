@@ -285,18 +285,20 @@ void thirdDecisionAlgorithm(cv::Mat& image,
 
         Mat slicovan_kompletne = cv::Mat::zeros(image.size(), CV_32FC3);
         Point3d mira_translace;
-        double celkovy_uhel = 0;
+        QVector<double> pocX;
+        QVector<double> pocY;
+        QVector<double> celkovy_uhel;
         int iterace = -1;double oblastMaxima = 5.0;double uhelMaximalni = 0.1;
         int uspech_licovani = completeRegistration(cap,image,
-                                                  framesSecondEval[i],
-                                                  iterace,
-                                                  oblastMaxima,
-                                                  uhelMaximalni,
-                                                  coutouExtra,
-                                                  cutoutStandard,
-                                                  scaleChanged,
-                                                  slicovan_kompletne,
-                                                  mira_translace,celkovy_uhel);
+                                                   framesSecondEval[i],
+                                                   iterace,
+                                                   oblastMaxima,
+                                                   uhelMaximalni,
+                                                   coutouExtra,
+                                                   cutoutStandard,
+                                                   scaleChanged,
+                                                   slicovan_kompletne,
+                                                   pocX,pocY,celkovy_uhel);
         qDebug() << framesSecondEval[i] <<" -> ";
         if (uspech_licovani == 0)
         {

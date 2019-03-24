@@ -150,12 +150,10 @@ void qThreadFirstPart::run()
                                         FrangiParameters,
                                         verticalAnomaly,
                                         horizontalAnomaly,
-                                        frangi_bod,
                                         anomalyArea,
                                         cutoutStandard,
                                         cutoutExtra,
                                         cap,
-                                        anomalyPresence,
                                         zmenaMeritka);
         if(!preprocessingSuccessfull){
             emit unexpectedTermination("Preprocessing failed",1,"hardError");
