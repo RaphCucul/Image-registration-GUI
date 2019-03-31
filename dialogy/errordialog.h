@@ -31,6 +31,15 @@ public:
      * @param errorNumber - errors.h
      */
     void evaluate(QString position,QString EventType,int errorNumber);
+
+    /**
+     * @brief The main function where all parameters of the error are set. Everything else
+     * is hidden in this function, therefore user needs to set only 3 parameters and then call
+     * show() function. The third parameter can be int or string (used in thread classes).
+     * @param position
+     * @param EventType
+     * @param errorMessage
+     */
     void evaluate(QString position,QString EventType,QString errorMessage);
 
     bool isEvaluated();

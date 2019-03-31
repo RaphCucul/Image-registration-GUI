@@ -560,7 +560,6 @@ void LicovaniDvou::on_registrateTwo_clicked()
     cv::Point2d horizontalAnomaly = SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords();
     cv::Point2d verticalAnomaly = SharedVariables::getSharedVariables()->getVerticalAnomalyCoords();
     cv::Mat image;
-    //qDebug()<<referencialImage.rows<<" "<<referencialImage.cols;
     if (!preprocessingCompleteRegistration(referencialImage,
                                            image,
                                            SharedVariables::getSharedVariables()->getFrangiParameters(),
@@ -582,7 +581,6 @@ void LicovaniDvou::on_registrateTwo_clicked()
                                                          SharedVariables::getSharedVariables()->getFrangiParameters());
     qDebug()<<"Maximum frangi reverse "<<maximum_frangi_reverse.x<<" "<<maximum_frangi_reverse.y;
     /// Beginning
-    cv::Mat intermediate_result = cv::Mat::zeros(image.size(), CV_32FC3);
     cv::Point3d pt3(0.0,0.0,0.0);
     double l_angle = 0.0;
     QVector<double> l_angleSum;
@@ -615,22 +613,22 @@ void LicovaniDvou::on_registrateTwo_clicked()
     else
     {
         qDebug()<<"translation after multiPOC "<<_pocX[translatedNumber]<<" "<<_pocY[translatedNumber];
-        cv::Mat plneSlicovany = cv::Mat::zeros(cv::Size(cols,rows), CV_32FC3);
-        cv::Mat posunuty;
+        cv::Mat registratedFrame = cv::Mat::zeros(cv::Size(cols,rows), CV_32FC3);
+        cv::Mat translated;
         cv::Point3d translation(_pocX[translatedNumber],_pocY[translatedNumber],0.0);
         cap.set(CV_CAP_PROP_POS_FRAMES,translatedNumber);
-        if(!cap.read(posunuty))
+        if(!cap.read(translated))
         {
             return;
         }
-        kontrola_typu_snimku_8C3(posunuty);
-        plneSlicovany = translace_snimku(posunuty,translation,rows,cols);
-        plneSlicovany = rotace_snimku(plneSlicovany,l_angleSum[translatedNumber]);
+        kontrola_typu_snimku_8C3(translated);
+        registratedFrame = translace_snimku(translated,translation,rows,cols);
+        registratedFrame = rotace_snimku(registratedFrame,l_angleSum[translatedNumber]);
 
-        VysledekLicovani *vysledekLicovani = new VysledekLicovani(referencialImage,plneSlicovany);
-        vysledekLicovani->start(1);
-        vysledekLicovani->setModal(true);
-        vysledekLicovani->show();
+        VysledekLicovani *showResults = new VysledekLicovani(referencialImage,registratedFrame);
+        showResults->start(1);
+        showResults->setModal(true);
+        showResults->show();
     }
 }
 

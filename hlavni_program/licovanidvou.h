@@ -74,9 +74,18 @@ private slots:
 private:
     Ui::LicovaniDvou *ui;
 
-    void initChoiceOneInnerWidgets(); /// functions initalize all widgets which may appear in the
-                                      /// horizontal box layout
+    /**
+     * @brief Functions initalize all widgets from "choice one" option
+     *  which may appear in the horizontal box layout.
+     */
+    void initChoiceOneInnerWidgets();
+
+    /**
+     * @brief Functions initalize all widgets from "choice two" option
+     *  which may appear in the horizontal box layout.
+     */
     void initChoiceTwoInnerWidgets();
+
     void placeChoiceOneWidgets();
     void placeChoiceTwoWidgets();
 
@@ -87,6 +96,12 @@ private:
      * @param whereToSave
      */
     void analyseAndSave(QString analysedFolder, QVector<QString>& whereToSave);
+
+    /**
+     * @brief Function checks, if input video or images can be loaded for next processing step.
+     * @param path
+     * @param method
+     */
     void evaluateVideoImageInput(QString path,QString method);
 
     /**

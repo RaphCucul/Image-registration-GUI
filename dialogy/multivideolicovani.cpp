@@ -470,7 +470,7 @@ void MultiVideoLicovani::processResuluts(int analysedThread){
     for (int parameterIndex = 0; parameterIndex < 6; parameterIndex++){
         qDebug()<<"Processing "<<videoParameters.at(parameterIndex);
         for (int position = range[0]; position <= range[1]; position++){
-            if (videoPropertiesDouble[videoListNames.at(videoCounter)][videoParameters.at(parameterIndex)][position] != 0.0)
+            if (videoPropertiesDouble[videoListNames.at(videoCounter)][videoParameters.at(parameterIndex)][position] == 0.0)
                 videoPropertiesDouble[videoListNames.at(videoCounter)][videoParameters.at(parameterIndex)][position] = measuredData[videoParameters.at(parameterIndex)][position];
         }
     }
@@ -492,8 +492,15 @@ int MultiVideoLicovani::writeToVideo()
 {
     QString kompletni_cesta = videoListFull.at(videoCounter);
     cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
+    if (!cap.isOpened())
+    {
+        localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",6);
+        localErrorDialogHandling[ui->registratePB]->show();
+        return false;
+    }
     double sirka_framu = cap.get(CV_CAP_PROP_FRAME_WIDTH);
     double vyska_framu = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
     cv::Size velikostSnimku = cv::Size(int(sirka_framu),int(vyska_framu));
     double frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
     QString cestaZapis = SharedVariables::getSharedVariables()->getPath("ulozeniVidea")+"/"+videoListNames.at(videoCounter)+"_GUI.avi";
@@ -507,7 +514,7 @@ int MultiVideoLicovani::writeToVideo()
     }
     qDebug()<<"Writting video "<<videoListNames.at(videoCounter)+"_GUI.avi";
     for (int indexImage = 0; indexImage < int(frameCount); indexImage++){
-        cv::Mat posunutyOrig,posunutyLicovani,posunutyLicovaniFinal;
+        cv::Mat posunutyOrig;
         cap.set(CV_CAP_PROP_POS_FRAMES,indexImage);
         if (cap.read(posunutyOrig)!=1)
         {
@@ -521,16 +528,17 @@ int MultiVideoLicovani::writeToVideo()
             posunutyOrig.release();
         }
         else{
-            cv::Point3d finalTranslation;
+            cv::Point3d finalTranslation(0.0,0.0,0.0);
+            cv::Mat plneSlicovany = cv::Mat::zeros(cv::Size(posunutyOrig.cols,posunutyOrig.rows), CV_32FC3);
+            kontrola_typu_snimku_8C3(posunutyOrig);
             finalTranslation.x = videoPropertiesDouble[videoListNames.at(videoCounter)]["POCX"][indexImage];
             finalTranslation.y = videoPropertiesDouble[videoListNames.at(videoCounter)]["POCY"][indexImage];
             finalTranslation.z = 0.0;
-            posunutyLicovani = translace_snimku(posunutyOrig,finalTranslation,posunutyOrig.rows,posunutyOrig.cols);
-            posunutyLicovaniFinal = rotace_snimku(posunutyLicovani,videoPropertiesDouble[videoListNames.at(videoCounter)]["Uhel"][indexImage]);
-            writer.write(posunutyLicovaniFinal);
+            plneSlicovany = translace_snimku(posunutyOrig,finalTranslation,posunutyOrig.rows,posunutyOrig.cols);
+            plneSlicovany = rotace_snimku(plneSlicovany,videoParametersDouble["Uhel"][0][indexImage]);
+            writer.write(plneSlicovany);
             posunutyOrig.release();
-            posunutyLicovani.release();
-            posunutyLicovaniFinal.release();
+            plneSlicovany.release();
         }
     }
     return true;

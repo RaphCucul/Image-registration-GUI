@@ -17,10 +17,16 @@ public:
     QString getPath(QString type) const; /// functions enable to save path into *.json file
     void setPath(QString type, QString path);
 
-    void processFrangiParameters(QString path);
+    bool processFrangiParameters(QString path);
+
     QVector<double> getFrangiParameters() const;
+
+    double getSpecificFrangiParameter(QString parameter);
+
     double getSpecificFrangiParameter(int parameter);
+
     void setSpecificFrangiParameter(int parameter,double value);
+
     void saveFrangiParameters();
 
     cv::Point3d getFrangiMaximum();
@@ -40,7 +46,7 @@ private:
      * @param loadedParameters
      * @param position
      */
-    void inicialization_frangi_opt(QJsonObject loadedObject, QString parameter, QVector<double>& loadedParameters,
+    bool inicialization_frangi_opt(QJsonObject loadedObject, QString parameter, QVector<double>& loadedParameters,
                                  int &position);
     /**
      * @brief Vector of Frangi parameters is initialized to have specific size
@@ -60,6 +66,7 @@ private:
     static SharedVariables *g_sharedVariables;
     QMap<QString,QString> chosenActualPathes;
     QVector<double> FrangiParameters;
+    QMap<QString,double> FrangiParametersMap;
     QStringList FrangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
     cv::Point3d detectedFrangiMaximum;
     cv::Point2d horizontalAnomalyCoords;

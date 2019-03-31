@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
+#include <QSlider>
 #include <QJsonObject>
 #include <opencv2/opencv.hpp>
 #include "dialogy/errordialog.h"
@@ -42,6 +43,26 @@ private slots:
     void on_saveParameters_clicked();
 
 private:
+    /**
+     * @brief Function loads frangi parameters data into the corresponding double spin box.
+     */
+    void setDSBInput(QDoubleSpinBox*_spinbox, QString parameter);
+
+    /**
+     * @brief Functions save the actual value of the double spin box during the saving process.
+     * @param parameter
+     */
+    void getDSBInput(QString parameter);
+
+    /**
+     * @brief Function loads frangi parameters data into the corresponding slider.
+     * @param _slider
+     * @param parameter
+     */
+    void analyseSliderInput(QSlider* _slider, QString parameter);
+
+    void setSliderValue(QDoubleSpinBox* _spinbox, QSlider *_slider);
+
     int analyseFrame = -1;
     Ui::Frangi_detektor *ui;
     int minimum = 0;
@@ -49,6 +70,9 @@ private:
     QVector<QString> analyseChosenFile;
     cv::VideoCapture actualVideo;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
+    QHash<QString,QDoubleSpinBox*> spinBoxes;
+    QHash<QString,QSlider*> sliders;
+    QStringList frangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
 };
 
 #endif // FRANGI_DETEKTOR_H

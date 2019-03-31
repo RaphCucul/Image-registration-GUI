@@ -71,14 +71,61 @@ private:
      */
     void processPath(QString type, QString path);
 
-    /// two functions enable or disable all ui elements
+    /**
+     * @brief Function enables all form elements. Paths can be added and selected.
+     */
     void enableElements();
+
+    /**
+     * @brief Function disables all form elements. No operations are allowed.
+     */
     void disableElements();
 
-    /// processing of JSON values
+    /**
+     * @brief Function reads the content of the object specified by "type" from the JSON file.
+     * Proper "box" is then filled with the loaded content. "onlyCheckEmpty" parameter says, if the JSON object
+     * should be analysed and the content loaded or if the user wants to check only if the JSON object is empty.
+     * @param type
+     * @param box
+     * @param onlyCheckEmpty
+     * @return
+     */
     bool getPathFromJson(QString type, QComboBox* box, bool onlyCheckEmpty);
+
+    /**
+     * @brief Function calls getPathFromJson for all JSON object types and set the argument "onlyCheckEmpty"
+     * to these functions. "onlyCheckEmpty" parameter says, if the JSON object
+     * should be analysed and the content loaded or if the user wants to check only if the JSON object is empty.
+     * @param onlyCheckEmpty
+     * @return
+     */
     bool getPathsFromJson(bool onlyCheckEmpty);
+
+    /**
+     * @brief Function loads the content from the JSON folder file.
+     * @return
+     */
     bool loadJsonPaths();
+
+    /**
+     * @brief Helper function for LoadSettings function. Loads data from JSON file.
+     * @return
+     */
+    bool processLoadedSettings();
+
+    /**
+     * @brief Function creates new ini file for settings, if the file is missing, when the program
+     * starts. Then, path to JSON file is added to this new ini file.
+     */
+    void createIni();
+
+    /**
+     * @brief Function implements the posibility to delete the highlighted item from a combobox list.
+     * @param obj
+     * @param event
+     * @return
+     */
+    bool eventFilter(QObject *obj, QEvent *event);
 
     QJsonObject fileWithPaths;
     QStringList pathTypes = {"cestaKvideim","ulozeniVidea","adresarTXT_nacteni","adresarTXT_ulozeni","parametryFrangiFiltr"};
@@ -86,6 +133,8 @@ private:
     QHash<QString,QStringList> typeLists;
     QString pathToFileFolderDirectory,fileFolderDirectoryName;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
+    QString search = "";
+    QString _tempSettignsFile = "";
 };
 
 #endif // T_B_HO_H

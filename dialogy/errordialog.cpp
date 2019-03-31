@@ -53,15 +53,15 @@ void ErrorDialog::evaluate(QString position, QString EventType, int errorNumber)
         Info();
     }
     else if (EventType == "softError"){
-        showMessage(errorList[errorNumber].toString());
+        showMessage(softErrorList[errorNumber].toString());
         SoftError();
     }
     else if (EventType == "hardError"){
-        showMessage(errorList[errorNumber].toString());
+        showMessage(hardErrorList[errorNumber].toString());
         HardError();
     }
-    else{
-        showMessage(errorList[errorNumber].toString());
+    else {
+        showMessage(whatToDoList[errorNumber].toString());
         What_todo();
     }
     errorLabelinitialized = true;
@@ -216,10 +216,11 @@ void ErrorDialog::What_todo()
 
 bool ErrorDialog::eventFilter(QObject *obj, QEvent *event)
 {
+    Q_UNUSED(obj);
     if (event->type() == QEvent::MouseButtonPress)
         {
             emit mouseClicked();
-            qDebug() << "Click event";
+            //qDebug() << "Click event";
         }
     return false;
 }

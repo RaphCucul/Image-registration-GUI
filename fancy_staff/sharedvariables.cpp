@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDebug>
+#include <exception>
 
 SharedVariables* SharedVariables::g_sharedVariables = nullptr;
 
@@ -38,15 +39,27 @@ void SharedVariables::setPath(QString type, QString path){
     chosenActualPathes[type] = path;
 }
 
-void SharedVariables::processFrangiParameters(QString path){
-    qDebug()<<"Processing Frangi parameters into a vector";
+bool SharedVariables::processFrangiParameters(QString path){
+    qDebug()<<"Processing Frangi parameters into a vector from path "<<path;
+    bool processingResult = true;
+
     QFile file;
     file.setFileName(path+"/frangiParameters.json");
     QJsonObject FrangiParametersObject;
     FrangiParametersObject = readJson(file);
-    size_frangi_opt(FrangiParametersList.count(),FrangiParameters);
-    for (int a = 0; a < FrangiParametersList.count(); a++)
-        inicialization_frangi_opt(FrangiParametersObject,FrangiParametersList.at(a),FrangiParameters,a);
+    if (FrangiParametersObject.isEmpty()){
+        processingResult = false;
+    }
+    if (processingResult){
+        size_frangi_opt(FrangiParametersList.count(),FrangiParameters);
+        for (int a = 0; a < FrangiParametersList.count(); a++){
+            if (!inicialization_frangi_opt(FrangiParametersObject,FrangiParametersList.at(a),FrangiParameters,a)){
+                processingResult = false;
+                break;
+            }
+        }
+    }
+    return processingResult;
 }
 
 QVector<double> SharedVariables::getFrangiParameters() const{
@@ -57,14 +70,25 @@ double SharedVariables::getSpecificFrangiParameter(int parameter){
     return data_from_frangi_opt(parameter,FrangiParameters);
 }
 
+double SharedVariables::getSpecificFrangiParameter(QString parameter){
+    return FrangiParametersMap[parameter];
+}
+
 void SharedVariables::size_frangi_opt(int size, QVector<double>& loadedParameters){
     loadedParameters = (QVector<double>(size));
 }
 
-void SharedVariables::inicialization_frangi_opt(QJsonObject loadedObject, QString parameter, QVector<double>& loadedParameters,
+bool SharedVariables::inicialization_frangi_opt(QJsonObject loadedObject, QString parameter, QVector<double>& loadedParameters,
                              int &position)
 {
-    loadedParameters[position] = loadedObject[parameter].toDouble();
+    try {
+        loadedParameters[position] = loadedObject[parameter].toDouble();
+        FrangiParametersMap[parameter] = loadedObject[parameter].toDouble();
+        return true;
+    } catch (std::exception& e) {
+        qDebug()<<"An error occured when loading frangi parameters: "<<e.what();
+        return false;
+    }
 }
 
 double SharedVariables::data_from_frangi_opt(int position, QVector<double>& loadedParameters)
@@ -74,6 +98,7 @@ double SharedVariables::data_from_frangi_opt(int position, QVector<double>& load
 
 void SharedVariables::setSpecificFrangiParameter(int parameter, double value){
     FrangiParameters[parameter] = value;
+    FrangiParametersMap[FrangiParametersList.at(parameter)] = value;
 }
 
 void SharedVariables::saveFrangiParameters(){
@@ -86,7 +111,7 @@ void SharedVariables::saveFrangiParameters(){
     document.setObject(object);
     QString documentString = document.toJson();
     QFile writer;
-    writer.setFileName(whereToSaveFrangi);
+    writer.setFileName(whereToSaveFrangi+"/frangiParameters.json");
     writer.open(QIODevice::WriteOnly);
     writer.write(documentString.toLocal8Bit());
     writer.close();

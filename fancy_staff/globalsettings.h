@@ -23,11 +23,18 @@ public:
      * @return
      */
     QString getIniPath() const;
+
+    /**
+     * @brief If the program could not find the *.ini file, user can add find it manually and save it to the program.
+     * @param input
+     */
+    void setIniPath(const QString &inputPath, const QString &inputFile);
 private:
     GlobalSettings();
     static GlobalSettings * m_Settings;
     QSettings * settings;
     QString iniPath;
+    QString iniFileName = "settings.ini";
 };
 
 #endif // GLOBALSETTINGS_H

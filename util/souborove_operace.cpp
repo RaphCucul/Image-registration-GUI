@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QVector>
 
 #include "util/souborove_operace.h"
@@ -32,16 +33,13 @@ void processFilePath(QString wholePaht, QString& folder, QString& onlyFilename, 
 QJsonObject readJson(QFile& file)
 {
     QByteArray val;
+    QJsonParseError* error = nullptr;
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     val = file.readAll();
     file.close();
     //qDebug() << val;
-    QJsonDocument d = QJsonDocument::fromJson(val);
+    QJsonDocument d = QJsonDocument::fromJson(val,error);
     QJsonObject sett2 = d.object();
-    //qDebug()<<sett2;
-    //QJsonArray value = sett2["cestaKvideim"].toArray();
-    //qDebug()<<value.size()<<value[0].toString();
-    //QJsonValue value2 = value[0].toValue();
     return sett2;
 }
 
