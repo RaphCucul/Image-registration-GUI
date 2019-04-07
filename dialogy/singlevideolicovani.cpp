@@ -74,39 +74,29 @@ SingleVideoLicovani::~SingleVideoLicovani()
 }
 
 void SingleVideoLicovani::checkPaths(){
-    if (SharedVariables::getSharedVariables()->getPath("cestaKvideim") == "")
+    if (SharedVariables::getSharedVariables()->getPath("cestaKvideim") == ""){
         ui->chooseVideoLE->setPlaceholderText(tr("Chosen video"));
+        ui->chooseVideoLE->setReadOnly(true);
+    }
     else
     {
-        QString slozka,jmeno,koncovka;
-        QStringList nalezenaVideaSlozka;
-        int pocetNalezenych;
-        analyseFileNames(SharedVariables::getSharedVariables()->getPath("cestaKvideim"),nalezenaVideaSlozka,pocetNalezenych,"avi");
-        if (pocetNalezenych != 0)
-        {
-            fullVideoPath = SharedVariables::getSharedVariables()->getPath("cestaKvideim")+"/"+nalezenaVideaSlozka.at(0);
-            videoList.append(fullVideoPath);
-            processFilePath(fullVideoPath,slozka,jmeno,koncovka);
-            videoListNames.append(jmeno);
-            if (chosenVideo.length() == 0)
-            {
-                chosenVideo.push_back(slozka);
-                chosenVideo.push_back(jmeno);
-                chosenVideo.push_back(koncovka);
+        analyseAndSaveFirst(SharedVariables::getSharedVariables()->getPath("cestaKvideim"),chosenVideo);
+        if (chosenVideo[1] != ""){
+            QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+chosenVideo[1]+".dat");
+            if (videoParametersFile.exists()){
+                videoParametersJson = readJson(videoParametersFile);
+                processVideoParameters(videoParametersJson);
+                ui->chooseVideoLE->setText(chosenVideo[1]);
+                ui->registratePB->setEnabled(true);
+                ui->chooseVideoLE->setReadOnly(false);
+                videoList.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
+                videoListNames.append(chosenVideo[1]);
             }
-            else
-            {
-                chosenVideo.clear();
-                chosenVideo.push_back(slozka);
-                chosenVideo.push_back(jmeno);
-                chosenVideo.push_back(koncovka);
-            }
-            ui->chooseVideoLE->setText(jmeno);
         }
-        QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+chosenVideo[1]+".dat");
-        videoParametersJson = readJson(videoParametersFile);
-        processVideoParameters(videoParametersJson);
-        ui->registratePB->setEnabled(true);
+        else{
+            ui->chooseVideoLE->setPlaceholderText(tr("Chosen video"));
+            ui->chooseVideoLE->setReadOnly(true);
+        }
     }
 }
 
@@ -117,10 +107,28 @@ void SingleVideoLicovani::on_chooseVideoLE_textChanged(const QString &arg1)
     if (!cap.isOpened())
     {
         ui->chooseVideoLE->setStyleSheet("color: #FF0000");
+        ui->chooseVideoLE->setReadOnly(true);
     }
     else
     {
-        ui->chooseVideoLE->setStyleSheet("color: #339900");
+        QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+arg1+".dat");
+        if (videoParametersFile.exists()){
+            videoParametersJson = readJson(videoParametersFile);
+            processVideoParameters(videoParametersJson);
+            ui->chooseVideoLE->setText(chosenVideo[1]);
+            ui->registratePB->setEnabled(true);
+            ui->chooseVideoLE->setReadOnly(false);
+            chosenVideo[1] = arg1;
+            if (videoList.count() == 0){
+                videoList.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
+                videoListNames.append(chosenVideo[1]);
+            }
+            else{
+                videoList.insert(0,(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]));
+                videoListNames.insert(0,chosenVideo[1]);
+            }
+        }
+        ui->chooseVideoLE->setStyleSheet("color: #33aa00");
         chosenVideo[1] = arg1;
     }
 }
@@ -413,4 +421,9 @@ bool SingleVideoLicovani::writeToVideo()
 void SingleVideoLicovani::on_savePB_clicked()
 {
 
+}
+
+void SingleVideoLicovani::populateLists(QVector<QString> _file){
+    videoList.append(_file[0]+"/"+_file[1]+"."+_file[2]);
+    videoListNames.append(_file[1]);
 }

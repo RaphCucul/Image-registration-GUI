@@ -24,3 +24,20 @@ void ETanalysisParent::checkInputNumber(double input, double lower, double upper
         finalValue = input;
     }
 }
+
+void ETanalysisParent::initMaps(){
+    QVector<QVector<double>> pomD;
+    QVector<QVector<int>> pomI;
+    QVector<int> pomI_;
+    for (int index = 0; index < videoParameters.count(); index++){
+        if (index < 8){
+            mapDouble[videoParameters.at(index)] = pomD;
+        }
+        else if (index >= 8 && index < 13){
+            mapInt[videoParameters.at(index)] = pomI;
+        }
+        else if (index >= 13 && index <= 14){
+            mapAnomalies[videoParameters.at(index)] = pomI_;
+        }
+    }
+}

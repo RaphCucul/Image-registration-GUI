@@ -22,8 +22,23 @@ class ETanalysisParent : public QWidget
 public:
     ETanalysisParent(QWidget *parent);
 protected:
+    /**
+     * @brief Function checks, if the numerous input is in the set range. If the input is out of range,
+     * font color is red, otherwise green.
+     * @param input
+     * @param lower
+     * @param upper
+     * @param editWidget
+     * @param finalValue
+     * @param evaluation
+     */
     void checkInputNumber(double input,double lower,double upper,QLineEdit* editWidget,double& finalValue,bool& evaluation);
     void evaluateCorrectValues();
+
+    /**
+     * @brief Function initialise QMaps with vectors of vectors, filled by values during analysis.
+     */
+    void initMaps();
 
     qThreadFirstPart* TFirstP;
     qThreadSecondPart* TSecondP;
@@ -39,19 +54,14 @@ protected:
     bool horizontalAnomalySelected = false;
     bool verticalAnomalySelected = false;
     QVector<double> actualEntropy, actualTennengrad;
-    /*QVector<QVector<double>> entropy;
-    QVector<QVector<double>> tennengrad;
-    QVector<QVector<int>> framesFirstFullCompleteEntropyEvaluation; //snimkyPrvotniOhodnoceniEntropieKomplet;
-    QVector<QVector<int>> framesFirstFullCompleteTennengradEvaluation; //snimkyPrvotniOhodnoceniTennengradKomplet;
-    QVector<QVector<int>> framesFirstFullCompleteDecision; //snimkyPrvniRozhodovaniKomplet;
-    QVector<QVector<int>> framesSecondFullCompleteDecision; //snimkyDruheRozhodovaniKomplet;
-    QVector<QVector<int>> framesFinalCompleteDecision; //snimkyOhodnoceniKomplet;    
-    QVector<QVector<double>> framesFrangiX; //snimkyFrangiX;
-    QVector<QVector<double>> framesFrangiY; //snimkyFrangiY;
-    QVector<QVector<double>> framesFrangiEuklid; //snimkyFrangiEuklid;
-    QVector<QVector<double>> framesPOCX; //snimkyPOCX;
-    QVector<QVector<double>> framesPOCY; //snimkyPOCY;
-    QVector<QVector<double>> framesAngle; //snimkyUhel;*/
+
+    QMap<QString,QVector<QVector<double>>> mapDouble;
+    QMap<QString,QVector<QVector<int>>> mapInt;
+    QMap<QString,QVector<int>> mapAnomalies;
+    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
+                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
+                                 "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
+
     QVector<int> framesReferencial;
     QVector<double> averageCCcomplete; //prumerneRkomplet
     QVector<double> averageFWHMcomplete; //prumerneFWHMkomplet

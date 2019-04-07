@@ -20,18 +20,18 @@
  * @return
  */
 bool completeRegistration(cv::VideoCapture& cap,
-                          cv::Mat& referencni_snimek,
-                          int cislo_posunuty,
-                          int iterace,
-                          double oblastMaxima,
-                          double uhel,
-                          cv::Rect& korelacni_vyrez_navic,
-                          cv::Rect& korelacni_vyrez_standardni,
-                          bool nutnost_zmenit_velikost_snimku,
-                          cv::Mat& slicovany_kompletne,
-                          QVector<double> &_pocX,
-                          QVector<double> &_pocY,
-                          QVector<double> &_maxAngles);
+                          cv::Mat& i_referencial,
+                          int i_translatedNo,
+                          double i_iteration,
+                          double i_areaMaximum,
+                          double i_angleLimit,
+                          cv::Rect& i_cutoutExtra,
+                          cv::Rect& i_cutoutStandard,
+                          bool i_scaleChanged,
+                          cv::Mat& i_completelyRegistrated,
+                          QVector<double> &i_pocX,
+                          QVector<double> &i_pocY,
+                          QVector<double> &i_maxAngles);
 
 /**
  * @brief Function does preprocessing before main registration function. It populates cutouts cv::Rect variables

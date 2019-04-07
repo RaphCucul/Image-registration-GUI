@@ -589,8 +589,8 @@ void LicovaniDvou::on_registrateTwo_clicked()
     QVector<double> fr_eukl;
     QVector<double> _pocX;
     QVector<double> _pocY;
-    QVector<double> pomD(static_cast<int>(cap.get(CV_CAP_PROP_FRAME_COUNT)),0.0);
-    fr_x = pomD;fr_y = pomD;fr_eukl = pomD;_pocX = pomD;_pocY = pomD;l_angleSum = pomD;
+    //QVector<double> pomD(static_cast<int>(cap.get(CV_CAP_PROP_FRAME_COUNT)),0.0);
+    //fr_x = pomD;fr_y = pomD;fr_eukl = pomD;_pocX = pomD;_pocY = pomD;l_angleSum = pomD;
     bool registrationSuccessfull = licovani_nejvhodnejsich_snimku(cap,
                                                                   referencialImage,
                                                                   maximum_frangi_reverse,
@@ -612,10 +612,10 @@ void LicovaniDvou::on_registrateTwo_clicked()
     }
     else
     {
-        qDebug()<<"translation after multiPOC "<<_pocX[translatedNumber]<<" "<<_pocY[translatedNumber];
+        qDebug()<<"translation after multiPOC "<<_pocX[0]<<" "<<_pocY[0];
         cv::Mat registratedFrame = cv::Mat::zeros(cv::Size(cols,rows), CV_32FC3);
         cv::Mat translated;
-        cv::Point3d translation(_pocX[translatedNumber],_pocY[translatedNumber],0.0);
+        cv::Point3d translation(_pocX[0],_pocY[0],0.0);
         cap.set(CV_CAP_PROP_POS_FRAMES,translatedNumber);
         if(!cap.read(translated))
         {
@@ -623,7 +623,7 @@ void LicovaniDvou::on_registrateTwo_clicked()
         }
         kontrola_typu_snimku_8C3(translated);
         registratedFrame = translace_snimku(translated,translation,rows,cols);
-        registratedFrame = rotace_snimku(registratedFrame,l_angleSum[translatedNumber]);
+        registratedFrame = rotace_snimku(registratedFrame,l_angleSum[0]);
 
         VysledekLicovani *showResults = new VysledekLicovani(referencialImage,registratedFrame);
         showResults->start(1);

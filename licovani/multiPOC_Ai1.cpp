@@ -16,47 +16,51 @@ using cv::Point3d;
 using std::cout;
 using std::endl;
 bool completeRegistration(cv::VideoCapture& cap,
-                          cv::Mat& referencni_snimek,
-                          int cislo_posunuty,
-                          int iterace,
-                          double oblastMaxima,
-                          double uhel,
-                          cv::Rect &korelacni_vyrez_navic,
-                          cv::Rect &korelacni_vyrez_standardni,
-                          bool nutnost_zmenit_velikost_snimku,
-                          cv::Mat& slicovany_kompletne,
-                          QVector<double> &_pocX,
-                          QVector<double> &_pocY,
-                          QVector<double> &_maxAngles)
+                          cv::Mat& i_referencial,
+                          int i_translatedNo,
+                          double i_iteration,
+                          double i_areaMaximum,
+                          double i_angleLimit,
+                          cv::Rect &i_cutoutExtra,
+                          cv::Rect &i_cutoutStandard,
+                          bool i_scaleChanged,
+                          cv::Mat& i_completelyRegistrated,
+                          QVector<double> &i_pocX,
+                          QVector<double> &i_pocY,
+                          QVector<double> &i_maxAngles)
 {
     try {
+        i_pocX.push_back(0.0);
+        i_pocY.push_back(0.0);
+        i_maxAngles.push_back(0.0);
+
         Mat posunuty_temp;
-        cap.set(CV_CAP_PROP_POS_FRAMES,cislo_posunuty);
+        cap.set(CV_CAP_PROP_POS_FRAMES,i_translatedNo);
         double celkovy_uhel = 0.0;
         if(!cap.read(posunuty_temp))
             return false;
 
-        kontrola_typu_snimku_8C3(referencni_snimek);
+        kontrola_typu_snimku_8C3(i_referencial);
         kontrola_typu_snimku_8C3(posunuty_temp);
-        int rows = referencni_snimek.rows;
-        int cols = referencni_snimek.cols;
+        int rows = i_referencial.rows;
+        int cols = i_referencial.cols;
         Mat hann;
-        createHanningWindow(hann, referencni_snimek.size(), CV_32FC1);
+        createHanningWindow(hann, i_referencial.size(), CV_32FC1);
         Mat referencni_snimek_32f,referencni_snimek_vyrez;
-        referencni_snimek.copyTo(referencni_snimek_32f);
+        i_referencial.copyTo(referencni_snimek_32f);
         kontrola_typu_snimku_32C1(referencni_snimek_32f);
-        referencni_snimek_32f(korelacni_vyrez_standardni).copyTo(referencni_snimek_vyrez);
+        referencni_snimek_32f(i_cutoutStandard).copyTo(referencni_snimek_vyrez);
         Mat posunuty, posunuty_vyrez;
-        if (nutnost_zmenit_velikost_snimku == true)
+        if (i_scaleChanged == true)
         {
-            posunuty_temp(korelacni_vyrez_navic).copyTo(posunuty);
-            posunuty(korelacni_vyrez_standardni).copyTo(posunuty_vyrez);
+            posunuty_temp(i_cutoutExtra).copyTo(posunuty);
+            posunuty(i_cutoutStandard).copyTo(posunuty_vyrez);
             posunuty_temp.release();
         }
         else
         {
             posunuty_temp.copyTo(posunuty);
-            posunuty(korelacni_vyrez_standardni).copyTo(posunuty_vyrez);
+            posunuty(i_cutoutStandard).copyTo(posunuty_vyrez);
             posunuty_temp.release();
         }
         Mat posunuty_32f;
@@ -65,7 +69,7 @@ bool completeRegistration(cv::VideoCapture& cap,
 
         Mat slicovany1;
         Point3d pt1(0.0,0.0,0.0);
-        if (nutnost_zmenit_velikost_snimku == true)
+        if (i_scaleChanged == true)
         {
             pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
             if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
@@ -74,46 +78,46 @@ bool completeRegistration(cv::VideoCapture& cap,
             if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
                 pt1 = fk_translace(referencni_snimek_vyrez,posunuty_vyrez);
         }
-        if (nutnost_zmenit_velikost_snimku == false)
+        if (i_scaleChanged == false)
         {
             pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
         }
 
         if (pt1.x>=55 || pt1.y>=55)
         {
-            _pocX[cislo_posunuty] = 999.0;
-            _pocY[cislo_posunuty] = 999.0;
-            _maxAngles[cislo_posunuty] = 999.0;
+            i_pocX[0] = 999.0;
+            i_pocY[0] = 999.0;
+            i_maxAngles[0] = 999.0;
             return false;
         }
         else
         {
             qDebug()<<"Filling pt1";
-            _pocX[cislo_posunuty] = pt1.x;
-            _pocY[cislo_posunuty] = pt1.y;
+            i_pocX[0] = pt1.x;
+            i_pocY[0] = pt1.y;
             qDebug()<<"pt1 filled.";
-            if (cislo_posunuty == 0)
+            if (i_translatedNo == 0)
                 qDebug()<<"PT1: "<<pt1.x<<" "<<pt1.y;
             slicovany1 = translace_snimku(posunuty,pt1,rows,cols);
             cv::Mat slicovany1_32f_rotace,slicovany1_32f,slicovany1_vyrez;
             slicovany1.copyTo(slicovany1_32f);
             kontrola_typu_snimku_32C1(slicovany1_32f);
-            Point3d vysledek_rotace = fk_rotace(referencni_snimek_32f,slicovany1_32f,uhel,pt1.z,pt1);
-            if (std::abs(vysledek_rotace.y) > uhel)
+            Point3d vysledek_rotace = fk_rotace(referencni_snimek_32f,slicovany1_32f,i_angleLimit,pt1.z,pt1);
+            if (std::abs(vysledek_rotace.y) > i_angleLimit)
                 vysledek_rotace.y=0;
 
-            _maxAngles[cislo_posunuty] = vysledek_rotace.y;
+            i_maxAngles[0] = vysledek_rotace.y;
             slicovany1_32f_rotace = rotace_snimku(slicovany1_32f,vysledek_rotace.y);
-            slicovany1_32f_rotace(korelacni_vyrez_standardni).copyTo(slicovany1_vyrez);
+            slicovany1_32f_rotace(i_cutoutStandard).copyTo(slicovany1_vyrez);
 
             Point3d pt2(0.0,0.0,0.0);
             pt2 = fk_translace(referencni_snimek_vyrez,slicovany1_vyrez);
             if (pt2.x >= 55 || pt2.y >= 55)
             {
-                _pocX[cislo_posunuty] = 999.0;
-                _pocY[cislo_posunuty] = 999.0;
-                _maxAngles[cislo_posunuty] = 999.0;
-                slicovany1.copyTo(slicovany_kompletne);
+                i_pocX[0] = 999.0;
+                i_pocY[0] = 999.0;
+                i_maxAngles[0] = 999.0;
+                slicovany1.copyTo(i_completelyRegistrated);
                 slicovany1.release();
                 return false;
             }
@@ -121,25 +125,25 @@ bool completeRegistration(cv::VideoCapture& cap,
             {
                 double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt2.z);
                 double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-                qDebug()<<"FWHM for "<<cislo_posunuty<<" = "<<FWHM;
+                qDebug()<<"FWHM for "<<i_translatedNo<<" = "<<FWHM;
                 slicovany1.release();
                 slicovany1_32f.release();
                 slicovany1_vyrez.release();
-                if (cislo_posunuty == 0)
+                if (i_translatedNo == 0)
                     qDebug()<<"PT2: "<<pt2.x<<" "<<pt2.y;
 
                 Point3d pt3(0.0,0.0,0.0);
                 pt3.x = pt1.x+pt2.x;
                 pt3.y = pt1.y+pt2.y;
                 pt3.z = pt2.z;
-                _pocX[cislo_posunuty] = pt3.x;
-                _pocY[cislo_posunuty] = pt3.y;
+                i_pocX[0] = pt3.x;
+                i_pocY[0] = pt3.y;
                 Mat slicovany2 = translace_snimku(posunuty,pt3,rows,cols);
                 Mat slicovany2_32f,slicovany2_vyrez;
                 slicovany2.copyTo(slicovany2_32f);
                 kontrola_typu_snimku_32C1(slicovany2_32f);
                 Mat slicovany2_rotace = rotace_snimku(slicovany2_32f,vysledek_rotace.y);
-                slicovany2_rotace(korelacni_vyrez_standardni).copyTo(slicovany2_vyrez);
+                slicovany2_rotace(i_cutoutStandard).copyTo(slicovany2_vyrez);
                 Mat mezivysledek_vyrez,mezivysledek;
                 slicovany2_rotace.copyTo(mezivysledek);
                 slicovany2_vyrez.copyTo(mezivysledek_vyrez);
@@ -150,7 +154,7 @@ bool completeRegistration(cv::VideoCapture& cap,
                 celkovy_uhel+=vysledek_rotace.y;
                 vysledek_rotace.y = 0;
                 int max_pocet_iteraci = 0;
-                if (iterace == -1)
+                if (i_iteration == -1.0)
                 {
                     if (FWHM <= 20){max_pocet_iteraci = 2;}
                     else if (FWHM > 20 && FWHM <= 30){max_pocet_iteraci = 4;}
@@ -159,17 +163,17 @@ bool completeRegistration(cv::VideoCapture& cap,
                     else if (FWHM > 40 && FWHM <= 45){max_pocet_iteraci = 10;}
                     else if (FWHM > 45){max_pocet_iteraci = 5;};
                 }
-                if (iterace >= 1)
+                if (i_iteration >= 1)
                 {
-                    max_pocet_iteraci = iterace;
+                    max_pocet_iteraci = int(i_iteration);
                 }
                 for (int i = 0; i < max_pocet_iteraci; i++)
                 {
                     Point3d rotace_ForLoop(0.0,0.0,0.0);
-                    rotace_ForLoop = fk_rotace(referencni_snimek,mezivysledek,uhel,pt3.z,pt3);
-                    if (std::abs(rotace_ForLoop.y) > uhel)
+                    rotace_ForLoop = fk_rotace(i_referencial,mezivysledek,i_angleLimit,pt3.z,pt3);
+                    if (std::abs(rotace_ForLoop.y) > i_angleLimit)
                         rotace_ForLoop.y = 0.0;
-                    else if (std::abs(celkovy_uhel+rotace_ForLoop.y)>uhel)
+                    else if (std::abs(celkovy_uhel+rotace_ForLoop.y)>i_angleLimit)
                         rotace_ForLoop.y=0.0;
                     else
                         celkovy_uhel+=rotace_ForLoop.y;
@@ -182,15 +186,15 @@ bool completeRegistration(cv::VideoCapture& cap,
 
                     rotace_ForLoop.y = 0.0;
                     Mat rotovany_vyrez;
-                    rotovany(korelacni_vyrez_standardni).copyTo(rotovany_vyrez);
+                    rotovany(i_cutoutStandard).copyTo(rotovany_vyrez);
                     rotovany.release();
                     Point3d pt4(0.0,0.0,0.0);
                     pt4 = fk_translace(referencni_snimek_vyrez,rotovany_vyrez);
                     rotovany_vyrez.release();
                     if (pt4.x >= 55 || pt4.y >= 55)
                     {
-                        slicovany2.copyTo(slicovany_kompletne);
-                        qDebug()<<"Frame "<<cislo_posunuty<<" terminated because \"condition 55\" reached.";
+                        slicovany2.copyTo(i_completelyRegistrated);
+                        qDebug()<<"Frame "<<i_translatedNo<<" terminated because \"condition 55\" reached.";
                         break;
                     }
                     else
@@ -198,11 +202,11 @@ bool completeRegistration(cv::VideoCapture& cap,
                         pt3.x += pt4.x;
                         pt3.y += pt4.y;
                         pt3.z = pt4.z;
-                        if (cislo_posunuty == 0)
+                        if (i_translatedNo == 0)
                             qDebug()<<"PT3 loop: "<<pt3.x<<" "<<pt3.y;
-                        _pocX[cislo_posunuty] = pt3.x;
-                        _pocY[cislo_posunuty] = pt3.y;
-                        _maxAngles[cislo_posunuty] = celkovy_uhel;
+                        i_pocX[0] = pt3.x;
+                        i_pocY[0] = pt3.y;
+                        i_maxAngles[0] = celkovy_uhel;
                         Mat posunuty_temp = translace_snimku(posunuty,pt3,rows,cols);
                         Mat rotovany_temp = rotace_snimku(posunuty_temp,celkovy_uhel);
                         posunuty_temp.release();
@@ -211,15 +215,15 @@ bool completeRegistration(cv::VideoCapture& cap,
                         rotovany_temp.release();
                     }
                 }
-                mezivysledek.copyTo(slicovany_kompletne);
+                mezivysledek.copyTo(i_completelyRegistrated);
                 return true;
             }
         }
     } catch (std::exception &e) {
         qWarning()<<"Full registration error: "<<e.what();
-        _pocX[cislo_posunuty] = 999.0;
-        _pocY[cislo_posunuty] = 999.0;
-        _maxAngles[cislo_posunuty] = 999.0;
+        i_pocX[0] = 999.0;
+        i_pocY[0] = 999.0;
+        i_maxAngles[0] = 999.0;
         return false;
     }
 }

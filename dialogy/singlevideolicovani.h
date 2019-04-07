@@ -45,6 +45,7 @@ signals:
 private:
     void processResuluts(int analysedThread);
     void terminateThreads();
+    void populateLists(QVector<QString> _file);
     Ui::SingleVideoLicovani *ui;
     QString fullVideoPath;
     QVector<QString> chosenVideo;

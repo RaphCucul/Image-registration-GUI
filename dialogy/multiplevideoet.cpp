@@ -59,53 +59,9 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
     ui->analyzeVideosPB->setText(tr("Analyse videos"));
     ui->analyzeVideosPB->setEnabled(false);
 
-    /*mapDouble["entropie"]=entropy;
-    mapDouble["tennengrad"]=tennengrad;
-    mapDouble["FrangiX"]=framesFrangiX;
-    mapDouble["FrangiX"]=framesFrangiY;
-    mapDouble["FrangiEuklid"]=framesFrangiEuklid;
-    mapDouble["POCX"]=framesPOCX;
-    mapDouble["POCY"]=framesPOCY;
-    mapDouble["Uhel"]=framesAngle;
-    mapInt["Ohodnoceni"]=framesFinalCompleteDecision;
-    mapInt["PrvotOhodEntropie"]=framesFirstFullCompleteEntropyEvaluation;
-    mapInt["PrvotOhodTennengrad"]=framesFirstFullCompleteTennengradEvaluation;
-    mapInt["PrvniRozhod"]=framesFirstFullCompleteDecision;
-    mapInt["DruheRozhod"]=framesSecondFullCompleteDecision;
-    mapAnomalies["VerticalAnomaly"]=horizontalAnomalyPresent;
-    mapAnomalies["HorizontalAnomaly"]=verticalAnomalyPresent;*/
-    QVector<QVector<double>> pomD;
-    QVector<QVector<int>> pomI;
-    QVector<int> pomI_;
-    mapDouble["entropie"]=pomD;
-    mapDouble["tennengrad"]=pomD;
-    mapDouble["FrangiX"]=pomD;
-    mapDouble["FrangiY"]=pomD;
-    mapDouble["FrangiEuklid"]=pomD;
-    mapDouble["POCX"]=pomD;
-    mapDouble["POCY"]=pomD;
-    mapDouble["Uhel"]=pomD;
-    mapInt["Ohodnoceni"]=pomI;
-    mapInt["PrvotOhodEntropie"]=pomI;
-    mapInt["PrvotOhodTennengrad"]=pomI;
-    mapInt["PrvniRozhod"]=pomI;
-    mapInt["DruheRozhod"]=pomI;
-    mapAnomalies["VerticalAnomaly"]=pomI_;
-    mapAnomalies["HorizontalAnomaly"]=pomI_;
-
-    /*size_frangi_opt(6,FrangiParametersVector);
-    if (paramFrangi != ""){
-        QFile soubor;
-        soubor.setFileName(paramFrangi+"/frangiParameters.json");
-        FrangiParametersFile = readJson(soubor);
-        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-        for (int a = 0; a < 6; a++)
-        {
-            inicialization_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
-        }
-    }*/
-
     connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
+    connect(ui->verticalAnomaly,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    connect(ui->horizontalAnomaly,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
 }
 
 MultipleVideoET::~MultipleVideoET()
@@ -113,18 +69,6 @@ MultipleVideoET::~MultipleVideoET()
     delete ui;
 }
 
-//void MultipleVideoET::checkPaths(){
-    /*if (paramFrangi != ""){
-        QFile soubor;
-        soubor.setFileName(paramFrangi+"/frangiParameters.json");
-        FrangiParametersFile = readJson(soubor);
-        QStringList parametry = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-        for (int a = 0; a < 6; a++)
-        {
-            //inicialization_frangi_opt(FrangiParametersFile,parametry.at(a),FrangiParametersVector,a);
-        }
-    }*/
-//}
 void MultipleVideoET::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
@@ -132,17 +76,15 @@ void MultipleVideoET::dropEvent(QDropEvent *event)
            return;
        }
        QList<QUrl> urls = mimeData->urls();
-       QStringList seznamVidei;
        foreach (QUrl url,urls){
            QMimeType mime = QMimeDatabase().mimeTypeForUrl(url);
            if (mime.inherits("video/x-msvideo")) {
                 videoList.append(url.toLocalFile());
-                seznamVidei.append(url.toLocalFile());
               }
        }
        //videoList = seznamVidei;
        qDebug()<<"Aktualizace seznamu videi: "<<videoList;
-       ui->selectedVideos->addItems(seznamVidei);
+       ui->selectedVideos->addItems(videoList);
 }
 
 void MultipleVideoET::dragEnterEvent(QDragEnterEvent *event)
@@ -188,32 +130,13 @@ void MultipleVideoET::on_wholeFolderPB_clicked()
 
 void MultipleVideoET::on_analyzeVideosPB_clicked()
 {
+    initMaps();
+
     QString pom = videoList.at(0);
     cv::VideoCapture cap = cv::VideoCapture(pom.toLocal8Bit().constData());
     if (!cap.isOpened())
         qWarning()<<"Error opening video";
-   // double sirka = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    //double vyska = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-    /*if (oznacena_hranice_svetelne_anomalie.x >0.0f && oznacena_hranice_svetelne_anomalie.x < float(sirka))
-    {
-        obtainedVerticalAnomaly.x = oznacena_hranice_svetelne_anomalie.x;
-        obtainedVerticalAnomaly.y = oznacena_hranice_svetelne_anomalie.y;
-    }
-    else
-    {
-        obtainedVerticalAnomaly.x = 0.0f;
-        obtainedVerticalAnomaly.y = 0.0f;
-    }
-    if (oznacena_hranice_casove_znacky.y > 0.0f && oznacena_hranice_casove_znacky.y < float(vyska))
-    {
-        obtainedHorizontalAnomaly.y = oznacena_hranice_casove_znacky.y;
-        obtainedHorizontalAnomaly.x = oznacena_hranice_casove_znacky.x;
-    }
-    else
-    {
-        obtainedHorizontalAnomaly.y = 0.0f;
-        obtainedHorizontalAnomaly.x = 0.0f;
-    }*/
+
     qDebug()<<"videoList contains "<<videoList.count()<<" videos.";
     TFirstP = new qThreadFirstPart(videoList,
                                    SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
@@ -236,9 +159,6 @@ void MultipleVideoET::on_showResultsPB_clicked()
         processFilePath(fullPath,slozka,jmeno,koncovka);
         inputVector.append(jmeno);
     }
-    /*GrafET* graf_ET = new GrafET(entropy,tennengrad,framesFirstFullCompleteEntropyEvaluation,
-                                 framesFirstFullCompleteTennengradEvaluation,framesFirstFullCompleteDecision,
-                                 framesSecondFullCompleteDecision,framesFinalCompleteDecision,vektorKzapisu,this);*/
     GrafET* graf_ET = new GrafET(
                 mapDouble["entropie"],
                 mapDouble["tennengrad"],
@@ -305,11 +225,11 @@ void MultipleVideoET::on_savePB_clicked()
         }
         document.setObject(object);
         QString documentString = document.toJson();
-        QFile zapis;
-        zapis.setFileName(cesta);
-        zapis.open(QIODevice::WriteOnly);
-        zapis.write(documentString.toLocal8Bit());
-        zapis.close();
+        QFile writer;
+        writer.setFileName(cesta);
+        writer.open(QIODevice::WriteOnly);
+        writer.write(documentString.toLocal8Bit());
+        writer.close();
     }
 }
 
@@ -338,6 +258,8 @@ void MultipleVideoET::done(int finished)
         //if (TFirstP->isFinished()){
             qDebug()<<"First done, starting second...";
             TFirstP->terminate();
+            TFirstP->wait();
+            TFirstP->deleteLater();
             TSecondP->start();
         //}
     }
@@ -360,6 +282,8 @@ void MultipleVideoET::done(int finished)
         //if (TSecondP->isFinished()){
             qDebug()<<"Second done, starting third...";
             TSecondP->terminate();
+            TSecondP->wait();
+            TSecondP->deleteLater();
             TThirdP->start();
         //}
     }
@@ -395,6 +319,8 @@ void MultipleVideoET::done(int finished)
         //if (TThirdP->isFinished()){
             qDebug()<<"Third done, starting fourth...";
             TThirdP->terminate();
+            TThirdP->wait();
+            TThirdP->deleteLater();
             TFourthP->start();
         //}
     }
@@ -408,7 +334,7 @@ void MultipleVideoET::done(int finished)
         mapDouble["POCX"] = TFourthP->framesPOCXestimated();
         mapDouble["POCY"] = TFourthP->framesPOCYestimated();
         mapDouble["Uhel"] = TFourthP->framesAngleestimated();
-        TFifthP = new qThreadFifthPart(analysedVideos,
+        TFifthP = new qThreadFifthPart(videoList,
                                        obtainedCutoffStandard,
                                        obtainedCutoffExtra,
                                        mapDouble["POCX"],
@@ -429,6 +355,8 @@ void MultipleVideoET::done(int finished)
         //if (TFourthP->isFinished()){
             qDebug()<<"Fourth done, starting fifth";
             TFourthP->terminate();
+            TFourthP->wait();
+            TFourthP->deleteLater();
             TFifthP->start();
         //}
     }
@@ -447,6 +375,8 @@ void MultipleVideoET::done(int finished)
         //if (TFifthP->isFinished()){
             qDebug()<<"Fifth done.";
             TFifthP->terminate();
+            TFifthP->wait();
+            TFifthP->deleteLater();
         //}
     }
 }

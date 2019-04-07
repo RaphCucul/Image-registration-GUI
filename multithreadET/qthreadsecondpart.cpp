@@ -80,7 +80,7 @@ void qThreadSecondPart::run()
         qDebug()<<"Frame count: "<<frameCount;
         for (int j = 0; j < snimky_pro_sigma.size(); j++)
         {
-            emit percentageCompleted(qRound((double(videoIndex)/videoCount)*100.0+(double(j)/frameCount)*100.0));
+            emit percentageCompleted(qRound((double(videoIndex)/videoCount)*100.0+(double(j)/double(frameCount))*100.0));
             cv::Mat translated_temp,translated,translated_vyrez;
             capture.set(CV_CAP_PROP_POS_FRAMES,snimky_pro_sigma[j]);
             if (!capture.read(translated_temp))
@@ -141,8 +141,12 @@ void qThreadSecondPart::run()
         FWHM.push_back(FWHMcomputed);
     }
     if (!errorOccured){
+        qDebug()<<"Second thread - all work done. Canceling...";
         emit percentageCompleted(100);
         emit done(2);
+    }
+    else{
+        qWarning()<<"An error occured. Calculation terminated.";
     }
 }
 QVector<double> qThreadSecondPart::computedCC()

@@ -5,14 +5,14 @@
 bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                                     cv::Mat& i_referencialFrame,
                                     cv::Point3d i_coordsFrangiStandardReferencialReverse,
-                                    int i_index_translated,
+                                    int i_index_noved,
                                     int i_iteration,
                                     double i_areaMaximum,
                                     double i_angle,
                                     cv::Rect& i_cutoutExtra,
                                     cv::Rect& i_cutoutStandard,
                                     bool i_scaleChanged,
-                                    QVector<double> parametry_frangi,
+                                    QVector<double> i_frangiParameters,
                                     QVector<double> &_pocX,
                                     QVector<double> &_pocY,
                                     QVector<double> &_frangiX,
@@ -20,10 +20,10 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                                     QVector<double> &_frangiEucl,
                                     QVector<double> &_maxAngles);
 
-bool eventualni_korekce_translace(cv::Mat& slicovany_snimek,
-                                  cv::Mat& obraz,
-                                  cv::Mat& snimek_korigovany,
-                                  cv::Rect& vyrez_korelace_standard,
-                                  cv::Point3d& korekce_bod);
+bool eventualni_korekce_translace(cv::Mat& i_frameRegistrated,
+                                  cv::Mat& i_frame,
+                                  cv::Mat& i_frameCorrected,
+                                  cv::Rect& i_cutoutStandard,
+                                  cv::Point3d& i_correction);
 
 #endif // KOREKCE_ZAPIS_H_INCLUDED

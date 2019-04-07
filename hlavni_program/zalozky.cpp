@@ -100,4 +100,7 @@ void zalozky::on_stranky_tabBarClicked(int index)
     if (index == 2){
         licovaniDvou->checkPaths();
     }
+    if (index == 3){
+        licovaniVidea->checkPathinitialization();
+    }
 }

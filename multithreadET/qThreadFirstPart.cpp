@@ -150,9 +150,9 @@ void qThreadFirstPart::run()
                                         FrangiParameters,
                                         verticalAnomaly,
                                         horizontalAnomaly,
-                                        anomalyArea,
-                                        cutoutStandard,
+                                        anomalyArea,                                        
                                         cutoutExtra,
+                                        cutoutStandard,
                                         cap,
                                         zmenaMeritka);
         if(!preprocessingSuccessfull){

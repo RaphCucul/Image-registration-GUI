@@ -44,12 +44,6 @@ signals:
 private:
     Ui::SingleVideoET *ui;
     int formerIndex = 0;
-    QMap<QString,QVector<QVector<double>>> mapDouble;
-    QMap<QString,QVector<QVector<int>>> mapInt;
-    QMap<QString,QVector<int>> mapAnomalies;
-    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
-                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
-                                 "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };
 

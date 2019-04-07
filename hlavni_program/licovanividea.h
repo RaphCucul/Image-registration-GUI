@@ -19,6 +19,11 @@ class LicovaniVidea : public QWidget
 public:
     explicit LicovaniVidea(QWidget *parent = nullptr);
     ~LicovaniVidea();
+
+    /**
+     * @brief Function calls checkPath() functions for single ET analysis and single registration.
+     */
+    void checkPathinitialization();
 signals:
     void calculationStarted();
     void calculationStopped();

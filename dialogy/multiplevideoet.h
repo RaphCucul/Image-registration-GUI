@@ -51,12 +51,7 @@ signals:
 private:
     Ui::MultipleVideoET *ui;
     QStringList videoList;
-    QMap<QString,QVector<QVector<double>>> mapDouble;
-    QMap<QString,QVector<QVector<int>>> mapInt;
-    QMap<QString,QVector<int>> mapAnomalies;
-    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
-                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
-                                 "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
+
 };
 
 #endif // MULTIPLEVIDEOET_H

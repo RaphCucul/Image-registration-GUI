@@ -57,6 +57,7 @@ void qThreadFifthPart::run()
     emit typeOfMethod(4);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
+    qDebug()<<videoCount<<" videos ready for the analysis.";
     bool errorOccured = false;
     for (int indexVidea = 0; indexVidea < videoList.count(); indexVidea++)
     {
@@ -103,7 +104,7 @@ void qThreadFifthPart::run()
         Mat obraz_vyrez;
         referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
         //for (unsigned int i = 0; i < 1; i++)
-        frameCount = double(framesSecondEval[indexVidea].length());
+        qDebug()<<"Analysing "<<frameCount<<" of "<<jmeno;
         for (int i = 0; i < framesSecondEval[indexVidea].length(); i++) //snimky_k_provereni2.size()
         {
             emit percentageCompleted(qRound((indexVidea/videoCount)*100+((i/frameCount)*100.0)/videoCount));
@@ -151,7 +152,7 @@ void qThreadFifthPart::run()
                 if (scaleCh == true)
                 {
                     korekce_bod = fk_translace(referencni_snimek,slicovan_kompletne);
-                    if (std::abs(korekce_bod.x)>=290 || std::abs(korekce_bod.y)>=290)
+                    if (std::abs(korekce_bod.x)>=290.0 || std::abs(korekce_bod.y)>=290.0)
                     {
                         korekce_bod = fk_translace_hann(referencni_snimek,slicovan_kompletne);
                     }
@@ -226,12 +227,15 @@ void qThreadFifthPart::run()
                     suma_rozdilu = 0;
                     euklid = 0;
                 }
-
             }
         }
-
     }
     if (!errorOccured){
+        emit percentageCompleted(100);
+        emit done(5);
+    }
+    else{
+        qWarning()<<"An error occured.";
         emit percentageCompleted(100);
         emit done(5);
     }
