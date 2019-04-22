@@ -31,22 +31,44 @@ protected:
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
 private slots:
+    /**
+     * @brief Function deactivates specific widgets when the calculations start.
+     */
+    //void disableWidgets();
+
+    /**
+     * @brief Function re-enables specific widgets when the calculations stop.
+     */
+    //void enableWidgets();
+
     void on_chooseMultiVPB_clicked();
     void on_chooseFolderPB_clicked();
     void on_deleteChosenPB_clicked();
     void on_registratePB_clicked();
     void on_saveResultsPB_clicked();
+
+    /**
+     * @brief Function adds given string into the corresponding table.
+     * @param row
+     * @param column
+     * @param parameter
+     */
     void addItem(int row,int column,QString parameter);
+
+    /**
+     * @brief Function adds frame processing status to the table.
+     * @param row
+     * @param column
+     * @param status
+     */
     void addStatus(int row, int column, QString status);
+
     void errorHandler(int indexOfThread,QString errorMessage);
     void processAnother(int indexOfThread);
-    void on_listOfVideos_cellDoubleClicked(int row, int column);
-signals:
-    void calculationStarted();
-    void calculationStopped();
+    void on_listOfVideos_cellClicked(int row, int column);
+
 private:
     void processResuluts(int analysedThread);
-    void terminateThreads();
 
     void createAndRunThreads(int indexThread, cv::VideoCapture& cap, int lowerLimit,
                              int upperLimit);
@@ -79,14 +101,8 @@ private:
     int threadProcessed = 0;
     int videoCounter = 0;
 
-    int numberOfThreads = QThread::idealThreadCount()-1;
-
-    QMap<QString,QVector<double>> videoParamDouble;
-    QMap<QString,QVector<int>> videoParamInt;
-    QMap<QString,QVector<int>> videoAnom;
-
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
-    QHash<int,RegistrationThread*> threadPool;
+
     QHash<QString,QMap<QString,QVector<double>>> videoPropertiesDouble;
     QHash<QString,QMap<QString,QVector<int>>> videoPropertiesInt;
     QHash<QString,QMap<QString,QVector<int>>> videoPropertiesAnomaly;

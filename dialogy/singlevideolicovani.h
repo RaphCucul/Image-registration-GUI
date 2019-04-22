@@ -23,7 +23,6 @@ public:
     explicit SingleVideoLicovani(QWidget *parent = nullptr);
     ~SingleVideoLicovani();
     void processVideoParameters(QJsonObject& videoData);
-    void checkPaths();
     bool writeToVideo();
 
     void createAndRunThreads(int indexThread, cv::VideoCapture& cap, int lowerLimit,
@@ -33,18 +32,41 @@ private slots:
     void on_chooseVideoPB_clicked();
     void registrateVideoframes();
     void totalFramesCompleted(int frameCounter);
-    //void addItem(int row,int column,QTableWidgetItem* item);
     void addItem(int row,int column,QString parameter);
     void addStatus(int row, int column, QString status);
     void errorHandler(int indexOfThread,QString errorMessage);
     void processAnother(int indexOfThread);
     void on_savePB_clicked();
-signals:
-    void calculationStarted();
-    void calculationStopped();
+
+    /**
+     * @brief Function deactivates specific widgets when the calculations start.
+     */
+    void disableWidgets();
+
+    /**
+     * @brief Function re-enables specific widgets when the calculations stop.
+     */
+    void enableWidgets();
+
+    /**
+     * @brief The function checks, if the path to the video folder exists. If so, the first video from the list of files
+     * found in the folder is placed into the line edit.
+     */
+    void checkPaths();
 private:
+    /**
+     * @brief Function process computed translations of frames in specific range the thread was
+     * initialized for.
+     * @param analysedThread
+     */
     void processResuluts(int analysedThread);
+
+    /**
+     * @brief terminateThreads
+     */
     void terminateThreads();
+
+
     void populateLists(QVector<QString> _file);
     Ui::SingleVideoLicovani *ui;
     QString fullVideoPath;
@@ -58,11 +80,9 @@ private:
     int internalCounter = 0;
     double actualFrameCount = 0.0;
     int videoCounter = 0;
-    int numberOfThreads = 1;//QThread::idealThreadCount()-1;
     int threadProcessed = 0;
 
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
-    QHash<int,RegistrationThread*> threadPool;
 };
 
 #endif // SINGLEVIDEOLICOVANI_H

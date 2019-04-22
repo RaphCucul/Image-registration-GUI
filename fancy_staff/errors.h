@@ -17,13 +17,15 @@ static QJsonArray hardErrorList = {
     "Error occured when preprocessing frames before full registration", //10
     "Frames registration failed", //11
     "Video writer could not be loaded.", //12
-    "","","","","","","","",""
+    "Referencial frame could not be read", //13
+    "","","","","","","",""
 };
 
 static QJsonArray softErrorList = {
     "*.ini file loaded successfully, but file folder path is empty.",//0
     "*.ini file path must be similar with the application path.", //1
     "An error occured when loading frangi json from this directory.", //2
+    "All processed videos are unprocessable.", //3
 };
 
 static QJsonArray infoList = {

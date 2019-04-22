@@ -27,6 +27,7 @@ public:
 signals:
     void calculationStarted();
     void calculationStopped();
+    void checkFilePaths();
 private slots:
     void enableTabs();
     void disableTabs();

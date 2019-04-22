@@ -10,19 +10,20 @@ class qThreadFourthPart : public QThread
 {
     Q_OBJECT
 public:
-    explicit qThreadFourthPart(QStringList& videos,
-                               QVector<QVector<int>>& framesFirstEvaluationDefinitive,
-                               QVector<QVector<int>>& evalCompl,
-                               QVector<QVector<double>>& CCproblematic,
-                               QVector<QVector<double>>& FWHMproblematic,
-                               QVector<QVector<double>>& POCX,
-                               QVector<QVector<double>>& POCY,
-                               QVector<QVector<double>>& Angles,
-                               QVector<QVector<double>>& Fr_X,
-                               QVector<QVector<double>>& Fr_Y,
-                               QVector<QVector<double>>& Fr_Eu,
-                               QVector<double>& averageCC,
-                               QVector<double>& averageFWHM,
+    explicit qThreadFourthPart(QStringList i_videos,
+                               QVector<int> i_badVideos,
+                               QVector<QVector<int>> i_framesFirstEvaluationDefinitive,
+                               QVector<QVector<int>> i_evalCompl,
+                               QVector<QVector<double>> i_CCproblematic,
+                               QVector<QVector<double>> i_FWHMproblematic,
+                               QVector<QVector<double>> i_POCX,
+                               QVector<QVector<double>> i_POCY,
+                               QVector<QVector<double>> i_Angles,
+                               QVector<QVector<double>> i_Fr_X,
+                               QVector<QVector<double>> i_Fr_Y,
+                               QVector<QVector<double>> i_Fr_Eu,
+                               QVector<double> i_averageCC,
+                               QVector<double> i_averageFWHM,
                                QObject* parent=nullptr);
     void run() override;
     QVector<QVector<int>> framesSecondEvaluation();
@@ -38,15 +39,23 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination(QString,int,QString);
+    void readyForFinish();
+private slots:
+    void onDataObtained();
 private:
+    /**
+     * @brief If error, fill the vectors with zeros.
+     */
+    void fillEmpty(int i_frameCount);
+
     QStringList videoList;
     QVector<QVector<int>> framesFirstEvaluationComplete,framesSecondEvaluationComplete,framesCompleteEvaluation;
     QVector<QVector<double>> computedCC,computedFWHM,POC_x,POC_y,angle,frangi_x,
     frangi_y,frangi_euklid;
+    QVector<int> notProcessThese;
     QVector<double> averageCCcomplete,averageFWHMcomplete;
     double videoCount;
-    double frameCount;
+    double framesToAnalyse;
 };
 
 #endif // QTHREADFOURTHPART_H

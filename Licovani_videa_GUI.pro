@@ -150,7 +150,6 @@ RESOURCES += \
     ikonky.qrc
 
 INCLUDEPATH += C:\opencv_installed\build\include
-INCLUDEPATH += D:\Programy\Qt\5.9.1\mingw53_32\bin
 
 LIBS += C:\Windows\System32\pdh.dll
 

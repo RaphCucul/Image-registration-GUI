@@ -46,7 +46,7 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
 
     ui->saveParameters->setText(tr("Save Frangi parameters"));
     ui->fileToAnalyse->setText(tr("Choose file"));
-    ui->frameNumber->setPlaceholderText(tr("Choose frame number"));
+    ui->frameNumber->setPlaceholderText(tr("Frame"));
     ui->chosenFile->setPlaceholderText(tr("Chosen file"));
     ui->RB_standard->setText(tr("Standard Frangi mode"));
     ui->RB_reverz->setText(tr("Reverz Frangi mode"));
@@ -214,6 +214,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
         localErrorDialogHandling[ui->Frangi_filtr]->show();
     }
     else{
+        emit calculationStarted();
         double beta_two = ui->beta_one_DSB->value();
         double beta_one = ui->beta_one_DSB->value();
         double sigma_start = ui->sigma_start_DSB->value();
@@ -251,6 +252,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
                                                      parametersForFrangi);
         qDebug()<<"Frangi maximum detected "<<detectedFrangi.x<<" "<<detectedFrangi.y;
         SharedVariables::getSharedVariables()->setFrangiMaximum(detectedFrangi);
+        calculationStopped();
         /*cv::Mat src, J, Scale, Directions;
    frangi2d_opts_t opts;
    frangi2d_createopts(&opts);

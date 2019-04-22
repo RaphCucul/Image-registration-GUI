@@ -17,36 +17,46 @@ using cv::Mat;
 using cv::Rect;
 using cv::Point3d;
 
-qThreadFifthPart::qThreadFifthPart(QStringList& videos,
-                                   cv::Rect& CO_s,
-                                   cv::Rect& CO_e,
-                                   QVector<QVector<double>>& POCX,
-                                   QVector<QVector<double>>& POCY,
-                                   QVector<QVector<double>>& Angle,
-                                   QVector<QVector<double>>& Fr_X,
-                                   QVector<QVector<double>>& Fr_Y,
-                                   QVector<QVector<double>>& Fr_E,
-                                   bool scaleChanged,
-                                   QVector<QVector<int>> &EvaluationComplete,
-                                   QVector<QVector<int>>& frEvalSec,
-                                   QVector<int>& referFrames,
-                                   QVector<double> FrangiParams,
+qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
+                                   QVector<int> i_badVideos,
+                                   QVector<cv::Rect> i_standardCutout,
+                                   QVector<cv::Rect> i_extraCutout,
+                                   QVector<QVector<double> > i_POCX,
+                                   QVector<QVector<double> > i_POCY,
+                                   QVector<QVector<double> > i_Angle,
+                                   QVector<QVector<double> > i_Fr_X,
+                                   QVector<QVector<double> > i_Fr_Y,
+                                   QVector<QVector<double> > i_Fr_E,
+                                   bool i_scaleChanged,
+                                   QVector<QVector<int> > i_EvaluationComplete,
+                                   QVector<QVector<int> > i_frEvalSec,
+                                   QVector<int> i_referFrames,
+                                   QVector<double> i_FrangiParams,
+                                   int i_iteration,
+                                   double i_areaMaximum,
+                                   double i_maximalAngle,
                                    QObject *parent):QThread(parent)
 {
-    videoList = videos;
-    obtainedCutoffStandard = CO_s;
-    obtainedCutoffExtra = CO_e;
-    POC_x = POCX;
-    POC_y = POCY;
-    angle = Angle;
-    frangi_x = Fr_X;
-    frangi_y = Fr_Y;
-    frangi_euklid = Fr_E;
-    scaleCh = scaleChanged;
-    framesCompleteEvaluation = EvaluationComplete;
-    framesSecondEval = frEvalSec;
-    FrangiParameters = FrangiParams;
-    referencialFrames = referFrames;
+    videoList = i_videos;
+    notProcessThese = i_badVideos;
+    obtainedCutoffStandard = i_standardCutout;
+    obtainedCutoffExtra = i_extraCutout;
+    POC_x = i_POCX;
+    POC_y = i_POCY;
+    angle = i_Angle;
+    frangi_x = i_Fr_X;
+    frangi_y = i_Fr_Y;
+    frangi_euklid = i_Fr_E;
+    scaleCh = i_scaleChanged;
+    framesCompleteEvaluation = i_EvaluationComplete;
+    framesSecondEval = i_frEvalSec;
+    FrangiParameters = i_FrangiParams;
+    referencialFrames = i_referFrames;
+    iteration = i_iteration;
+    areaMaximum = i_areaMaximum;
+    maximalAngle = i_maximalAngle;
+
+    emit setTerminationEnabled(true);
 }
 
 void qThreadFifthPart::run()
@@ -58,187 +68,199 @@ void qThreadFifthPart::run()
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
     qDebug()<<videoCount<<" videos ready for the analysis.";
-    bool errorOccured = false;
-    for (int indexVidea = 0; indexVidea < videoList.count(); indexVidea++)
+    for (int videoIndex = 0; videoIndex < videoList.count(); videoIndex++)
     {
-        frameCount = double(framesSecondEval[indexVidea].length());
-        QString fullPath = videoList.at(indexVidea);
-        QString slozka,jmeno,koncovka;
-        processFilePath(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(indexVidea);
-        cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-        if (!cap.isOpened())
-        {
-            emit unexpectedTermination("Cannot open a video for analysis",5,"hardError");
-            errorOccured = true;
-            break;
-        }
-        cv::Mat referencni_snimek_temp,referencni_snimek,referencni_snimek32f,referencni_vyrez;
-        cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[indexVidea]);
-        if (!cap.read(referencni_snimek_temp))
-        {
-            emit unexpectedTermination("Referencial frame could not be loaded.",5,"hardError");
-            errorOccured = true;
-            break;
-        }
-        int rows;
-        int cols;
-        if (scaleCh == true)
-        {
-            referencni_snimek_temp(obtainedCutoffExtra).copyTo(referencni_snimek);
-            rows = referencni_snimek.rows;
-            cols = referencni_snimek.cols;
-            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
-            referencni_snimek_temp.release();
-        }
-        else
-        {
-            referencni_snimek_temp.copyTo(referencni_snimek);
-            rows = referencni_snimek.rows;
-            cols = referencni_snimek.cols;
-            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
-            referencni_snimek_temp.release();
-        }
-        cv::Point3d pt_temp(0,0,0);
-        Point3d obraz_frangi_reverse = frangi_analysis(referencni_snimek,2,2,0,"",1,pt_temp,FrangiParameters);
-        Mat obraz_vyrez;
-        referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
-        //for (unsigned int i = 0; i < 1; i++)
-        qDebug()<<"Analysing "<<frameCount<<" of "<<jmeno;
-        for (int i = 0; i < framesSecondEval[indexVidea].length(); i++) //snimky_k_provereni2.size()
-        {
-            emit percentageCompleted(qRound((indexVidea/videoCount)*100+((i/frameCount)*100.0)/videoCount));
-            Mat slicovan_kompletne = cv::Mat::zeros(referencni_snimek.size(), CV_32FC3);
-            Point3d mira_translace(0.0,0.0,0.0);
-            QVector<double> pocX;
-            QVector<double> pocY;
-            QVector<double> celkovy_angle;
-            int iterace = -1;double oblastMaxima = 5.0;double angleMaximalni = 0.1;
-            int uspech_licovani = completeRegistration(cap,referencni_snimek,
-                                                      framesSecondEval[indexVidea][i],
-                                                      iterace,
-                                                      oblastMaxima,
-                                                      angleMaximalni,
-                                                      obtainedCutoffExtra,
-                                                      obtainedCutoffStandard,
-                                                      scaleCh,
-                                                      slicovan_kompletne,
-                                                      pocX,pocY,celkovy_angle);
-            qDebug() << framesSecondEval[indexVidea][i] <<" -> ";
-            if (uspech_licovani == 0)
+        if (notProcessThese.indexOf(videoIndex) == -1){
+            framesToAnalyse = double(framesSecondEval[videoIndex].length());
+            QString fullPath = videoList.at(videoIndex);
+            QString folder,filename,suffix;
+            processFilePath(fullPath,folder,filename,suffix);
+            emit actualVideo(videoIndex);
+            cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
+            if (!cap.isOpened())
             {
-
-                emit unexpectedTermination("Cannot open a video for analysis",5,"hardError");
-                errorOccured = true;
-                framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 5.0;
-                POC_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                POC_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                angle[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+                emit unexpectedTermination(videoIndex,"hardError");
+                fillEmpty(260);
                 continue;
+            }
+            cv::Mat referencialFrame_temp,referencialFrame,referencialFrame32f,referencialFrame_cutout;
+            cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[videoIndex]);
+            if (!cap.read(referencialFrame_temp))
+            {
+                emit unexpectedTermination(videoIndex,"hardError");
+                fillEmpty(260);
+                continue;
+            }
+            int videoFrameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+            int rows;
+            int cols;
+            cv::Rect _tempStandard,_tempExtra;
+            _tempStandard = obtainedCutoffStandard[videoIndex];
+            _tempExtra = obtainedCutoffExtra[videoIndex];
+
+            if (scaleCh == true)
+            {
+                referencialFrame_temp(_tempExtra).copyTo(referencialFrame);
+                rows = referencialFrame.rows;
+                cols = referencialFrame.cols;
+                referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
+                referencialFrame_temp.release();
             }
             else
             {
-                Mat mezivysledek32f,mezivysledek32f_vyrez;
-                slicovan_kompletne.copyTo(mezivysledek32f);
-                kontrola_typu_snimku_32C1(mezivysledek32f);
-                mezivysledek32f(obtainedCutoffStandard).copyTo(mezivysledek32f_vyrez);
-                double R1 = vypocet_KK(referencni_snimek,slicovan_kompletne,obtainedCutoffStandard);
-                mezivysledek32f.release();
-                mezivysledek32f_vyrez.release();
-                Point3d korekce_bod(0,0,0);
-                if (scaleCh == true)
+                referencialFrame_temp.copyTo(referencialFrame);
+                rows = referencialFrame.rows;
+                cols = referencialFrame.cols;
+                referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
+                referencialFrame_temp.release();
+            }
+
+            cv::Point3d pt_temp(0,0,0);
+            Point3d frame_FrangiReverse = frangi_analysis(referencialFrame,2,2,0,"",1,pt_temp,FrangiParameters);
+            referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
+            qDebug()<<"Analysing "<<framesToAnalyse<<" of "<<filename;
+            for (int i = 0; i < framesSecondEval[videoIndex].length(); i++)
+            {
+                emit percentageCompleted(qRound((videoIndex/videoCount)*100+((i/framesToAnalyse)*100.0)/videoCount));
+                Mat registrated = cv::Mat::zeros(referencialFrame.size(), CV_32FC3);
+                Point3d calculatedTranslation(0.0,0.0,0.0);
+                QVector<double> pocX;
+                QVector<double> pocY;
+                QVector<double> fullAngle;
+                int registrartionDone = completeRegistration(cap,referencialFrame,
+                                                           framesSecondEval[videoIndex][i],
+                                                           iteration,
+                                                           areaMaximum,
+                                                           maximalAngle,
+                                                           _tempExtra,
+                                                           _tempStandard,
+                                                           scaleCh,
+                                                           registrated,
+                                                           pocX,pocY,fullAngle);
+                qDebug() << framesSecondEval[videoIndex][i] <<" -> ";
+                if (registrartionDone == 0)
                 {
-                    korekce_bod = fk_translace(referencni_snimek,slicovan_kompletne);
-                    if (std::abs(korekce_bod.x)>=290.0 || std::abs(korekce_bod.y)>=290.0)
-                    {
-                        korekce_bod = fk_translace_hann(referencni_snimek,slicovan_kompletne);
-                    }
-                }
-                else
-                {
-                    korekce_bod = fk_translace_hann(referencni_snimek,slicovan_kompletne);
-                }
-                Mat korekce = translace_snimku(slicovan_kompletne,korekce_bod,rows,cols);
-                korekce.copyTo(mezivysledek32f);
-                kontrola_typu_snimku_32C1(mezivysledek32f);
-                mezivysledek32f(obtainedCutoffStandard).copyTo(mezivysledek32f_vyrez);
-                double R2 = vypocet_KK(referencni_snimek,korekce,obtainedCutoffStandard);
-                Point3d slicovany_frangi_reverse(0,0,0);
-                double rozdil = R2-R1;
-                if (rozdil>0.015)
-                {
-                    cv::Point3d extra_translace(0,0,0);
-                    extra_translace.x = mira_translace.x+korekce_bod.x;
-                    extra_translace.y = mira_translace.y+korekce_bod.y;
-                    extra_translace.z = mira_translace.z;
-                    qDebug()<< "Frame was translated for more objective frangi filter analysis.";
-                    slicovany_frangi_reverse = frangi_analysis(korekce,2,2,0,"",2,extra_translace,FrangiParameters);
-                }
-                else
-                {
-                    slicovany_frangi_reverse = frangi_analysis(slicovan_kompletne,2,2,0,"",2,mira_translace,FrangiParameters);
-                }
-                slicovan_kompletne.release();
-                if (slicovany_frangi_reverse.z == 0.0)
-                {
-                    QString errorMessage = QString("The Franfi filter maximum could not be obtained for frame %1"),arg(i);
-                    emit unexpectedTermination(errorMessage,5,"soft");
-                    framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 5.0;
-                    POC_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                    POC_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                    angle[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                    frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                    frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
-                    frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = 999.0;
+
+                    emit unexpectedTermination(videoIndex,"hardError");
+                    framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 5.0;
+                    POC_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                    POC_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                    angle[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                    frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                    frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                    frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                    fillEmpty(videoFrameCount);
                     continue;
                 }
                 else
                 {
-                    double rozdil_x = obraz_frangi_reverse.x - slicovany_frangi_reverse.x;
-                    double rozdil_y = obraz_frangi_reverse.y - slicovany_frangi_reverse.y;
-                    double suma_rozdilu = std::pow(rozdil_x,2.0) + std::pow(rozdil_y,2.0);
-                    double euklid = std::sqrt(suma_rozdilu);
-                    if (euklid <= 1.2)
+                    Mat interresult32f,interresult32f_cutout;
+                    registrated.copyTo(interresult32f);
+                    kontrola_typu_snimku_32C1(interresult32f);
+                    interresult32f(_tempStandard).copyTo(interresult32f_cutout);
+                    double R1 = vypocet_KK(referencialFrame,registrated,_tempStandard);
+                    interresult32f.release();
+                    interresult32f_cutout.release();
+                    Point3d registrationCorrection(0,0,0);
+                    if (scaleCh == true)
                     {
-                        framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 0;
-                        qDebug()<< "euclidean "<<euklid<<", category: 0";
+                        registrationCorrection = fk_translace(referencialFrame,registrated);
+                        if (std::abs(registrationCorrection.x)>=290.0 || std::abs(registrationCorrection.y)>=290.0)
+                        {
+                            registrationCorrection = fk_translace_hann(referencialFrame,registrated);
+                        }
                     }
-                    else if (euklid > 1.2 && euklid < 10)
+                    else
                     {
-                        framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 1;
-                        qDebug()<< "euclidean "<<euklid<<", category: 1";
-                        frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.x;
-                        frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.y;
-                        frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = euklid;
+                        registrationCorrection = fk_translace_hann(referencialFrame,registrated);
                     }
-                    else if (euklid >=10)
+                    Mat correctionMat = translace_snimku(registrated,registrationCorrection,rows,cols);
+                    correctionMat.copyTo(interresult32f);
+                    kontrola_typu_snimku_32C1(interresult32f);
+                    interresult32f(_tempStandard).copyTo(interresult32f_cutout);
+                    double R2 = vypocet_KK(referencialFrame,correctionMat,_tempStandard);
+                    Point3d registratedFrangiReverse(0,0,0);
+                    double difference = R2-R1;
+                    if (difference>0.015)
                     {
-                        framesCompleteEvaluation[indexVidea][framesSecondEval[indexVidea][i]] = 4;
-                        qDebug()<< "euclidean "<<euklid<<", category: 4";
-                        frangi_x[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.x;
-                        frangi_y[indexVidea][framesSecondEval[indexVidea][i]] = slicovany_frangi_reverse.y;
-                        frangi_euklid[indexVidea][framesSecondEval[indexVidea][i]] = euklid;
+                        cv::Point3d extra_translace(0,0,0);
+                        extra_translace.x = calculatedTranslation.x+registrationCorrection.x;
+                        extra_translace.y = calculatedTranslation.y+registrationCorrection.y;
+                        extra_translace.z = calculatedTranslation.z;
+                        qDebug()<< "Frame was translated for more objective frangi filter analysis.";
+                        registratedFrangiReverse = frangi_analysis(correctionMat,2,2,0,"",2,extra_translace,FrangiParameters);
                     }
-                    rozdil_x = 0;
-                    rozdil_y = 0;
-                    suma_rozdilu = 0;
-                    euklid = 0;
+                    else
+                    {
+                        registratedFrangiReverse = frangi_analysis(registrated,2,2,0,"",2,calculatedTranslation,FrangiParameters);
+                    }
+                    registrated.release();
+                    if (registratedFrangiReverse.z == 0.0)
+                    {
+                        emit unexpectedTermination(videoIndex,"hardError");
+                        framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 5.0;
+                        POC_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                        POC_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                        angle[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                        frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                        frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                        frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                        continue;
+                    }
+                    else
+                    {
+                        double difference_x = frame_FrangiReverse.x - registratedFrangiReverse.x;
+                        double difference_y = frame_FrangiReverse.y - registratedFrangiReverse.y;
+                        double differenceSum = std::pow(difference_x,2.0) + std::pow(difference_y,2.0);
+                        double euklid = std::sqrt(differenceSum);
+                        if (euklid <= 1.2)
+                        {
+                            framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 0;
+                            qDebug()<< "euclidean "<<euklid<<"-> category: 0";
+                        }
+                        else if (euklid > 1.2 && euklid < 10)
+                        {
+                            framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 1;
+                            qDebug()<< "euclidean "<<euklid<<", category: 1";
+                            frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.x;
+                            frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.y;
+                            frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = euklid;
+                        }
+                        else if (euklid >=10)
+                        {
+                            framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 4;
+                            qDebug()<< "euclidean "<<euklid<<", category: 4";
+                            frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.x;
+                            frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.y;
+                            frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = euklid;
+                        }
+                        difference_x = 0;
+                        difference_y = 0;
+                        differenceSum = 0;
+                        euklid = 0;
+                    }
                 }
             }
         }
+        else{
+            fillEmpty(260);
+        }
     }
-    if (!errorOccured){
-        emit percentageCompleted(100);
-        emit done(5);
-    }
-    else{
-        qWarning()<<"An error occured.";
-        emit percentageCompleted(100);
-        emit done(5);
-    }
+    emit percentageCompleted(100);
+    emit done(5);
+}
+
+void qThreadFifthPart::fillEmpty(int i_frameCount){
+    QVector<double> pomVecD(i_frameCount,0.0);
+    QVector<int> pomVecI(i_frameCount,0);
+
+    framesCompleteEvaluation.push_back(pomVecI);
+    frangi_x.push_back(pomVecD);
+    frangi_y.push_back(pomVecD);
+    frangi_euklid.push_back(pomVecD);
+    POC_x.push_back(pomVecD);
+    POC_y.push_back(pomVecD);
+    angle.push_back(pomVecD);
 }
 
 QVector<QVector<int>> qThreadFifthPart::framesUpdateEvaluationComplete()
@@ -268,4 +290,8 @@ QVector<QVector<double>> qThreadFifthPart::framesPOCYestimated()
 QVector<QVector<double>> qThreadFifthPart::framesAngleestimated()
 {
     return angle;
+}
+
+void qThreadFifthPart::onDataObtained(){
+    emit readyForFinish();
 }

@@ -11,20 +11,24 @@ class qThreadFifthPart : public QThread
 {
     Q_OBJECT
 public:
-    explicit qThreadFifthPart(QStringList& videos,
-                              cv::Rect& CO_s,
-                              cv::Rect& CO_e,
-                              QVector<QVector<double>>& POCX,
-                              QVector<QVector<double>>& POCY,
-                              QVector<QVector<double>>& Angle,
-                              QVector<QVector<double>>& Fr_X,
-                              QVector<QVector<double>>& Fr_Y,
-                              QVector<QVector<double>>& Fr_E,
-                              bool scaleChanged,
-                              QVector<QVector<int>> &EvaluationComplete,
-                              QVector<QVector<int>>& frEvalSec,
-                              QVector<int>& referFrames,
-                              QVector<double> FrangiParams,
+    explicit qThreadFifthPart(QStringList i_videos,
+                              QVector<int> i_badVideos,
+                              QVector<cv::Rect> i_standardCutout,
+                              QVector<cv::Rect> i_extraCutout,
+                              QVector<QVector<double>> i_POCX,
+                              QVector<QVector<double>> i_POCY,
+                              QVector<QVector<double>> i_Angle,
+                              QVector<QVector<double>> i_Fr_X,
+                              QVector<QVector<double>> i_Fr_Y,
+                              QVector<QVector<double>> i_Fr_E,
+                              bool i_scaleChanged,
+                              QVector<QVector<int>> i_EvaluationComplete,
+                              QVector<QVector<int>> i_frEvalSec,
+                              QVector<int> i_referFrames,
+                              QVector<double> i_FrangiParams,
+                              int i_iteration,
+                              double i_areaMaximum,
+                              double i_maximalAngle,
                               QObject* parent = nullptr);
     void run() override;
     QVector<QVector<int>> framesUpdateEvaluationComplete();
@@ -39,17 +43,24 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination(QString,int,QString);
+    void unexpectedTermination(int,QString);
+    void readyForFinish();
+private slots:
+    void onDataObtained();
 private:
-    double videoCount;
-    double frameCount;
+    /**
+     * @brief If error, fill the vectors with zeros.
+     */
+    void fillEmpty(int i_frameCount);
+
+    double videoCount, framesToAnalyse, maximalAngle, areaMaximum;
+    int iteration;
     QStringList videoList;
     QVector<QVector<int>> framesSecondEval,framesCompleteEvaluation;
     QVector<QVector<double>> POC_x,POC_y,angle,frangi_x,frangi_y,frangi_euklid;
     QVector<double> average_CC,average_FWHM,FrangiParameters;
-    QVector<int> referencialFrames;
-    cv::Rect obtainedCutoffStandard;//ziskany_VK_standard;
-    cv::Rect obtainedCutoffExtra;//ziskany_VK_extra;
+    QVector<int> referencialFrames,notProcessThese;
+    QVector<cv::Rect> obtainedCutoffStandard, obtainedCutoffExtra;
     bool scaleCh;
 };
 

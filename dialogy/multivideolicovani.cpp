@@ -45,18 +45,6 @@ MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
     ui->registratePB->setText(tr("Registrate"));
     ui->saveResultsPB->setText(tr("Save computed results"));
 
-    QVector<double> pomD;
-    QVector<int> pomI;
-    videoParamDouble["FrangiX"]=pomD;
-    videoParamDouble["FrangiX"]=pomD;
-    videoParamDouble["FrangiEuklid"]=pomD;
-    videoParamDouble["POCX"]=pomD;
-    videoParamDouble["POCY"]=pomD;
-    videoParamDouble["Uhel"]=pomD;
-    videoParamInt["Ohodnoceni"]=pomI;
-    videoAnom["VerticalAnomaly"]=pomI;
-    videoAnom["HorizontalAnomaly"]=pomI;
-
     localErrorDialogHandling[ui->listOfVideos] = new ErrorDialog(ui->listOfVideos);
     localErrorDialogHandling[ui->registratePB] = new ErrorDialog(ui->registratePB);
 }
@@ -103,9 +91,9 @@ void MultiVideoLicovani::populateProperties(QStringList chosenVideos)
     for (int videoIndex = 0; videoIndex < chosenVideos.count(); videoIndex++) {
         QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("adresarTXT_nacteni")+"/"+chosenVideos.at(videoIndex)+".dat");
         QJsonObject videoParametersJson = readJson(videoParametersFile);
-        videoPropertiesDouble[chosenVideos.at(videoIndex)] = videoParamDouble;
-        videoPropertiesInt[chosenVideos.at(videoIndex)] = videoParamInt;
-        videoPropertiesAnomaly[chosenVideos.at(videoIndex)] = videoAnom;
+        videoPropertiesDouble[chosenVideos.at(videoIndex)] = videoParametersDouble;
+        videoPropertiesInt[chosenVideos.at(videoIndex)] = videoParametersInt;
+        videoPropertiesAnomaly[chosenVideos.at(videoIndex)] = videoAnomalies;
         processVideoParameters(videoParametersJson,
                                videoPropertiesDouble[chosenVideos.at(videoIndex)],
                                videoPropertiesInt[chosenVideos.at(videoIndex)],
@@ -122,12 +110,12 @@ void MultiVideoLicovani::processVideoParameters(QJsonObject& videoData,
         if (parameter < 6){
             QJsonArray arrayDouble = videoData[videoParameters.at(parameter)].toArray();
             QVector<double> pomDouble = arrayDouble2vector(arrayDouble);
-            inputMMdouble[videoParameters.at(parameter)].append(pomDouble);
+            inputMMdouble[videoParameters.at(parameter)] = pomDouble;
         }
         if (parameter == 6){
             QJsonArray arrayInt = videoData[videoParameters.at(parameter)].toArray();
             QVector<int> pomInt = arrayInt2vector(arrayInt);
-            inputMMint[videoParameters.at(parameter)].append(pomInt);
+            inputMMint[videoParameters.at(parameter)] = pomInt;
         }
         if (parameter > 6){
             int anomaly = videoData[videoParameters.at(parameter)].toInt();
@@ -313,7 +301,7 @@ void MultiVideoLicovani::startCalculations(cv::VideoCapture &capture){
     actualVideoName = videoListNames.at(videoCounter);
     videoPool[videoListNames.at(videoCounter)] = new QTableWidget(int(actualFrameCount),4);
     videoPool[videoListNames.at(videoCounter)]->setHorizontalHeaderLabels(columnHeaders);
-    ui->horizontalLayout_2->addWidget(videoPool[videoListNames.at(videoCounter)]);
+    ui->registrationResults->addWidget(videoPool[videoListNames.at(videoCounter)]);
     displayStatus("startingCalculations");
     QVector<QVector<int>> threadRange = divideIntoPeaces(int(actualFrameCount),numberOfThreads);
     int threadIndex = 1;
@@ -348,8 +336,10 @@ bool MultiVideoLicovani::checkVideo(cv::VideoCapture& capture){
             return true;
         }
     }
-    else
+    else{
+        startCalculations(capture);
         return true;
+    }
 }
 
 void MultiVideoLicovani::on_registratePB_clicked()
@@ -383,12 +373,14 @@ void MultiVideoLicovani::createAndRunThreads(int indexThread, cv::VideoCapture &
                                                      referencniSnimek,lowerLimit,upperLimit,_iter,_arMax,_angle,
                                                      _vertAnom,_horizAnom,false);
 
-    QObject::connect(threadPool[indexThread],SIGNAL(x_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(y_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(angleInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(statusInfo(int,int,QString)),this,SLOT(addStatus(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(allWorkDone(int)),this,SLOT(processAnother(int)));
-    QObject::connect(threadPool[indexThread],SIGNAL(errorDetected(int,QString)),this,SLOT(errorHandler(int,QString)));
+    QObject::connect(threadPool[indexThread],SIGNAL(x_coordInfo(int,int,QString)),  this,SLOT(addItem(int,int,QString)));
+    QObject::connect(threadPool[indexThread],SIGNAL(y_coordInfo(int,int,QString)),  this,SLOT(addItem(int,int,QString)));
+    QObject::connect(threadPool[indexThread],SIGNAL(angleInfo(int,int,QString)),    this,SLOT(addItem(int,int,QString)));
+    QObject::connect(threadPool[indexThread],SIGNAL(statusInfo(int,int,QString)),   this,SLOT(addStatus(int,int,QString)));
+    QObject::connect(threadPool[indexThread],SIGNAL(allWorkDone(int)),              this,SLOT(processAnother(int)));
+    QObject::connect(threadPool[indexThread],SIGNAL(errorDetected(int,QString)),    this,SLOT(errorHandler(int,QString)));
+    QObject::connect(threadPool[indexThread],SIGNAL(readyForFinish(int)),           this,SLOT(onFinishThread(int)));
+
     threadPool[indexThread]->start();
     ui->actualVideoLB->setText(tr("Processing video ")+videoListNames.at(videoCounter));
     emit calculationStarted();
@@ -427,21 +419,20 @@ void MultiVideoLicovani::errorHandler(int indexOfThread, QString errorMessage){
         delete threadPool.take(threadIndex);
     }
     videoCounter++;
-
-
 }
+
 void MultiVideoLicovani::processAnother(int indexOfThread){
     threadProcessed++;
     processResuluts(indexOfThread);
     qDebug()<<"Thread "<<threadProcessed<<" processed.";
     if (threadProcessed == numberOfThreads){
-        terminateThreads();
         ui->actualVideoLB->setText(tr("Writing properly translated frames to the new video."));
         if(writeToVideo()){
             displayStatus("allDone");
             ui->actualVideoLB->setText(tr("Video written properly."));
             videoCounter++;
             threadProcessed = 0;
+            internalCounter = 0;
             ui->progressBar->setValue(0);
             if (videoCounter < videoListNames.count() && videoListNames.count() != 0){
                 cv::VideoCapture cap = cv::VideoCapture(videoListFull.at(videoCounter).toLocal8Bit().constData());
@@ -454,16 +445,6 @@ void MultiVideoLicovani::processAnother(int indexOfThread){
     }
 }
 
-void MultiVideoLicovani::terminateThreads(){
-    int threadPoolSize = threadPool.count();
-    for (int threadIndex = 1; threadIndex <= threadPoolSize; threadIndex++){
-        qDebug()<<"Termination "<<threadIndex<<". thread.";
-        threadPool[threadIndex]->terminate();
-        delete threadPool.take(threadIndex);
-    }
-    qDebug()<<"Actually active threads: "<<threadPool.size();
-}
-
 void MultiVideoLicovani::processResuluts(int analysedThread){
     QVector<int> range = threadPool[analysedThread]->threadFrameRange();
     QMap<QString,QVector<double>> measuredData = threadPool[analysedThread]->provideResults();
@@ -474,6 +455,7 @@ void MultiVideoLicovani::processResuluts(int analysedThread){
                 videoPropertiesDouble[videoListNames.at(videoCounter)][videoParameters.at(parameterIndex)][position] = measuredData[videoParameters.at(parameterIndex)][position];
         }
     }
+    threadPool[analysedThread]->dataObtained();
 }
 
 void MultiVideoLicovani::saveTheResults(QMap<QString, QVector<double> > input, int from, int to)
@@ -535,7 +517,7 @@ int MultiVideoLicovani::writeToVideo()
             finalTranslation.y = videoPropertiesDouble[videoListNames.at(videoCounter)]["POCY"][indexImage];
             finalTranslation.z = 0.0;
             plneSlicovany = translace_snimku(posunutyOrig,finalTranslation,posunutyOrig.rows,posunutyOrig.cols);
-            plneSlicovany = rotace_snimku(plneSlicovany,videoParametersDouble["Uhel"][0][indexImage]);
+            plneSlicovany = rotace_snimku(plneSlicovany,videoPropertiesDouble[videoListNames.at(videoCounter)]["Uhel"][indexImage]);
             writer.write(plneSlicovany);
             posunutyOrig.release();
             plneSlicovany.release();
@@ -549,7 +531,23 @@ void MultiVideoLicovani::on_saveResultsPB_clicked()
 
 }
 
-void MultiVideoLicovani::on_listOfVideos_cellDoubleClicked(int row, int column)
+void MultiVideoLicovani::on_listOfVideos_cellClicked(int row, int column)
 {
-
+    qDebug()<<"Video "<<row<<" clicked.";
+    Q_UNUSED(column);
+    if (row <= ui->registrationResults->count()){
+        ui->registrationResults->setCurrentIndex(row);
+    }
 }
+
+/*void MultiVideoLicovani::disableWidgets(){
+    ui->chooseVideoPB->setEnabled(false);
+    ui->savePB->setEnabled(false);
+    ui->showResultsPB->setEnabled(false);
+}
+
+void MultiVideoLicovani::enableWidgets(){
+    ui->chooseVideoPB->setEnabled(true);
+    ui->savePB->setEnabled(true);
+    ui->showResultsPB->setEnabled(true);
+}*/

@@ -52,7 +52,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,1">
      <property name="spacing">
       <number>20</number>
      </property>
@@ -76,6 +76,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>20</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
@@ -86,6 +92,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>150</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -95,17 +107,41 @@
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0">
-     <property name="spacing">
+     <property name="horizontalSpacing">
+      <number>20</number>
+     </property>
+     <property name="verticalSpacing">
       <number>10</number>
      </property>
      <item row="1" column="0">
-      <widget class="QComboBox" name="Combo_savingVideo"/>
+      <widget class="QComboBox" name="Combo_savingVideo">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QComboBox" name="Combo_VideoDataSave"/>
+      <widget class="QComboBox" name="Combo_VideoDataSave">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item row="4" column="0">
-      <widget class="QComboBox" name="Combo_FrangiParams"/>
+      <widget class="QComboBox" name="Combo_FrangiParams">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item row="0" column="0">
       <widget class="QComboBox" name="Combo_videoPath">
@@ -123,8 +159,8 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>16777215</width>
-         <height>16777215</height>
+         <width>400</width>
+         <height>20</height>
         </size>
        </property>
        <property name="styleSheet">
@@ -154,8 +190,8 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>16777215</width>
-         <height>16777215</height>
+         <width>125</width>
+         <height>25</height>
         </size>
        </property>
        <property name="styleSheet">
@@ -173,6 +209,12 @@
      </item>
      <item row="4" column="2">
       <widget class="QPushButton" name="paramFrangPB">
+       <property name="maximumSize">
+        <size>
+         <width>125</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -188,6 +230,12 @@
      </item>
      <item row="2" column="2">
       <widget class="QPushButton" name="LoadingDataFolder">
+       <property name="maximumSize">
+        <size>
+         <width>125</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -203,6 +251,12 @@
      </item>
      <item row="3" column="2">
       <widget class="QPushButton" name="SavingDataFolder">
+       <property name="maximumSize">
+        <size>
+         <width>125</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -218,6 +272,12 @@
      </item>
      <item row="1" column="2">
       <widget class="QPushButton" name="SaveVideos">
+       <property name="maximumSize">
+        <size>
+         <width>125</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -233,6 +293,12 @@
      </item>
      <item row="2" column="0">
       <widget class="QComboBox" name="Combo_VideoDataLoad">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="editable">
         <bool>false</bool>
        </property>

@@ -17,20 +17,29 @@
 using cv::Mat;
 using cv::Rect;
 
-qThreadThirdPart::qThreadThirdPart(QStringList &sV, QVector<QVector<int> >& sSprOhKomplet,
-                                   QVector<QVector<int> > &ohodKomp, QVector<int>& refKomplet,
-                                   QVector<double> &RK, QVector<double> &FWHMK,
-                                   cv::Rect &VK_standard, cv::Rect &VK_extra, bool zM, QObject *parent):QThread(parent)
+qThreadThirdPart::qThreadThirdPart(QStringList i_videoList,
+                                   QVector<int> i_badVideos,
+                                   QVector<QVector<int> > i_badFramesFirstEval,
+                                   QVector<QVector<int> > i_framesCompleteEval,
+                                   QVector<int> i_framesReferencial,
+                                   QVector<double> i_averageCC,
+                                   QVector<double> i_averageFWHM,
+                                   QVector<cv::Rect> i_standardCutout,
+                                   QVector<cv::Rect> i_extraCutout,
+                                   bool i_scaleChange, QObject *parent):QThread(parent)
 {
-    videoList = sV;
-    badFrames_firstEvaluation = sSprOhKomplet;
-    framesEvaluationCompelte = ohodKomp;
-    referencialFrames = refKomplet;
-    obtainedCutoffStandard = VK_standard;
-    obtainedCutoffExtra = VK_extra;
-    scaleChanged = zM;
-    averageCCcomplete = RK;
-    averageFWHMcomplete = FWHMK;
+    videoList = i_videoList;
+    badFrames_firstEvaluation = i_badFramesFirstEval;
+    framesEvaluationCompelte = i_framesCompleteEval;
+    referencialFrames = i_framesReferencial;
+    obtainedCutoffStandard = i_standardCutout;
+    obtainedCutoffExtra = i_extraCutout;
+    scaleChanged = i_scaleChange;
+    averageCCcomplete = i_averageCC;
+    averageFWHMcomplete = i_averageFWHM;
+    notProcessThese = i_badVideos;
+
+    emit setTerminationEnabled(true);
 }
 
 void qThreadThirdPart::run()
@@ -41,215 +50,237 @@ void qThreadThirdPart::run()
     emit typeOfMethod(2);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
-    bool errorOccured = false;
-    for (int indexVidea=0; indexVidea < videoList.count(); indexVidea++)
+    for (int videoIndex=0; videoIndex < videoList.count(); videoIndex++)
     {
-        QVector<int> spatneSnimky;
-        spatneSnimky = badFrames_firstEvaluation[indexVidea];
-        QString fullPath = videoList.at(indexVidea);
-        QString slozka,jmeno,koncovka;
-        processFilePath(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(indexVidea);
-        cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-        if (!cap.isOpened()){
-            emit unexpectedTermination("Cannot open a video for analysis",3,"hardError");
-            errorOccured = true;
-            break;
-        }
-        cv::Mat referencni_snimek_temp,referencni_snimek,referencni_snimek32f,referencni_vyrez;
-        cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[indexVidea]);
-        if (!cap.read(referencni_snimek_temp))
-        {
-            emit unexpectedTermination("Referencial image cannot be read!",3,"hardError");
-            errorOccured = true;
-            break;
-        }
-        int rows = 0;
-        int cols = 0;
-        if (scaleChanged == true)
-        {
-            referencni_snimek_temp(obtainedCutoffExtra).copyTo(referencni_snimek);
-            rows = referencni_snimek.rows;
-            cols = referencni_snimek.cols;
-            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
-            referencni_snimek_temp.release();
-        }
-        else
-        {
-            referencni_snimek_temp.copyTo(referencni_snimek);
-            rows = referencni_snimek.rows;
-            cols = referencni_snimek.cols;
-            referencni_snimek(obtainedCutoffStandard).copyTo(referencni_vyrez);
-            referencni_snimek_temp.release();
-        }
-        int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-        QVector<double> pomVecD(frameCount,0.0);
-        QVector<double> POC_x,POC_y,uhel,frangi_x,frangi_y,frangi_euklid,vypoctene_hodnoty_FWHM,
-                vypoctene_hodnoty_R;
-        frangi_x = pomVecD;frangi_y=pomVecD;frangi_euklid=pomVecD;
-        POC_x=pomVecD;POC_y=pomVecD;uhel=pomVecD;
-        QVector<int> snimky_k_provereni_prvni;
-        frameCount = spatneSnimky.length();
-        for (int i = 0;i < spatneSnimky.length(); i++)
-        {
-            emit percentageCompleted(qRound((double(indexVidea)/videoCount)*100.0+((double(i)/double(frameCount))*100.0)/videoCount));
-            Mat posunuty_temp,posunuty,posunuty_vyrez,slicovany,slicovany_vyrez;
-            Mat obraz, obraz_vyrez;
-            referencni_snimek.copyTo(obraz);
-            obraz(obtainedCutoffStandard).copyTo(obraz_vyrez);
-
-            cap.set(CV_CAP_PROP_POS_FRAMES,spatneSnimky[i]);
-            if (cap.read(posunuty_temp) != 1)
-            {
-                QString errorMessage = QString("Frame number %1 could not be opened").arg(i);
-                unexpectedTermination(errorMessage,1,"softError");
-                POC_x[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
-                POC_y[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
-                uhel[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
-                frangi_x[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
-                frangi_y[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
-                frangi_euklid[badFrames_firstEvaluation[indexVidea][i]] = 999.0;
+        if (notProcessThese.indexOf(videoIndex) == -1){
+            QVector<int> _badFrames;
+            _badFrames = badFrames_firstEvaluation[videoIndex];
+            QString fullPath = videoList.at(videoIndex);
+            QString slozka,jmeno,koncovka;
+            processFilePath(fullPath,slozka,jmeno,koncovka);
+            emit actualVideo(videoIndex);
+            cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
+            if (!cap.isOpened()){
+                emit unexpectedTermination(videoIndex,"hardError");
+                fillEmpty(260);
                 continue;
             }
+            int videoFrameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+            cv::Mat referencialFrame_temp,referencialFrame,referencialFrame32f,referencialCutout;
+            cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[videoIndex]);
+            if (!cap.read(referencialFrame_temp))
+            {
+                emit unexpectedTermination(videoIndex,"hardError");
+                fillEmpty(videoFrameCount);
+                continue;
+            }
+            int rows = 0;
+            int cols = 0;
+            cv::Rect _tempStandard,_tempExtra;
+            _tempStandard = obtainedCutoffStandard[videoIndex];
+            _tempExtra = obtainedCutoffExtra[videoIndex];
             if (scaleChanged == true)
             {
-                posunuty_temp(obtainedCutoffExtra).copyTo(posunuty);
-                posunuty(obtainedCutoffStandard).copyTo(posunuty_vyrez);
-                posunuty_temp.release();
+                referencialFrame_temp(_tempExtra).copyTo(referencialFrame);
+                rows = referencialFrame.rows;
+                cols = referencialFrame.cols;
+                referencialFrame(_tempStandard).copyTo(referencialCutout);
+                referencialFrame_temp.release();
             }
             else
             {
-                posunuty_temp.copyTo(posunuty);
-                posunuty(obtainedCutoffStandard).copyTo(posunuty_vyrez);
-                posunuty_temp.release();
+                referencialFrame_temp.copyTo(referencialFrame);
+                rows = referencialFrame.rows;
+                cols = referencialFrame.cols;
+                referencialFrame(_tempStandard).copyTo(referencialCutout);
+                referencialFrame_temp.release();
             }
-            cv::Point3d pt(0,0,0);
-            if (scaleChanged == true)
+            QVector<double> pomVecD(videoFrameCount,0.0);
+            QVector<double> POC_x,POC_y,_angle,frangi_x,frangi_y,frangi_euklid,_computedFWHM,
+                    _computedCC;
+            frangi_x = pomVecD;frangi_y=pomVecD;frangi_euklid=pomVecD;
+            POC_x=pomVecD;POC_y=pomVecD;_angle=pomVecD;
+            QVector<int> _framesForFirstEvaluation;
+            int badFrameCount = _badFrames.length();
+            for (int i = 0;i < _badFrames.length(); i++)
             {
-                pt = fk_translace_hann(obraz,posunuty);
-                if (std::abs(pt.x)>=290 || std::abs(pt.y)>=290)
-                {
-                    pt = fk_translace(obraz,posunuty);
-                }
-            }
-            if (scaleChanged == false)
-            {
-                pt = fk_translace_hann(obraz,posunuty);
-            }
-            if (pt.x >= 55 || pt.y >= 55)
-            {
-                qDebug()<< "Frame "<< spatneSnimky[i]<< " will not be analysed.";
-                framesEvaluationCompelte[indexVidea][spatneSnimky[i]] = 5;
-                POC_x[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                POC_y[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                uhel[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                frangi_x[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                frangi_y[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                frangi_euklid[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                posunuty.release();
-            }
-            else
-            {
-                double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt.z);
-                double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-                slicovany = translace_snimku(posunuty,pt,rows,cols);
-                slicovany(obtainedCutoffStandard).copyTo(slicovany_vyrez);
-                double R = vypocet_KK(obraz,slicovany,obtainedCutoffStandard);
-                qDebug() <<"Tested frame has "<<spatneSnimky[i]<< "R " << R <<" a FWHM " << FWHM;
-                slicovany.release();
-                slicovany_vyrez.release();
-                posunuty.release();
-                double rozdilnostKK = averageCCcomplete[indexVidea]-R;
-                double rozdilnostFWHM = averageFWHMcomplete[indexVidea]-FWHM;
-                if ((std::abs(rozdilnostKK) < 0.02) && (FWHM < averageFWHMcomplete[indexVidea])) //1.
-                {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " ready for registration.";
-                    framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 0.0;
-                    continue;
-                }
-                else if (R > averageCCcomplete[indexVidea] && (std::abs(rozdilnostFWHM)<=2||(FWHM < averageFWHMcomplete[indexVidea]))) //5.
-                {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " ready for registration.";
-                    framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 0.0;
-                    continue;
-                }
-                else if (R >= averageCCcomplete[indexVidea] && FWHM > averageFWHMcomplete[indexVidea]) //4.
-                {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " ready for registration.";
-                    framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 0.0;
-                    continue;
-                }
-                else if ((std::abs(rozdilnostKK) <= 0.02) && (FWHM > averageFWHMcomplete[indexVidea])) //2.
-                {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
-                    snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
-                    vypoctene_hodnoty_FWHM.push_back(FWHM);
-                    vypoctene_hodnoty_R.push_back(R);
-                    continue;
-                }
-                else if ((rozdilnostKK > 0.02) && (rozdilnostKK < 0.18)) //3.
-                {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
-                    snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
-                    vypoctene_hodnoty_FWHM.push_back(FWHM);
-                    vypoctene_hodnoty_R.push_back(R);
-                    continue;
-                }
-                else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && ((FWHM < averageFWHMcomplete[indexVidea]) || averageFWHMcomplete[indexVidea] > 35.0)) //6.
-                {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
-                    snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
-                    vypoctene_hodnoty_FWHM.push_back(FWHM);
-                    vypoctene_hodnoty_R.push_back(R);
-                    continue;
-                }
-                else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && (FWHM <= (averageFWHMcomplete[indexVidea]+10))) //8.
-                {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
-                    snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
-                    vypoctene_hodnoty_FWHM.push_back(FWHM);
-                    vypoctene_hodnoty_R.push_back(R);
-                    continue;
-                }
+                emit percentageCompleted(qRound((double(videoIndex)/videoCount)*100.0+((double(i)/double(badFrameCount))*100.0)/videoCount));
+                Mat moved_temp,moved,moved_cutOut,registrated,registrated_cutOut;
+                Mat _frame, _frame_cutOut;
+                referencialFrame.copyTo(_frame);
+                _frame(_tempStandard).copyTo(_frame_cutOut);
 
-                else if ((rozdilnostKK >= 0.2) && (FWHM > (averageFWHMcomplete[indexVidea]+10))) //7.
+                cap.set(CV_CAP_PROP_POS_FRAMES,_badFrames[i]);
+                if (cap.read(moved_temp) != 1)
                 {
-                    qDebug()<< "Frame "<< spatneSnimky[i]<< " will not be registrated.";
-                    framesEvaluationCompelte[indexVidea][badFrames_firstEvaluation[indexVidea][i]] = 5;
-                    POC_x[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                    POC_y[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                    uhel[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                    frangi_x[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                    frangi_y[badFrames_firstEvaluation[indexVidea][i]] = 999;
-                    frangi_euklid[badFrames_firstEvaluation[indexVidea][i]] = 999;
+                    unexpectedTermination(videoIndex,"hardError");
+                    POC_x[badFrames_firstEvaluation[videoIndex][i]] = 999.0;
+                    POC_y[badFrames_firstEvaluation[videoIndex][i]] = 999.0;
+                    _angle[badFrames_firstEvaluation[videoIndex][i]] = 999.0;
+                    frangi_x[badFrames_firstEvaluation[videoIndex][i]] = 999.0;
+                    frangi_y[badFrames_firstEvaluation[videoIndex][i]] = 999.0;
+                    frangi_euklid[badFrames_firstEvaluation[videoIndex][i]] = 999.0;
+                    fillEmpty(videoFrameCount);
                     continue;
+                }
+                if (scaleChanged == true)
+                {
+                    moved_temp(_tempExtra).copyTo(moved);
+                    moved(_tempStandard).copyTo(moved_cutOut);
+                    moved_temp.release();
                 }
                 else
                 {
-                    qDebug() << "Frame "<< spatneSnimky[i]<< " will be analysed in the next step.";
-                    snimky_k_provereni_prvni.push_back(badFrames_firstEvaluation[indexVidea][i]);
-                    vypoctene_hodnoty_FWHM.push_back(FWHM);
-                    vypoctene_hodnoty_R.push_back(R);
-
+                    moved_temp.copyTo(moved);
+                    moved(_tempStandard).copyTo(moved_cutOut);
+                    moved_temp.release();
                 }
-            }
+                cv::Point3d pt(0,0,0);
+                if (scaleChanged == true)
+                {
+                    pt = fk_translace_hann(_frame,moved);
+                    if (std::abs(pt.x)>=290 || std::abs(pt.y)>=290)
+                    {
+                        pt = fk_translace(_frame,moved);
+                    }
+                }
+                if (scaleChanged == false)
+                {
+                    pt = fk_translace_hann(_frame,moved);
+                }
+                if (pt.x >= 55 || pt.y >= 55)
+                {
+                    qDebug()<< "Frame "<< _badFrames[i]<< " will not be analysed.";
+                    framesEvaluationCompelte[videoIndex][_badFrames[i]] = 5;
+                    POC_x[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                    POC_y[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                    _angle[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                    frangi_x[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                    frangi_y[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                    frangi_euklid[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                    moved.release();
+                }
+                else
+                {
+                    double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt.z);
+                    double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
+                    registrated = translace_snimku(moved,pt,rows,cols);
+                    registrated(_tempStandard).copyTo(registrated_cutOut);
+                    double R = vypocet_KK(_frame,registrated,_tempStandard);
+                    qDebug() <<"Tested frame has "<<_badFrames[i]<< "R " << R <<" a FWHM " << FWHM;
+                    registrated.release();
+                    registrated_cutOut.release();
+                    moved.release();
+                    double _differenceCC = averageCCcomplete[videoIndex]-R;
+                    double _differenceFWHM = averageFWHMcomplete[videoIndex]-FWHM;
+                    if ((std::abs(_differenceCC) < 0.02) && (FWHM < averageFWHMcomplete[videoIndex])) //1.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " ready for registration.";
+                        framesEvaluationCompelte[videoIndex][badFrames_firstEvaluation[videoIndex][i]] = 0.0;
+                        continue;
+                    }
+                    else if (R > averageCCcomplete[videoIndex] && (std::abs(_differenceFWHM)<=2||(FWHM < averageFWHMcomplete[videoIndex]))) //5.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " ready for registration.";
+                        framesEvaluationCompelte[videoIndex][badFrames_firstEvaluation[videoIndex][i]] = 0.0;
+                        continue;
+                    }
+                    else if (R >= averageCCcomplete[videoIndex] && FWHM > averageFWHMcomplete[videoIndex]) //4.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " ready for registration.";
+                        framesEvaluationCompelte[videoIndex][badFrames_firstEvaluation[videoIndex][i]] = 0.0;
+                        continue;
+                    }
+                    else if ((std::abs(_differenceCC) <= 0.02) && (FWHM > averageFWHMcomplete[videoIndex])) //2.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " will be analysed in the next step.";
+                        _framesForFirstEvaluation.push_back(badFrames_firstEvaluation[videoIndex][i]);
+                        _computedFWHM.push_back(FWHM);
+                        _computedCC.push_back(R);
+                        continue;
+                    }
+                    else if ((_differenceCC > 0.02) && (_differenceCC < 0.18)) //3.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " will be analysed in the next step.";
+                        _framesForFirstEvaluation.push_back(badFrames_firstEvaluation[videoIndex][i]);
+                        _computedFWHM.push_back(FWHM);
+                        _computedCC.push_back(R);
+                        continue;
+                    }
+                    else if ((_differenceCC >= 0.05 && _differenceCC < 0.18) && ((FWHM < averageFWHMcomplete[videoIndex]) || averageFWHMcomplete[videoIndex] > 35.0)) //6.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " will be analysed in the next step.";
+                        _framesForFirstEvaluation.push_back(badFrames_firstEvaluation[videoIndex][i]);
+                        _computedFWHM.push_back(FWHM);
+                        _computedCC.push_back(R);
+                        continue;
+                    }
+                    else if ((_differenceCC >= 0.05 && _differenceCC < 0.18) && (FWHM <= (averageFWHMcomplete[videoIndex]+10))) //8.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " will be analysed in the next step.";
+                        _framesForFirstEvaluation.push_back(badFrames_firstEvaluation[videoIndex][i]);
+                        _computedFWHM.push_back(FWHM);
+                        _computedCC.push_back(R);
+                        continue;
+                    }
 
+                    else if ((_differenceCC >= 0.2) && (FWHM > (averageFWHMcomplete[videoIndex]+10))) //7.
+                    {
+                        qDebug()<< "Frame "<< _badFrames[i]<< " will not be registrated.";
+                        framesEvaluationCompelte[videoIndex][badFrames_firstEvaluation[videoIndex][i]] = 5;
+                        POC_x[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                        POC_y[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                        _angle[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                        frangi_x[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                        frangi_y[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                        frangi_euklid[badFrames_firstEvaluation[videoIndex][i]] = 999;
+                        continue;
+                    }
+                    else
+                    {
+                        qDebug() << "Frame "<< _badFrames[i]<< " will be analysed in the next step.";
+                        _framesForFirstEvaluation.push_back(badFrames_firstEvaluation[videoIndex][i]);
+                        _computedFWHM.push_back(FWHM);
+                        _computedCC.push_back(R);
+
+                    }
+                }
+
+            }
+            framesComputedCC.append(_computedCC);
+            framesComputedFWHM.append(_computedFWHM);
+            framesFirstCompleteEvaluation.append(_framesForFirstEvaluation);
+            framesFrangiX.append(frangi_x);
+            framesFrangiY.append(frangi_y);
+            framesFrangiEuklid.append(frangi_euklid);
+            framesPOCX.append(POC_x);
+            framesPOCY.append(POC_y);
+            framesUhel.append(_angle);
         }
-        framesComputedCC.append(vypoctene_hodnoty_R);
-        framesComputedFWHM.append(vypoctene_hodnoty_FWHM);
-        framesFirstCompleteEvaluation.append(snimky_k_provereni_prvni);
-        framesFrangiX.append(frangi_x);
-        framesFrangiY.append(frangi_y);
-        framesFrangiEuklid.append(frangi_euklid);
-        framesPOCX.append(POC_x);
-        framesPOCY.append(POC_y);
-        framesUhel.append(uhel);
+        else{
+            fillEmpty(260);
+        }
     }
-    if (!errorOccured){
-        emit percentageCompleted(100);
-        emit done(3);
-    }
+    emit percentageCompleted(100);
+    emit done(3);
 }
+
+void qThreadThirdPart::fillEmpty(int i_frameCount){
+    QVector<double> pomVecD(i_frameCount,0.0);
+    QVector<int> pomVecI(i_frameCount,0);
+
+    framesEvaluationCompelte.push_back(pomVecI);
+    framesFirstCompleteEvaluation.push_back(pomVecI);
+    framesComputedCC.push_back(pomVecD);
+    framesComputedFWHM.push_back(pomVecD);
+    framesFrangiX.push_back(pomVecD);
+    framesFrangiY.push_back(pomVecD);
+    framesFrangiEuklid.push_back(pomVecD);
+    framesPOCX.push_back(pomVecD);
+    framesPOCY.push_back(pomVecD);
+    framesUhel.push_back(pomVecD);
+}
+
 QVector<QVector<int>> qThreadThirdPart::framesUpdateEvaluation()
 {
     return framesEvaluationCompelte;
@@ -289,4 +320,8 @@ QVector<QVector<double>> qThreadThirdPart::framesPOCYestimated()
 QVector<QVector<double>> qThreadThirdPart::framesUhelestimated()
 {
     return framesUhel;
+}
+
+void qThreadThirdPart::onDataObtained(){
+    emit readyForFinish();
 }

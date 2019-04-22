@@ -29,18 +29,18 @@ public:
                                 QObject *parent = nullptr);
     QMap<QString,QVector<double>> provideResults();
     QVector<int> threadFrameRange();
+    void dataObtained();
 
 signals:
     void allWorkDone(int);
     void errorDetected(int,QString);
-    /*void x_coordInfo(int,int,QTableWidgetItem*);
-    void y_coordInfo(int,int,QTableWidgetItem*);
-    void angleInfo(int,int,QTableWidgetItem*);*/
     void x_coordInfo(int,int,QString);
     void y_coordInfo(int,int,QString);
     void angleInfo(int,int,QString);
-    //void finalParameter(int,int,double);
     void statusInfo(int,int,QString);
+    void readyForFinish(int);
+private slots:
+
 private:
     void run();
 

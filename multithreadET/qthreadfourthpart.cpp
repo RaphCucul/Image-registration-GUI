@@ -7,34 +7,38 @@
 #include <QStringList>
 #include <QVector>
 
-qThreadFourthPart::qThreadFourthPart(QStringList &videos,
-                                     QVector<QVector<int> > &framesFirstEvaluationDefinitive,
-                                     QVector<QVector<int> > &evalCompl,
-                                     QVector<QVector<double> > &CCproblematic,
-                                     QVector<QVector<double> > &FWHMproblematic,
-                                     QVector<QVector<double> > &POCX,
-                                     QVector<QVector<double> > &POCY,
-                                     QVector<QVector<double> > &Angles,
-                                     QVector<QVector<double> > &Fr_X,
-                                     QVector<QVector<double> > &Fr_Y,
-                                     QVector<QVector<double> > &Fr_Eu,
-                                     QVector<double> &averageCC,
-                                     QVector<double> &averageFWHM,
+qThreadFourthPart::qThreadFourthPart(QStringList i_videos,
+                                     QVector<int> i_badVideos,
+                                     QVector<QVector<int> > i_framesFirstEvaluationDefinitive,
+                                     QVector<QVector<int> > i_evalCompl,
+                                     QVector<QVector<double> > i_CCproblematic,
+                                     QVector<QVector<double> > i_FWHMproblematic,
+                                     QVector<QVector<double> > i_POCX,
+                                     QVector<QVector<double> > i_POCY,
+                                     QVector<QVector<double> > i_Angles,
+                                     QVector<QVector<double> > i_Fr_X,
+                                     QVector<QVector<double> > i_Fr_Y,
+                                     QVector<QVector<double> > i_Fr_Eu,
+                                     QVector<double> i_averageCC,
+                                     QVector<double> i_averageFWHM,
                                      QObject* parent):QThread(parent)
 {
-    videoList = videos;
-    framesFirstEvaluationComplete = framesFirstEvaluationDefinitive;
-    framesCompleteEvaluation = evalCompl;
-    computedCC = CCproblematic;
-    computedFWHM = FWHMproblematic;
-    POC_x = POCX;
-    POC_y = POCY;
-    angle = Angles;
-    frangi_x = Fr_X;
-    frangi_y = Fr_Y;
-    frangi_euklid = Fr_Eu;
-    averageCCcomplete = averageCC;
-    averageFWHMcomplete = averageFWHM;
+    videoList = i_videos;
+    framesFirstEvaluationComplete = i_framesFirstEvaluationDefinitive;
+    framesCompleteEvaluation = i_evalCompl;
+    computedCC = i_CCproblematic;
+    computedFWHM = i_FWHMproblematic;
+    POC_x = i_POCX;
+    POC_y = i_POCY;
+    angle = i_Angles;
+    frangi_x = i_Fr_X;
+    frangi_y = i_Fr_Y;
+    frangi_euklid = i_Fr_Eu;
+    averageCCcomplete = i_averageCC;
+    averageFWHMcomplete = i_averageFWHM;
+    notProcessThese = i_badVideos;
+
+    emit setTerminationEnabled(true);
 }
 
 void qThreadFourthPart::run()
@@ -44,74 +48,94 @@ void qThreadFourthPart::run()
     emit typeOfMethod(3);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
-    for (int indexVidea = 0; indexVidea < videoList.count(); indexVidea++)
+    for (int videoIndex = 0; videoIndex < videoList.count(); videoIndex++)
     {
-        QVector<int> snimky_k_provereni_druhy;
-        frameCount = double(framesFirstEvaluationComplete[indexVidea].length());
-        QString fullPath = videoList.at(indexVidea);
-        QString slozka,jmeno,koncovka;
-        processFilePath(fullPath,slozka,jmeno,koncovka);
-        emit actualVideo(indexVidea);
-        for (int b = 0; b < framesFirstEvaluationComplete[indexVidea].length(); b++)
-        {
-            emit percentageCompleted(qRound((double(indexVidea)/videoCount)*100.0+((double(b)/frameCount)*100.0)/videoCount));
-            if ((averageCCcomplete[indexVidea] - computedCC[indexVidea][b]) <= 0.01)
+        if (notProcessThese.indexOf(videoIndex) == -1){
+            QVector<int> snimky_k_provereni_druhy;
+            framesToAnalyse = double(framesFirstEvaluationComplete[videoIndex].length());
+            QString fullPath = videoList.at(videoIndex);
+            QString folder,filename,suffix;
+            processFilePath(fullPath,folder,filename,suffix);
+            emit actualVideo(videoIndex);
+            for (int b = 0; b < framesFirstEvaluationComplete[videoIndex].length(); b++)
             {
-                if (computedFWHM[indexVidea][b] < (averageFWHMcomplete[indexVidea] + 2))
+                emit percentageCompleted(qRound((double(videoIndex)/videoCount)*100.0+((double(b)/framesToAnalyse)*100.0)/videoCount));
+                if ((averageCCcomplete[videoIndex] - computedCC[videoIndex][b]) <= 0.01)
                 {
-                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " suitable for registration.";
-                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
+                    if (computedFWHM[videoIndex][b] < (averageFWHMcomplete[videoIndex] + 2))
+                    {
+                        qDebug()<< "Frame "<< framesFirstEvaluationComplete[videoIndex][b]<< " suitable for registration.";
+                        framesCompleteEvaluation[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 0;
+                    }
+                    else
+                    {
+                        qDebug()<< "Frame "<< framesFirstEvaluationComplete[videoIndex][b]<< " will be analysed in the next step.";
+                        snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[videoIndex][b]);
+                    }
+                    continue;
                 }
-                else
+                else if ((averageCCcomplete[videoIndex] - computedCC[videoIndex][b]) >0.01)
                 {
-                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will be analysed in the next step.";
-                    snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
+                    if (computedFWHM[videoIndex][b] < (averageFWHMcomplete[videoIndex] + 2.5))
+                    {
+                        qDebug()<< "Frame "<< framesFirstEvaluationComplete[videoIndex][b]<< " suitable for registration.";
+                        framesCompleteEvaluation[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 0;
+                    }
+                    else if (computedFWHM[videoIndex][b] > (averageFWHMcomplete[videoIndex] + 10))
+                    {
+                        qDebug() << "Frame "<< framesFirstEvaluationComplete[videoIndex][b]<< " will not be registrated.";
+                        framesCompleteEvaluation[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 5.0;
+                        POC_x[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 999.0;
+                        POC_y[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 999.0;
+                        angle[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 999.0;
+                        frangi_x[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 999.0;
+                        frangi_y[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 999.0;
+                        frangi_euklid[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 999.0;
+                    }
+                    else
+                    {
+                        qDebug()<< "Frame "<< framesFirstEvaluationComplete[videoIndex][b]<< " will be analysed in the next step.";
+                        snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[videoIndex][b]);
+                    }
+                    continue;
                 }
-                continue;
+                else if ((averageCCcomplete[videoIndex] - computedCC[videoIndex][b]) >= 0.05)
+                {
+                    if (computedFWHM[videoIndex][b] <= (averageFWHMcomplete[videoIndex] + 3))
+                    {
+                        qDebug()<< "Frame "<< framesFirstEvaluationComplete[videoIndex][b]<< " suitable for registration.";
+                        framesCompleteEvaluation[videoIndex][framesFirstEvaluationComplete[videoIndex][b]] = 0;
+                    }
+                    else
+                    {
+                        qDebug()<< "Frame "<< framesFirstEvaluationComplete[videoIndex][b]<< " will be analysed in the next step.";
+                        snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[videoIndex][b]);
+                    }
+                    continue;
+                }
             }
-            else if ((averageCCcomplete[indexVidea] - computedCC[indexVidea][b]) >0.01)
-            {
-                if (computedFWHM[indexVidea][b] < (averageFWHMcomplete[indexVidea] + 2.5))
-                {
-                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " suitable for registration.";
-                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
-                }
-                else if (computedFWHM[indexVidea][b] > (averageFWHMcomplete[indexVidea] + 10))
-                {
-                    qDebug() << "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will not be registrated.";
-                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 5.0;
-                    POC_x[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
-                    POC_y[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
-                    angle[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
-                    frangi_x[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
-                    frangi_y[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
-                    frangi_euklid[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 999.0;
-                }
-                else
-                {
-                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will be analysed in the next step.";
-                    snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
-                }
-                continue;
-            }
-            else if ((averageCCcomplete[indexVidea] - computedCC[indexVidea][b]) >= 0.05)
-            {
-                if (computedFWHM[indexVidea][b] <= (averageFWHMcomplete[indexVidea] + 3))
-                {
-                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " suitable for registration.";
-                    framesCompleteEvaluation[indexVidea][framesFirstEvaluationComplete[indexVidea][b]] = 0;
-                }
-                else
-                {
-                    qDebug()<< "Frame "<< framesFirstEvaluationComplete[indexVidea][b]<< " will be analysed in the next step.";
-                    snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[indexVidea][b]);
-                }
-                continue;
-            }
+            framesSecondEvaluationComplete.append(snimky_k_provereni_druhy);
         }
-        framesSecondEvaluationComplete.append(snimky_k_provereni_druhy);
+        else{
+            fillEmpty(260);
+        }
     }
+    emit percentageCompleted(100);
     emit done(4);
+}
+
+void qThreadFourthPart::fillEmpty(int i_frameCount){
+    QVector<double> pomVecD(i_frameCount,0.0);
+    QVector<int> pomVecI(i_frameCount,0);
+
+    framesCompleteEvaluation.push_back(pomVecI);
+    framesSecondEvaluationComplete.push_back(pomVecI);
+    frangi_x.push_back(pomVecD);
+    frangi_y.push_back(pomVecD);
+    frangi_euklid.push_back(pomVecD);
+    POC_x.push_back(pomVecD);
+    POC_y.push_back(pomVecD);
+    angle.push_back(pomVecD);
 }
 
 QVector<QVector<int>> qThreadFourthPart::framesUpdateEvaluationComplete()
@@ -145,4 +169,8 @@ QVector<QVector<double>> qThreadFourthPart::framesPOCYestimated()
 QVector<QVector<double>> qThreadFourthPart::framesAngleestimated()
 {
     return angle;
+}
+
+void qThreadFourthPart::onDataObtained(){
+    emit readyForFinish();
 }

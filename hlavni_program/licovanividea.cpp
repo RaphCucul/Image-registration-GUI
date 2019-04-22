@@ -38,6 +38,28 @@ LicovaniVidea::LicovaniVidea(QWidget *parent) :
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);
 
+    SingleVideoET* SVET = new SingleVideoET();
+    MultipleVideoET* MVET = new MultipleVideoET();
+    SingleVideoLicovani* SVreg = new SingleVideoLicovani();
+    MultiVideoLicovani* MVreg = new MultiVideoLicovani();
+    ui->metody->addTab(SVET,"SVET");
+    ui->metody->addTab(MVET,"MVET");
+    ui->metody->addTab(SVreg,"SVreg");
+    ui->metody->addTab(MVreg,"MVreg");
+
+    QObject::connect(SVreg,SIGNAL(calculationStarted()),this,SLOT(disableTabs()));
+    QObject::connect(SVreg,SIGNAL(calculationStopped()),this,SLOT(enableTabs()));
+    QObject::connect(this,SIGNAL(checkFilePaths()),SVreg,SLOT(checkPaths()));
+
+    QObject::connect(MVreg,SIGNAL(calculationStarted()),this,SLOT(disableTabs()));
+    QObject::connect(MVreg,SIGNAL(calculationStopped()),this,SLOT(enableTabs()));
+
+    QObject::connect(SVET,SIGNAL(calculationStarted()),this,SLOT(disableTabs()));
+    QObject::connect(SVET,SIGNAL(calculationStopped()),this,SLOT(enableTabs()));
+    QObject::connect(this,SIGNAL(checkFilePaths()),SVET,SLOT(checkPaths()));
+
+    QObject::connect(MVET,SIGNAL(calculationStarted()),this,SLOT(disableTabs()));
+    QObject::connect(MVET,SIGNAL(calculationStopped()),this,SLOT(enableTabs()));
 
 }
 
@@ -65,20 +87,7 @@ void LicovaniVidea::disableTabs(){
 }
 
 void LicovaniVidea::checkPathinitialization(){
-    SingleVideoET* SVET = new SingleVideoET();
-    MultipleVideoET* MVET = new MultipleVideoET();
-    SingleVideoLicovani* SVreg = new SingleVideoLicovani();
-    MultiVideoLicovani* MVreg = new MultiVideoLicovani();
-    ui->metody->addTab(SVET,"SVET");
-    ui->metody->addTab(MVET,"MVET");
-    ui->metody->addTab(SVreg,"SVreg");
-    ui->metody->addTab(MVreg,"MVreg");
-
-    QObject::connect(SVreg,SIGNAL(calculationStarted()),this,SLOT(disableTabs()));
-    QObject::connect(SVreg,SIGNAL(calculationStopped()),this,SLOT(enableTabs()));
-
-    SVET->checkPaths();
-    SVreg->checkPaths();
+    emit checkFilePaths();
 }
 /*void LicovaniVidea::zobrazKliknutelnyDialog()
 {

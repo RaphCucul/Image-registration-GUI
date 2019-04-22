@@ -118,36 +118,36 @@ void ErrorDialog::evaluatePosition(QString position)
 
 }
 
+void ErrorDialog::fillErrorLabel(QPixmap& _pixmap){
+    errorLabel->setFixedSize(errorLabel->pixmap()->size());
+    errorLabelParent->setFixedSize(errorLabel->pixmap()->size());
+    errorLabel->setMask(_pixmap.mask());
+    errorLabelParent->setMask(_pixmap.mask());
+}
+
 void ErrorDialog::setErrorType(ErrorDialog::ErrorType errorType)
 {
     this->errorType = errorType;
     if (errorType == ErrorType::INFO){
         QPixmap pixInfo(":/images/circularInfo16_2.png");
         errorLabel->setPixmap(pixInfo);
+        highlightingEffect->setColor(Qt::blue);
         glowEffect->setColor(Qt::blue);
-        errorLabel->setFixedSize(errorLabel->pixmap()->size());
-        errorLabelParent->setFixedSize(errorLabel->pixmap()->size());
-        errorLabel->setMask(pixInfo.mask());
-        errorLabelParent->setMask(pixInfo.mask());
+        fillErrorLabel(pixInfo);
     }
     else if(errorType == ErrorType::SOFT_ERROR){
         QPixmap pixSE(":/images/circularSoftError16_2.png");
         errorLabel->setPixmap(pixSE);
+        highlightingEffect->setColor(Qt::yellow);
         glowEffect->setColor(Qt::yellow);
-        errorLabel->setFixedSize(errorLabel->pixmap()->size());
-        errorLabelParent->setFixedSize(errorLabel->pixmap()->size());
-        errorLabel->setMask(pixSE.mask());
-        errorLabelParent->setMask(pixSE.mask());
+        fillErrorLabel(pixSE);
     }
     else if(errorType == ErrorType::HARD_ERROR){
         QPixmap pixHE(":/images/circularHardError16_2.png");
-        //highlightingEffect->setColor(Qt::red);
+        highlightingEffect->setColor(Qt::red);
         glowEffect->setColor(Qt::red);
         errorLabel->setPixmap(pixHE);
-        errorLabel->setFixedSize(errorLabel->pixmap()->size());
-        errorLabelParent->setFixedSize(errorLabel->pixmap()->size());
-        errorLabel->setMask(pixHE.mask());
-        errorLabelParent->setMask(pixHE.mask());
+        fillErrorLabel(pixHE);
     }
     else{
         QPixmap pixWTD(":/images/What_todo.png");
@@ -155,10 +155,7 @@ void ErrorDialog::setErrorType(ErrorDialog::ErrorType errorType)
         highlightingEffect->setColor(Qt::green);
         glowEffect->setColor(Qt::green);
         errorLabel->setPixmap(pixWTD);
-        errorLabel->setFixedSize(errorLabel->pixmap()->size());
-        errorLabelParent->setFixedSize(errorLabel->pixmap()->size());
-        errorLabel->setMask(pixWTD.mask());
-        errorLabelParent->setMask(pixWTD.mask());
+        fillErrorLabel(pixWTD);
     }
 }
 

@@ -42,6 +42,10 @@ public:
      */
     void evaluate(QString position,QString EventType,QString errorMessage);
 
+    /**
+     * @brief Function checks, if the corresponding element has the error label visible or not.
+     * @return
+     */
     bool isEvaluated();
     void show();
     void hide();
@@ -61,31 +65,54 @@ private:
     bool eventFilter(QObject *obj, QEvent *event);
 
     /**
-     * @brief Function analyse the position of the widget where error label will be mapped to
+     * @brief Function analyse the position of the widget where error label will be mapped to.
      * @param position - left, center or right
      */
     void evaluatePosition(QString position);
 
     /**
-     * @brief The parent of the widget with error label is determined
+     * @brief The parent of the widget with error label is determined.
      */
     void analyseParents();
 
     /**
-     * @brief Function creates the error label based on the type of error
+     * @brief Function creates the error label based on the type of error.
      * @param errorType - see ErrorType structure
      */
     void setErrorType(ErrorDialog::ErrorType errorType);
 
+    /**
+     * @brief Function initializes the error label widget and the parent widget of the label.
+     */
     void initialiseErrorLabel();
+
+    /**
+     * @brief Function initializes the shadow of the error label.
+     */
+    void initShadowEffect();
+
+    /**
+     * @brief Function initializes color effect of the error label.
+     */
+    void initColorEffect();
+
+    /**
+     * @brief Function initializes the glow effect of the error label.
+     */
+    void initAnimation();
+
     void Info();
     void SoftError();
     void HardError();
     void What_todo();
-    void initShadowEffect();
-    void initColorEffect();
-    void initAnimation();
+
+    /**
+     * @brief Function is responsible for showing the message when the error label is hovered.
+     * @param errorMessage
+     */
     void showMessage(const QString errorMessage);
+
+    void fillErrorLabel(QPixmap &_pixmap);
 
     QString errorStatementToDisplay;
     int errorSeverity;

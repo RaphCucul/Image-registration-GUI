@@ -12,9 +12,16 @@ class qThreadThirdPart : public QThread
 {
     Q_OBJECT
 public:
-    explicit qThreadThirdPart(QStringList& sV, QVector<QVector<int>>& sSprOhKomplet,QVector<QVector<int>>& ohodKomp,
-                     QVector<int>& refKomplet,QVector<double>& RK, QVector<double>& FWHMK,cv::Rect& VK_standard, cv::Rect& VK_extra,
-                     bool zM, QObject* parent=nullptr);
+    explicit qThreadThirdPart(QStringList i_videoList,
+                              QVector<int> i_badVideos,
+                              QVector<QVector<int> > i_badFramesFirstEval,
+                              QVector<QVector<int> > i_framesCompleteEval,
+                              QVector<int> i_framesReferencial,
+                              QVector<double> i_averageCC,
+                              QVector<double> i_averageFWHM,
+                              QVector<cv::Rect> i_standardCutout,
+                              QVector<cv::Rect> i_extraCutout,
+                              bool i_scaleChange, QObject *parent=nullptr);
     void run() override;
     QVector<QVector<int>> framesUpdateEvaluation();
     QVector<QVector<int>> framesFirstEvaluationComplete();
@@ -31,8 +38,16 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination(QString,int,QString);
+    void unexpectedTermination(int,QString);
+    void readyForFinish();
+private slots:
+    void onDataObtained();
 private:
+    /**
+     * @brief If error, fill the vectors with zeros.
+     */
+    void fillEmpty(int i_frameCount);
+
     QStringList videoList;
     QVector<double> averageCCcomplete;
     QVector<double> averageFWHMcomplete;
@@ -40,9 +55,9 @@ private:
     QVector<QVector<int>> framesEvaluationCompelte;
     QVector<QVector<int>> framesFirstCompleteEvaluation;
     QVector<QVector<double>> framesComputedCC,framesComputedFWHM;
-    QVector<int> referencialFrames;
-    cv::Rect obtainedCutoffStandard;//ziskany_VK_standard;
-    cv::Rect obtainedCutoffExtra;//ziskany_VK_extra;
+    QVector<int> referencialFrames,notProcessThese;
+    QVector<cv::Rect> obtainedCutoffStandard;
+    QVector<cv::Rect> obtainedCutoffExtra;
     bool scaleChanged;
     QVector<QVector<double>> framesFrangiX;
     QVector<QVector<double>> framesFrangiY;
@@ -51,7 +66,6 @@ private:
     QVector<QVector<double>> framesPOCY;
     QVector<QVector<double>> framesUhel;
     double videoCount;
-    double frameCount;
 };
 
 #endif // QTHREADTHIRDPART_H

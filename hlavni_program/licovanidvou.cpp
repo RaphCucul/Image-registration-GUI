@@ -131,17 +131,26 @@ void LicovaniDvou::initChoiceTwoInnerWidgets(){
 
 void LicovaniDvou::placeChoiceOneWidgets(){
     chosenVideoLE->setPlaceholderText(tr("Chosen video"));
-    chosenVideoLE->setMinimumWidth(110);
+    chosenVideoLE->setMinimumWidth(150);
+    chosenVideoLE->setMaximumWidth(170);
     chosenVideoLE->setMinimumHeight(20);
+
     chosenVideoPB->setText(tr("Choose video"));
-    chosenVideoPB->setMinimumWidth(71);
+    chosenVideoPB->setMinimumWidth(70);
     chosenVideoPB->setMinimumHeight(23);
+    chosenVideoPB->setMaximumWidth(75);
+
     referenceNoLE->setPlaceholderText("Ref");
-    referenceNoLE->setMinimumWidth(31);
+    referenceNoLE->setMinimumWidth(20);
     referenceNoLE->setMinimumHeight(20);
+    referenceNoLE->setMaximumWidth(35);
+    referenceNoLE->setMaximumHeight(20);
+
     translatedNoLE->setPlaceholderText(tr("Moved"));
-    translatedNoLE->setMinimumWidth(41);
+    translatedNoLE->setMinimumWidth(20);
     translatedNoLE->setMinimumHeight(20);
+    translatedNoLE->setMaximumWidth(50);
+    translatedNoLE->setMaximumHeight(20);
 
     ui->nabidkaAnalyzy->addWidget(chosenVideoLE,0,0);
     ui->nabidkaAnalyzy->addWidget(chosenVideoPB,0,1);
@@ -154,15 +163,22 @@ void LicovaniDvou::placeChoiceTwoWidgets(){
     referenceImgLE->setMinimumWidth(20);
     referenceImgLE->setMinimumHeight(20);
     referenceImgLE->setPlaceholderText("Ref");
+    referenceImgLE->setMaximumWidth(35);
+    referenceImgLE->setMaximumHeight(20);
+
     translatedImgLE->setMinimumWidth(20);
-    translatedImgLE->setMinimumHeight(20);
+    translatedImgLE->setMinimumHeight(20);    
     translatedImgLE->setPlaceholderText(tr("Moved"));
+    translatedImgLE->setMaximumWidth(35);
+    translatedImgLE->setMaximumHeight(20);
+
     chooseReferencialImagePB->setText(tr("Chooce referrence"));
     chooseReferencialImagePB->setMinimumWidth(90);
     chooseReferencialImagePB->setMinimumHeight(23);
     chooseTranslatedImagePB->setText(tr("Choose moved"));
     chooseTranslatedImagePB->setMinimumWidth(90);
     chooseTranslatedImagePB->setMinimumHeight(23);
+
     ui->nabidkaAnalyzy->addWidget(referenceImgLE,0,0);
     ui->nabidkaAnalyzy->addWidget(chooseReferencialImagePB,0,1);
     ui->nabidkaAnalyzy->addWidget(translatedImgLE,0,2);
@@ -527,6 +543,7 @@ void LicovaniDvou::on_iterationCount_editingFinished()
 
 void LicovaniDvou::on_registrateTwo_clicked()
 {
+    emit calculationStarted();
     QString filePath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
     cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
     cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber)-1);
@@ -630,6 +647,7 @@ void LicovaniDvou::on_registrateTwo_clicked()
         showResults->setModal(true);
         showResults->show();
     }
+    emit calculationStopped();
 }
 
 void LicovaniDvou::showDialog()

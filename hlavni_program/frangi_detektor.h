@@ -22,7 +22,13 @@ class Frangi_detektor : public QWidget
 public:
     explicit Frangi_detektor(QWidget *parent = nullptr);
     ~Frangi_detektor();
+
+    /**
+     * @brief The function checks, if the path to the video folder exists. If so, the first video from the list of files
+     * found in the folder is placed into the line edit.
+     */
     void checkPaths();
+
     void setParametersToUI();
 private slots:   
     void on_sigma_start_sliderMoved(int value);
@@ -41,7 +47,9 @@ private slots:
     void on_frameNumber_textChanged(const QString &arg1);
     void on_chosenFile_textChanged(const QString &arg1);
     void on_saveParameters_clicked();
-
+signals:
+    void calculationStarted();
+    void calculationStopped();
 private:
     /**
      * @brief Function loads frangi parameters data into the corresponding double spin box.

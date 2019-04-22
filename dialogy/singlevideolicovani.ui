@@ -27,22 +27,25 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
-    <number>0</number>
-   </property>
-   <property name="leftMargin">
-    <number>1</number>
-   </property>
-   <property name="topMargin">
     <number>2</number>
    </property>
+   <property name="leftMargin">
+    <number>10</number>
+   </property>
+   <property name="topMargin">
+    <number>5</number>
+   </property>
    <property name="rightMargin">
-    <number>1</number>
+    <number>10</number>
    </property>
    <property name="bottomMargin">
-    <number>1</number>
+    <number>5</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="vyberVideaLayout" stretch="2,1">
+    <layout class="QHBoxLayout" name="vyberVideaLayout" stretch="3,1">
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
      <item>
       <widget class="QLineEdit" name="chooseVideoLE">
        <property name="sizePolicy">
@@ -50,6 +53,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>125</width>
+         <height>20</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -60,6 +69,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>75</width>
+         <height>20</height>
+        </size>
        </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
@@ -75,6 +90,15 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="tlacitkaLayout">
+     <property name="spacing">
+      <number>10</number>
+     </property>
+     <property name="topMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
      <item>
       <widget class="QPushButton" name="registratePB">
        <property name="sizePolicy">
@@ -82,6 +106,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>20</height>
+        </size>
        </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
@@ -100,6 +130,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>20</height>
+        </size>
        </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
@@ -128,6 +164,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -144,6 +186,12 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QLabel" name="name_state">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
@@ -269,7 +317,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>1080</width>
+         <width>16775</width>
          <height>20</height>
         </size>
        </property>
@@ -280,7 +328,7 @@
         <bool>true</bool>
        </property>
        <property name="format">
-        <string>%p.0%</string>
+        <string>%p%</string>
        </property>
       </widget>
      </item>

@@ -9,8 +9,10 @@ class qThreadFirstPart : public QThread
 {
     Q_OBJECT
 public:
-   explicit qThreadFirstPart(QStringList _videosForAnalysis, cv::Point2d _verticalAnomalyCoords,
-                             cv::Point2d _horizontalAnomalyCoords,QVector<double>_FrangiParametersValues,
+   explicit qThreadFirstPart(QStringList i_videosForAnalysis,
+                             cv::Point2d i_verticalAnomalyCoords,
+                             cv::Point2d i_horizontalAnomalyCoords,
+                             QVector<double> i_FrangiParametersValues,
                              QObject* parent=nullptr);
     QVector<QVector<double>> computedEntropy();
     QVector<QVector<double>> computedTennengrad();
@@ -18,12 +20,17 @@ public:
     QVector<QVector<int>> computedFirstTennengradEvalueation();
     QVector<QVector<int>> computedCompleteEvaluation();
     QVector<QVector<int>> computedBadFrames();
-    cv::Rect computedCOstandard();
-    cv::Rect computedCOextra();
+    QVector<cv::Rect> computedCOstandard();
+    QVector<cv::Rect> computedCOextra();
     QVector<int> estimatedReferencialFrames();
     void run() override;
 
 private:
+    /**
+     * @brief If error, fill the vectors with zeros.
+     */
+    void fillEmpty(int i_frameCount);
+
     QVector<QVector<double>> entropyComplete;
     QVector<QVector<double>> tennengradComplete;
     QVector<QVector<int>> framesFirstFullCompleteEntropyEvaluation;
@@ -37,8 +44,8 @@ private:
     double percent;
     cv::Point2d horizontalAnomaly;
     cv::Point2d verticalAnomaly;
-    cv::Rect obtainedCutoffStandard;//ziskany_VK_standard;
-    cv::Rect obtainedCutoffExtra;//ziskany_VK_extra;
+    QVector<cv::Rect> obtainedCutoffStandard;
+    QVector<cv::Rect> obtainedCutoffExtra;
     bool anomalyPresence = false;
 
 signals:
@@ -46,7 +53,10 @@ signals:
     void typeOfMethod(int);
     void done(int);
     void actualVideo(int);
-    void unexpectedTermination(QString,int,QString);
+    void unexpectedTermination(int,QString);
+    void readyForFinish();
+private slots:
+    void onDataObtained();
 };
 
 #endif // QTHREADFIRSTPART_H

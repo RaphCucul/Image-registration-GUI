@@ -1,6 +1,8 @@
 #ifndef LICOVANIPARENT_H
 #define LICOVANIPARENT_H
 
+#include "licovani/registrationthread.h"
+
 #include <QObject>
 #include <QWidget>
 #include <QJsonObject>
@@ -9,6 +11,7 @@
 #include <QString>
 #include <QLabel>
 #include <QPointer>
+#include <QThread>
 
 class LicovaniParent : public QWidget
 {
@@ -16,42 +19,38 @@ class LicovaniParent : public QWidget
 public:
     explicit LicovaniParent(QWidget *parent = nullptr);
 signals:
-
+    void calculationStarted();
+    void calculationStopped();
+    void dataObtained();
 public slots:
-
+    void onFinishThread(int);
 protected:
-    int licovaniDokonceno = 0;
-    /*QVector<QVector<double>> entropy;
-    QVector<QVector<double>> tennengrad;
-    QVector<QVector<int>> framesFirstFullCompleteEntropyEvaluation; //snimkyPrvotniOhodnoceniEntropieKomplet;
-    QVector<QVector<int>> framesFirstFullCompleteTennengradEvaluation; //snimkyPrvotniOhodnoceniTennengradKomplet;
-    QVector<QVector<int>> framesFirstFullCompleteDecision; //snimkyPrvniRozhodovaniKomplet;
-    QVector<QVector<int>> framesSecondFullCompleteDecision; //snimkyDruheRozhodovaniKomplet;
-    QVector<QVector<int>> framesFinalCompleteDecision; //snimkyOhodnoceniKomplet;
-    QVector<QVector<int>> badFramesComplete; //spatnesnimkyohodnocenikomplet
-    QVector<QVector<double>> framesFrangiX; //snimkyFrangiX;
-    QVector<QVector<double>> framesFrangiY; //snimkyFrangiY;
-    QVector<QVector<double>> framesFrangiEuklid; //snimkyFrangiEuklid;
-    QVector<QVector<double>> framesPOCX; //snimkyPOCX;
-    QVector<QVector<double>> framesPOCY; //snimkyPOCY;
-    QVector<QVector<double>> framesAngle; //snimkyUhel;*/
+    /**
+     * @brief Function initialise QMaps with vectors of vectors, filled by values during analysis.
+     */
+    void initMaps();
 
-    //QVector<int> horizontalAnomalyPresent;
-    //QVector<int> verticalAnomalyPresent;
+    /**
+     * @brief Function clears the content of all thread QMaps.
+     */
+    void cancelAllCalculations();
+
+    int licovaniDokonceno = 0;
+
     QStringList videoList;
     QStringList videoListFull;
     QStringList videoListNames;
 
-    bool canceled;
+    bool runStatus = true;
+    bool canProceed = true;
     int processedVideoNo = 0;
+    int numberOfThreads = QThread::idealThreadCount()-1;
+    QHash<int,RegistrationThread*> threadPool;
 
-   /* QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiX","FrangiEuklid","POCX","POCY",
-                             "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad"
-                             "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};*/
     QStringList videoParameters = {"FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
                                  "Uhel","Ohodnoceni","VerticalAnomaly","HorizontalAnomaly"};
-    QMap<QString,QVector<QVector<double>>> videoParametersDouble;
-    QMap<QString,QVector<QVector<int>>> videoParametersInt;
+    QMap<QString,QVector<double>> videoParametersDouble;
+    QMap<QString,QVector<int>> videoParametersInt;
     QMap<QString,QVector<int>> videoAnomalies;
 };
 

@@ -25,8 +25,17 @@
      <property name="rightMargin">
       <number>10</number>
      </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
      <item>
       <widget class="QPushButton" name="chooseMultiVPB">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -39,6 +48,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="chooseFolderPB">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -51,6 +66,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="deleteChosenPB">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -63,6 +84,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="registratePB">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -75,6 +102,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="saveResultsPB">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -91,6 +124,12 @@
     <layout class="QGridLayout" name="gridLayout" columnstretch="3,4" columnminimumwidth="0,0">
      <item row="1" column="0">
       <widget class="QTableWidget" name="listOfVideos">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
        <property name="sizeAdjustPolicy">
         <enum>QAbstractScrollArea::AdjustToContents</enum>
        </property>
@@ -126,11 +165,14 @@
        </attribute>
       </widget>
      </item>
-     <item row="1" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_2"/>
-     </item>
      <item row="2" column="0" colspan="2">
       <widget class="QProgressBar" name="progressBar">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="value">
         <number>0</number>
        </property>
@@ -141,11 +183,24 @@
      </item>
      <item row="0" column="0" colspan="2">
       <widget class="QLabel" name="actualVideoLB">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
        <property name="text">
         <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QStackedWidget" name="registrationResults">
+       <property name="currentIndex">
+        <number>-1</number>
        </property>
       </widget>
      </item>

@@ -45,6 +45,13 @@ zalozky::zalozky(QWidget *parent) :
     }
 
     connect(volba_slozek,SIGNAL(fileFolderDirectoryFound()),this,SLOT(fileFolderDirectoryLocated()));
+
+    connect(detektor,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
+    connect(detektor,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
+
+    connect(licovaniDvou,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
+    connect(licovaniDvou,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
+
     connect(licovaniVidea,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
     connect(licovaniVidea,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
 }

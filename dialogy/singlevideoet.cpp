@@ -46,21 +46,21 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->iterationCount->setPlaceholderText("1 - Inf; -1~automatic settings");
 
     ui->chooseVideoPB->setText(tr("Choose video"));
-    ui->referencialNumberLE->setPlaceholderText(tr("Write number of referencial frame"));
+    ui->referencialNumberLE->setPlaceholderText(tr("Ref."));
     ui->horizontalAnomalyCB->setText(tr("Top/bottom anomaly"));
     ui->verticalAnomalyCB->setText(tr("Left/right anomaly"));
     ui->areaSizelabel->setText(tr("Size of calculation area"));
     ui->angleTolerancelabel->setText(tr("Maximal tolerated rotation angle"));
     ui->iterationNumberlabel->setText(tr("Number of iterations of algorithm"));
-    ui->calculateET->setText(tr("Compute entropy and tennengrade"));
+    ui->calculateET->setText(tr("Analyze video"));
     ui->showGraphET->setText(tr("Show computed results"));
     ui->savePB->setText(tr("Save results"));
 
-    initMaps();
-
-    connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
-    connect(ui->verticalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
-    connect(ui->horizontalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    QObject::connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
+    QObject::connect(ui->verticalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    QObject::connect(ui->horizontalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    QObject::connect(this,SIGNAL(calculationStarted()),this,SLOT(disableWidgets()));
+    QObject::connect(this,SIGNAL(calculationStopped()),this,SLOT(enableWidgets()));
 
     localErrorDialogHandling[ui->calculateET] = new ErrorDialog(ui->calculateET);
 }
@@ -71,47 +71,59 @@ SingleVideoET::~SingleVideoET()
 }
 
 void SingleVideoET::checkPaths(){
-    if (SharedVariables::getSharedVariables()->getPath("cestaKvideim") == "")
+    if (SharedVariables::getSharedVariables()->getPath("cestaKvideim") == ""){
         ui->chosenVideoLE->setPlaceholderText(tr("Chosen video"));
+        ui->chosenVideoLE->setReadOnly(true);
+    }
     else{
        analyseAndSaveFirst(SharedVariables::getSharedVariables()->getPath("cestaKvideim"),chosenVideoETSingle);
        ui->chosenVideoLE->setText(chosenVideoETSingle[1]);
+       ui->chosenVideoLE->setReadOnly(false);
     }
 }
 void SingleVideoET::on_chooseVideoPB_clicked()
 {
     QString referencialImagePath = QFileDialog::getOpenFileName(this,
-         tr("Choose referencial image"), SharedVariables::getSharedVariables()->getPath("cestaKvideim"),"*.avi;;All files (*)");
-    QString folder,filename,suffix;
-    processFilePath(referencialImagePath,folder,filename,suffix);
-    if (chosenVideoETSingle.length() == 0)
-    {
-        chosenVideoETSingle.push_back(folder);
-        chosenVideoETSingle.push_back(filename);
-        chosenVideoETSingle.push_back(suffix);
+         tr("Choose referencial image"), SharedVariables::getSharedVariables()->getPath("cestaKvideim"),tr("*.avi;;;"));
+    if (referencialImagePath != ""){
+        ui->chosenVideoLE->setReadOnly(false);
+        QString folder,filename,suffix;
+        processFilePath(referencialImagePath,folder,filename,suffix);
+        if (chosenVideoETSingle.length() == 0)
+        {
+            chosenVideoETSingle.push_back(folder);
+            chosenVideoETSingle.push_back(filename);
+            chosenVideoETSingle.push_back(suffix);
+        }
+        else
+        {
+            chosenVideoETSingle.clear();
+            chosenVideoETSingle.push_back(folder);
+            chosenVideoETSingle.push_back(filename);
+            chosenVideoETSingle.push_back(suffix);
+        }
+
+        ui->chosenVideoLE->setText(chosenVideoETSingle[1]);
+        cv::VideoCapture cap = cv::VideoCapture(referencialImagePath.toLocal8Bit().constData());
+        if (!cap.isOpened())
+        {
+            ui->chosenVideoLE->setStyleSheet("color: #FF0000");
+            ui->referencialNumberLE->setEnabled(false);
+        }
+        else
+        {
+            ui->chosenVideoLE->setStyleSheet("color: #33aa00");
+            videoETScorrect = true;
+            //ui->referencialNumberLE->setEnabled(true);
+            int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+            actualEntropy.fill(0.0,frameCount);
+            actualTennengrad.fill(0.0,frameCount);
+            ui->horizontalAnomalyCB->setEnabled(true);
+            ui->verticalAnomalyCB->setEnabled(true);
+        }
     }
-    else
-    {
-        chosenVideoETSingle.clear();
-        chosenVideoETSingle.push_back(folder);
-        chosenVideoETSingle.push_back(filename);
-        chosenVideoETSingle.push_back(suffix);
-    }
-    ui->chosenVideoLE->setText(chosenVideoETSingle[1]);
-    cv::VideoCapture cap = cv::VideoCapture(referencialImagePath.toLocal8Bit().constData());
-    if (!cap.isOpened())
-    {
-        ui->chosenVideoLE->setStyleSheet("color: #FF0000");
-        ui->referencialNumberLE->setEnabled(false);
-    }
-    else
-    {
-        ui->chosenVideoLE->setStyleSheet("color: #33aa00");
-        videoETScorrect = true;
-        ui->referencialNumberLE->setEnabled(true);
-        int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-        actualEntropy.fill(0.0,frameCount);
-        actualTennengrad.fill(0.0,frameCount);
+    else{
+        ui->chosenVideoLE->setReadOnly(true);
     }
 }
 
@@ -124,6 +136,8 @@ void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
         ui->chosenVideoLE->setStyleSheet("color: #FF0000");
         videoETScorrect = false;
         ui->referencialNumberLE->setEnabled(false);
+        ui->horizontalAnomalyCB->setEnabled(false);
+        ui->verticalAnomalyCB->setEnabled(false);
     }
     else
     {
@@ -159,19 +173,44 @@ void SingleVideoET::on_verticalAnomalyCB_stateChanged(int arg1)
 
 void SingleVideoET::on_calculateET_clicked()
 {
-    QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());    
-    analysedVideos.append(fullPath);
-    TFirstP = new qThreadFirstPart(analysedVideos,
-                                   SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
-                                   SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
-                                   SharedVariables::getSharedVariables()->getFrangiParameters());
-    connect(TFirstP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
-    connect(TFirstP,SIGNAL(done(int)),this,SLOT(done(int)));
-    connect(TFirstP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
-    connect(TFirstP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-    connect(TFirstP,SIGNAL(unexpectedTermination(QString,int,QString)),this,SLOT(onUnexpectedTermination(QString,int,QString)));
-    TFirstP->start();
+    if (runStatus){
+        QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
+        cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
+
+        if (cap.isOpened()){
+            analysedVideos.clear();
+            analysedVideos.append(fullPath);
+            First[1] = new qThreadFirstPart(analysedVideos,
+                                            SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
+                                            SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
+                                            SharedVariables::getSharedVariables()->getFrangiParameters());
+            QObject::connect(First[1],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
+            QObject::connect(First[1],SIGNAL(done(int)),this,SLOT(onDone(int)));
+            QObject::connect(First[1],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+            QObject::connect(First[1],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
+            QObject::connect(First[1],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
+            QObject::connect(First[1],SIGNAL(readyForFinish()),First[1],SLOT(deleteLater()));
+            First[1]->start();
+
+            initMaps();
+            canProceed = true;
+            emit calculationStarted();
+            ui->calculateET->setText(tr("Cancel"));
+            runStatus = false;
+        }
+        else{
+            localErrorDialogHandling[ui->calculateET]->evaluate("left","hardError",6);
+            localErrorDialogHandling[ui->calculateET]->show();
+        }
+    }
+    else {
+        cancelAllCalculations();
+        runStatus = true;
+        ui->calculateET->setText(tr("Analyze video"));
+        ui->computationProgress->setValue(0);
+        ui->actualAlgorithmPart_label->setText("");
+        ui->analysedVideo_label->setText("");
+    }
 }
 
 void SingleVideoET::on_showGraphET_clicked()
@@ -198,11 +237,8 @@ void SingleVideoET::on_savePB_clicked()
     QJsonObject object;
     QString actualName = chosenVideoETSingle[1];
     QString path = SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+actualName+".dat";
-    qDebug()<<mapDouble["entropie"].length()<<" "<<videoParameters.at(0);
     for (int indexVideo=0; indexVideo<mapDouble["entropie"].length(); indexVideo++){
         for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-            qDebug()<<videoParameters.at(parameter);
-            //qDebug()<<mapDouble[videoParameters.at(parameter)][indexVideo];
             if (parameter < 8){
                 QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][indexVideo];
                 QJsonArray pomArray = vector2array(pomDouble);
@@ -233,94 +269,112 @@ void SingleVideoET::on_savePB_clicked()
     }
 }
 
-void SingleVideoET::done(int done)
-{
-    if (done == 1)
-    {
-        mapDouble["entropie"] = TFirstP->computedEntropy();
-        mapDouble["tennengrad"] = TFirstP->computedTennengrad();
-        mapInt["PrvotOhodEntropie"] = TFirstP->computedFirstEntropyEvaluation();
-        mapInt["PrvotOhodTennengrad"] = TFirstP->computedFirstTennengradEvalueation();
-        obtainedCutoffStandard = TFirstP->computedCOstandard();
-        obtainedCutoffExtra = TFirstP->computedCOextra();
-        mapInt["Ohodnoceni"] = TFirstP->computedCompleteEvaluation();
-        framesReferencial = TFirstP->estimatedReferencialFrames();
-        badFramesComplete = TFirstP->computedBadFrames();
-        TSecondP = new qThreadSecondPart(analysedVideos,
-                                         obtainedCutoffStandard,
-                                         obtainedCutoffExtra,
-                                         badFramesComplete,
-                                         framesReferencial,false);
-        connect(TSecondP,SIGNAL(done(int)),this,SLOT(done(int)));
-        connect(TSecondP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
-        connect(TSecondP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
-        connect(TSecondP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-        //if (TFirstP->isFinished()){
-            qDebug()<<"First done, starting second...";
-            TFirstP->terminate();
-            TSecondP->start();
-        //}
+void SingleVideoET::onDone(int thread){
+    done(thread);
+
+    if (thread == 1 && canProceed){
+        qDebug()<<"First done, starting second...";
+        /*First[1]->terminate();
+        //First[1]->exit(0);
+        qDebug()<<"Terminated and waiting";
+        First[1]->wait();
+        First[1]->deleteLater();
+        delete First.take(1);
+        qDebug()<<"Deleted completely";*/
+
+        Second[2] = new qThreadSecondPart(analysedVideos,
+                                          badVideos,
+                                          obtainedCutoffStandard,
+                                          obtainedCutoffExtra,
+                                          badFramesComplete,
+                                          framesReferencial,false);
+        QObject::connect(Second[2],SIGNAL(done(int)),this,SLOT(onDone(int)));
+        QObject::connect(Second[2],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
+        QObject::connect(Second[2],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        QObject::connect(Second[2],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
+        QObject::connect(Second[2],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
+        QObject::connect(this,SIGNAL(dataObtained_second()),Second[2],SLOT(onDataObtained()));
+        QObject::connect(Second[2],SIGNAL(readyForFinish()),Second[2],SLOT(deleteLater()));
+
+        Second[2]->start();
+        qDebug()<<"Started";
     }
-    if (done == 2)
-    {
-        averageCCcomplete = TSecondP->computedCC();
-        averageFWHMcomplete = TSecondP->computedFWHM();
-        TThirdP = new qThreadThirdPart(analysedVideos,
-                                       badFramesComplete,
-                                       mapInt["Ohodnoceni"],
-                framesReferencial,
-                averageCCcomplete,
-                averageFWHMcomplete,
-                obtainedCutoffStandard,
-                obtainedCutoffExtra,false);
-        connect(TThirdP,SIGNAL(done(int)),this,SLOT(done(int)));
-        connect(TThirdP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
-        connect(TThirdP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
-        connect(TThirdP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-        //if (TSecondP->isFinished()){
-            qDebug()<<"Second done, starting third...";
-            TSecondP->terminate();
-            TThirdP->start();
-        //}
+    else if (thread == 2 && canProceed){
+        qDebug()<<"Second done, starting third...";
+        /*Second[2]->terminate();
+        //Second[2]->exit(0);
+        qDebug()<<"Terminated and waiting";
+        Second[2]->wait();
+        Second[2]->deleteLater();
+        delete Second.take(2);
+        qDebug()<<"Deleted completely";*/
+
+        Third[3] = new qThreadThirdPart(analysedVideos,
+                                        badVideos,
+                                        badFramesComplete,
+                                        mapInt["Ohodnoceni"],
+                                        framesReferencial,
+                                        averageCCcomplete,
+                                        averageFWHMcomplete,
+                                        obtainedCutoffStandard,
+                                        obtainedCutoffExtra,false);
+        QObject::connect(Third[3],SIGNAL(done(int)),this,SLOT(onDone(int)));
+        QObject::connect(Third[3],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
+        QObject::connect(Third[3],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        QObject::connect(Third[3],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
+        QObject::connect(Third[3],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
+        QObject::connect(this,SIGNAL(dataObtained_third()),Third[3],SLOT(onDataObtained()));
+        QObject::connect(Third[3],SIGNAL(readyForFinish()),Third[3],SLOT(deleteLater()));
+
+        Third[3]->start();
+        qDebug()<<"Started";
     }
-    if (done == 3)
-    {
-        mapInt["Ohodnoceni"] = TThirdP->framesUpdateEvaluation();
-        mapInt["PrvniRozhod"] = TThirdP->framesFirstEvaluationComplete();
-        QVector<QVector<double>> KKproblematickychSnimku = TThirdP->framesProblematic_CC();
-        QVector<QVector<double>> FWHMproblematickychSnimku = TThirdP->framesProblematic_FWHM();
-        mapDouble["FrangiX"] = TThirdP->framesFrangiXestimated();
-        mapDouble["FrangiY"] = TThirdP->framesFrangiYestimated();
-        mapDouble["FrangiEuklid"] = TThirdP->framesFrangiEuklidestimated();
-        mapDouble["POCX"] = TThirdP->framesPOCXestimated();
-        mapDouble["POCY"] = TThirdP->framesPOCYestimated();
-        mapDouble["Uhel"] = TThirdP->framesUhelestimated();
-        TFourthP = new qThreadFourthPart(analysedVideos,mapInt["PrvniRozhod"],mapInt["Ohodnoceni"],
-                                         KKproblematickychSnimku,FWHMproblematickychSnimku,mapDouble["POCX"],
-                                         mapDouble["POCY"],mapDouble["Uhel"],mapDouble["FrangiX"],mapDouble["FrangiY"],
-                                         mapDouble["FrangiEuklid"],
-                                         averageCCcomplete,averageFWHMcomplete);
-        connect(TFourthP,SIGNAL(done(int)),this,SLOT(done(int)));
-        connect(TFourthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
-        connect(TFourthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
-        connect(TFourthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-        //if (TThirdP->isFinished()){
-            qDebug()<<"Third done, starting fourth...";
-            TThirdP->terminate();
-            TFourthP->start();
-        //}
+    else if (thread == 3 && canProceed){
+        qDebug()<<"Third done, starting fourth...";
+        /*Third[3]->terminate();
+        //Third[3]->exit(0);
+        qDebug()<<"Terminated and waiting";
+        Third[3]->wait();
+        Third[3]->deleteLater();
+        delete Third.take(3);
+        qDebug()<<"Deleted completely";*/
+
+        Fourth[4] = new qThreadFourthPart(analysedVideos,
+                                          badVideos,
+                                          mapInt["PrvniRozhod"],
+                                          mapInt["Ohodnoceni"],
+                                          CC_problematicFrames,
+                                          FWHM_problematicFrames,
+                                          mapDouble["POCX"],
+                                          mapDouble["POCY"],
+                                          mapDouble["Uhel"],
+                                          mapDouble["FrangiX"],
+                                          mapDouble["FrangiY"],
+                                          mapDouble["FrangiEuklid"],
+                                          averageCCcomplete,
+                                          averageFWHMcomplete);
+        QObject::connect(Fourth[4],SIGNAL(done(int)),this,SLOT(onDone(int)));
+        QObject::connect(Fourth[4],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
+        QObject::connect(Fourth[4],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        QObject::connect(Fourth[4],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
+        QObject::connect(this,SIGNAL(dataObtained_fourth()),Fourth[4],SLOT(onDataObtained()));
+        QObject::connect(Fourth[4],SIGNAL(readyForFinish()),Fourth[4],SLOT(deleteLater()));
+
+        Fourth[4]->start();
+        qDebug()<<"Started";
     }
-    if (done == 4)
-    {
-        mapInt["Ohodnoceni"] = TFourthP->framesUpdateEvaluationComplete();
-        mapInt["DruheRozhod"] = TFourthP->framesSecondEvaluation();
-        mapDouble["FrangiX"] = TFourthP->framesFrangiXestimated();
-        mapDouble["FrangiY"] = TFourthP->framesFrangiYestimated();
-        mapDouble["FrangiEuklid"] = TFourthP->framesFrangiEuklidestimated();
-        mapDouble["POCX"] = TFourthP->framesPOCXestimated();
-        mapDouble["POCY"] = TFourthP->framesPOCYestimated();
-        mapDouble["Uhel"] = TFourthP->framesAngleestimated();
-        TFifthP = new qThreadFifthPart(analysedVideos,
+    else if (thread == 4 && canProceed){
+        qDebug()<<"Fourth done, starting fifth";
+        /*Fourth[4]->terminate();
+        //Fourth[4]->exit(0);
+        qDebug()<<"Terminated and waiting";
+        Fourth[4]->wait();
+        Fourth[4]->deleteLater();
+        delete Fourth.take(4);
+        qDebug()<<"Deleted completely";*/
+
+        Fifth[5] = new qThreadFifthPart(analysedVideos,
+                                        badVideos,
                                        obtainedCutoffStandard,
                                        obtainedCutoffExtra,
                                        mapDouble["POCX"],
@@ -333,33 +387,34 @@ void SingleVideoET::done(int done)
                                        mapInt["Ohodnoceni"],
                                        mapInt["DruheRozhod"],
                                        framesReferencial,
-                                       SharedVariables::getSharedVariables()->getFrangiParameters());
-        connect(TFifthP,SIGNAL(done(int)),this,SLOT(done(int)));
-        connect(TFifthP,SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
-        connect(TFifthP,SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
-        connect(TFifthP,SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
-        //if (TFourthP->isFinished()){
-            qDebug()<<"Fourth done, starting fifth";
-            TFourthP->terminate();
-            TFifthP->start();
-        //}
+                                       SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                        int(iterationCount),
+                                        areaMaximum,
+                                        rotationAngle);
+        QObject::connect(Fifth[5],SIGNAL(done(int)),this,SLOT(onDone(int)));
+        QObject::connect(Fifth[5],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
+        QObject::connect(Fifth[5],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
+        QObject::connect(Fifth[5],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
+        QObject::connect(Fifth[5],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
+        QObject::connect(this,SIGNAL(dataObtained_fifth()),Fifth[5],SLOT(onDataObtained()));
+        QObject::connect(Fifth[5],SIGNAL(readyForFinish()),Fifth[5],SLOT(deleteLater()));
+
+        Fifth[5]->start();
+        qDebug()<<"Started";
     }
-    if (done == 5)
-    {
-        mapDouble["FrangiX"] = TFifthP->framesFrangiXestimated();
-        mapDouble["FrangiY"] = TFifthP->framesFrangiYestimated();
-        mapDouble["FrangiEuklid"] = TFifthP->framesFrangiEuklidestimated();
-        mapDouble["POCX"] = TFifthP->framesPOCXestimated();
-        mapDouble["POCY"] = TFifthP->framesPOCYestimated();
-        mapDouble["Uhel"] = TFifthP->framesAngleestimated();
-        mapInt["Ohodnoceni"] = TFifthP->framesUpdateEvaluationComplete();
+    else if (thread == 5 && canProceed){
         ui->showGraphET->setEnabled(true);
         ui->savePB->setEnabled(true);
         ui->actualAlgorithmPart_label->setText(tr("Fifth part done. Analysis completed"));
-        //if (TFifthP->isFinished()){
-            qDebug()<<"Fifth done.";
-            TFifthP->terminate();
-       // }
+        qDebug()<<"Fifth done.";
+        /*Fifth[5]->terminate();
+        //Fifth[5]->exit(0);
+        qDebug()<<"Terminated and waiting";
+        Fifth[5]->wait();
+        Fifth[5]->deleteLater();
+        delete Second.take(2);
+        qDebug()<<"Deleted completely";*/
+        emit calculationStopped();
     }
 }
 
@@ -382,18 +437,13 @@ void SingleVideoET::movedToMethod(int method)
         ui->actualAlgorithmPart_label->setText(tr("5/5 Third decision algorithm started"));
 }
 
-void SingleVideoET::onUnexpectedTermination(QString message, int threadNumber, QString errorType){
-    localErrorDialogHandling[ui->calculateET]->evaluate("left",errorType,message);
+void SingleVideoET::onUnexpectedTermination(int videoIndex, QString errorType){
+    Q_UNUSED(videoIndex);
+    localErrorDialogHandling[ui->calculateET]->evaluate("left",errorType,"Video could not be analysed.");
     localErrorDialogHandling[ui->calculateET]->show();
     if (errorType == "hardError"){
-        if (threadNumber == 1)
-            TFirstP->terminate();
-        if(threadNumber == 2)
-            TSecondP->terminate();
-        if(threadNumber == 3)
-            TThirdP->terminate();
-        if(threadNumber == 5)
-            TFifthP->terminate();
+        cancelAllCalculations();
+        emit calculationStopped();
     }
 }
 
@@ -456,8 +506,7 @@ void SingleVideoET::on_referencialNumberLE_textChanged(const QString &arg1)
     {
         ui->referencialNumberLE->setStyleSheet("color: #33aa00");
         referencialNumber = input;
-        ui->horizontalAnomalyCB->setEnabled(true);
-        ui->verticalAnomalyCB->setEnabled(true);
+
     }
 }
 
@@ -476,4 +525,22 @@ void SingleVideoET::showDialog(){
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
+}
+
+void SingleVideoET::disableWidgets(){
+    ui->chooseVideoPB->setEnabled(false);
+    ui->chosenVideoLE->setEnabled(false);
+    ui->verticalAnomalyCB->setEnabled(false);
+    ui->horizontalAnomalyCB->setEnabled(false);
+    ui->savePB->setEnabled(false);
+    ui->showGraphET->setEnabled(false);
+}
+
+void SingleVideoET::enableWidgets(){
+    ui->chooseVideoPB->setEnabled(true);
+    ui->chosenVideoLE->setEnabled(true);
+    ui->verticalAnomalyCB->setEnabled(true);
+    ui->horizontalAnomalyCB->setEnabled(true);
+    ui->savePB->setEnabled(true);
+    ui->showGraphET->setEnabled(true);
 }

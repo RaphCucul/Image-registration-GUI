@@ -81,6 +81,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>50</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="placeholderText">
         <string/>
        </property>
@@ -111,6 +117,12 @@
      </item>
      <item>
       <widget class="QLabel" name="analysedVideo_label">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
@@ -121,6 +133,12 @@
      </item>
      <item>
       <widget class="QLabel" name="actualAlgorithmPart_label">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
@@ -137,6 +155,12 @@
      </item>
      <item>
       <widget class="QProgressBar" name="computationProgress">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="value">
         <number>0</number>
        </property>
@@ -144,7 +168,7 @@
         <bool>true</bool>
        </property>
        <property name="format">
-        <string>%p.0%</string>
+        <string>%p%</string>
        </property>
       </widget>
      </item>
@@ -152,8 +176,17 @@
    </item>
    <item row="0" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>15</number>
+     </property>
      <item>
       <widget class="QLineEdit" name="chosenVideoLE">
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="maxLength">
         <number>100</number>
        </property>
@@ -167,6 +200,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="chooseVideoPB">
+       <property name="maximumSize">
+        <size>
+         <width>150</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">QPushButton:pressed {
     border-style: inset;
@@ -299,6 +338,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>50</width>
+         <height>20</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
@@ -309,6 +354,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>50</width>
+         <height>20</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
@@ -318,6 +369,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>20</height>
+        </size>
        </property>
       </widget>
      </item>

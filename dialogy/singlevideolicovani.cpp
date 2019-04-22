@@ -46,24 +46,15 @@ SingleVideoLicovani::SingleVideoLicovani(QWidget *parent) :
     ui->showResultsPB->setEnabled(false);
     ui->showResultsPB->setText(tr("Show registration result"));
 
-    QVector<QVector<double>> pomD;
-    QVector<QVector<int>> pomI;
-    QVector<int> pomI_;
-    videoParametersDouble["FrangiX"]=pomD;
-    videoParametersDouble["FrangiX"]=pomD;
-    videoParametersDouble["FrangiEuklid"]=pomD;
-    videoParametersDouble["POCX"]=pomD;
-    videoParametersDouble["POCY"]=pomD;
-    videoParametersDouble["Uhel"]=pomD;
-    videoParametersInt["Ohodnoceni"]=pomI;
-    videoAnomalies["VerticalAnomaly"]=pomI_;
-    videoAnomalies["HorizontalAnomaly"]=pomI_;
-
     ui->vysledkyLicovaniTW->setColumnCount(4);
     QStringList columnHeaders = {"X","Y",tr("Angle"),"Status"};
     ui->vysledkyLicovaniTW->setHorizontalHeaderLabels(columnHeaders);
 
+    initMaps();
+
     QObject::connect(ui->registratePB,SIGNAL(clicked()),this,SLOT(registrateVideoframes()));
+    QObject::connect(this,SIGNAL(calculationStarted()),this,SLOT(disableWidgets()));
+    QObject::connect(this,SIGNAL(calculationStopped()),this,SLOT(enableWidgets()));
 
     localErrorDialogHandling[ui->registratePB] = new ErrorDialog(ui->registratePB);
 }
@@ -89,8 +80,9 @@ void SingleVideoLicovani::checkPaths(){
                 ui->chooseVideoLE->setText(chosenVideo[1]);
                 ui->registratePB->setEnabled(true);
                 ui->chooseVideoLE->setReadOnly(false);
-                videoList.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
+                videoListFull.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
                 videoListNames.append(chosenVideo[1]);
+                ui->chooseVideoLE->setStyleSheet("color: #33aa00");
             }
         }
         else{
@@ -102,12 +94,11 @@ void SingleVideoLicovani::checkPaths(){
 
 void SingleVideoLicovani::on_chooseVideoLE_textChanged(const QString &arg1)
 {
-    QString kompletni_cesta = chosenVideo[0]+"/"+arg1+"."+chosenVideo[2];
-    cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
+    QString fullPath = chosenVideo[0]+"/"+arg1+"."+chosenVideo[2];
+    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
     if (!cap.isOpened())
     {
         ui->chooseVideoLE->setStyleSheet("color: #FF0000");
-        ui->chooseVideoLE->setReadOnly(true);
     }
     else
     {
@@ -115,55 +106,57 @@ void SingleVideoLicovani::on_chooseVideoLE_textChanged(const QString &arg1)
         if (videoParametersFile.exists()){
             videoParametersJson = readJson(videoParametersFile);
             processVideoParameters(videoParametersJson);
-            ui->chooseVideoLE->setText(chosenVideo[1]);
             ui->registratePB->setEnabled(true);
             ui->chooseVideoLE->setReadOnly(false);
             chosenVideo[1] = arg1;
-            if (videoList.count() == 0){
-                videoList.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
+            ui->chooseVideoLE->setText(chosenVideo[1]);
+            if (videoListFull.count() == 0){
+                videoListFull.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
                 videoListNames.append(chosenVideo[1]);
             }
             else{
-                videoList.insert(0,(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]));
+                videoListFull.insert(0,(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]));
                 videoListNames.insert(0,chosenVideo[1]);
             }
+            ui->chooseVideoLE->setStyleSheet("color: #33aa00");
         }
-        ui->chooseVideoLE->setStyleSheet("color: #33aa00");
-        chosenVideo[1] = arg1;
+        else
+            ui->chooseVideoLE->setStyleSheet("color: #FF0000");
     }
 }
 
 void SingleVideoLicovani::on_chooseVideoPB_clicked()
 {
     fullVideoPath = QFileDialog::getOpenFileName(this,
-         tr("Choose video"), SharedVariables::getSharedVariables()->getPath("cestaKvideim"),"*.avi;;All files (*)");
-    QString vybrana_slozka,vybrany_soubor,koncovka;
-    processFilePath(fullVideoPath,vybrana_slozka,vybrany_soubor,koncovka);
+         tr("Choose video"), SharedVariables::getSharedVariables()->getPath("cestaKvideim"),tr("*.avi;;;"));
+    QString folder,filename,suffix;
+    processFilePath(fullVideoPath,folder,filename,suffix);
     cv::VideoCapture cap = cv::VideoCapture(fullVideoPath.toLocal8Bit().constData());
+    ui->chooseVideoLE->setReadOnly(false);
     if (!cap.isOpened())
     {
-        ui->chooseVideoLE->setText(vybrany_soubor);
+        ui->chooseVideoLE->setText(filename);
         ui->chooseVideoLE->setStyleSheet("color: #FF0000");
     }
     else
     {
-        videoList.append(fullVideoPath);
-        videoListNames.append(vybrany_soubor);
+        videoListFull.append(fullVideoPath);
+        videoListNames.append(filename);
         if (chosenVideo.length() == 0)
         {
-            chosenVideo.push_back(vybrana_slozka);
-            chosenVideo.push_back(vybrany_soubor);
-            chosenVideo.push_back(koncovka);
+            chosenVideo.push_back(folder);
+            chosenVideo.push_back(filename);
+            chosenVideo.push_back(suffix);
         }
         else
         {
             chosenVideo.clear();
-            chosenVideo.push_back(vybrana_slozka);
-            chosenVideo.push_back(vybrany_soubor);
-            chosenVideo.push_back(koncovka);
+            chosenVideo.push_back(folder);
+            chosenVideo.push_back(filename);
+            chosenVideo.push_back(suffix);
         }
         ui->chooseVideoLE->setText(chosenVideo[1]);
-        ui->chooseVideoLE->setStyleSheet("color: #339900");
+        ui->chooseVideoLE->setStyleSheet("color: #33aa00");
         QString dir = SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni");
         QDir chosenDirectory(dir);
         QStringList JsonInDirectory = chosenDirectory.entryList(QStringList() << "*.dat" << "*.DAT",QDir::Files);
@@ -195,37 +188,36 @@ void SingleVideoLicovani::on_chooseVideoPB_clicked()
 
 void SingleVideoLicovani::registrateVideoframes()
 {
-    cv::VideoCapture cap = cv::VideoCapture(videoList.at(videoCounter).toLocal8Bit().constData());
-    if (!cap.isOpened())
-    {
-        localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",6);
-        localErrorDialogHandling[ui->registratePB]->show();
+    if (runStatus){
+        cv::VideoCapture cap = cv::VideoCapture(videoListFull.at(videoCounter).toLocal8Bit().constData());
+        if (!cap.isOpened())
+        {
+            localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",6);
+            localErrorDialogHandling[ui->registratePB]->show();
+            return;
+        }
+        else{
+            initMaps();
+            emit calculationStarted();
+            ui->registratePB->setText(tr("Cancel"));
+            runStatus = false;
+            canProceed = true;
+
+            actualFrameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+            ui->vysledkyLicovaniTW->setRowCount(int(actualFrameCount));
+            QVector<QVector<int>> threadRange = divideIntoPeaces(int(actualFrameCount),numberOfThreads);
+            int threadIndex = 1;
+            for (int indexThreshold = 0; indexThreshold < threadRange[0].length() && canProceed; indexThreshold++){
+                createAndRunThreads(threadIndex,cap,threadRange[0][indexThreshold],threadRange[1][indexThreshold]);
+                threadIndex++;
+            }
+        }
     }
-    //framesFinalCompleteDecision.append(videoParametersInt["Ohodnoceni"][videoCounter]);
-
-    //qDebug()<<videoParametersInt;
-    //qDebug()<<videoParametersInt["Ohodnoceni"][0];
-
-    /// realizace jednovlaknova
-    //qDebug()<<snimkyOhodnoceniKomplet[0];
-    /*int cisloReference = findReferenceFrame(snimkyOhodnoceniKomplet[0]);
-    qDebug()<<"nalezena reference:"<<cisloReference;
-    cv::Mat referencniSnimek;
-    cap.set(CV_CAP_PROP_POS_FRAMES,cisloReference);
-    if (!cap.read(referencniSnimek))
-        qWarning()<<"Frame "+QString::number(cisloReference)+" cannot be opened.";
-    float timeS = 0.0;float lightA = 0.0;
-    licuj(cap,parametryFrangi,referencniSnimek,0,260,-1,10.0,0.1,timeS,lightA);
-    */
-
-    /// realizace v separatnim vlaknu
-    actualFrameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
-    ui->vysledkyLicovaniTW->setRowCount(int(actualFrameCount));
-    QVector<QVector<int>> threadRange = divideIntoPeaces(int(actualFrameCount),numberOfThreads);
-    int threadIndex = 1;
-    for (int indexThreshold = 0; indexThreshold < threadRange[0].length(); indexThreshold++){
-        createAndRunThreads(threadIndex,cap,threadRange[0][indexThreshold],threadRange[1][indexThreshold]);
-        threadIndex++;
+    else{
+        cancelAllCalculations();
+        ui->registratePB->setText(tr("Registrate videoframes"));
+        runStatus = true;
+        ui->progress->setValue(0);
     }
 }
 
@@ -233,39 +225,44 @@ void SingleVideoLicovani::createAndRunThreads(int indexThread, cv::VideoCapture 
                                               int lowerLimit, int upperLimit)
 {
 
-    int cisloReference = findReferenceFrame(videoParametersInt["Ohodnoceni"][videoCounter]);
+    int cisloReference = findReferenceFrame(videoParametersInt["Ohodnoceni"]);
     cv::Mat referencniSnimek;
     cap.set(CV_CAP_PROP_POS_FRAMES,cisloReference);
-    if (!cap.read(referencniSnimek))
-        qWarning()<<"Frame "+QString::number(cisloReference)+" cannot be opened.";
-    QString _tempVideoName = videoListNames.at(videoCounter);
-    QString _tempVideoPath = videoList.at(videoCounter);
-    QVector<double> _tempFrangi = SharedVariables::getSharedVariables()->getFrangiParameters();
-    QVector<int> _evalFrames = videoParametersInt["Ohodnoceni"][videoCounter];
-    int _iter = -1;
-    double _arMax = 10.0;
-    double _angle = 0.1;
-    int _vertAnom = videoAnomalies["VerticalAnomaly"][0];
-    int _horizAnom = videoAnomalies["HorizontalAnomaly"][0];
-    threadPool[indexThread] = new RegistrationThread(indexThread,_tempVideoPath,_tempVideoName,_tempFrangi,
-                                                     _evalFrames,
-                                                     referencniSnimek,lowerLimit,upperLimit,_iter,_arMax,_angle,
-                                                     _vertAnom,_horizAnom,false);
+    if (!cap.read(referencniSnimek)){
+        localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",13);
+        localErrorDialogHandling[ui->registratePB]->show();
+        return;
+    }
+    else{
+        QString _tempVideoName = videoListNames.at(videoCounter);
+        QString _tempVideoPath = videoListFull.at(videoCounter);
+        QVector<double> _tempFrangi = SharedVariables::getSharedVariables()->getFrangiParameters();
+        QVector<int> _evalFrames = videoParametersInt["Ohodnoceni"];
+        int _iter = -1;
+        double _arMax = 10.0;
+        double _angle = 0.1;
+        int _vertAnom = videoAnomalies["VerticalAnomaly"][0];
+        int _horizAnom = videoAnomalies["HorizontalAnomaly"][0];
+        threadPool[indexThread] = new RegistrationThread(indexThread,_tempVideoPath,_tempVideoName,_tempFrangi,
+                                                         _evalFrames,
+                                                         referencniSnimek,lowerLimit,upperLimit,_iter,_arMax,_angle,
+                                                         _vertAnom,_horizAnom,false);
 
-    QObject::connect(threadPool[indexThread],SIGNAL(x_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(y_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(angleInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(statusInfo(int,int,QString)),this,SLOT(addStatus(int,int,QString)));
-    QObject::connect(threadPool[indexThread],SIGNAL(allWorkDone(int)),this,SLOT(processAnother(int)));
-    QObject::connect(threadPool[indexThread],SIGNAL(errorDetected(int,QString)),this,SLOT(errorHandler(int,QString)));
-    threadPool[indexThread]->start();
-    ui->name_state->setText(tr("Processing video ")+videoListNames.at(videoCounter));
-    emit calculationStarted();
+        QObject::connect(threadPool[indexThread],SIGNAL(x_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
+        QObject::connect(threadPool[indexThread],SIGNAL(y_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
+        QObject::connect(threadPool[indexThread],SIGNAL(angleInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
+        QObject::connect(threadPool[indexThread],SIGNAL(statusInfo(int,int,QString)),this,SLOT(addStatus(int,int,QString)));
+        QObject::connect(threadPool[indexThread],SIGNAL(allWorkDone(int)),this,SLOT(processAnother(int)));
+        QObject::connect(threadPool[indexThread],SIGNAL(errorDetected(int,QString)),this,SLOT(errorHandler(int,QString)));
+        QObject::connect(threadPool[indexThread],SIGNAL(readyForFinish(int)),this,SLOT(onFinishThread(int)));
+        threadPool[indexThread]->start();
+        ui->name_state->setText(tr("Processing video ")+videoListNames.at(videoCounter));
+    }
 }
 
 void SingleVideoLicovani::totalFramesCompleted(int frameCounter)
 {
-    cv::VideoCapture cap = cv::VideoCapture(videoList.at(videoCounter).toLocal8Bit().constData());
+    cv::VideoCapture cap = cv::VideoCapture(videoListFull.at(videoCounter).toLocal8Bit().constData());
     double frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
     ui->progress->setValue(qRound(double(frameCounter)/frameCount)*100);
 }
@@ -324,9 +321,7 @@ void SingleVideoLicovani::terminateThreads(){
     for (int threadIndex = 1; threadIndex <= threadPool.count(); threadIndex++){
             qDebug()<<"Termination "<<threadIndex<<". thread.";
             threadPool[threadIndex]->terminate();
-            delete threadPool.take(threadIndex);
     }
-    qDebug()<<"Actually active threads: "<<threadPool.size();
 }
 
 void SingleVideoLicovani::processResuluts(int analysedThread){
@@ -335,10 +330,11 @@ void SingleVideoLicovani::processResuluts(int analysedThread){
     for (int parameterIndex = 0; parameterIndex < 6; parameterIndex++){
         qDebug()<<"Processing "<<videoParameters.at(parameterIndex);
         for (int position = range[0]; position <= range[1]; position++){
-            if (videoParametersDouble[videoParameters.at(parameterIndex)][videoCounter][position] == 0.0)
-                videoParametersDouble[videoParameters.at(parameterIndex)][videoCounter][position] = measuredData[videoParameters.at(parameterIndex)][position];
+            if (videoParametersDouble[videoParameters.at(parameterIndex)][position] == 0.0)
+                videoParametersDouble[videoParameters.at(parameterIndex)][position] = measuredData[videoParameters.at(parameterIndex)][position];
         }
     }
+    threadPool[analysedThread]->dataObtained();
     //qDebug()<<videoParametersDouble["POCX"][videoCounter];
     //qDebug()<<videoParametersDouble["POCY"][videoCounter];
 }
@@ -348,12 +344,12 @@ void SingleVideoLicovani::processVideoParameters(QJsonObject &videoData)
         if (parameter < 6){
             QJsonArray arrayDouble = videoData[videoParameters.at(parameter)].toArray();
             QVector<double> pomDouble = arrayDouble2vector(arrayDouble);
-            videoParametersDouble[videoParameters.at(parameter)].append(pomDouble);
+            videoParametersDouble[videoParameters.at(parameter)] = pomDouble;
         }
         if (parameter == 6){
             QJsonArray arrayInt = videoData[videoParameters.at(parameter)].toArray();
             QVector<int> pomInt = arrayInt2vector(arrayInt);
-            videoParametersInt[videoParameters.at(parameter)].append(pomInt);
+            videoParametersInt[videoParameters.at(parameter)] = pomInt;
         }
         if (parameter > 6){
             int anomaly = videoData[videoParameters.at(parameter)].toInt();
@@ -364,22 +360,22 @@ void SingleVideoLicovani::processVideoParameters(QJsonObject &videoData)
 
 bool SingleVideoLicovani::writeToVideo()
 {
-    QString kompletni_cesta = videoList.at(0);//chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2];
-    cv::VideoCapture cap = cv::VideoCapture(kompletni_cesta.toLocal8Bit().constData());
+    QString fullPath = videoListFull.at(0);//chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2];
+    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
     if (!cap.isOpened())
     {
         localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",6);
         localErrorDialogHandling[ui->registratePB]->show();
         return false;
     }
-    double sirka_framu = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-    double vyska_framu = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    double _width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    double _height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
 
-    cv::Size velikostSnimku = cv::Size(int(sirka_framu),int(vyska_framu));
+    cv::Size _frameSize = cv::Size(int(_width),int(_height));
     double frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
-    QString cestaZapis = SharedVariables::getSharedVariables()->getPath("ulozeniVidea")+"/"+chosenVideo[1]+"_GUI.avi";
+    QString _writePath = SharedVariables::getSharedVariables()->getPath("ulozeniVidea")+"/"+chosenVideo[1]+"_GUI.avi";
     cv::VideoWriter writer;
-    writer.open(cestaZapis.toLocal8Bit().constData(),static_cast<int>(cap.get(CV_CAP_PROP_FOURCC)),cap.get(CV_CAP_PROP_FPS),velikostSnimku,true);
+    writer.open(_writePath.toLocal8Bit().constData(),static_cast<int>(cap.get(CV_CAP_PROP_FOURCC)),cap.get(CV_CAP_PROP_FPS),_frameSize,true);
     if (!writer.isOpened())
     {
         localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",12);
@@ -387,32 +383,32 @@ bool SingleVideoLicovani::writeToVideo()
         return false;
     }
     for (int indexImage = 0; indexImage < int(frameCount); indexImage++){
-        Mat posunutyOrig;
+        Mat movedOrig;
         cap.set(CV_CAP_PROP_POS_FRAMES,indexImage);
-        if (cap.read(posunutyOrig)!=1)
+        if (cap.read(movedOrig)!=1)
         {
             QString errorMessage = QString(tr("Frame %1 could not be loaded from the video for registration. Process interrupted")).arg(indexImage);
             localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",errorMessage);
             localErrorDialogHandling[ui->registratePB]->show();
             return false;
         }
-        else if (videoParametersDouble["POCX"][0][indexImage] == 999.0){
-            writer.write(posunutyOrig);
-            posunutyOrig.release();
+        else if (videoParametersDouble["POCX"][indexImage] == 999.0){
+            writer.write(movedOrig);
+            movedOrig.release();
         }
         else{
             Point3d finalTranslation(0.0,0.0,0.0);
-            cv::Mat plneSlicovany = cv::Mat::zeros(cv::Size(posunutyOrig.cols,posunutyOrig.rows), CV_32FC3);
-            kontrola_typu_snimku_8C3(posunutyOrig);
-            finalTranslation.x = videoParametersDouble["POCX"][0][indexImage];
-            finalTranslation.y = videoParametersDouble["POCY"][0][indexImage];
+            cv::Mat _fullyRegistrated = cv::Mat::zeros(cv::Size(movedOrig.cols,movedOrig.rows), CV_32FC3);
+            kontrola_typu_snimku_8C3(movedOrig);
+            finalTranslation.x = videoParametersDouble["POCX"][indexImage];
+            finalTranslation.y = videoParametersDouble["POCY"][indexImage];
             finalTranslation.z = 0.0;
             //qDebug()<<"For frame "<<indexImage<<" the translation is: "<<finalTranslation.x<<" "<<finalTranslation.y;
-            plneSlicovany = translace_snimku(posunutyOrig,finalTranslation,posunutyOrig.rows,posunutyOrig.cols);
-            plneSlicovany = rotace_snimku(plneSlicovany,videoParametersDouble["Uhel"][0][indexImage]);
-            writer.write(plneSlicovany);
-            posunutyOrig.release();
-            plneSlicovany.release();
+            _fullyRegistrated = translace_snimku(movedOrig,finalTranslation,movedOrig.rows,movedOrig.cols);
+            _fullyRegistrated = rotace_snimku(_fullyRegistrated,videoParametersDouble["Uhel"][indexImage]);
+            writer.write(_fullyRegistrated);
+            movedOrig.release();
+            _fullyRegistrated.release();
        }
     }
     return true;
@@ -424,6 +420,18 @@ void SingleVideoLicovani::on_savePB_clicked()
 }
 
 void SingleVideoLicovani::populateLists(QVector<QString> _file){
-    videoList.append(_file[0]+"/"+_file[1]+"."+_file[2]);
+    videoListFull.append(_file[0]+"/"+_file[1]+"."+_file[2]);
     videoListNames.append(_file[1]);
+}
+
+void SingleVideoLicovani::disableWidgets(){
+    ui->chooseVideoPB->setEnabled(false);
+    ui->savePB->setEnabled(false);
+    ui->showResultsPB->setEnabled(false);
+}
+
+void SingleVideoLicovani::enableWidgets(){
+    ui->chooseVideoPB->setEnabled(true);
+    ui->savePB->setEnabled(true);
+    ui->showResultsPB->setEnabled(true);
 }

@@ -54,6 +54,8 @@ public slots:
 
 signals:
     void checkRegistrationPass();
+    void calculationStarted();
+    void calculationStopped();
 
 private slots:
     void Slot_VideoLE_textChanged(const QString &s);
