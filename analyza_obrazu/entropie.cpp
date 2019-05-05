@@ -26,12 +26,12 @@ double binFrequency(cv::Mat &inputImage, int &histogramSize)
     }
     return frequency;
 }
-bool calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &tennengrad)
+bool calculateParametersET(cv::Mat &i_specificImage, double &i_entropy, cv::Scalar &i_tennengrad)
 {
     try {
         Mat filtered;//,filtrovany32f;
 
-        medianBlur(specificImage,filtered,5);
+        medianBlur(i_specificImage,filtered,5);
         Mat Sobelx,Sobely;
         Mat abs_grad_x, abs_grad_y,grad,suma,sum_abs_x,sum_abs_y;
 
@@ -45,9 +45,9 @@ bool calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &
         sum_abs_y = abs_grad_y.mul(abs_grad_y);
 
         cv::add(sum_abs_x,sum_abs_y,suma);
-        tennengrad = mean(suma);
+        i_tennengrad = mean(suma);
         cv::sqrt(suma,grad);
-        kontrola_typu_snimku_8C1(grad);
+        transformMatTypeTo8C1(grad);
         int histSize = 256;
         float range[] = { 0, 256 } ;
         const float* histRange = { range };
@@ -68,7 +68,7 @@ bool calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &
             if (p>0)
                 e+=-p*log2(p);
         }
-        entropy = e;
+        i_entropy = e;
         f=0;e=0;p=0;
         hist.release();
         return true;
@@ -77,68 +77,56 @@ bool calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &
     }
 
 }
-bool entropy_tennengrad_video(cv::VideoCapture& capture,
-                              QVector<double> &entropy,
-                              QVector<double> &tennengrad, QProgressBar *progbar)
+bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
+                              QVector<double> &i_entropy,
+                              QVector<double> &i_tennengrad)
 {
-    int uspech_analyzy = false;
+    int success = false;
     int percentage = 0;
 
-    if (capture.isOpened() == 0)
+    if (i_capture.isOpened() == 0)
     {
-        uspech_analyzy = false;
+        success = false;
     }
     else
     {
-        int pocet_snimku_videa = int(capture.get(CV_CAP_PROP_FRAME_COUNT));
-        qDebug()<< "Analyza videa: ";
-        for (int a = 0; a < pocet_snimku_videa; a++)
+        int frameCount = int(i_capture.get(CV_CAP_PROP_FRAME_COUNT));
+        for (int a = 0; a < frameCount; a++)
         {
-            //qDebug()<<a;
             if (a == 0)
                 percentage = 0;
-            else if (a == (pocet_snimku_videa-1))
+            else if (a == (frameCount-1))
                 percentage = 100;
             else
-                percentage = ((a/pocet_snimku_videa)*100);
-
-            QCoreApplication::processEvents(); // tato funkce frčí v jiném vlákně - mohu sledovat
-            progbar->setValue(percentage);
-            //percentageComplete(procento);
-            // vytížení procesoru v reálném čase
+                percentage = ((a/frameCount)*100);
 
             cv::Mat image;
             double entropyValue = 0;
             cv::Scalar tennengradValue;
-            capture.set(CAP_PROP_POS_FRAMES,double(a));
-            if (!capture.read(image)){
+            i_capture.set(CAP_PROP_POS_FRAMES,double(a));
+            if (!i_capture.read(image)){
 
             }
             else
             {
                 if (calculateParametersET(image,entropyValue,tennengradValue)){ /// výpočty proběhnou v pořádku
                     double pom = tennengradValue[0];
-                    entropy[a] = (entropyValue);
-                    tennengrad[a] = (pom);
+                    i_entropy[a] = (entropyValue);
+                    i_tennengrad[a] = (pom);
                     image.release();
                 }
             }
         }
-        uspech_analyzy = true;
+        success = true;
     }
-    return uspech_analyzy;
+    return success;
 }
 
-void standardizedData(QVector<double>& dataStandardized, QVector<double> &dataOriginal, double minimum, double maximum)
+void dataStandardization(QVector<double>& i_dataStandardized, QVector<double> &i_dataOriginal, double i_minimum, double i_maximum)
 {
-    for (int a = 0; a < dataStandardized.length(); a++)
+    for (int a = 0; a < i_dataStandardized.length(); a++)
     {
-        double hodnotaStandardizovana = (dataOriginal[a]-minimum)/(maximum-minimum);
-        dataStandardized[a] = (hodnotaStandardizovana);
+        double new_value = (i_dataOriginal[a]-i_minimum)/(i_maximum-i_minimum);
+        i_dataStandardized[a] = (new_value);
     }
-}
-
-void aktualizaceProgressBaru(QProgressBar* pb, int procento)
-{
-    pb->setValue(procento);
 }

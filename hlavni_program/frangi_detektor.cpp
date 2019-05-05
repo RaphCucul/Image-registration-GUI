@@ -225,7 +225,6 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
             standardInt = 1;
         QVector<double> parametersForFrangi = {sigma_start,sigma_step,sigma_end,beta_one,beta_two,double(standardInt)};
         qDebug()<<parametersForFrangi;
-        //qDebug()<<FrangiParametersVector.length();
         bool standard = ui->RB_standard->isChecked();
         int processingType;
         if (standard)
@@ -245,7 +244,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
             cap.set(CV_CAP_PROP_POS_FRAMES,analyseFrame);
             cap.read(chosenFrame);
         }
-        kontrola_typu_snimku_8C3(chosenFrame);
+        transformMatTypeTo8C3(chosenFrame);
         Point3d pt_temp(0.0,0.0,0.0);
         cv::Point3d detectedFrangi = frangi_analysis(chosenFrame,
                                                      processingType,1,1,tr("Frangi of chosen frame"),1,pt_temp,
@@ -253,25 +252,6 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
         qDebug()<<"Frangi maximum detected "<<detectedFrangi.x<<" "<<detectedFrangi.y;
         SharedVariables::getSharedVariables()->setFrangiMaximum(detectedFrangi);
         calculationStopped();
-        /*cv::Mat src, J, Scale, Directions;
-   frangi2d_opts_t opts;
-   frangi2d_createopts(&opts);
-   if (processingType == 2)
-   {
-       opts.BlackWhite = false;
-   }
-   else if(processingType == 1)
-   {
-       opts.BlackWhite = true;
-   }
-   opts.sigma_start = int(parametersForFrangi[0]);
-   opts.sigma_step = int(parametersForFrangi[1]);
-   opts.sigma_end = int(parametersForFrangi[2]);
-   opts.BetaOne = parametersForFrangi[3];
-   opts.BetaTwo = parametersForFrangi[4];
-   kontrola_typu_snimku_32(chosenFrame);
-   frangi2d(chosenFrame,J,Scale,Directions,opts);
-   imshow("Frangi",J);*/
     }
 }
 
@@ -359,36 +339,3 @@ void Frangi_detektor::on_saveParameters_clicked()
         SharedVariables::getSharedVariables()->setSpecificFrangiParameter(5,0.0);
     SharedVariables::getSharedVariables()->saveFrangiParameters();
 }
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-// Návod pro práci s OpenCV v Qt - je třeba neustále kontrolovat channels a type Mat objektů
-// podle požadavků jednotlivých funkcí!!
-// Například načtení snímku z videa místo 3 channel 8U plive 8UC1
-/*cv::Mat Frangi_detektor::filtrace_obrazu(cv::Mat vstupni_snimek)
-{
-    cv::Mat vystupni_obraz,medianFilter,RF;
-    cv::medianBlur(vstupni_snimek,medianFilter,5);
-    qDebug()<<medianFilter.channels()<<" "<<medianFilter.type();
-    kontrola_typu_snimku_8C3(medianFilter);
-    qDebug()<<medianFilter.channels()<<" "<<medianFilter.type();
-    cv::edgePreservingFilter(medianFilter,RF);
-    ukaz_Mat("MedianFilter",medianFilter);
-    imshow("RF",RF);*/
-/*if (RF.channels() == 3)
-    {
-        std::vector<cv::Mat> channels(3);
-        cv::split(RF,channels);
-        vystupni_obraz = channels[1];
-        vystupni_obraz.convertTo(vystupni_obraz,CV_32FC1);
-    }
-    else
-    {
-        vystupni_obraz = RF;
-    }
-    return vystupni_obraz;*/
-/*return RF;
-}*/
-
-
-
-

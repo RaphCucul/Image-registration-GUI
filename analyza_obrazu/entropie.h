@@ -6,7 +6,14 @@
 #include <QProgressBar>
 #include <QVector>
 
-bool calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &tennengrad);
+/**
+ * @brief Function calculates entropy and tennengrad of the given frame.
+ * @param i_specificImage
+ * @param i_entropy
+ * @param i_tennengrad
+ * @return
+ */
+bool calculateParametersET(cv::Mat &i_specificImage, double &i_entropy, cv::Scalar &i_tennengrad);
 
 /**
  * @brief Function wraps calcutaion of entropy and tennengrad of the video
@@ -16,15 +23,20 @@ bool calculateParametersET(cv::Mat &specificImage, double &entropy, cv::Scalar &
  * @param progbar
  * @return
  */
-bool entropy_tennengrad_video(cv::VideoCapture& capture, QVector<double>& entropy,
-                              QVector<double>& tennengrad,QProgressBar* progbar);
+bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
+                              QVector<double>& i_entropy,
+                              QVector<double>& i_tennengrad);
 
 double binFrequency(cv::Mat &inputImage,int &histogramSize);
 
-void standardizedData(QVector<double>& dataStandardized,QVector<double>& dataOriginal,
-                             double minimum,double maximum);
-
-
-//void aktualizaceProgressBaru(QProgressBar* pb, int procento);
+/**
+ * @brief To plot entropy and tennengrad values to the same graph, it is necessary to standardize the data.
+ * @param i_dataStandardized
+ * @param i_dataOriginal
+ * @param i_minimum
+ * @param i_maximum
+ */
+void dataStandardization(QVector<double>& i_dataStandardized,QVector<double>& i_dataOriginal,
+                             double i_minimum,double i_maximum);
 
 #endif // ENTROPIE_H_INCLUDED

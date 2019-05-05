@@ -2,7 +2,6 @@
 #define CPUWIDGET_H
 #include "fancy_staff/systemmonitorwidget.h"
 #include <QWidget>
-//#include <QtCharts/QLineSeries>
 #include <QtCharts/QPieSeries>
 
 class CPUWidget : public SystemMonitorWidget
@@ -16,11 +15,8 @@ protected slots:
     the  Q_OBJECT  macro to allow  CPUWidget  to respond to
     the  SysInfoWidgetmRefreshTimer::timeout()  signal.*/
 private:
-    //QtCharts::QLineSeries* mSeries;
     QtCharts::QPieSeries* mSeries;
     qint64 mPointPositionX;
-/*signals:
-    void updateWidget();*/
 };
 
 #endif // CPUWIDGET_H

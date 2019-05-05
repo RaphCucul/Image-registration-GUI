@@ -133,7 +133,7 @@ void qThreadSecondPart::run()
                         pt = fk_translace_hann(referencialImage,translated);
                     }
                     cv::Mat registrated;
-                    registrated = translace_snimku(translated,pt,rows,cols);
+                    registrated = frameTranslation(translated,pt,rows,cols);
                     translated.release();
                     double zCoords = pt.z;
                     double sigma_gauss = 0.0;
@@ -141,7 +141,7 @@ void qThreadSecondPart::run()
                     double FWHM = 0.0;
                     FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
                     computedFWHM[j] = FWHM;
-                    double cc = vypocet_KK(referencialImage,registrated,_tempStandard);
+                    double cc = calculateCorrCoef(referencialImage,registrated,_tempStandard);
                     registrated.release();
                     computedCC[j] = cc;
                     qDebug()<<"Frame "<< framesForSigma[j] <<" has CC "<< cc << " a FWHM "<< FWHM;

@@ -50,14 +50,14 @@ bool completeRegistration(cv::VideoCapture& cap,
  * @param anomalyPresence
  * @param scalingNeeded
  */
-bool preprocessingCompleteRegistration(cv::Mat &reference,
-                                       cv::Mat &obraz,
-                                       QVector<double> parFrang,
-                                       cv::Point2d &hraniceAnomalie,
-                                       cv::Point2d &hraniceCasu,
-                                       cv::Rect &oblastAnomalie,
-                                       cv::Rect &vyrezKoreEx,
-                                       cv::Rect &vyrezKoreStand,
-                                       cv::VideoCapture &cap,
-                                       bool &zmeMer);
+bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
+                                       cv::Mat &i_shifted,
+                                       QVector<double> i_frangiParameters,
+                                       cv::Point2d &i_verticalAnomalyCoords,
+                                       cv::Point2d &i_horizontalAnomalyCoords,
+                                       cv::Rect &i_anomalyArea,
+                                       cv::Rect &i_cutoutExtra,
+                                       cv::Rect &i_cutoutStandard,
+                                       cv::VideoCapture &i_cap,
+                                       bool &i_scaleChange);
 #endif // MULTIPOC_AI1_H_INCLUDED

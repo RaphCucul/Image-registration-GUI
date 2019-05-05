@@ -44,8 +44,7 @@ private slots:
      * @brief Function stores the path user has selected in the corresponding combobox
      * @param index
      */
-    void chosenPath(int index);
-    //void chosenPathString(QString cesta);
+    void chosenPath(int i_index);
 
     void on_paramFrangPB_clicked();
     void on_ChooseFileFolderDirectory_clicked();
@@ -53,7 +52,6 @@ private slots:
     void on_SaveVideos_clicked();
     void on_LoadingDataFolder_clicked();
     void on_SavingDataFolder_clicked();
-    //void on_SaveAllPath_clicked();
 
     void on_FileFolderDirectory_textEdited(const QString &arg1);
 signals:
@@ -69,7 +67,7 @@ private:
      * @param type - corresponding path type
      * @param path - chosen path itself
      */
-    void processPath(QString type, QString path);
+    void processPath(QString i_type, QString i_path);
 
     /**
      * @brief Function enables all form elements. Paths can be added and selected.
@@ -90,7 +88,7 @@ private:
      * @param onlyCheckEmpty
      * @return
      */
-    bool getPathFromJson(QString type, QComboBox* box, bool onlyCheckEmpty);
+    bool getPathFromJson(QString i_type, QComboBox* i_box, bool i_onlyCheckEmpty);
 
     /**
      * @brief Function calls getPathFromJson for all JSON object types and set the argument "onlyCheckEmpty"
@@ -99,7 +97,7 @@ private:
      * @param onlyCheckEmpty
      * @return
      */
-    bool getPathsFromJson(bool onlyCheckEmpty);
+    bool getPathsFromJson(bool i_onlyCheckEmpty);
 
     /**
      * @brief Function loads the content from the JSON folder file.

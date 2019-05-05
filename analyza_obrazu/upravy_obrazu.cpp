@@ -15,119 +15,119 @@
 #include <random>
 using namespace cv;
 
-cv::Mat translace_snimku(const cv::Mat& posunuty_original,const cv::Point3d& hodnoty_translace,int radky,int sloupce)
+cv::Mat frameTranslation(const cv::Mat& i_shifted_orig, const cv::Point3d& i_shift, int i_rows, int i_cols)
 {
-    cv::Mat srcX(radky,sloupce,CV_32FC1);
-    cv::Mat srcY(radky,sloupce,CV_32FC1);
-    cv::Mat vysledek_translace;
+    cv::Mat srcX(i_rows,i_cols,CV_32FC1);
+    cv::Mat srcY(i_rows,i_cols,CV_32FC1);
+    cv::Mat translation_result;
     //Mat result;
-    for (int i = 0; i < radky; i++)
+    for (int i = 0; i < i_rows; i++)
     {
-        for (int j = 0; j < sloupce; j++)
+        for (int j = 0; j < i_cols; j++)
         {
-            srcX.at<float>(i,j) = float(j+hodnoty_translace.x);
-            srcY.at<float>(i,j) = float(i+hodnoty_translace.y);
+            srcX.at<float>(i,j) = float(j+i_shift.x);
+            srcY.at<float>(i,j) = float(i+i_shift.y);
         }
     }
-    cv::remap(posunuty_original,vysledek_translace,srcX,srcY,cv::INTER_LINEAR);
+    cv::remap(i_shifted_orig,translation_result,srcX,srcY,cv::INTER_LINEAR);
 
     srcX.release();
     srcY.release();
-    return vysledek_translace;
+    return translation_result;
 }
-cv::Mat rotace_snimku(const cv::Mat& snimek_po_translaci, const double uhel)
+cv::Mat frameRotation(const cv::Mat& i_frameAfterTranslation, const double i_angle)
 {
-    cv::Point2f src_center(snimek_po_translaci.cols/2.0f, snimek_po_translaci.rows/2.0f);
-    cv::Mat M = cv::getRotationMatrix2D(src_center,uhel,1);
-    cv::Mat vysledny_snimek_rotace;// = cv::Mat::zeros(snimek_po_translaci.size(), CV_32FC3);
-    cv::warpAffine(snimek_po_translaci,vysledny_snimek_rotace,M,snimek_po_translaci.size(),0,BORDER_REPLICATE);
-    return vysledny_snimek_rotace;
+    cv::Point2f src_center(i_frameAfterTranslation.cols/2.0f, i_frameAfterTranslation.rows/2.0f);
+    cv::Mat M = cv::getRotationMatrix2D(src_center,i_angle,1);
+    cv::Mat rotation_result;// = cv::Mat::zeros(i_frameAfterTranslation.size(), CV_32FC3);
+    cv::warpAffine(i_frameAfterTranslation,rotation_result,M,i_frameAfterTranslation.size(),0,BORDER_REPLICATE);
+    return rotation_result;
 }
-void ukaz_Mat(std::string jmeno_okna,cv::Mat snimek_k_zobrazeni)
+void showMat(std::string i_windowName, cv::Mat i_frameToShow)
 {
-    cv::namedWindow(jmeno_okna);
-    cv::Mat snimek_k_zobrazeni8U = cv::Mat::zeros(snimek_k_zobrazeni.rows,snimek_k_zobrazeni.cols,CV_8UC3);
-    snimek_k_zobrazeni.copyTo(snimek_k_zobrazeni8U);
-    snimek_k_zobrazeni.release();
-    if (snimek_k_zobrazeni8U.type() != 0)
+    cv::namedWindow(i_windowName);
+    cv::Mat frameToShow_8U = cv::Mat::zeros(i_frameToShow.rows,i_frameToShow.cols,CV_8UC3);
+    i_frameToShow.copyTo(frameToShow_8U);
+    i_frameToShow.release();
+    if (frameToShow_8U.type() != 0)
     {
-        if (snimek_k_zobrazeni8U.channels() == 3)
+        if (frameToShow_8U.channels() == 3)
         {
-            cv::cvtColor(snimek_k_zobrazeni8U,snimek_k_zobrazeni8U,CV_BGR2GRAY);
-            snimek_k_zobrazeni8U.convertTo(snimek_k_zobrazeni8U,CV_8UC1);
+            cv::cvtColor(frameToShow_8U,frameToShow_8U,CV_BGR2GRAY);
+            frameToShow_8U.convertTo(frameToShow_8U,CV_8UC1);
         }
         else
         {
-            snimek_k_zobrazeni8U.convertTo(snimek_k_zobrazeni8U,CV_8UC1);
+            frameToShow_8U.convertTo(frameToShow_8U,CV_8UC1);
         }
     }
-    imshow(jmeno_okna,snimek_k_zobrazeni8U);
-    snimek_k_zobrazeni8U.release();
+    imshow(i_windowName,frameToShow_8U);
+    frameToShow_8U.release();
 }
 
-void kontrola_typu_snimku_32C1(cv::Mat& snimek_ke_kontrole)
+void transformMatTypeTo32C1(cv::Mat& i_MatToCheck)
 {
-    if (snimek_ke_kontrole.type() != 5)
+    if (i_MatToCheck.type() != 5)
     {
-        if (snimek_ke_kontrole.channels() == 3)
+        if (i_MatToCheck.channels() == 3)
         {
-            cvtColor(snimek_ke_kontrole,snimek_ke_kontrole,CV_BGR2GRAY);
-            snimek_ke_kontrole.convertTo(snimek_ke_kontrole,CV_32FC1);
+            cvtColor(i_MatToCheck,i_MatToCheck,CV_BGR2GRAY);
+            i_MatToCheck.convertTo(i_MatToCheck,CV_32FC1);
         }
         else
         {
-            snimek_ke_kontrole.convertTo(snimek_ke_kontrole,CV_32FC1);
-        }
-    }
-}
-
-void kontrola_typu_snimku_8C1(cv::Mat& snimek_ke_kontrole)
-{
-    if (snimek_ke_kontrole.type() != 0)
-    {
-        if (snimek_ke_kontrole.channels() == 3)
-        {
-            cv::cvtColor(snimek_ke_kontrole,snimek_ke_kontrole,CV_BGR2GRAY);
-            snimek_ke_kontrole.convertTo(snimek_ke_kontrole,CV_8UC1);
-        }
-        else
-        {
-            snimek_ke_kontrole.convertTo(snimek_ke_kontrole,CV_8UC1);
+            i_MatToCheck.convertTo(i_MatToCheck,CV_32FC1);
         }
     }
 }
 
-cv::Mat kontrola_typu_snimku_64C1(cv::Mat& snimek_ke_kontrole)
+void transformMatTypeTo8C1(cv::Mat& i_MatToCheck)
+{
+    if (i_MatToCheck.type() != 0)
+    {
+        if (i_MatToCheck.channels() == 3)
+        {
+            cv::cvtColor(i_MatToCheck,i_MatToCheck,CV_BGR2GRAY);
+            i_MatToCheck.convertTo(i_MatToCheck,CV_8UC1);
+        }
+        else
+        {
+            i_MatToCheck.convertTo(i_MatToCheck,CV_8UC1);
+        }
+    }
+}
+
+cv::Mat transformMatTypeTo64C1(cv::Mat& i_MatToCheck)
 {
     Mat upraveny;
-    if (snimek_ke_kontrole.type() != 6)
+    if (i_MatToCheck.type() != 6)
     {
-        if (snimek_ke_kontrole.channels() == 3)
+        if (i_MatToCheck.channels() == 3)
         {
-            cvtColor(snimek_ke_kontrole,upraveny,CV_BGR2GRAY);
+            cvtColor(i_MatToCheck,upraveny,CV_BGR2GRAY);
             upraveny.convertTo(upraveny,CV_64FC1);
         }
         else
         {
-            snimek_ke_kontrole.copyTo(upraveny);
+            i_MatToCheck.copyTo(upraveny);
             upraveny.convertTo(upraveny,CV_64FC1);
         }
     }
     return upraveny;
 }
 
-void kontrola_typu_snimku_8C3(cv::Mat& snimek_ke_kontrole)
+void transformMatTypeTo8C3(cv::Mat& i_MatToCheck)
 {
-    if (snimek_ke_kontrole.type() != 16)
+    if (i_MatToCheck.type() != 16)
     {
-        if (snimek_ke_kontrole.channels() != 3)
+        if (i_MatToCheck.channels() != 3)
         {
-            cv::cvtColor(snimek_ke_kontrole,snimek_ke_kontrole,CV_GRAY2BGR);
-            snimek_ke_kontrole.convertTo(snimek_ke_kontrole,CV_8UC3);
+            cv::cvtColor(i_MatToCheck,i_MatToCheck,CV_GRAY2BGR);
+            i_MatToCheck.convertTo(i_MatToCheck,CV_8UC3);
         }
         else
         {
-            snimek_ke_kontrole.convertTo(snimek_ke_kontrole,CV_8UC3);
+            i_MatToCheck.convertTo(i_MatToCheck,CV_8UC3);
         }
     }
 }

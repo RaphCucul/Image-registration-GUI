@@ -5,7 +5,6 @@
 #include "dialogy/singlevideolicovani.h"
 #include "dialogy/multivideolicovani.h"
 #include "analyza_obrazu/entropie.h"
-//#include "util/util_licovanividea.h"
 #include "dialogy/grafet.h"
 #include "ui_licovanividea.h"
 
@@ -70,7 +69,6 @@ LicovaniVidea::~LicovaniVidea()
 
 void LicovaniVidea::enableTabs(){
     for (int var = 0; var < ui->metody->tabBar()->count(); var++) {
-        //qDebug()<<"Calculating in the index "<<ui->metody->currentIndex();
         if (var != ui->metody->currentIndex())
             ui->metody->setTabEnabled(var,true);
     }
@@ -79,7 +77,6 @@ void LicovaniVidea::enableTabs(){
 
 void LicovaniVidea::disableTabs(){
     for (int var = 0; var < ui->metody->tabBar()->count(); var++) {
-        //qDebug()<<"Calculating in the index "<<ui->metody->currentIndex();
         if (var != ui->metody->currentIndex())
             ui->metody->setTabEnabled(var,false);
     }

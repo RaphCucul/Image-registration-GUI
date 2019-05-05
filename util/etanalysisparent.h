@@ -40,7 +40,8 @@ protected:
      * @param finalValue
      * @param evaluation
      */
-    void checkInputNumber(double input,double lower,double upper,QLineEdit* editWidget,double& finalValue,bool& evaluation);
+    void checkInputNumber(double i_input,double i_lower,double i_upper,
+                          QLineEdit* i_editWidget,double& i_finalValue,bool& i_evaluation);
 
     /**
      * @brief Function clears the content of all thread QMaps.

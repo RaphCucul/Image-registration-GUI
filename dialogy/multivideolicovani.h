@@ -65,28 +65,68 @@ private slots:
 
     void errorHandler(int indexOfThread,QString errorMessage);
     void processAnother(int indexOfThread);
+
+    /**
+     * @brief Clicking on any row of the QListWidget will show, if possible, the table with computed
+     * parameters
+     * @param row
+     * @param column
+     */
     void on_listOfVideos_cellClicked(int row, int column);
 
 private:
+    /**
+     * @brief Function process computed translations of frames in specific range the thread was
+     * initialized for.
+     * @param analysedThread
+     */
     void processResuluts(int analysedThread);
 
+    /**
+     * @brief Function creates registration threads in for loop.
+     * @param indexThread
+     * @param cap
+     * @param lowerLimit
+     * @param upperLimit
+     */
     void createAndRunThreads(int indexThread, cv::VideoCapture& cap, int lowerLimit,
                              int upperLimit);
+
+    /**
+     * @brief Function loads data from *.dat files of selected videos.
+     * @param videoData
+     * @param inputMMdouble
+     * @param inputMMint
+     * @param inputMManomaly
+     */
     void processVideoParameters(QJsonObject& videoData,
                                 QMap<QString, QVector<double>> &inputMMdouble,
                                 QMap<QString, QVector<int>> &inputMMint,
                                 QMap<QString, QVector<int>> &inputMManomaly);
+
+    /**
+     * @brief Function apply the results of registration on original frames and produces video with
+     * registrated frames. Produced video is not compressed.
+     * @return
+     */
     int writeToVideo();
     void saveTheResults(QMap<QString,QVector<double>> input,int from, int to);
 
     bool checkPath(QString filenameToAnalyse);
     bool checkVideo(cv::VideoCapture& capture);
 
+    /**
+     * @brief Function calls processVideoParameters() in the for loop for all chosen videos.
+     * @param chosenVideos
+     */
     void populateProperties(QStringList chosenVideos);
 
     void displayStatus(QString status);
 
     void startCalculations(cv::VideoCapture& capture);
+
+    void enableWidgets();
+    void disableWidgets();
 
     Ui::MultiVideoLicovani *ui;
     RegistrationThread *regThread;

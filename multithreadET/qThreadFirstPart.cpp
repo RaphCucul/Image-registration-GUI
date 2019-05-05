@@ -82,7 +82,7 @@ void qThreadFirstPart::run()
             }
             else
             {
-                kontrola_typu_snimku_8C3(frame);
+                transformMatTypeTo8C3(frame);
                 calculateParametersET(frame,entropy_value,tennengrad_value);
                 double pom = tennengrad_value[0];
                 entropyActual[int(a)] = (entropy_value);

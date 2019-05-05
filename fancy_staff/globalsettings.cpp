@@ -6,8 +6,8 @@ GlobalSettings * GlobalSettings::m_Settings = nullptr;
 
 GlobalSettings::GlobalSettings()
 {
-    iniPath = QCoreApplication::applicationDirPath();//QDir::currentPath();//QFileInfo(".").absolutePath();//"D:/Qt_projekty/Licovani_videa_GUI";
-    QString pom = iniPath+"/"+iniFileName;//"D:/Qt_projekty/Licovani_videa_GUI/settings.ini";
+    iniPath = QCoreApplication::applicationDirPath();
+    QString pom = iniPath+"/"+iniFileName;
     qDebug()<<"Expected *.ini path: "<<pom;
     settings = new QSettings(pom, QSettings::IniFormat);
 }

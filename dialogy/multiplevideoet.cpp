@@ -4,7 +4,7 @@
 #include "analyza_obrazu/pouzij_frangiho.h"
 #include "analyza_obrazu/upravy_obrazu.h"
 #include "hlavni_program/frangi_detektor.h"
-#include "dialogy/grafet.h"
+#include "dialogy/graphet_parent.h"
 #include "dialogy/clickimageevent.h"
 #include "util/souborove_operace.h"
 #include "multithreadET/qThreadFirstPart.h"
@@ -87,7 +87,7 @@ void MultipleVideoET::dropEvent(QDropEvent *event)
               }
        }
        //videoList = seznamVidei;
-       qDebug()<<"Aktualizace seznamu videi: "<<videoList;
+       qDebug()<<"Actual list of videos contains: "<<videoList;
        ui->selectedVideos->addItems(videoList);
 }
 
@@ -134,7 +134,6 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
 {
     if (runStatus){
         if (checkVideos()){
-            qDebug()<<"videoList contains "<<analysedVideos.count()<<" videos.";
             First[1] = new qThreadFirstPart(analysedVideos,
                                             SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
                                             SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
@@ -161,6 +160,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
         ui->computationProgress->setValue(0);
         ui->actualMethod_label->setText("");
         ui->actualVideo_label->setText("");
+        canProceed = false;
     }
 }
 
@@ -174,74 +174,67 @@ void MultipleVideoET::on_showResultsPB_clicked()
         processFilePath(fullPath,slozka,jmeno,koncovka);
         inputVector.append(jmeno);
     }
-    GrafET* graf_ET = new GrafET(
-                mapDouble["entropie"],
-                mapDouble["tennengrad"],
-                mapInt["PrvotOhodEntropie"],
-                mapInt["PrvotOhodTennengrad"],
-                mapInt["PrvniRozhod"],
-                mapInt["DruheRozhod"],
-                mapInt["Ohodnoceni"],
-                inputVector,
-                this);
-    graf_ET->setModal(true);
-    graf_ET->show();
+    GraphET_parent* graph = new GraphET_parent(inputVector,
+                                               mapDouble["entropie"],
+                                               mapDouble["tennengrad"],
+                                               mapInt["PrvotOhodEntropie"],
+                                               mapInt["PrvotOhodTennengrad"],
+                                               mapInt["PrvniRozhod"],
+                                               mapInt["DruheRozhod"],
+                                               mapInt["Ohodnoceni"],
+                                               this);
+    graph->setModal(true);
+    graph->show();
 }
 
 void MultipleVideoET::on_deleteChosenFromListPB_clicked()
 {
     QList<QListWidgetItem*> selectedVideos = ui->selectedVideos->selectedItems();
-    //qDebug()<<"Selected videos will be deleted: "<<selectedVideos;
+    qDebug()<<"Selected videos will be deleted: "<<selectedVideos;
     foreach (QListWidgetItem* item,selectedVideos)
     {
         int index = ui->selectedVideos->row(item);
         videoList.removeAt(index);
         delete ui->selectedVideos->takeItem(ui->selectedVideos->row(item));
     }
-    //qDebug()<<"Number of videos after deletion: "<<ui->vybranaVidea->count();
-    //qDebug()<<"Number of videos in the video list: "<<videoList.count();
 }
 
 void MultipleVideoET::on_savePB_clicked()
-{
-
-    for (int a = 0; a < videoList.count(); a++)
-    {
+{    
+    for (int indexVideo=0; indexVideo<mapDouble["entropie"].length(); indexVideo++){
         QJsonDocument document;
         QJsonObject object;
         QString folder,filename,suffix;
-        QString fullPath = videoList.at(a);
+        QString fullPath = videoList.at(indexVideo);
         processFilePath(fullPath,folder,filename,suffix);
-        QString aktualJmeno = filename;
-        QString cesta = SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+aktualJmeno+".dat";
-        for (int indexVideo=0; indexVideo<mapDouble["entropie"].length(); indexVideo++){
-            for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-                qDebug()<<videoParameters.at(parameter);
-                if (parameter < 8){
-                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][indexVideo];
-                    QJsonArray pomArray = vector2array(pomDouble);
-                    object[videoParameters.at(parameter)] = pomArray;
-                }
-                else if (parameter >= 8 && parameter <= 12){
-                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][indexVideo];
-                    if (videoParameters.at(parameter) == "Ohodnoceni")
-                        pomInt[framesReferencial[indexVideo]]=2;
+        QString path = SharedVariables::getSharedVariables()->getPath("adresarTXT_ulozeni")+"/"+filename+".dat";
 
-                    QJsonArray pomArray = vector2array(pomInt);
-                    object[videoParameters.at(parameter)] = pomArray;
-                }
-                else{
-                    if (videoParameters.at(parameter) == "VerticalAnomaly")
-                        object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y);
-                    else
-                        object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
-                }
+        for (int parameter = 0; parameter < videoParameters.count(); parameter++){
+            qDebug()<<videoParameters.at(parameter);
+            if (parameter < 8){
+                QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][indexVideo];
+                QJsonArray pomArray = vector2array(pomDouble);
+                object[videoParameters.at(parameter)] = pomArray;
+            }
+            else if (parameter >= 8 && parameter <= 12){
+                QVector<int> pomInt = mapInt[videoParameters.at(parameter)][indexVideo];
+                if (videoParameters.at(parameter) == "Ohodnoceni")
+                    pomInt[framesReferencial[indexVideo]]=2;
+
+                QJsonArray pomArray = vector2array(pomInt);
+                object[videoParameters.at(parameter)] = pomArray;
+            }
+            else{
+                if (videoParameters.at(parameter) == "VerticalAnomaly")
+                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y);
+                else
+                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
             }
         }
         document.setObject(object);
         QString documentString = document.toJson();
         QFile writer;
-        writer.setFileName(cesta);
+        writer.setFileName(path);
         writer.open(QIODevice::WriteOnly);
         writer.write(documentString.toLocal8Bit());
         writer.close();
@@ -252,14 +245,6 @@ void MultipleVideoET::onDone(int thread){
     done(thread);
     if (thread == 1){
         qDebug()<<"First done, starting second...";
-        /*First[1]->terminate();
-        //First[1]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        First[1]->wait();
-        First[1]->deleteLater();
-
-        qDebug()<<"Deleted completely";*/
-        //delete First.take(1);
 
         Second[2] = new qThreadSecondPart(analysedVideos,
                                           badVideos,
@@ -280,14 +265,6 @@ void MultipleVideoET::onDone(int thread){
     }
     else if (thread == 2){
         qDebug()<<"Second done, starting third...";
-        /*Second[2]->terminate();
-        //Second[2]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Second[2]->wait();
-        Second[2]->deleteLater();
-
-        qDebug()<<"Deleted completely";*/
-        //delete Second.take(2);
 
         Third[3] = new qThreadThirdPart(analysedVideos,
                                         badVideos,
@@ -311,14 +288,6 @@ void MultipleVideoET::onDone(int thread){
     }
     else if (thread == 3){
         qDebug()<<"Third done, starting fourth...";
-        /*Third[3]->terminate();
-        //Third[3]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Third[3]->wait();
-        Third[3]->deleteLater();
-
-        qDebug()<<"Deleted completely";*/
-        //delete Third.take(3);
 
         Fourth[4] = new qThreadFourthPart(analysedVideos,
                                           badVideos,
@@ -346,14 +315,6 @@ void MultipleVideoET::onDone(int thread){
     }
     else if (thread == 4){
         qDebug()<<"Fourth done, starting fifth";
-        /*Fourth[4]->terminate();
-        //Fourth[4]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Fourth[4]->wait();
-        Fourth[4]->deleteLater();
-
-        qDebug()<<"Deleted completely";*/
-        //delete Fourth.take(4);
 
         Fifth[5] = new qThreadFifthPart(analysedVideos,
                                         badVideos,
@@ -389,14 +350,6 @@ void MultipleVideoET::onDone(int thread){
         ui->savePB->setEnabled(true);
         ui->actualMethod_label->setText(tr("Fifth part done. Analysis completed"));
         qDebug()<<"Fifth done.";
-        /*Fifth[5]->terminate();
-        //Fifth[5]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Fifth[5]->wait();
-        Fifth[5]->deleteLater();
-
-        qDebug()<<"Deleted completely";*/
-        //delete Fifth.take(5);
         emit calculationStopped();
     }
 }
@@ -419,15 +372,15 @@ void MultipleVideoET::newVideoProcessed(int index)
 void MultipleVideoET::movedToMethod(int metoda)
 {
     if (metoda == 0)
-        ui->actualMethod_label->setText("1/5 Entropy and tennengrad computation");
+        ui->actualMethod_label->setText(tr("1/5 Entropy and tennengrad computation"));
     if (metoda == 1)
-        ui->actualMethod_label->setText("2/5 Average correlation and FWHM");
+        ui->actualMethod_label->setText(tr("2/5 Average correlation and FWHM"));
     if (metoda == 2)
-        ui->actualMethod_label->setText("3/5 First decision algorithm started");
+        ui->actualMethod_label->setText(tr("3/5 First decision algorithm started"));
     if (metoda == 3)
-        ui->actualMethod_label->setText("4/5 Second decision algorithm started");
+        ui->actualMethod_label->setText(tr("4/5 Second decision algorithm started"));
     if (metoda == 4)
-        ui->actualMethod_label->setText("5/5 Third decision algorithm started");
+        ui->actualMethod_label->setText(tr("5/5 Third decision algorithm started"));
 }
 
 void MultipleVideoET::evaluateCorrectValues(){

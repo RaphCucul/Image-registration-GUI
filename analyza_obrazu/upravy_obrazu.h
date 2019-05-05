@@ -3,18 +3,34 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
-cv::Mat translace_snimku(const cv::Mat& posunuty_original,const cv::Point3d& hodnoty_translace,int radky,int sloupce);
-/// posunuti snimku podle zadanych parametru
+/**
+ * @brief Function shifts the original frame in new coordinates.
+ * @param i_shifted_orig
+ * @param i_shift
+ * @param i_rows
+ * @param i_cols
+ * @return
+ */
+cv::Mat frameTranslation(const cv::Mat& i_shifted_orig,
+                         const cv::Point3d& i_shift,int i_rows,int i_cols);
 
-cv::Mat rotace_snimku(const cv::Mat& snimek_po_translaci, const double uhel);
-/// rotace snimku podle zadanych parametru
+/**
+ * @brief Function rotates shifted frame.
+ * @param i_frameAfterTranslation
+ * @param i_angle
+ * @return
+ */
+cv::Mat frameRotation(const cv::Mat& i_frameAfterTranslation, const double i_angle);
 
-void ukaz_Mat(std::string jmeno_okna, cv::Mat snimek_k_zobrazeni);
-/// pro 100% jistotu, ze se Mat soubor zobrazi bez ohledu na jeho typ
+/**
+ * @brief Displays given frame, in the window with defined name.
+ * @param i_windowName
+ * @param i_frameToShow
+ */
+void showMat(std::string i_windowName, cv::Mat i_frameToShow);
 
-void kontrola_typu_snimku_32C1(cv::Mat& snimek_ke_kontrole);
-void kontrola_typu_snimku_8C1(cv::Mat& snimek_ke_kontrole);
-void kontrola_typu_snimku_8C3(cv::Mat& snimek_ke_kontrole);
-cv::Mat kontrola_typu_snimku_64C1(cv::Mat& snimek_ke_kontrole);
-/// konverzni funkce pro prevadeni typu Mat promennych pro potreby jednotlivych funkci
+void transformMatTypeTo32C1(cv::Mat& i_MatToCheck);
+void transformMatTypeTo8C1(cv::Mat& i_MatToCheck);
+void transformMatTypeTo8C3(cv::Mat& i_MatToCheck);
+cv::Mat transformMatTypeTo64C1(cv::Mat& i_MatToCheck);
 #endif // UPRAVY_OBRAZU_H_INCLUDED

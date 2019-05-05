@@ -2,6 +2,24 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
+    <name>ChartInit</name>
+    <message>
+        <location filename="ui/chartinit.ui" line="26"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ui/chartinit.ui" line="56"/>
+        <source>Drag &amp; drop video dat files to open the graph analysis</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ui/chartinit.ui" line="106"/>
+        <source>Show data</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ClickImageEvent</name>
     <message>
         <location filename="dialogy/clickimageevent.ui" line="20"/>
@@ -103,93 +121,101 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="37"/>
+        <location filename="dialogy/grafet.ui" line="241"/>
         <source>Zobrazit entropie</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="44"/>
+        <location filename="dialogy/grafet.ui" line="248"/>
         <source>Zobrazit tennengrad</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="53"/>
+        <location filename="dialogy/grafet.ui" line="38"/>
         <source>Entropie</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="60"/>
+        <location filename="dialogy/grafet.ui" line="45"/>
         <source>Tennengrad</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="72"/>
-        <location filename="dialogy/grafet.ui" line="79"/>
-        <location filename="dialogy/grafet.ui" line="114"/>
-        <location filename="dialogy/grafet.ui" line="121"/>
+        <location filename="dialogy/grafet.ui" line="57"/>
+        <location filename="dialogy/grafet.ui" line="64"/>
+        <location filename="dialogy/grafet.ui" line="99"/>
+        <location filename="dialogy/grafet.ui" line="106"/>
         <source>Zobraz</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="89"/>
-        <location filename="dialogy/grafet.ui" line="135"/>
+        <location filename="dialogy/grafet.ui" line="74"/>
+        <location filename="dialogy/grafet.ui" line="120"/>
         <source>dolní práh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="96"/>
-        <location filename="dialogy/grafet.ui" line="142"/>
+        <location filename="dialogy/grafet.ui" line="81"/>
+        <location filename="dialogy/grafet.ui" line="127"/>
         <source>horní práh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="153"/>
+        <location filename="dialogy/grafet.ui" line="138"/>
         <source>Ohodnoceni dle entropie</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="160"/>
+        <location filename="dialogy/grafet.ui" line="145"/>
         <source>Ohodnocení dle tennengrad</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="167"/>
+        <location filename="dialogy/grafet.ui" line="152"/>
         <source>První rozhodování</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="174"/>
+        <location filename="dialogy/grafet.ui" line="159"/>
         <source>Druhé rozhodování</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="185"/>
+        <location filename="dialogy/grafet.ui" line="259"/>
         <source>Uložit vypočtené hodnoty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="192"/>
+        <location filename="dialogy/grafet.ui" line="266"/>
         <source>Uložit hodnoty prahů</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="203"/>
+        <location filename="dialogy/grafet.ui" line="170"/>
         <source>Ohodnocení kompletní</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="223"/>
+        <location filename="dialogy/grafet.ui" line="190"/>
         <source>Index vh. 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="243"/>
+        <location filename="dialogy/grafet.ui" line="210"/>
         <source>Index vh. 4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/grafet.ui" line="263"/>
+        <location filename="dialogy/grafet.ui" line="230"/>
         <source>Index vh. 5</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GraphET_parent</name>
+    <message>
+        <location filename="ui/graphet_parent.ui" line="26"/>
+        <source>Entropy and tennengrad graph</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -329,11 +355,12 @@
     </message>
     <message>
         <location filename="dialogy/multivideolicovani.cpp" line="45"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="360"/>
         <source>Registrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.h" line="95"/>
+        <location filename="dialogy/multivideolicovani.h" line="150"/>
         <source>Angle</source>
         <translation type="unfinished"></translation>
     </message>
@@ -358,22 +385,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="192"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="180"/>
         <source>Choose avi files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="194"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="182"/>
         <source>Video files (*.avi);;;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="227"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="215"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="397"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="354"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/multivideolicovani.cpp" line="399"/>
         <source>Processing video </source>
         <translation type="unfinished"></translation>
     </message>
@@ -452,7 +484,7 @@
     </message>
     <message>
         <location filename="dialogy/multiplevideoet.cpp" line="59"/>
-        <location filename="dialogy/multiplevideoet.cpp" line="160"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="159"/>
         <source>Analyse videos</source>
         <translation type="unfinished"></translation>
     </message>
@@ -472,13 +504,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="154"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="153"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="390"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="351"/>
         <source>Fifth part done. Analysis completed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/multiplevideoet.cpp" line="375"/>
+        <source>1/5 Entropy and tennengrad computation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/multiplevideoet.cpp" line="377"/>
+        <source>2/5 Average correlation and FWHM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/multiplevideoet.cpp" line="379"/>
+        <source>3/5 First decision algorithm started</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/multiplevideoet.cpp" line="381"/>
+        <source>4/5 Second decision algorithm started</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/multiplevideoet.cpp" line="383"/>
+        <source>5/5 Third decision algorithm started</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -544,7 +601,7 @@
     </message>
     <message>
         <location filename="dialogy/singlevideoet.cpp" line="55"/>
-        <location filename="dialogy/singlevideoet.cpp" line="208"/>
+        <location filename="dialogy/singlevideoet.cpp" line="209"/>
         <source>Analyze video</source>
         <translation type="unfinished"></translation>
     </message>
@@ -564,37 +621,37 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideoet.cpp" line="197"/>
+        <location filename="dialogy/singlevideoet.cpp" line="198"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideoet.cpp" line="407"/>
+        <location filename="dialogy/singlevideoet.cpp" line="408"/>
         <source>Fifth part done. Analysis completed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideoet.cpp" line="428"/>
+        <location filename="dialogy/singlevideoet.cpp" line="429"/>
         <source>1/5 Entropy and tennengrad computation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideoet.cpp" line="430"/>
+        <location filename="dialogy/singlevideoet.cpp" line="431"/>
         <source>2/5 Average correlation and FWHM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideoet.cpp" line="432"/>
+        <location filename="dialogy/singlevideoet.cpp" line="433"/>
         <source>3/5 First decision algorithm started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideoet.cpp" line="434"/>
+        <location filename="dialogy/singlevideoet.cpp" line="435"/>
         <source>4/5 Second decision algorithm started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideoet.cpp" line="436"/>
+        <location filename="dialogy/singlevideoet.cpp" line="437"/>
         <source>5/5 Third decision algorithm started</source>
         <translation type="unfinished"></translation>
     </message>
@@ -623,13 +680,13 @@
     </message>
     <message>
         <location filename="dialogy/singlevideolicovani.cpp" line="41"/>
-        <location filename="dialogy/singlevideolicovani.cpp" line="128"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="131"/>
         <source>Choose video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="dialogy/singlevideolicovani.cpp" line="43"/>
-        <location filename="dialogy/singlevideolicovani.cpp" line="215"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="218"/>
         <source>Registrate videoframes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -649,38 +706,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="67"/>
-        <location filename="dialogy/singlevideolicovani.cpp" line="86"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="69"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="89"/>
         <source>Chosen video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="128"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="131"/>
         <source>*.avi;;;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="199"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="202"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="256"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="260"/>
         <source>Processing video </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="309"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="313"/>
         <source>Writing properly translated frames to the new video.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="311"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="315"/>
         <source>Video written properly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="386"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="391"/>
         <source>Frame %1 could not be loaded from the video for registration. Process interrupted</source>
         <translation type="unfinished"></translation>
     </message>

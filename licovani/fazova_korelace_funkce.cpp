@@ -6,115 +6,110 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 using namespace cv;
-cv::Point3d fk_translace_hann(const Mat &referencni_snimek, const Mat &posunuty)
+cv::Point3d fk_translace_hann(const Mat &i_referencialFrame, const Mat &i_shiftedFrame)
 {
-    Point3d vysledek_posunuti(0.0,0.0,0.0);
-    Mat referencni_snimek32f,posunuty32f;
-    referencni_snimek.copyTo(referencni_snimek32f);
-    posunuty.copyTo(posunuty32f);
-    kontrola_typu_snimku_32C1(referencni_snimek32f);
-    kontrola_typu_snimku_32C1(posunuty32f);
-    //int typ_reference = referencni_snimek32f.type();
-    //int typ_posunuty = posunuty32f.type();
+    Point3d translation_result(0.0,0.0,0.0);
+    Mat referencialFrame32f,shiftedFrame32f;
+    i_referencialFrame.copyTo(referencialFrame32f);
+    i_shiftedFrame.copyTo(shiftedFrame32f);
+    transformMatTypeTo32C1(referencialFrame32f);
+    transformMatTypeTo32C1(shiftedFrame32f);
+    //int typ_reference = referencialFrame32f.type();
+    //int typ_posunuty = shiftedFrame32f.type();
     //double response = 0;
     cv::Mat hann;
-    cv::createHanningWindow(hann, referencni_snimek32f.size(), CV_32FC1);
-    kontrola_typu_snimku_32C1(hann);
-    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,10,hann);
+    cv::createHanningWindow(hann, referencialFrame32f.size(), CV_32FC1);
+    transformMatTypeTo32C1(hann);
+    translation_result = cv::phaseCorrelate(referencialFrame32f,shiftedFrame32f,10,hann);
 
     hann.release();
-    referencni_snimek32f.release();
-    posunuty32f.release();
-    return vysledek_posunuti;
-    //cout << "Result type "<<result.type()<<endl;
+    referencialFrame32f.release();
+    shiftedFrame32f.release();
+    return translation_result;
 }
 
-cv::Point3d fk_translace(const Mat &referencni_snimek, const Mat &posunuty)
+cv::Point3d fk_translace(const Mat &referencni_snimek, const Mat &i_shiftedFrame)
 {
-    Point3d vysledek_posunuti(0.0,0.0,0.0);
-    Mat referencni_snimek32f,posunuty32f;
-    referencni_snimek.copyTo(referencni_snimek32f);
-    posunuty.copyTo(posunuty32f);
-    kontrola_typu_snimku_32C1(referencni_snimek32f);
-    kontrola_typu_snimku_32C1(posunuty32f);
-    //int typ_reference = referencni_snimek32f.type();
-    //int typ_posunuty = posunuty32f.type();
-    vysledek_posunuti = cv::phaseCorrelate(referencni_snimek32f,posunuty32f,10);
+    Point3d translation_result(0.0,0.0,0.0);
+    Mat referencialFrame32f,shiftedFrame32f;
+    referencni_snimek.copyTo(referencialFrame32f);
+    i_shiftedFrame.copyTo(shiftedFrame32f);
+    transformMatTypeTo32C1(referencialFrame32f);
+    transformMatTypeTo32C1(shiftedFrame32f);
+    //int typ_reference = referencialFrame32f.type();
+    //int typ_posunuty = shiftedFrame32f.type();
+    translation_result = cv::phaseCorrelate(referencialFrame32f,shiftedFrame32f,10);
 
-    referencni_snimek32f.release();
-    posunuty32f.release();
-    return vysledek_posunuti;
+    referencialFrame32f.release();
+    shiftedFrame32f.release();
+    return translation_result;
 }
 
-cv::Point3d fk_rotace(const Mat &referencni_snimek,
-                      const Mat &posunuty,
-                      double maximalni_uhel,
-                      const double& hodnota_maxima_fk_translace,
-                      cv::Point3d& hodnoty_translace)
+cv::Point3d fk_rotace(const Mat &i_referencialFrame,
+                      const Mat &i_shiftedFrame,
+                      double i_maximalAngle,
+                      const double& i_fkTranslation_maximumValue,
+                      cv::Point3d& i_translation)
 {
-    cv::Point3d vysledek_fazove_korelace(0.0,0.0,0.0);
-    cv::Mat referencni_snimek8U,referencni_snimek32f, posunuty8U;
-    referencni_snimek.copyTo(referencni_snimek8U);
-    referencni_snimek.copyTo(referencni_snimek32f);
-    posunuty.copyTo(posunuty8U);
-    kontrola_typu_snimku_8C1(referencni_snimek8U);
-    kontrola_typu_snimku_8C1(posunuty8U);
+    cv::Point3d translation_result(0.0,0.0,0.0);
+    cv::Mat referencialFrame8U,referencialFrame32f, shiftedFrame8U;
+    i_referencialFrame.copyTo(referencialFrame8U);
+    i_referencialFrame.copyTo(referencialFrame32f);
+    i_shiftedFrame.copyTo(shiftedFrame8U);
+    transformMatTypeTo8C1(referencialFrame8U);
+    transformMatTypeTo8C1(shiftedFrame8U);
 
-    cv::Mat logImage1 = cv::Mat::zeros(referencni_snimek8U.size(), CV_8UC1);
-    cv::Mat logImage2 = cv::Mat::zeros(posunuty8U.size(), CV_8UC1);
+    cv::Mat logImage1 = cv::Mat::zeros(referencialFrame8U.size(), CV_8UC1);
+    cv::Mat logImage2 = cv::Mat::zeros(shiftedFrame8U.size(), CV_8UC1);
     double magnitude = 40;
-    //std::cout << referencni_snimek8U.type()<<" "<<posunuty8U.type()<<std::endl;
-    cv::logPolar(referencni_snimek8U, logImage1, cv::Point2f(referencni_snimek8U.cols / 2.0f, referencni_snimek8U.rows / 2.0f), magnitude, cv::INTER_LINEAR);
-    cv::logPolar(posunuty8U, logImage2, cv::Point2f(posunuty8U.cols / 2.0f, posunuty8U.rows / 2.0f), magnitude, cv::INTER_LINEAR);
+    cv::logPolar(referencialFrame8U, logImage1, cv::Point2f(referencialFrame8U.cols / 2.0f, referencialFrame8U.rows / 2.0f), magnitude, cv::INTER_LINEAR);
+    cv::logPolar(shiftedFrame8U, logImage2, cv::Point2f(shiftedFrame8U.cols / 2.0f, shiftedFrame8U.rows / 2.0f), magnitude, cv::INTER_LINEAR);
     logImage1.convertTo(logImage1, CV_32FC1);
     logImage2.convertTo(logImage2, CV_32FC1);
 
     cv::Mat hann;
     //double response = 0;
-    cv::createHanningWindow(hann, referencni_snimek.size(), CV_32FC1);
-    cv::Point3d vysledek_rotace(0.0,0.0,0.0);
-    if (std::abs(hodnoty_translace.x) > 10.0 || std::abs(hodnoty_translace.y) > 10.0)
-    {vysledek_rotace = cv::phaseCorrelate(logImage1, logImage2,1,hann);}
-    else {vysledek_rotace = cv::phaseCorrelate(logImage1, logImage2,5,hann);}
+    cv::createHanningWindow(hann, i_referencialFrame.size(), CV_32FC1);
+    cv::Point3d rotation_result(0.0,0.0,0.0);
+    if (std::abs(i_translation.x) > 10.0 || std::abs(i_translation.y) > 10.0)
+    {rotation_result = cv::phaseCorrelate(logImage1, logImage2,1,hann);}
+    else {rotation_result = cv::phaseCorrelate(logImage1, logImage2,5,hann);}
 
-    if (vysledek_rotace.y > maximalni_uhel)
+    if (rotation_result.y > i_maximalAngle)
     {
-        vysledek_rotace.y = maximalni_uhel;
+        rotation_result.y = i_maximalAngle;
     }
 
-    cv::Point2f src_center(referencni_snimek.cols/2.0F, referencni_snimek.rows/2.0F);
-    cv::Mat M = cv::getRotationMatrix2D(src_center,vysledek_rotace.y,1);
-    cv::Mat vysledny_snimek_rotace = cv::Mat::zeros(referencni_snimek.size(), CV_32FC1);
-    cv::warpAffine(posunuty,vysledny_snimek_rotace,M,posunuty.size(),0,BORDER_REPLICATE);
-    //std::cout << vysledny_snimek_rotace.type() <<" "<< referencni_snimek.type() << std::endl;
-    kontrola_typu_snimku_32C1(vysledny_snimek_rotace);
-    kontrola_typu_snimku_32C1(referencni_snimek32f);
+    cv::Point2f src_center(i_referencialFrame.cols/2.0F, i_referencialFrame.rows/2.0F);
+    cv::Mat M = cv::getRotationMatrix2D(src_center,rotation_result.y,1);
+    cv::Mat rotationResultFrame = cv::Mat::zeros(i_referencialFrame.size(), CV_32FC1);
+    cv::warpAffine(i_shiftedFrame,rotationResultFrame,M,i_shiftedFrame.size(),0,BORDER_REPLICATE);
+    transformMatTypeTo32C1(rotationResultFrame);
+    transformMatTypeTo32C1(referencialFrame32f);
 
-    cv::Point3d vysledek_translace_po_rotaci(0.0,0.0,0.0);
-    vysledek_translace_po_rotaci = cv::phaseCorrelate(referencni_snimek32f,vysledny_snimek_rotace,10,hann);
+    cv::Point3d translationAfterRotationResults(0.0,0.0,0.0);
+    translationAfterRotationResults = cv::phaseCorrelate(referencialFrame32f,rotationResultFrame,10,hann);
 
-    //if ((vysledek_translace_po_rotaci.z - hodnota_maxima_fk_translace)>=0.0001)
-    if (vysledek_translace_po_rotaci.z > hodnota_maxima_fk_translace)
+    if (translationAfterRotationResults.z > i_fkTranslation_maximumValue)
     {
-        vysledek_fazove_korelace.y = vysledek_rotace.y*360/(logImage2.cols);
+        translation_result.y = rotation_result.y*360/(logImage2.cols);
     }
-    else if (vysledek_translace_po_rotaci.z <= hodnota_maxima_fk_translace)
+    else if (translationAfterRotationResults.z <= i_fkTranslation_maximumValue)
     {
-        vysledek_fazove_korelace.y = 0;
-        //std::cout << "uhel zmenen na hodnotu 0" <<std::endl;
+        translation_result.y = 0;
     }
-    vysledek_fazove_korelace.x = exp(vysledek_rotace.x/magnitude);
-    vysledek_fazove_korelace.z = vysledek_translace_po_rotaci.z;
+    translation_result.x = exp(rotation_result.x/magnitude);
+    translation_result.z = translationAfterRotationResults.z;
 
     logImage1.release();
     logImage2.release();
-    referencni_snimek8U.release();
-    posunuty8U.release();
-    referencni_snimek32f.release();
+    referencialFrame8U.release();
+    shiftedFrame8U.release();
+    referencialFrame32f.release();
     //posunuty.release();
-    vysledny_snimek_rotace.release();
+    rotationResultFrame.release();
     //hann.release();
 
-    return vysledek_fazove_korelace;
+    return translation_result;
 }
 

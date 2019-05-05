@@ -12,20 +12,20 @@ class RegistrationThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit RegistrationThread(int& indexOfThread,
-                                QString &fullVideoPath,
-                                QString& nameOfVideo,
-                                QVector<double>& frangiParam,
-                                QVector<int>& frameEvaluation,
-                                cv::Mat& referencni_snimek,
+    explicit RegistrationThread(int& i_indexOfThread,
+                                QString &i_fullVideoPath,
+                                QString& i_nameOfVideo,
+                                QVector<double>& i_frangiParameters,
+                                QVector<int>& i_frameEvaluation,
+                                cv::Mat& i_referencialFrame,
                                 int& startFrame,
                                 int& stopFrame,
-                                int& iterace,
-                                double& oblastMaxima,
-                                double& uhel,
-                                int &timeStamp,
-                                int &lightAnomaly,
-                                bool nutnost_zmenit_velikost_snimku,
+                                int& i_iteration,
+                                double& i_areaMaximum,
+                                double& i_angle,
+                                int &i_horizAnomaly,
+                                int &i_vertAnomaly,
+                                bool i_scaleChange,
                                 QObject *parent = nullptr);
     QMap<QString,QVector<double>> provideResults();
     QVector<int> threadFrameRange();
@@ -59,8 +59,8 @@ private:
     int pomCounter=0;
     double maximalArea;
     double angle;
-    float casovaZnacka;
-    float svetelAnomalie;
+    float horizontalAnomaly;
+    float verticalAnomaly;
     double frameCount;
     cv::Rect correl_standard;
     cv::Rect correl_extra;
@@ -68,8 +68,8 @@ private:
     bool scaling=false;
     double totalAngle=0.0;
     cv::Point3d totalTranslation;
-    cv::Point2f ziskane_hranice_anomalie;
-    cv::Point2f ziskane_hranice_CasZnac;
+    cv::Point2f obtainedVerticalAnomalyCoords;
+    cv::Point2f obtainedHorizontalAnomalyCoords;
     int threadIndex = -1;
     QString videoName;
     QString videoPath;

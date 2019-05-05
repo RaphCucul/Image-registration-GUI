@@ -37,14 +37,14 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
 {
     for (int i = 0; i < badFrames_FirstEval.length(); i++)
     {
-        Mat posunuty_temp,posunuty,posunuty_vyrez,slicovany,slicovany_vyrez;
-        Mat obraz, obraz_vyrez;
-        referImage.copyTo(obraz);
-        obraz(COStandard).copyTo(obraz_vyrez);
-        int rows = obraz.rows;
-        int cols = obraz.cols;
+        Mat shifted_temp,shifted,shifted_vyrez,registratedFrame,registratedFrame_vyrez;
+        Mat referencialFrame_alias, referencialFrame_alias_vyrez;
+        referImage.copyTo(referencialFrame_alias);
+        referencialFrame_alias(COStandard).copyTo(referencialFrame_alias_vyrez);
+        int rows = referencialFrame_alias.rows;
+        int cols = referencialFrame_alias.cols;
         cap.set(CV_CAP_PROP_POS_FRAMES,badFrames_FirstEval[i]);
-        if (cap.read(posunuty_temp) != 1)
+        if (cap.read(shifted_temp) != 1)
         {
             qWarning()<<"Snimek "<<i<<" nelze slicovat!";
             POC_x[int(badFrames_FirstEval[i])] = 999.0;
@@ -57,28 +57,28 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
         }
         if (scaleChanged == true)
         {
-            posunuty_temp(COExtra).copyTo(posunuty);
-            posunuty(COStandard).copyTo(posunuty_vyrez);
-            posunuty_temp.release();
+            shifted_temp(COExtra).copyTo(shifted);
+            shifted(COStandard).copyTo(shifted_vyrez);
+            shifted_temp.release();
         }
         else
         {
-            posunuty_temp.copyTo(posunuty);
-            posunuty(COStandard).copyTo(posunuty_vyrez);
-            posunuty_temp.release();
+            shifted_temp.copyTo(shifted);
+            shifted(COStandard).copyTo(shifted_vyrez);
+            shifted_temp.release();
         }
         cv::Point3d pt(0,0,0);
         if (scaleChanged == true)
         {
-            pt = fk_translace_hann(obraz,posunuty);
+            pt = fk_translace_hann(referencialFrame_alias,shifted);
             if (std::abs(pt.x)>=290 || std::abs(pt.y)>=290)
             {
-                pt = fk_translace(obraz,posunuty);
+                pt = fk_translace(referencialFrame_alias,shifted);
             }
         }
         if (scaleChanged == false)
         {
-            pt = fk_translace_hann(obraz,posunuty);
+            pt = fk_translace_hann(referencialFrame_alias,shifted);
         }
         if (pt.x >= 55 || pt.y >= 55)
         {
@@ -90,28 +90,28 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
             frangi_x[int(badFrames_FirstEval[i])] = 999;
             frangi_y[int(badFrames_FirstEval[i])] = 999;
             frangi_euklid[int(badFrames_FirstEval[i])] = 999;
-            posunuty.release();
+            shifted.release();
         }
         else
         {
             double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt.z);
             double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-            slicovany = translace_snimku(posunuty,pt,rows,cols);
-            slicovany(COStandard).copyTo(slicovany_vyrez);
-            double R = vypocet_KK(obraz,slicovany,COStandard);
+            registratedFrame = frameTranslation(shifted,pt,rows,cols);
+            registratedFrame(COStandard).copyTo(registratedFrame_vyrez);
+            double R = calculateCorrCoef(referencialFrame_alias,registratedFrame,COStandard);
             qDebug() <<badFrames_FirstEval[i]<< "R " << R <<" a FWHM " << FWHM;
-            slicovany.release();
-            slicovany_vyrez.release();
-            posunuty.release();
-            double rozdilnostKK = averageCC-R;
-            double rozdilnostFWHM = averageFWHM-FWHM;
-            if ((std::abs(rozdilnostKK) < 0.02) && (FWHM < averageFWHM)) //1.
+            registratedFrame.release();
+            registratedFrame_vyrez.release();
+            shifted.release();
+            double diff_corCoef = averageCC-R;
+            double diff_FWHM = averageFWHM-FWHM;
+            if ((std::abs(diff_corCoef) < 0.02) && (FWHM < averageFWHM)) //1.
             {
                 qDebug()<< "Snimek "<< badFrames_FirstEval[i]<< " je vhodny ke slicovani.";
                 allFrameCompleteEval[int(badFrames_FirstEval[i])] = 0.0;
                 continue;
             }
-            else if (R > averageCC && (std::abs(rozdilnostFWHM)<=2||(FWHM < averageFWHM))) //5.
+            else if (R > averageCC && (std::abs(diff_FWHM)<=2||(FWHM < averageFWHM))) //5.
             {
                 qDebug()<< "Snimek "<< badFrames_FirstEval[i]<< " je vhodny ke slicovani.";
                 allFrameCompleteEval[int(badFrames_FirstEval[i])] = 0.0;
@@ -123,7 +123,7 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
                 allFrameCompleteEval[int(badFrames_FirstEval[i])] = 0.0;
                 continue;
             }
-            else if ((std::abs(rozdilnostKK) <= 0.02) && (FWHM > averageFWHM)) //2.
+            else if ((std::abs(diff_corCoef) <= 0.02) && (FWHM > averageFWHM)) //2.
             {
                 qDebug()<< "Snimek "<< badFrames_FirstEval[i]<< " bude proveren.";
                 framesFirstEval.push_back(int(badFrames_FirstEval[i]));
@@ -131,7 +131,7 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
                 computedCC.push_back(R);
                 continue;
             }
-            else if ((rozdilnostKK > 0.02) && (rozdilnostKK < 0.18)) //3.
+            else if ((diff_corCoef > 0.02) && (diff_corCoef < 0.18)) //3.
             {
                 qDebug()<< "Snimek "<< badFrames_FirstEval[i]<< " bude proveren.";
                 framesFirstEval.push_back(int(badFrames_FirstEval[i]));
@@ -139,7 +139,7 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
                 computedCC.push_back(R);
                 continue;
             }
-            else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && ((FWHM < averageFWHM) || averageFWHM > 35.0)) //6.
+            else if ((diff_corCoef >= 0.05 && diff_corCoef < 0.18) && ((FWHM < averageFWHM) || averageFWHM > 35.0)) //6.
             {
                 qDebug()<< "Snimek "<< badFrames_FirstEval[i]<< " bude proveren.";
                 framesFirstEval.push_back(int(badFrames_FirstEval[i]));
@@ -147,7 +147,7 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
                 computedCC.push_back(R);
                 continue;
             }
-            else if ((rozdilnostKK >= 0.05 && rozdilnostKK < 0.18) && (FWHM <= (averageFWHM+10))) //8.
+            else if ((diff_corCoef >= 0.05 && diff_corCoef < 0.18) && (FWHM <= (averageFWHM+10))) //8.
             {
                 qDebug()<< "Snimek "<< badFrames_FirstEval[i]<< " bude proveren.";
                 framesFirstEval.push_back(int(badFrames_FirstEval[i]));
@@ -156,7 +156,7 @@ void firstDecisionAlgorithm(QVector<double> &badFrames_FirstEval,
                 continue;
             }
 
-            else if ((rozdilnostKK >= 0.2) && (FWHM > (averageFWHM+10))) //7.
+            else if ((diff_corCoef >= 0.2) && (FWHM > (averageFWHM+10))) //7.
             {
                 qDebug()<< "Snimek "<< badFrames_FirstEval[i]<< " nepripusten k analyze.";
                 allFrameCompleteEval[int(badFrames_FirstEval[i])] = 5;
@@ -258,7 +258,7 @@ void secondDecisionAlgorithm(QVector<double> &framesFirstEval,
     }
 }
 
-void thirdDecisionAlgorithm(cv::Mat& image,
+void thirdDecisionAlgorithm(cv::Mat& frame,
                             cv::Rect& coutouExtra,
                             cv::Rect& cutoutStandard,
                             QVector<double>& frangi_x,
@@ -274,22 +274,22 @@ void thirdDecisionAlgorithm(cv::Mat& image,
                             QVector<double>& FrangiParameters)
 {
     cv::Point3d pt_temp(0,0,0);
-    Point3d image_frangi_reverse = frangi_analysis(image,2,2,0,"",1,pt_temp,FrangiParameters);//!
-    Mat image_cutout;
-    image(cutoutStandard).copyTo(image_cutout);
-    int rows = image.rows;
-    int cols = image.cols;
+    Point3d frame_frangi_reverse = frangi_analysis(frame,2,2,0,"",1,pt_temp,FrangiParameters);//!
+    Mat frame_cutout;
+    frame(cutoutStandard).copyTo(frame_cutout);
+    int rows = frame.rows;
+    int cols = frame.cols;
     //for (unsigned int i = 0; i < 1; i++)
     for (int i = 0; i < framesSecondEval.length(); i++) //snimky_k_provereni2.size()
     {
 
-        Mat slicovan_kompletne = cv::Mat::zeros(image.size(), CV_32FC3);
-        Point3d mira_translace;
+        Mat slicovan_kompletne = cv::Mat::zeros(frame.size(), CV_32FC3);
+        Point3d translation;
         QVector<double> pocX;
         QVector<double> pocY;
-        QVector<double> celkovy_uhel;
+        QVector<double> totalAngle;
         int iterace = -1;double oblastMaxima = 5.0;double uhelMaximalni = 0.1;
-        int uspech_licovani = completeRegistration(cap,image,
+        int uspech_licovani = completeRegistration(cap,frame,
                                                    framesSecondEval[i],
                                                    iterace,
                                                    oblastMaxima,
@@ -298,7 +298,7 @@ void thirdDecisionAlgorithm(cv::Mat& image,
                                                    cutoutStandard,
                                                    scaleChanged,
                                                    slicovan_kompletne,
-                                                   pocX,pocY,celkovy_uhel);
+                                                   pocX,pocY,totalAngle);
         qDebug() << framesSecondEval[i] <<" -> ";
         if (uspech_licovani == 0)
         {
@@ -317,46 +317,46 @@ void thirdDecisionAlgorithm(cv::Mat& image,
         {
             Mat mezivysledek32f,mezivysledek32f_vyrez;
             slicovan_kompletne.copyTo(mezivysledek32f);
-            kontrola_typu_snimku_32C1(mezivysledek32f);
+            transformMatTypeTo32C1(mezivysledek32f);
             mezivysledek32f(cutoutStandard).copyTo(mezivysledek32f_vyrez);
-            double R1 = vypocet_KK(image,slicovan_kompletne,cutoutStandard);
+            double R1 = calculateCorrCoef(frame,slicovan_kompletne,cutoutStandard);
             mezivysledek32f.release();
             mezivysledek32f_vyrez.release();
             Point3d korekce_bod(0,0,0);
             if (scaleChanged == true)
             {
-                korekce_bod = fk_translace(image,slicovan_kompletne);
+                korekce_bod = fk_translace(frame,slicovan_kompletne);
                 if (std::abs(korekce_bod.x)>=290 || std::abs(korekce_bod.y)>=290)
                 {
-                    korekce_bod = fk_translace_hann(image,slicovan_kompletne);
+                    korekce_bod = fk_translace_hann(frame,slicovan_kompletne);
                 }
             }
             else
             {
-                korekce_bod = fk_translace_hann(image,slicovan_kompletne);
+                korekce_bod = fk_translace_hann(frame,slicovan_kompletne);
             }
-            Mat korekce = translace_snimku(slicovan_kompletne,korekce_bod,rows,cols);
+            Mat korekce = frameTranslation(slicovan_kompletne,korekce_bod,rows,cols);
             korekce.copyTo(mezivysledek32f);
-            kontrola_typu_snimku_32C1(mezivysledek32f);
+            transformMatTypeTo32C1(mezivysledek32f);
             mezivysledek32f(cutoutStandard).copyTo(mezivysledek32f_vyrez);
-            double R2 = vypocet_KK(image,korekce,cutoutStandard);
-            Point3d slicovany_frangi_reverse(0,0,0);
+            double R2 = calculateCorrCoef(frame,korekce,cutoutStandard);
+            Point3d registratedFrame_frangi_reverse(0,0,0);
             double rozdil = R2-R1;
             if (rozdil>0.015)
             {
                 cv::Point3d extra_translace(0,0,0);
-                extra_translace.x = mira_translace.x+korekce_bod.x;
-                extra_translace.y = mira_translace.y+korekce_bod.y;
-                extra_translace.z = mira_translace.z;
+                extra_translace.x = translation.x+korekce_bod.x;
+                extra_translace.y = translation.y+korekce_bod.y;
+                extra_translace.z = translation.z;
                 qDebug()<< "Provedena korekce posunuti pro objektivnejsi analyzu skrze cevy.";
-                slicovany_frangi_reverse = frangi_analysis(korekce,2,2,0,"",2,extra_translace,FrangiParameters);//!
+                registratedFrame_frangi_reverse = frangi_analysis(korekce,2,2,0,"",2,extra_translace,FrangiParameters);//!
             }
             else
             {
-                slicovany_frangi_reverse = frangi_analysis(slicovan_kompletne,2,2,0,"",2,mira_translace,FrangiParameters);//!
+                registratedFrame_frangi_reverse = frangi_analysis(slicovan_kompletne,2,2,0,"",2,translation,FrangiParameters);//!
             }
             slicovan_kompletne.release();
-            if (slicovany_frangi_reverse.z == 0.0)
+            if (registratedFrame_frangi_reverse.z == 0.0)
             {
 
                 qDebug()<< "Nelze zjistit maximum Frangiho funkce, ohodnoceni: 5";
@@ -371,8 +371,8 @@ void thirdDecisionAlgorithm(cv::Mat& image,
             }
             else
             {
-                double rozdil_x = image_frangi_reverse.x - slicovany_frangi_reverse.x;
-                double rozdil_y = image_frangi_reverse.y - slicovany_frangi_reverse.y;
+                double rozdil_x = frame_frangi_reverse.x - registratedFrame_frangi_reverse.x;
+                double rozdil_y = frame_frangi_reverse.y - registratedFrame_frangi_reverse.y;
                 double suma_rozdilu = std::pow(rozdil_x,2.0) + std::pow(rozdil_y,2.0);
                 double euklid = std::sqrt(suma_rozdilu);
                 if (euklid <= 1.2)
@@ -384,16 +384,16 @@ void thirdDecisionAlgorithm(cv::Mat& image,
                 {
                     allFrameCompleteEval[int(framesSecondEval[i])] = 1;
                     qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 1";
-                    frangi_x[int(framesSecondEval[i])] = slicovany_frangi_reverse.x;
-                    frangi_y[int(framesSecondEval[i])] = slicovany_frangi_reverse.y;
+                    frangi_x[int(framesSecondEval[i])] = registratedFrame_frangi_reverse.x;
+                    frangi_y[int(framesSecondEval[i])] = registratedFrame_frangi_reverse.y;
                     frangi_euklid[int(framesSecondEval[i])] = euklid;
                 }
                 else if (euklid >=10)
                 {
                     allFrameCompleteEval[int(framesSecondEval[i])] = 4;
                     qDebug()<< "euklid. vzdal. je "<<euklid<<", ohodnoceni: 4";
-                    frangi_x[int(framesSecondEval[i])] = slicovany_frangi_reverse.x;
-                    frangi_y[int(framesSecondEval[i])] = slicovany_frangi_reverse.y;
+                    frangi_x[int(framesSecondEval[i])] = registratedFrame_frangi_reverse.x;
+                    frangi_y[int(framesSecondEval[i])] = registratedFrame_frangi_reverse.y;
                     frangi_euklid[int(framesSecondEval[i])] = euklid;
                 }
                 rozdil_x = 0;

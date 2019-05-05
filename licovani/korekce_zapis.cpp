@@ -82,21 +82,21 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
         }
         else
         {
-            Mat posunuty_temp;
+            Mat shifted_temp;
             i_cap.set(CV_CAP_PROP_POS_FRAMES,i_index_noved);
-            if (i_cap.read(posunuty_temp)!=1)
+            if (i_cap.read(shifted_temp)!=1)
             {
                 qWarning()<<"Frame "<<i_index_noved<<" could not be read!";
                 return false;
             }
-            Mat mezivysledek32f,mezivysledek32f_vyrez,posunuty;
+            Mat interresult32f,interresult32f_vyrez,shifted;
             if (i_scaleChanged == true)
             {
-                posunuty_temp(i_cutoutExtra).copyTo(posunuty);
+                shifted_temp(i_cutoutExtra).copyTo(shifted);
             }
             else
             {
-                posunuty_temp.copyTo(posunuty);
+                shifted_temp.copyTo(shifted);
             }
 
             Point3d translationCorrection(0.0,0.0,0.0);
@@ -122,10 +122,10 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                     _tempPOCY[0] += pt6.y;
                 }
 
-                fullyRegistratedFrame_correction.copyTo(mezivysledek32f);
-                kontrola_typu_snimku_32C1(mezivysledek32f);
-                mezivysledek32f(i_cutoutStandard).copyTo(mezivysledek32f_vyrez);
-                double CC_first = vypocet_KK(i_referencialFrame,fullyRegistratedFrame_correction,i_cutoutStandard);
+                fullyRegistratedFrame_correction.copyTo(interresult32f);
+                transformMatTypeTo32C1(interresult32f);
+                interresult32f(i_cutoutStandard).copyTo(interresult32f_vyrez);
+                double CC_first = calculateCorrCoef(i_referencialFrame,fullyRegistratedFrame_correction,i_cutoutStandard);
                 Point3d _tempTranslation = Point3d(_tempPOCX[0],_tempPOCY[0],0.0);
 
                 Point3d frangi_registrated_reverse = frangi_analysis(fullyRegistratedFrame_correction,2,2,0,"",2,_tempTranslation,i_frangiParameters);
@@ -147,11 +147,11 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                 differenceSum = 0.0;
                 euklid = 0.0;
 
-                Mat posunuty2 = translace_snimku(posunuty,finalTranslation,rows,cols);
-                Mat finalRegistrationFrame = rotace_snimku(posunuty2,_tempAngles[0]);
+                Mat shifted2 = frameTranslation(shifted,finalTranslation,rows,cols);
+                Mat finalRegistrationFrame = frameRotation(shifted2,_tempAngles[0]);
 
-                posunuty2.release();
-                double CC_second = vypocet_KK(i_referencialFrame,finalRegistrationFrame,i_cutoutStandard);
+                shifted2.release();
+                double CC_second = calculateCorrCoef(i_referencialFrame,finalRegistrationFrame,i_cutoutStandard);
                 if (CC_first >= CC_second)
                 {
                     qDebug()<< "Frame "<<i_index_noved<<" written after standard registration.";
@@ -159,16 +159,16 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                     qDebug()<<"Translation: "<<_tempPOCX[0]<<" "<<_tempPOCY[0]<<" "<<_tempAngles[0];
                     if (i_scaleChanged == true)
                     {
-                        int radky = posunuty_temp.rows;
-                        int sloupce = posunuty_temp.cols;
-                        Mat posunuty_original = translace_snimku(posunuty_temp,_tempTranslation,radky,sloupce);
-                        Mat finalRegistrationFrame2 = rotace_snimku(posunuty_original,_tempAngles[0]);
+                        int rows = shifted_temp.rows;
+                        int cols = shifted_temp.cols;
+                        Mat shifted_original = frameTranslation(shifted_temp,_tempTranslation,rows,cols);
+                        Mat finalRegistrationFrame2 = frameRotation(shifted_original,_tempAngles[0]);
                         fullyRegistratedFrame.release();
                         fullyRegistratedFrame_correction.release();
                         finalRegistrationFrame2.release();
                         finalRegistrationFrame.release();
-                        posunuty_original.release();
-                        posunuty_temp.release();
+                        shifted_original.release();
+                        shifted_temp.release();
                     }
                     else
                     {
@@ -185,15 +185,15 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                     qDebug()<<" Translation: "<<finalTranslation.x<<" "<<finalTranslation.y<<" "<<_tempAngles[0];
                     if (i_scaleChanged == true)
                     {
-                        int radky = posunuty_temp.rows;
-                        int sloupce = posunuty_temp.cols;
-                        Mat posunuty_original = translace_snimku(posunuty_temp,finalTranslation,radky,sloupce);
-                        Mat finalRegistration2 = rotace_snimku(posunuty_original,_tempAngles[0]);
+                        int rows = shifted_temp.rows;
+                        int cols = shifted_temp.cols;
+                        Mat shifted_original = frameTranslation(shifted_temp,finalTranslation,rows,cols);
+                        Mat finalRegistration2 = frameRotation(shifted_original,_tempAngles[0]);
                         fullyRegistratedFrame.release();
                         fullyRegistratedFrame_correction.release();
                         finalRegistration2.release();
-                        posunuty_original.release();
-                        posunuty_temp.release();
+                        shifted_original.release();
+                        shifted_temp.release();
                     }
                     else
                     {
@@ -205,8 +205,8 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                     _pocY = _tempPOCY;
                     _maxAngles = _tempAngles;
                 }
-                mezivysledek32f.release();
-                mezivysledek32f_vyrez.release();
+                interresult32f.release();
+                interresult32f_vyrez.release();
                 return true;
             }
         }
@@ -218,32 +218,32 @@ bool eventualni_korekce_translace(cv::Mat& i_frameRegistrated, cv::Mat& i_frame,
                                      cv::Point3d &i_correction)
 {
     try {
-        Mat mezivysledek,mezivysledek32f,mezivysledek32f_vyrez,frameCutout;
-        i_frameRegistrated.copyTo(mezivysledek);
+        Mat interresult,interresult32f,interresult32f_vyrez,frameCutout;
+        i_frameRegistrated.copyTo(interresult);
         int rows = i_frameRegistrated.rows;
         int cols = i_frameRegistrated.cols;
-        //mezivysledek.copyTo(mezivysledek32f);
-        //kontrola_typu_snimku_32C1(mezivysledek32f);
-        //mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
+        //interresult.copyTo(interresult32f);
+        //transformMatTypeTo32C1(interresult32f);
+        //interresult32f(vyrez_korelace_standard).copyTo(interresult32f_vyrez);
         i_frame(i_cutoutStandard).copyTo(frameCutout);
 
-        double CC_first = vypocet_KK(i_frame,mezivysledek,i_cutoutStandard);
+        double CC_first = calculateCorrCoef(i_frame,interresult,i_cutoutStandard);
 
-        //mezivysledek32f.release();
-        //mezivysledek32f_vyrez.release();
+        //interresult32f.release();
+        //interresult32f_vyrez.release();
 
         Point3d correction_translation(0.0,0.0,0.0);
-        correction_translation = fk_translace_hann(i_frame,mezivysledek);
+        correction_translation = fk_translace_hann(i_frame,interresult);
         if (std::abs(correction_translation.x) > 290.0 || std::abs(correction_translation.y) > 290.0)
         {
-            correction_translation = fk_translace(i_frame,mezivysledek);
+            correction_translation = fk_translace(i_frame,interresult);
         }
         if (std::abs(correction_translation.x) > 290.0 || std::abs(correction_translation.y) > 290.0)
         {
-            correction_translation = fk_translace(frameCutout,mezivysledek32f_vyrez);
+            correction_translation = fk_translace(frameCutout,interresult32f_vyrez);
         }
-        i_frameCorrected = translace_snimku(mezivysledek,correction_translation,rows,cols);
-        double CC_second = vypocet_KK(i_frame,i_frameCorrected,i_cutoutStandard);
+        i_frameCorrected = frameTranslation(interresult,correction_translation,rows,cols);
+        double CC_second = calculateCorrCoef(i_frame,i_frameCorrected,i_cutoutStandard);
         if ((CC_second > CC_first) && ((std::abs(correction_translation.x) > 0.3) || (std::abs(correction_translation.y) > 0.3)))
         {
             i_correction = correction_translation;

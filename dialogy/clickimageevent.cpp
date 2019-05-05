@@ -35,7 +35,7 @@ ClickImageEvent::ClickImageEvent(QString i_fullPath, int i_referencialNumber, in
     cap.read(referencialImage);
     width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
     height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-    kontrola_typu_snimku_8C3(referencialImage);
+    transformMatTypeTo8C3(referencialImage);
 
     imageObject = new QImage(referencialImage.data,
                              referencialImage.cols,

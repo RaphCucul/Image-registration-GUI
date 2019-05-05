@@ -7,23 +7,23 @@ ETanalysisParent::ETanalysisParent(QWidget *parent) : QWidget(parent)
 
 }
 
-void ETanalysisParent::checkInputNumber(double input, double lower, double upper, QLineEdit *editWidget, double &finalValue, bool &evaluation){
-    if (input < lower || (input > upper && upper != 0.0)){
-        editWidget->setStyleSheet("color: #FF0000");
-        editWidget->setText("");
-        finalValue = -99;
-        evaluation = false;
+void ETanalysisParent::checkInputNumber(double i_input, double i_lower, double i_upper, QLineEdit *i_editWidget, double &i_finalValue, bool &i_evaluation){
+    if (i_input < i_lower || (i_input > i_upper && i_upper != 0.0)){
+        i_editWidget->setStyleSheet("color: #FF0000");
+        i_editWidget->setText("");
+        i_finalValue = -99;
+        i_evaluation = false;
     }
-    else if (input < lower || (upper == 0.0 && input == 0.0)){
-        editWidget->setStyleSheet("color: #FF0000");
-        editWidget->setText("");
-        finalValue = -99;
-        evaluation = false;
+    else if (i_input < i_lower || (i_upper == 0.0 && i_input == 0.0)){
+        i_editWidget->setStyleSheet("color: #FF0000");
+        i_editWidget->setText("");
+        i_finalValue = -99;
+        i_evaluation = false;
     }
     else{
-        editWidget->setStyleSheet("color: #33aa00");
-        evaluation = true;
-        finalValue = input;
+        i_editWidget->setStyleSheet("color: #33aa00");
+        i_evaluation = true;
+        i_finalValue = i_input;
     }
 }
 

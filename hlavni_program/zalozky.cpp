@@ -14,53 +14,58 @@ zalozky::zalozky(QWidget *parent) :
     ui(new Ui::zalozky)
 {
     ui->setupUi(this);
-    ui->stranky->setTabPosition(QTabWidget::West);
-    //ui->stranky->setStyleSheet("QTabBar::tab {height: 32px;width: 32px;padding-top:0px;padding-bottom:,0px}");
-    //ui->stranky->setStyleSheet("background-color: white");
+    ui->pages->setTabPosition(QTabWidget::West);
+    //ui->pages->setStyleSheet("QTabBar::tab {height: 32px;width: 32px;padding-top:0px;padding-bottom:,0px}");
+    //ui->pages->setStyleSheet("background-color: white");
 
-    QIcon ikonka_slozky(":/images/adresar.png");
-    QIcon ikonka_frangi(":/images/frangi.png");
-    QIcon ikonka_licovaniDvou(":/images/licovaniDvou.png");
-    QIcon ikonka_licovaniVidea(":/images/video-camera-icon.png");
+    QIcon icon_Folder_png(":/images/adresar.png");
+    QIcon icon_Frangi_png(":/images/frangi.png");
+    QIcon icon_RegistrateTwo_png(":/images/licovaniDvou.png");
+    QIcon icon_RegistrateVideo_png(":/images/video-camera-icon.png");
+    QIcon icon_Graph_png(":/images/Piechart.png");
 
-    ui->stranky->setIconSize(QSize(32,32));
-    QIcon icon_slozky = rotace_ikonky(ikonka_slozky);
-    QIcon icon_frangi = rotace_ikonky(ikonka_frangi);
-    QIcon icon_licovaniDvou = rotace_ikonky(ikonka_licovaniDvou);
-    QIcon icon_licovaniVidea = rotace_ikonky(ikonka_licovaniVidea);
+    ui->pages->setIconSize(QSize(32,32));
+    QIcon icon_Folder = iconRotation(icon_Folder_png);
+    QIcon icon_Frangi = iconRotation(icon_Frangi_png);
+    QIcon icon_RegistrateTwo = iconRotation(icon_RegistrateTwo_png);
+    QIcon icon_RegistrateVideo = iconRotation(icon_RegistrateVideo_png);
+    QIcon icon_Graph = iconRotation(icon_Graph_png);
 
-    volba_slozek = new t_b_HO;
-    detektor = new Frangi_detektor;
-    licovaniDvou = new LicovaniDvou;
-    licovaniVidea = new LicovaniVidea;
+    chooseFolders = new t_b_HO;
+    frangiDetector = new Frangi_detektor;
+    registrateTwo = new LicovaniDvou;
+    registrateVideo = new LicovaniVidea;
+    initializeGraph = new ChartInit;
 
-    ui->stranky->addTab(volba_slozek,icon_slozky,"");
-    ui->stranky->addTab(detektor,icon_frangi,"");    
-    ui->stranky->addTab(licovaniDvou,icon_licovaniDvou,"");
-    ui->stranky->addTab(licovaniVidea,icon_licovaniVidea,"");
+    ui->pages->addTab(chooseFolders,icon_Folder,"");
+    ui->pages->addTab(frangiDetector,icon_Frangi,"");
+    ui->pages->addTab(registrateTwo,icon_RegistrateTwo,"");
+    ui->pages->addTab(registrateVideo,icon_RegistrateVideo,"");
+    ui->pages->addTab(initializeGraph,icon_Graph,"");
 
-    bool folderPresent = volba_slozek->checkFileFolderExistence();
+    bool folderPresent = chooseFolders->checkFileFolderExistence();
     if (!folderPresent){
         disableTabs();
     }
 
-    connect(volba_slozek,SIGNAL(fileFolderDirectoryFound()),this,SLOT(fileFolderDirectoryLocated()));
+    connect(chooseFolders,SIGNAL(fileFolderDirectoryFound()),this,SLOT(fileFolderDirectoryLocated()));
 
-    connect(detektor,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
-    connect(detektor,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
+    connect(frangiDetector,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
+    connect(frangiDetector,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
 
-    connect(licovaniDvou,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
-    connect(licovaniDvou,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
+    connect(registrateTwo,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
+    connect(registrateTwo,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
 
-    connect(licovaniVidea,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
-    connect(licovaniVidea,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
+    connect(registrateVideo,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
+    connect(registrateVideo,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
+
 }
 
-QIcon zalozky::rotace_ikonky(QIcon ikona_vstup)
+QIcon zalozky::iconRotation(QIcon i_icon)
 {
     QTransform trans;
     QSize sz(32,32);
-    QPixmap pix = ikona_vstup.pixmap(sz);
+    QPixmap pix = i_icon.pixmap(sz);
     QIcon icon = QIcon(pix);
     trans.rotate(+90);
     pix = pix.transformed(trans);
@@ -78,9 +83,9 @@ void zalozky::enableTabs_slot(){
 }
 
 void zalozky::enableTabs(){
-    for (int var = 0; var < ui->stranky->tabBar()->count(); var++) {
-        if (var != ui->stranky->currentIndex())
-            ui->stranky->setTabEnabled(var,true);
+    for (int var = 0; var < ui->pages->tabBar()->count(); var++) {
+        if (var != ui->pages->currentIndex())
+            ui->pages->setTabEnabled(var,true);
     }
 }
 
@@ -89,9 +94,9 @@ void zalozky::disableTabs_slot(){
 }
 
 void zalozky::disableTabs(){
-    for (int var = 0; var < ui->stranky->tabBar()->count(); var++) {
-        if (var != ui->stranky->currentIndex())
-            ui->stranky->setTabEnabled(var,false);
+    for (int var = 0; var < ui->pages->tabBar()->count(); var++) {
+        if (var != ui->pages->currentIndex())
+            ui->pages->setTabEnabled(var,false);
     }
 }
 
@@ -99,15 +104,15 @@ void zalozky::fileFolderDirectoryLocated()
 {
     enableTabs();
 }
-void zalozky::on_stranky_tabBarClicked(int index)
+void zalozky::on_pages_tabBarClicked(int i_index)
 {
-    if (index == 1){
-        detektor->checkPaths();
+    if (i_index == 1){
+        frangiDetector->checkPaths();
     }
-    if (index == 2){
-        licovaniDvou->checkPaths();
+    if (i_index == 2){
+        registrateTwo->checkPaths();
     }
-    if (index == 3){
-        licovaniVidea->checkPathinitialization();
+    if (i_index == 3){
+        registrateVideo->checkPathinitialization();
     }
 }

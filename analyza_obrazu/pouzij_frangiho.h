@@ -8,13 +8,13 @@
 #include <QJsonObject>
 
 /**
- * @brief In function, recursive and median filtration is applied on the image
+ * @brief Recursive and median filtration are applied on the image.
  * @param inputImage
  * @param sigma_s
  * @param sigma_r
  * @return
  */
-cv::Mat imageFiltrationPreprocessing(const cv::Mat &inputImage, float sigma_s, float sigma_r);
+cv::Mat imageFiltrationPreprocessing(const cv::Mat &i_inputImage, float i_sigma_s, float i_sigma_r);
 
 /** Function eliminates the borders of the image to get rid of undesirable light artefacts etc. to minimize chance
  * frangi filter will be analysing these artefacts too
@@ -24,16 +24,16 @@ cv::Mat imageFiltrationPreprocessing(const cv::Mat &inputImage, float sigma_s, f
  * @param padding_r
  * @param padding_s
  */
-void borderProcessing(cv::Mat &inputImage,int imageType, int padding_r,int padding_s);
+void borderProcessing(cv::Mat &i_inputImage,int i_imageType, int i_padding_r,int i_padding_s);
 
 /**
  * @brief Function set zeros to specific pixels
- * @param vstupni_obraz
- * @param typ_snimku
- * @param velikost_okraje_r
- * @param velikost_okraje_s
+ * @param inputImage
+ * @param imageType
+ * @param padding_r
+ * @param padding_s
  */
-void zeroBorders(cv::Mat &inputImage,int imageType, int padding_r,int padding_s);
+void zeroBorders(cv::Mat &i_inputImage,int i_imageType, int i_padding_r,int i_padding_s);
 
 /**
  * @brief Function calculates frangi maximum coords. Frame type indicates, if the maximum is calculated from
@@ -50,14 +50,14 @@ void zeroBorders(cv::Mat &inputImage,int imageType, int padding_r,int padding_s)
  * @param FrangiParameters
  * @return
  */
-cv::Point3d frangi_analysis(const cv::Mat inputFrame,
-                           int processingMode,
-                           int accuracy,
-                           int showResult,
-                           QString windowName,
-                           int frameType,
-                           cv::Point3d translation,
-                           QVector<double> FrangiParameters);
+cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
+                           int i_processingMode,
+                           int i_accuracy,
+                           int i_showResult,
+                           QString i_windowName,
+                           int i_frameType,
+                           cv::Point3d i_translation,
+                           QVector<double> i_FrangiParameters);
 
 /**
  * @brief Computing subpixel accuracy of the Frangi maximum
@@ -66,7 +66,7 @@ cv::Point3d frangi_analysis(const cv::Mat inputFrame,
  * @param maximumFrangiCoords
  * @return
  */
-cv::Point2d FrangiSubpixel(const cv::Mat &frangi,
-                                   const double& maximum_frangi,
-                                   const cv::Point& maximumFrangiCoords);
+cv::Point2d FrangiSubpixel(const cv::Mat &i_frangi,
+                                   const double& i_maximum_frangi,
+                                   const cv::Point& i_maximumFrangiCoords);
 #endif // POUZIJ_FRANGIHO_H_INCLUDED

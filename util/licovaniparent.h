@@ -19,10 +19,21 @@ class LicovaniParent : public QWidget
 public:
     explicit LicovaniParent(QWidget *parent = nullptr);
 signals:
+    /**
+     * @brief Signal informs the GUI to block all tabs except the current one
+     * to prevent the program from unexpected behaviour.
+     */
     void calculationStarted();
+
+    /**
+     * @brief Signal informs the GUI all procedures have stopped. All actions are enabled.
+     */
     void calculationStopped();
-    void dataObtained();
 public slots:
+    /**
+     * @brief When the thread emits the finish of all calculations, the thread is terminated
+     * in this function.
+     */
     void onFinishThread(int);
 protected:
     /**
@@ -34,8 +45,6 @@ protected:
      * @brief Function clears the content of all thread QMaps.
      */
     void cancelAllCalculations();
-
-    int licovaniDokonceno = 0;
 
     QStringList videoList;
     QStringList videoListFull;

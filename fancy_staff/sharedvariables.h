@@ -14,22 +14,71 @@ public:
 
     static SharedVariables *getSharedVariables();
 
-    QString getPath(QString type) const; /// functions enable to save path into *.json file
+    /**
+     * @brief Get actual path for specific path type.
+     * @param type
+     * @return
+     */
+    QString getPath(QString type) const;
+
+    /**
+     * @brief Set actual path for specific path type.
+     * @param type
+     * @param path
+     */
     void setPath(QString type, QString path);
 
+    /**
+     * @brief Function loads data from *.json with frangi parameters. Predefined name of *.json file
+     * is expected!
+     * @param path
+     * @return
+     */
     bool processFrangiParameters(QString path);
 
+    /**
+     * @brief Function returns the vector of frangi parameters in predefined order for better processing.
+     * @return
+     */
     QVector<double> getFrangiParameters() const;
 
+    /**
+     * @brief Function returns the value of specific parameter.
+     * @param parameter
+     * @return
+     */
     double getSpecificFrangiParameter(QString parameter);
 
+    /**
+     * @brief Function returns the value of specific parameter.
+     * @param parameter
+     * @return
+     */
     double getSpecificFrangiParameter(int parameter);
 
+    /**
+     * @brief Function set the value of specific parameter.
+     * @param parameter
+     * @param value
+     */
     void setSpecificFrangiParameter(int parameter,double value);
 
+    /**
+     * @brief Function saves actual frangi parameters to the file in the chosen actual directory.
+     */
     void saveFrangiParameters();
 
+    /**
+     * @brief If Franfi filtr was applied on the frame,
+     * the coordinates of the maximum can be read by this function.
+     * @return
+     */
     cv::Point3d getFrangiMaximum();
+
+    /**
+     * @brief Store the latest coordinates of Frangi filtr maximum.
+     * @param coordinates
+     */
     void setFrangiMaximum(cv::Point3d coordinates);
 
     cv::Point2d getHorizontalAnomalyCoords();

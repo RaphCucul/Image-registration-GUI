@@ -9,14 +9,14 @@
  * @param values
  * @return
  */
-double median_VectorDouble(QVector<double> inputValues);
+double median_VectorDouble(QVector<double> i_input);
 
 /**
  * @brief Check if the maximum of entropy or tennenfrad is not to high and find better value if so
  * @param inputValues
  * @return
  */
-double checkMaximum(QVector<double>& inputValues);
+double checkMaximum(QVector<double>& i_input);
 
 /**
  * @brief Simply merge two vectors into the only one and preserve only unique unputs
@@ -24,7 +24,7 @@ double checkMaximum(QVector<double>& inputValues);
  * @param input2
  * @return
  */
-QVector<int> mergeVectors(QVector<int>& input1,QVector<int>& input2);
+QVector<int> mergeVectors(QVector<int>& i_input1,QVector<int>& i_input2);
 
 /**
  * @brief Creates implicitaly 9 windows = parts of the vector
@@ -32,7 +32,7 @@ QVector<int> mergeVectors(QVector<int>& input1,QVector<int>& input2);
  * @param windows
  * @param restToEnd
  */
-void vectorWindows(QVector<double>& inputValues, QVector<double>& windows, double& restToEnd);
+void vectorWindows(QVector<double>& i_inputValues, QVector<double>& i_windows, double& i_restToEnd);
 
 /**
  * @brief Calculate median from the values in the vector window part
@@ -41,9 +41,9 @@ void vectorWindows(QVector<double>& inputValues, QVector<double>& windows, doubl
  * @param restToEnd
  * @return
  */
-QVector<double> mediansOfVector(QVector<double>& inputValues,
-                                    QVector<double>& inputWindows,
-                                    double restToEnd);
+QVector<double> mediansOfVector(QVector<double>& i_inputValues,
+                                    QVector<double>& i_inputWindows,
+                                    double i_restToEnd);
 
 /**
  * @brief Function takes vector of entropy or tennengrad values and look for frames with values not fitting into
@@ -59,16 +59,16 @@ QVector<double> mediansOfVector(QVector<double>& inputValues,
  * @param badFrames
  * @param forEvaluation
  */
-bool analysisFunctionValues(QVector<double>& inputValues,
-                            QVector<double>& medianVector,
-                            QVector<double>& windowsVector,
-                            double& recalculatedMaximum,
-                            QVector<double>& thresholds,
-                            double& tolerance,
-                            int& dmin,
-                            double& restToEnd,
-                            QVector<int>& badFrames,
-                            QVector<double>& forEvaluation);
+bool analysisFunctionValues(QVector<double>& i_inputValues,
+                            QVector<double>& i_medianVector,
+                            QVector<double>& i_windowsVector,
+                            double& i_recalculatedMaximum,
+                            QVector<double>& i_thresholds,
+                            double& i_tolerance,
+                            int& i_dmin,
+                            double& i_restToEnd,
+                            QVector<int>& i_badFrames,
+                            QVector<double>& i_forEvaluation);
 
 /**
  * @brief Find referencial frame.
@@ -77,28 +77,22 @@ bool analysisFunctionValues(QVector<double>& inputValues,
  * @param inputValues
  * @return
  */
-int findReferencialNumber(double& recalculatedMaximum, QVector<double>& forEvaluation,
-                                 QVector<double>& inputValues);
-
-/*void analyza_FWHM(cv::VideoCapture& capture,
-                  int referencni_snimek_cislo,
-                  int pocet_snimku_videa,
-                  bool zmena_meritka,
-                  double& vypocteneR,
-                  double& vypocteneFWHM,
-                  cv::Rect& vyrez_oblasti_standardni,
-                  cv::Rect& vyrez_oblasti_navic,
-                  QVector<double>& spatne_snimky_komplet);
-/// pocita prumerny R a PMPf*/
+int findReferencialNumber(double& i_recalculatedMaximum, QVector<double>& i_forEvaluation,
+                                 QVector<double>& i_inputValues);
 
 /**
  * @brief Function checks the "integrity" of the bad frames vector and add those frames which could be skipped
  * by mistake
  * @param badFrames
  */
-void integrityCheck(QVector<int>& badFrames);
+void integrityCheck(QVector<int>& i_badFrames);
 
-int findReferenceFrame(QVector<int> vectorEvaluation);
+/**
+ * @brief Find the frame with number 2 index.
+ * @param vectorEvaluation
+ * @return
+ */
+int findReferenceFrame(QVector<int> i_vectorEvaluation);
 
 /**
  * @brief Function creates ranges of values for each qthread object
@@ -106,7 +100,7 @@ int findReferenceFrame(QVector<int> vectorEvaluation);
  * @param threadCount
  * @return
  */
-QVector<QVector<int>> divideIntoPeaces(int totalLength, int threadCount);
+QVector<QVector<int>> divideIntoPeaces(int i_totalLength, int i_threadCount);
 
 /**
  * @brief Function analyse given path to videos, check the present *.avi files and load first video from the
@@ -114,8 +108,8 @@ QVector<QVector<int>> divideIntoPeaces(int totalLength, int threadCount);
  * @param analysedFolder
  * @param whereToSave
  */
-void analyseAndSaveFirst(QString analysedFolder, QVector<QString>& whereToSave);
+void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString>& i_whereToSave);
 
-int vectorSum(QVector<int> input);
-double vectorSum(QVector<double> input);
+int vectorSum(QVector<int> i_input);
+double vectorSum(QVector<double> i_input);
 #endif // PRACE_S_VEKTORY_H_INCLUDED

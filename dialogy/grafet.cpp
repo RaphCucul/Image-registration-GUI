@@ -8,139 +8,115 @@
 #include <QWidget>
 #include <QHBoxLayout>
 
-GrafET::GrafET(QVector<QVector<double>> E, QVector<QVector<double>> T, QVector<QVector<int> > PrOhE,
-               QVector<QVector<int> > PrOhT, QVector<QVector<int> > PrRozh,
-               QVector<QVector<int> > DruhRozh, QVector<QVector<int> > ohodKompl, QStringList jmeno_videa,
+GrafET::GrafET(QVector<double> i_entropy,
+               QVector<double> i_tennengrad,
+               QVector<int> i_FirstEvalEntropy,
+               QVector<int> i_FirstEvalTennengrad,
+               QVector<int> i_FirstDecisionResults,
+               QVector<int> i_SecondDecisionResults,
+               QVector<int> i_CompleteEvaluation,
                QWidget *parent) : QDialog(parent),
     ui(new Ui::GrafET)
 {
     ui->setupUi(this);
-    /// jako vstupy jsou definovány vektory vektorů - je tedy nutné nejdříve identifikovat počet
-    /// jednotlivých vektorů a pak je jeden po jednom identifikovat
-    entropie = E;
-    tennengrad = T;
-    snimkyPrvotniOhodnoceniEntropieKomplet = PrOhE;
-    snimkyPrvotniOhodnoceniTennengradKomplet = PrOhT;
-    snimkyPrvniRozhodovaniKomplet = PrRozh;
-    snimkyDruheRozhodovaniKomplet = DruhRozh;
-    snimkyOhodnoceniKomplet = ohodKompl;
-    JmenoVidea = jmeno_videa;
+
+    QFile qssFile(":/style.qss");
+    qssFile.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(qssFile.readAll());
+    setStyleSheet(styleSheet);
+
+    entropy = i_entropy;
+    tennengrad = i_tennengrad;
+    framesEntropyFirstEvalComplete = i_FirstEvalEntropy;
+    framesTennengradFirstEvalComplete = i_FirstEvalTennengrad;
+    framesFirstEvalComplete = i_FirstDecisionResults;
+    framesSecondEvalComplete = i_SecondDecisionResults;
+    framesEvalComplete = i_CompleteEvaluation;
 
     ui->E_HPzobraz->setEnabled(false);
     ui->E_DPzobraz->setEnabled(false);
     ui->T_HPzobraz->setEnabled(false);
     ui->T_DPzobraz->setEnabled(false);
-    /// osetreni moznosti zobrazit hodnoceni snimku
-    if (snimkyPrvotniOhodnoceniEntropieKomplet.length() == 0)
+
+    if (framesEntropyFirstEvalComplete.length() == 0)
         ui->ohodnoceniEntropyCB->setEnabled(false);
-    if (snimkyPrvotniOhodnoceniTennengradKomplet.length()==0)
+    if (framesTennengradFirstEvalComplete.length()==0)
         ui->ohodnoceniTennenCB->setEnabled(false);
-    if (snimkyPrvniRozhodovaniKomplet.length() == 0)
+    if (framesFirstEvalComplete.length() == 0)
         ui->prvniRozhodCB->setEnabled(false);
     else
         ui->prvniRozhodCB->setEnabled(true);
-    if (snimkyDruheRozhodovaniKomplet.length() == 0)
+    if (framesSecondEvalComplete.length() == 0)
         ui->druheRozhodCB->setEnabled(false);
     else
         ui->druheRozhodCB->setEnabled(true);
-    /// inicializace parametrů podle vstupních hodnot
-    /// hledání extrémů ve vektorech
-    pocetVidei = entropie.size();
-    qDebug()<<"Number of videos: "<<pocetVidei;
-    //QVector<double> he = entropie[pocetVidei-1];
-    //qDebug()<<"Vektor hodnot: "<<he;
-    vyhledatExtremy(entropie,maxEntropie,1,pocetVidei); // maximum 1
-    vyhledatExtremy(entropie,minEntropie,2,pocetVidei); // minimum 2
-    vyhledatExtremy(tennengrad,maxTennengrad,1,pocetVidei);
-    vyhledatExtremy(tennengrad,minTennengrad,2,pocetVidei);
-    qDebug()<<"Extremy stanoveny.";
-    /// POZOR - JEDNÁ SE O DOČASNÉ ŘEŠENÍ - NUTNO IMPLEMENTOVAT PRVOTNÍ OHODNOCENÍ
-    /// nové vstupy - prahy
-   vytvoreniPrahu(maxEntropie,horniPrah_entropie,1,1); // typPrahu typExtremu
-   vytvoreniPrahu(minEntropie,dolniPrah_entropie,2,1); // threshold upper and lower
-   vytvoreniPrahu(maxTennengrad,horniPrah_tennengrad,1,2); // extremes - minimum, maximum
-   vytvoreniPrahu(minTennengrad,dolniPrah_tennengrad,2,2);
-    qDebug()<<"Prahy vytvoreny.";
-    /// pro zjednodušení vykreslování se přepočítané hodnoty prahů do standardního rozsahu
-    /// ukládájí zde a pak se již jen volají dle potřeby
-    standardizaceVektoru(entropie,entropieStandard,maxEntropie,minEntropie,pocetVidei);
-    standardizaceVektoru(tennengrad,tennengradStandard,maxTennengrad,minTennengrad,pocetVidei);
-    standardizaceVektoru(horniPrah_entropie,horniPrah_entropiePrepocet,maxEntropie,minEntropie,pocetVidei);
-    standardizaceVektoru(dolniPrah_entropie,dolniPrah_entropiePrepocet,maxEntropie,minEntropie,pocetVidei);
-    standardizaceVektoru(horniPrah_tennengrad,horniPrah_tennengradPrepocet,maxTennengrad,minTennengrad,
-                         pocetVidei);
-    standardizaceVektoru(dolniPrah_tennengrad,dolniPrah_tennengradPrepocet,maxTennengrad,minTennengrad,
-                         pocetVidei);
-    qDebug()<<"Standardizovano.";    
 
-    /// generování vektoru 0->počet snímků videa-1 pro osu x
-    /// týká se to jak osy x pro snímky, tak pro osy y pro prahové linie
-    /*std::vector<double> snimky(pocetSnimkuVidea);
+    maxEntropy = findExtremes(entropy,ExtremeType::MAX);
+    minEntropy = findExtremes(entropy,ExtremeType::MIN);
+    maxTennengrad = findExtremes(tennengrad,ExtremeType::MAX);
+    minTennengrad = findExtremes(tennengrad,ExtremeType::MIN);
+
+    upperThreshold_entropy = createThreshold(maxEntropy,
+                                         ThresholdType::UPPER,
+                                         ValueType::ENTROPY);
+    lowerThreshold_entropy = createThreshold(minEntropy,ThresholdType::LOWER,ValueType::ENTROPY);
+    upperThreshold_tennengrad = createThreshold(maxTennengrad,
+                                           ThresholdType::UPPER,
+                                           ValueType::TENNENGRAD);
+    lowerThreshold_tennengrad = createThreshold(minTennengrad,ThresholdType::LOWER,ValueType::TENNENGRAD);
+
+    valueStandardization(entropy,entropyStandard,maxEntropy,minEntropy);
+    valueStandardization(tennengrad,tennengradStandard,maxTennengrad,minTennengrad);
+    upperThreshold_entropyStandardized = valueStandardization(upperThreshold_entropy,maxEntropy,minEntropy);
+    lowerThreshold_entropyStandardized = valueStandardization(lowerThreshold_entropy,maxEntropy,minEntropy);
+    upperThreshold_tennengradStandardized = valueStandardization(upperThreshold_tennengrad,maxTennengrad,minTennengrad);
+    lowerThreshold_tennengradStandardized = valueStandardization(lowerThreshold_tennengrad,maxTennengrad,minTennengrad);
+    qDebug()<<"Standardizovano.";
+
+    // generate data for vector 0->frameCount
+    /*std::vector<double> snimky(frameCount);
     std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
-    snimkyRozsah = QVector<double>::fromStdVector(snimky);*/
+    valueRange = QVector<double>::fromStdVector(snimky);*/
 
+    QWidget *WSCustomPlot = new QWidget();
+    QCustomPlot* GrafickyObjekt = new QCustomPlot(WSCustomPlot);
+    ui->graphLayout->addWidget(GrafickyObjekt);
 
-    /// inicializace QTabWidgetu a vytvoření první záložky
-    ui->grafyTBW->setCurrentIndex(-1); // abych při přidání tabu níže neměl rovnou dva taby
-    /*QWidget* tabWidget = new QWidget();
-    QHBoxLayout* tabLayout = new QHBoxLayout();
-    tabLayout->addWidget(GrafickyObjekt);
-    tabLayout->addWidget(GrafickyObjekt);
-    tabWidget->setLayout(tabLayout);*/
-    ui->grafyTBW->setStyleSheet("QTabBar::tab { height: 15px; width: 105px; }");
-    for (int b = 0; b < pocetVidei;b++)
-    {
-        QWidget *WSCustomPlot = new QWidget();
-        QCustomPlot* GrafickyObjekt = new QCustomPlot(WSCustomPlot);
-        QString slozka,jmeno,koncovka;
-        QString celek = JmenoVidea.at(b);
-        processFilePath(celek,slozka,jmeno,koncovka);
-        ui->grafyTBW->addTab(GrafickyObjekt,jmeno);
-    }
+    QObject::connect(ui->zobrazGrafE,SIGNAL(stateChanged(int)),this,SLOT(showEntropy()));
+    QObject::connect(ui->zobrazGrafT,SIGNAL(stateChanged(int)),this,SLOT(showTennengrad()));
+    QObject::connect(ui->E_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showEntropyUpperThreshold()));
+    QObject::connect(ui->E_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showEntropyLowerThreshold()));
+    QObject::connect(ui->T_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showTennengradUpperThreshold()));
+    QObject::connect(ui->T_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showTennengradLowerThreshold()));
+    QObject::connect(ui->E_HP,SIGNAL(valueChanged(double)),this,SLOT(showEntropyUpperThreshold()));
+    QObject::connect(ui->E_DP,SIGNAL(valueChanged(double)),this,SLOT(showEntropyLowerThreshold()));
+    QObject::connect(ui->T_HP,SIGNAL(valueChanged(double)),this,SLOT(showTennengradUpperThreshold()));
+    QObject::connect(ui->T_DP,SIGNAL(valueChanged(double)),this,SLOT(showTennengradLowerThreshold()));
+    QObject::connect(ui->ohodnoceniEntropyCB,SIGNAL(stateChanged(int)),this,SLOT(firstEvaluationEntropy_f()));
+    QObject::connect(ui->ohodnoceniTennenCB,SIGNAL(stateChanged(int)),this,SLOT(firstEvaluationTennengrad_f()));
+    QObject::connect(ui->prvniRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(firstEvaluation_f()));
+    QObject::connect(ui->druheRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(secondEvaluation_f()));
 
-    /// propojení všech prvků s funkcemi ovládajícími fungování grafu
-    QObject::connect(ui->zobrazGrafE,SIGNAL(stateChanged(int)),this,SLOT(ZE()));
-    QObject::connect(ui->zobrazGrafT,SIGNAL(stateChanged(int)),this,SLOT(ZT()));
-    QObject::connect(ui->E_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(EHPZ()));
-    QObject::connect(ui->E_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(EDPZ()));
-    QObject::connect(ui->T_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(THPZ()));
-    QObject::connect(ui->T_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(TDPZ()));
-    QObject::connect(ui->E_HP,SIGNAL(valueChanged(double)),this,SLOT(EHPZ()));
-    QObject::connect(ui->E_DP,SIGNAL(valueChanged(double)),this,SLOT(EDPZ()));
-    QObject::connect(ui->T_HP,SIGNAL(valueChanged(double)),this,SLOT(THPZ()));
-    QObject::connect(ui->T_DP,SIGNAL(valueChanged(double)),this,SLOT(TDPZ()));
-    QObject::connect(ui->grafyTBW,SIGNAL(currentChanged(int)),this,SLOT(zmenaTabu(int)));
-    QObject::connect(ui->ohodnoceniEntropyCB,SIGNAL(stateChanged(int)),this,SLOT(prOhE()));
-    QObject::connect(ui->ohodnoceniTennenCB,SIGNAL(stateChanged(int)),this,SLOT(prOhT()));
-    QObject::connect(ui->prvniRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(prvHod()));
-    QObject::connect(ui->druheRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(druhHod()));
+    frameCount = entropy.length();
 
-    ui->grafyTBW->setCurrentIndex(0);
-    aktualniIndex = 0;
-    pocetSnimkuVidea = entropie[aktualniIndex].length();
-    //qDebug()<<entropie[aktualniIndex];
-    QWidget* w = ui->grafyTBW->currentWidget();
-    QCustomPlot* GrafickyObjekt = qobject_cast<QCustomPlot*>(w);
-    ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
-    liniePrahu(horniPrah_entropie,HP_entropie,pocetVidei,pocetSnimkuVidea);
-    liniePrahu(dolniPrah_entropie,DP_entropie,pocetVidei,pocetSnimkuVidea);
-    liniePrahu(horniPrah_tennengrad,HP_tennengrad,pocetVidei,pocetSnimkuVidea);
-    liniePrahu(dolniPrah_tennengrad,DP_tennengrad,pocetVidei,pocetSnimkuVidea);
-    QVector<double> snimky(pocetSnimkuVidea);
+    UT_entropy = thresholdLine(upperThreshold_entropy,frameCount);
+    LT_entropy = thresholdLine(lowerThreshold_entropy,frameCount);
+    HP_tennengrad = thresholdLine(upperThreshold_tennengrad,frameCount);
+    DP_tennengrad = thresholdLine(lowerThreshold_tennengrad,frameCount);
+
+    QVector<double> snimky(frameCount);
     std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
-    snimkyRozsah = snimky;//QVector<double>::fromStdVector(snimky);
-    //qDebug()<<snimkyRozsah;
-    inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],
-                              entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
-                              HP_entropie[aktualniIndex],DP_entropie[aktualniIndex],
-                              HP_tennengrad[aktualniIndex],DP_tennengrad[aktualniIndex],snimkyRozsah);
-    AktualniGrafickyObjekt = GrafickyObjekt;
+    valueRange = snimky;
+
+    inicializujGrafickyObjekt(GrafickyObjekt,entropy,tennengrad,
+                              entropyStandard,tennengradStandard,
+                              UT_entropy,LT_entropy,HP_tennengrad,DP_tennengrad,valueRange);
+    ActualGraphicalObject = GrafickyObjekt;
     ui->zobrazGrafE->setChecked(true);
-    ui->E_HP->setValue(horniPrah_entropie[aktualniIndex]);
-    ui->E_DP->setValue(dolniPrah_entropie[aktualniIndex]);
-    ui->T_HP->setValue(horniPrah_tennengrad[aktualniIndex]);
-    ui->T_DP->setValue(dolniPrah_tennengrad[aktualniIndex]);
-    qDebug()<<ui->grafyTBW->currentIndex();
+    ui->E_HP->setValue(upperThreshold_entropy);
+    ui->E_DP->setValue(lowerThreshold_entropy);
+    ui->T_HP->setValue(upperThreshold_tennengrad);
+    ui->T_DP->setValue(lowerThreshold_tennengrad);
 }
 
 GrafET::~GrafET()
@@ -148,779 +124,800 @@ GrafET::~GrafET()
     delete ui;
 }
 
-void GrafET::vyhledatExtremy(QVector<QVector<double>> &zkoumanyVektor, QVector<double>& zapisSem, int typExtremu,
-                             int pocetAnalyzovanychVidei)
+double GrafET::findExtremes(QVector<double> &i_analysedVector, ExtremeType extreme)
 {
-    for (int a = 0; a < pocetAnalyzovanychVidei; a++)
+    if (extreme == ExtremeType::MAX)
     {
-
-        if (typExtremu == 1)
-        {
-            QVector<double> pom =zkoumanyVektor[a];
-            QVector<double>::iterator maximumIterator = std::max_element(pom.begin(),pom.end());
-            int maximumPosition = std::distance(pom.begin(),maximumIterator);
-            zapisSem.push_back(pom[maximumPosition]);
-            qDebug()<<"Maximum: "<<pom[maximumPosition];
-        }
-        else
-        {
-            QVector<double> pom =zkoumanyVektor[a];
-            QVector<double>::iterator minimumIterator = std::min_element(pom.begin(),pom.end());
-            int minimumPosition = std::distance(pom.begin(),minimumIterator);
-            zapisSem.push_back(pom[minimumPosition]);
-            qDebug()<<"Minimum: "<<pom[minimumPosition];
-        }
-        //qDebug()<<zapisSem;
+        QVector<double>::iterator maximumIterator = std::max_element(i_analysedVector.begin(),i_analysedVector.end());
+        int maximalPosition = std::distance(i_analysedVector.begin(),maximumIterator);
+        qDebug()<<"Maximum: "<<i_analysedVector[maximalPosition];
+        return i_analysedVector[maximalPosition];
+    }
+    else
+    {
+        QVector<double>::iterator minimumIterator = std::min_element(i_analysedVector.begin(),i_analysedVector.end());
+        int minimalPosition = std::distance(i_analysedVector.begin(),minimumIterator);
+        qDebug()<<"Minimum: "<<i_analysedVector[minimalPosition];
+        return i_analysedVector[minimalPosition];
     }
 }
-void GrafET::vytvoreniPrahu(QVector<double>& vektorExtremu,QVector<double>& vektorPrahu,int typPrahu,int typExtremu)
+double GrafET::createThreshold(double i_extrem, ThresholdType threshold, ValueType type)
 {
-    int delkaVektoruExtremu = vektorExtremu.length();
-    for (int a = 0; a < delkaVektoruExtremu; a++)
+    double thresholdValue = 0.0;
+    if (type == ValueType::ENTROPY)
     {
-        if (typExtremu == 1) // entropie
-        {
-            if (typPrahu == 1) // horní
-                vektorPrahu.push_back(vektorExtremu[a]-0.01);
-            if (typPrahu == 2) // dolní
-                vektorPrahu.push_back(vektorExtremu[a]+0.01);
-        }
-        if (typExtremu == 2) // tennengrad
-        {
-            if (typPrahu == 1) // horní
-                vektorPrahu.push_back(vektorExtremu[a]-5);
-            if (typPrahu == 2) // dolní
-                vektorPrahu.push_back(vektorExtremu[a]+5);
-        }
+        if (threshold == ThresholdType::UPPER)
+            thresholdValue = (i_extrem-0.01);
+        if (threshold == ThresholdType::LOWER)
+            thresholdValue = (i_extrem+0.01);
     }
+    if (type == ValueType::TENNENGRAD)
+    {
+        if (threshold == ThresholdType::UPPER)
+            thresholdValue = (i_extrem-5);
+        if (threshold == ThresholdType::LOWER)
+            thresholdValue = (i_extrem+5);
+    }
+    return thresholdValue;
 }
-void GrafET::standardizaceVektoru(QVector<QVector<double>>& zkoumanyVektor,QVector<QVector<double>>& vektorStandardizovany,
-                          QVector<double>& max,QVector<double>& min,int pocetAnalyzovanychVidei)
+void GrafET::valueStandardization(QVector<double>& i_inputVector, QVector<double>& i_standardizedVector,
+                                  double i_max, double i_min)
 {
-    for (int a = 0; a < pocetAnalyzovanychVidei; a++)
-    {
-        int pocet_snimku_videa = zkoumanyVektor[a].length();
-        QVector<double> pom;
-        pom.fill(0.0,pocet_snimku_videa);
-        vektorStandardizovany.push_back(pom);
-        for (int b = 0; b < pocet_snimku_videa; b++)
-        {
-            vektorStandardizovany[a][b] = ((zkoumanyVektor[a][b]-min[a])/(max[a]-min[a]));
-        }
-    }
-}
-void GrafET::liniePrahu(QVector<double>& jednotliveHodnotyVidei, QVector<QVector<double>>& vektorPrahoveHodnoty, int pctVid,
-                int pctSnVid)
-{
-    for (int a = 0; a < pctVid; a++)
-    {
-        QVector<double> pom;
-        pom.fill(jednotliveHodnotyVidei[a],pctSnVid);
-        vektorPrahoveHodnoty.push_back(pom);
-    }
-}
-void GrafET::standardizaceVektoru(QVector<double>& zkoumanyVektor,QVector<double>& vektorStandardizovany,
-                          QVector<double>& max,QVector<double>& min,int pocetAnalyzovanychVidei)
-{
-    vektorStandardizovany.fill(0.0,pocetAnalyzovanychVidei);
-    for (int a = 0; a < pocetAnalyzovanychVidei; a++)
-    {
-        vektorStandardizovany[a] = (zkoumanyVektor[a]-min[a])/(max[a]-min[a]);
-    }
+    int frameCount = i_inputVector.length();
+    QVector<double> pom;
+    pom.fill(0.0,frameCount);
+    i_standardizedVector = pom;
+    for (int b = 0; b < frameCount; b++)
+        i_standardizedVector[b] = (i_inputVector[b]-i_min)/(i_max-i_min);
 }
 
+double GrafET::valueStandardization(double i_originalValue, double i_max, double i_min){
+    return ((i_originalValue-i_min)/(i_max-i_min));
+}
 
-void GrafET::zmenaTabu(int indexTabu)
+QVector<double> GrafET::thresholdLine(double i_originalValueForVector, int i_frameCount)
+{
+    QVector<double> pom;
+    pom.fill(i_originalValueForVector,i_frameCount);
+    return pom;
+}
+
+/*void GrafET::zmenaTabu(int indexTabu)
 {
     if (pocetVidei > 1)
     {
-        // inicializuji parametry podle aktuálně vybraného videa
         ui->zobrazGrafE->setChecked(false);
         ui->grafyTBW->setCurrentIndex(indexTabu);
         qDebug()<<ui->grafyTBW->currentIndex();
-        aktualniIndex = indexTabu;
-        pocetSnimkuVidea = entropie[aktualniIndex].length();
-        //std::vector<double> snimky(pocetSnimkuVidea);
-        QVector<double> snimky(pocetSnimkuVidea);
+        frameCount = entropy[indexTabu].length();
+        //std::vector<double> snimky(frameCount);
+        QVector<double> snimky(frameCount);
         std::generate(snimky.begin(),snimky.end(),[n = 0] () mutable { return n++; });
-        //snimkyRozsah = QVector<double>::fromStdVector(snimky);
-        snimkyRozsah = snimky;
-        // nastav správně vektor prahových hodnot
-        if (aktualniIndex > HP_entropie.size())
+        //valueRange = QVector<double>::fromStdVector(snimky);
+        valueRange = snimky;
+        if (indexTabu > UT_entropy.size())
         {
-            liniePrahu(horniPrah_entropie,HP_entropie,aktualniIndex,pocetSnimkuVidea);
-            liniePrahu(dolniPrah_entropie,DP_entropie,aktualniIndex,pocetSnimkuVidea);
-            liniePrahu(horniPrah_tennengrad,HP_tennengrad,aktualniIndex,pocetSnimkuVidea);
-            liniePrahu(dolniPrah_tennengrad,DP_tennengrad,aktualniIndex,pocetSnimkuVidea);
+            thresholdLine(upperThreshold_entropy,UT_entropy,indexTabu,frameCount);
+            thresholdLine(lowerThreshold_entropy,LT_entropy,indexTabu,frameCount);
+            thresholdLine(upperThreshold_tennengrad,HP_tennengrad,indexTabu,frameCount);
+            thresholdLine(lowerThreshold_tennengrad,DP_tennengrad,indexTabu,frameCount);
             qDebug()<<"zmena velikosti vektoru prahu";
         }
-        qDebug()<<"nebylo nutne menit velikost";
-        // zavolej aktuální widget
+        //qDebug()<<"nebylo nutne menit velikost";
         QWidget* w = ui->grafyTBW->currentWidget();
         QCustomPlot* GrafickyObjekt = qobject_cast<QCustomPlot*>(w);
         ui->grafyTBW->setCurrentWidget(GrafickyObjekt);
-        inicializujGrafickyObjekt(GrafickyObjekt,entropie[aktualniIndex],tennengrad[aktualniIndex],
-                                  entropieStandard[aktualniIndex],tennengradStandard[aktualniIndex],
-                                  HP_entropie[aktualniIndex],DP_entropie[aktualniIndex],
-                                  HP_tennengrad[aktualniIndex],DP_tennengrad[aktualniIndex],snimkyRozsah);
-        AktualniGrafickyObjekt = GrafickyObjekt;
+        inicializujGrafickyObjekt(GrafickyObjekt,entropy[indexTabu],tennengrad[indexTabu],
+                                  entropyStandard[indexTabu],tennengradStandard[indexTabu],
+                                  UT_entropy[indexTabu],LT_entropy[indexTabu],
+                                  HP_tennengrad[indexTabu],DP_tennengrad[indexTabu],valueRange);
+        ActualGraphicalObject = GrafickyObjekt;
 
         ui->zobrazGrafE->setChecked(true);
-        ui->E_HP->setValue(horniPrah_entropie[aktualniIndex]);
-        ui->E_DP->setValue(dolniPrah_entropie[aktualniIndex]);
-        ui->T_HP->setValue(horniPrah_tennengrad[aktualniIndex]);
-        ui->T_DP->setValue(dolniPrah_tennengrad[aktualniIndex]);
-        qDebug()<<ui->grafyTBW->currentIndex();
+        ui->E_HP->setValue(upperThreshold_entropy[indexTabu]);
+        ui->E_DP->setValue(lowerThreshold_entropy[indexTabu]);
+        ui->T_HP->setValue(upperThreshold_tennengrad[indexTabu]);
+        ui->T_DP->setValue(lowerThreshold_tennengrad[indexTabu]);
+        aktualniIndex = indexTabu;
+        //qDebug()<<ui->grafyTBW->currentIndex();
     }
-}
+}*/
 
-void GrafET::ZE()
+void GrafET::showEntropy()
 {
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if(ui->zobrazGrafE->isChecked()==true && ui->zobrazGrafT->isChecked() == false)
+    if(ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
     {
-        AktualniGrafickyObjekt->xAxis->setRange(1, pocetSnimkuVidea);
-        AktualniGrafickyObjekt->yAxis->setRange(minEntropie[aktualniIndex]-0.5,maxEntropie[aktualniIndex]+0.5);
-        AktualniGrafickyObjekt->graph(0)->setVisible(true); // zviditelňuji graf entropie
+        ActualGraphicalObject->xAxis->setRange(1, frameCount);
+        ActualGraphicalObject->yAxis->setRange(minEntropy-0.5,maxEntropy+0.5);
+        ActualGraphicalObject->graph(0)->setVisible(true);
 
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->replot();
 
         ui->E_HPzobraz->setEnabled(true);
         ui->E_DPzobraz->setEnabled(true);
         ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
         ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
         ui->ohodnoceniEntropyCB->setEnabled(true);
-        ui->ohodnoceniTennenCB->setEnabled(true);
+        ui->ohodnoceniTennenCB->setEnabled(false);ui->ohodnoceniTennenCB->setChecked(false);
         ui->prvniRozhodCB->setEnabled(true);
         ui->druheRozhodCB->setEnabled(true);
+        ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
+
     }
-    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true)
+    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
     {
-        AktualniGrafickyObjekt->graph(0)->setVisible(false);
-        AktualniGrafickyObjekt->graph(2)->setVisible(false); // standardy E & T
-        AktualniGrafickyObjekt->graph(3)->setVisible(false);
-        ui->E_HPzobraz->setChecked(false);ui->E_DPzobraz->setChecked(false);
-        // měl jsem zaškrtnuté oba grafy, nyní se vracím pouze na tennengrad - mažu evidenci k entropii
-        // ale mohl jsem mít zapnuté grafy také pro tennengrad - je potřeba je přepočítat na původní hodnoty
-        AktualniGrafickyObjekt->xAxis->setRange(1, pocetSnimkuVidea);
-        AktualniGrafickyObjekt->yAxis->setRange(minTennengrad[aktualniIndex]-1,maxTennengrad[aktualniIndex]+1);
-        AktualniGrafickyObjekt->graph(1)->setVisible(true); // zviditelňuji graf tennengradu
+        ActualGraphicalObject->graph(0)->setVisible(false);
+        ActualGraphicalObject->graph(2)->setVisible(false);
+        ActualGraphicalObject->graph(3)->setVisible(false);
+        ui->E_HPzobraz->setChecked(false);
+        ui->E_DPzobraz->setChecked(false);
 
-        HP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-        HP_tennengrad[aktualniIndex].fill(horniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
-        AktualniGrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad[aktualniIndex]);
-        DP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-        DP_tennengrad[aktualniIndex].fill(dolniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
-        AktualniGrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad[aktualniIndex]);
+        ActualGraphicalObject->xAxis->setRange(1, frameCount);
+        ActualGraphicalObject->yAxis->setRange(minTennengrad-1,maxTennengrad+1);
+        ActualGraphicalObject->graph(1)->setVisible(true);
 
-        // při jakékoliv změně překresluji
-        AktualniGrafickyObjekt->replot();
-        // znepřístupňuji nabídku pro grafy prahů entropie
+        HP_tennengrad.fill(0.0,frameCount);
+        HP_tennengrad.fill(upperThreshold_tennengrad,frameCount);
+        ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
+        DP_tennengrad.fill(0.0,frameCount);
+        DP_tennengrad.fill(lowerThreshold_tennengrad,frameCount);
+        ActualGraphicalObject->graph(7)->setData(valueRange,DP_tennengrad);
+
+        ActualGraphicalObject->replot();
         ui->E_HPzobraz->setEnabled(false);
         ui->E_DPzobraz->setEnabled(false);
-        //ui->T_HPzobraz->setEnabled(true);
-        //ui->T_DPzobraz->setEnabled(true);
+        ui->T_HPzobraz->setEnabled(true);
+        ui->T_DPzobraz->setEnabled(true);
         ui->ohodnoceniEntropyCB->setEnabled(false);
         ui->ohodnoceniTennenCB->setEnabled(true);
         ui->prvniRozhodCB->setEnabled(true);
         ui->druheRozhodCB->setEnabled(true);
+        ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
+
     }
-    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+    else if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
     {
-        AktualniGrafickyObjekt->graph(0)->setVisible(false); // původní grafy s originílními hodnotami mažu
-        AktualniGrafickyObjekt->graph(1)->setVisible(false);
-        // musím zavést společné měřítko pro standardizovaná data
-        AktualniGrafickyObjekt->xAxis->setRange(1, pocetSnimkuVidea);
-        AktualniGrafickyObjekt->yAxis->setRange(0,1);
-        AktualniGrafickyObjekt->graph(2)->setVisible(true);
-        AktualniGrafickyObjekt->graph(3)->setVisible(true);
-        // může se stát, že mám prahy pro tennengrad zobrazené => přepočítávám do <0,1>
+        ActualGraphicalObject->graph(0)->setVisible(false);
+        ActualGraphicalObject->graph(1)->setVisible(false);
+
+        ActualGraphicalObject->xAxis->setRange(1, frameCount);
+        ActualGraphicalObject->yAxis->setRange(0,1);
+        ActualGraphicalObject->graph(2)->setVisible(true);
+        ActualGraphicalObject->graph(3)->setVisible(true);
+
         if (ui->T_HPzobraz->isChecked())
         {
-            HP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            HP_tennengrad[aktualniIndex].fill(horniPrah_tennengradPrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad[aktualniIndex]);
+            HP_tennengrad.fill(0.0,frameCount);
+            HP_tennengrad.fill(upperThreshold_tennengradStandardized,frameCount);
+            ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
         }
         if (ui->T_DPzobraz->isChecked())
         {
-            DP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            DP_tennengrad[aktualniIndex].fill(dolniPrah_tennengradPrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad[aktualniIndex]);
+            DP_tennengrad.fill(0.0,frameCount);
+            DP_tennengrad.fill(lowerThreshold_tennengradStandardized,frameCount);
+            ActualGraphicalObject->graph(7)->setData(valueRange,DP_tennengrad);
         }
-        AktualniGrafickyObjekt->replot();
-        // povoluji vykreslení prahů pro entropii
+        ActualGraphicalObject->replot();
+
         ui->E_HPzobraz->setEnabled(true);
         ui->E_DPzobraz->setEnabled(true);
         ui->ohodnoceniEntropyCB->setEnabled(true);
         ui->ohodnoceniTennenCB->setEnabled(true);
         ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);    }
+        ui->druheRozhodCB->setEnabled(true);
+        ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
+
+    }
     else
     {
-        AktualniGrafickyObjekt->graph(0)->setVisible(false);
-        AktualniGrafickyObjekt->graph(1)->setVisible(false);
-        AktualniGrafickyObjekt->graph(2)->setVisible(false);
-        AktualniGrafickyObjekt->graph(3)->setVisible(false);
-        AktualniGrafickyObjekt->graph(4)->setVisible(false);
-        AktualniGrafickyObjekt->graph(5)->setVisible(false);
-        AktualniGrafickyObjekt->graph(6)->setVisible(false);
-        AktualniGrafickyObjekt->graph(7)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
-
-        ui->E_HPzobraz->setEnabled(false);ui->E_DPzobraz->setEnabled(false);
-        ui->T_HPzobraz->setEnabled(false);ui->T_DPzobraz->setEnabled(false);
-        ui->E_DPzobraz->setChecked(false);ui->E_HPzobraz->setChecked(false);
-        ui->T_HPzobraz->setChecked(false);ui->T_DPzobraz->setChecked(false);
-        ui->ohodnoceniEntropyCB->setEnabled(false);
-        ui->ohodnoceniTennenCB->setEnabled(false);
-        ui->prvniRozhodCB->setEnabled(false);
-        ui->druheRozhodCB->setEnabled(false);
+        hideAll();
     }
 }
 
-void GrafET::ZT()
+void GrafET::showTennengrad()
 {
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if(ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+    if(ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
     {
-        AktualniGrafickyObjekt->graph(2)->setVisible(false); // standardy
-        AktualniGrafickyObjekt->graph(3)->setVisible(false);
-        AktualniGrafickyObjekt->xAxis->setRange(1, pocetSnimkuVidea);
-        AktualniGrafickyObjekt->yAxis->setRange(minEntropie[aktualniIndex]-0.5,maxEntropie[aktualniIndex]+0.5);
-        AktualniGrafickyObjekt->graph(0)->setVisible(true);
-        if (ui->E_HPzobraz->isChecked() == true)
-        {
-            HP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            HP_entropie[aktualniIndex].fill(horniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie[aktualniIndex]);
-        }
-        if (ui->E_DPzobraz->isChecked() == true)
-        {
-            DP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            DP_entropie[aktualniIndex].fill(dolniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie[aktualniIndex]);
-        }
+        ActualGraphicalObject->graph(2)->setVisible(false);
+        ActualGraphicalObject->graph(3)->setVisible(false);
+        ActualGraphicalObject->xAxis->setRange(1, frameCount);
+        ActualGraphicalObject->yAxis->setRange(minEntropy-0.5,maxEntropy+0.5);
+        ActualGraphicalObject->graph(0)->setVisible(true);
+
         ui->ohodnoceniTennenCB->setEnabled(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->replot();
 
         ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
         ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
         ui->ohodnoceniEntropyCB->setEnabled(true);
         ui->ohodnoceniTennenCB->setEnabled(false);
         ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);    }
-    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true)
-    {
-        AktualniGrafickyObjekt->xAxis->setRange(1, pocetSnimkuVidea);
-        AktualniGrafickyObjekt->yAxis->setRange(minTennengrad[aktualniIndex]-1,maxTennengrad[aktualniIndex]+1);
-        AktualniGrafickyObjekt->graph(1)->setVisible(true);
+        ui->druheRozhodCB->setEnabled(true);
+        ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
 
-        AktualniGrafickyObjekt->replot();
+    }
+    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+    {
+        ActualGraphicalObject->xAxis->setRange(1, frameCount);
+        ActualGraphicalObject->yAxis->setRange(minTennengrad-1,maxTennengrad+1);
+        ActualGraphicalObject->graph(1)->setVisible(true);
+
+        ActualGraphicalObject->replot();
 
         ui->T_HPzobraz->setEnabled(true);ui->ohodnoceniTennenCB->setEnabled(true);
         ui->T_DPzobraz->setEnabled(true);
         ui->ohodnoceniEntropyCB->setEnabled(false);
         ui->prvniRozhodCB->setEnabled(true);
         ui->druheRozhodCB->setEnabled(true);
+        ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
+
     }
-    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+    else if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
     {
-        AktualniGrafickyObjekt->xAxis->setRange(1, pocetSnimkuVidea);
-        AktualniGrafickyObjekt->yAxis->setRange(0,1);
-        AktualniGrafickyObjekt->graph(2)->setVisible(true);
-        AktualniGrafickyObjekt->graph(3)->setVisible(true);
-        AktualniGrafickyObjekt->graph(0)->setVisible(false);
+        ActualGraphicalObject->xAxis->setRange(1, frameCount);
+        ActualGraphicalObject->yAxis->setRange(0,1);
+        ActualGraphicalObject->graph(2)->setVisible(true);
+        ActualGraphicalObject->graph(3)->setVisible(true);
+        ActualGraphicalObject->graph(0)->setVisible(false);
         if (ui->E_HPzobraz->isChecked() == true)
         {
-            HP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            HP_entropie[aktualniIndex].fill(horniPrah_entropiePrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(4)->setVisible(true);
+            UT_entropy.fill(0.0,frameCount);
+            UT_entropy.fill(upperThreshold_entropyStandardized,frameCount);
+            ActualGraphicalObject->graph(4)->setData(valueRange,UT_entropy);
+            ActualGraphicalObject->graph(4)->setVisible(true);
         }
         if (ui->E_DPzobraz->isChecked() == true)
         {
-            DP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            DP_entropie[aktualniIndex].fill(dolniPrah_entropiePrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(5)->setVisible(true);
+            LT_entropy.fill(0.0,frameCount);
+            LT_entropy.fill(lowerThreshold_entropyStandardized,frameCount);
+            ActualGraphicalObject->graph(5)->setData(valueRange,LT_entropy);
+            ActualGraphicalObject->graph(5)->setVisible(true);
         }
 
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->replot();
 
         ui->T_HPzobraz->setEnabled(true);
         ui->T_DPzobraz->setEnabled(true);
         ui->ohodnoceniEntropyCB->setEnabled(true);
         ui->ohodnoceniTennenCB->setEnabled(true);
         ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);    }
+        ui->druheRozhodCB->setEnabled(true);
+        ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
+
+    }
     else
     {
-        AktualniGrafickyObjekt->graph(0)->setVisible(false);
-        AktualniGrafickyObjekt->graph(1)->setVisible(false);
-        AktualniGrafickyObjekt->graph(2)->setVisible(false);
-        AktualniGrafickyObjekt->graph(3)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
-        ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
-        ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
-        ui->ohodnoceniEntropyCB->setEnabled(false);ui->ohodnoceniTennenCB->setEnabled(false);
-        ui->prvniRozhodCB->setEnabled(false);ui->druheRozhodCB->setEnabled(false);
+        hideAll();
     }
 }
 
-void GrafET::EHPZ()
+void GrafET::showEntropyUpperThreshold()
 {
     double aktualHodnotaEHP = ui->E_HP->value();
-    qDebug()<<"Aktualni hodnota EHP: "<<aktualHodnotaEHP;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false &&
-            ui->E_HPzobraz->isChecked() == true)
+    if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked() &&
+            ui->E_HPzobraz->isChecked())
     {
-        qDebug()<<"Zobrazuji graf horního prahu entropie.";
-        if (std::abs(aktualHodnotaEHP-horniPrah_entropie[aktualniIndex])>0.005)
+        //qDebug()<<"Zobrazuji graf horního prahu entropy.";
+        if (std::abs(aktualHodnotaEHP-upperThreshold_entropy)>0.005)
         {
-            HP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            horniPrah_entropie[aktualniIndex] = aktualHodnotaEHP;
-            HP_entropie[aktualniIndex].fill(horniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(4)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            UT_entropy.fill(0.0,frameCount);
+            upperThreshold_entropy = aktualHodnotaEHP;
+            UT_entropy.fill(upperThreshold_entropy,frameCount);
+            ActualGraphicalObject->graph(4)->setData(valueRange,UT_entropy);
+            ActualGraphicalObject->graph(4)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-
-            AktualniGrafickyObjekt->graph(4)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            ActualGraphicalObject->graph(4)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
 
     }
-    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
-             ui->E_HPzobraz->isChecked() == true)
+    else if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
+             ui->E_HPzobraz->isChecked())
     {
-        qDebug()<<"Zobrazuji graf horního prahu entropie.";
-        if (std::abs(aktualHodnotaEHP-horniPrah_entropie[aktualniIndex])>0.005)
+        //qDebug()<<"Zobrazuji graf horního prahu entropy.";
+        if (std::abs(aktualHodnotaEHP-upperThreshold_entropy)>0.005)
         {
 
-            HP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            horniPrah_entropiePrepocet[aktualniIndex] = (aktualHodnotaEHP-minEntropie[aktualniIndex])/(maxEntropie[aktualniIndex]-minEntropie[aktualniIndex]);
-            qDebug()<<"EHP prepocet: "<<horniPrah_entropiePrepocet[aktualniIndex];
-            HP_entropie[aktualniIndex].fill(horniPrah_entropiePrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(4)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            UT_entropy.fill(0.0,frameCount);
+            upperThreshold_entropyStandardized = (aktualHodnotaEHP-minEntropy)/(maxEntropy-minEntropy);
+            //qDebug()<<"EHP Standardized: "<<upperThreshold_entropyStandardized;
+            UT_entropy.fill(upperThreshold_entropyStandardized,frameCount);
+            ActualGraphicalObject->graph(4)->setData(valueRange,UT_entropy);
+            ActualGraphicalObject->graph(4)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-            HP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            HP_entropie[aktualniIndex].fill(horniPrah_entropiePrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(4)->setData(snimkyRozsah,HP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(4)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            UT_entropy.fill(0.0,frameCount);
+            UT_entropy.fill(upperThreshold_entropyStandardized,frameCount);
+            ActualGraphicalObject->graph(4)->setData(valueRange,UT_entropy);
+            ActualGraphicalObject->graph(4)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
-    }    
-    else if (ui->E_HPzobraz->isChecked() == false)
+    }
+    else if (!ui->E_HPzobraz->isChecked())
     {
-        AktualniGrafickyObjekt->graph(4)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(4)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
-void GrafET::EDPZ()
+void GrafET::showEntropyLowerThreshold()
 {
     double aktualniHodnotaEDP = ui->E_DP->value();
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false &&
-            ui->E_DPzobraz->isChecked() == true)
+    if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked() &&
+            ui->E_DPzobraz->isChecked())
     {
-        qDebug()<<"Zobrazuji graf dolního prahu tennengradu.";
-        if (std::abs(aktualniHodnotaEDP-dolniPrah_entropie[aktualniIndex])>0.005)
+        //qDebug()<<"Zobrazuji graf dolního prahu tennengradu.";
+        if (std::abs(aktualniHodnotaEDP-lowerThreshold_entropy)>0.005)
         {
-            DP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            dolniPrah_entropie[aktualniIndex] = aktualniHodnotaEDP;
-            DP_entropie[aktualniIndex].fill(dolniPrah_entropie[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(5)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            LT_entropy.fill(0.0,frameCount);
+            lowerThreshold_entropy = aktualniHodnotaEDP;
+            LT_entropy.fill(lowerThreshold_entropy,frameCount);
+            ActualGraphicalObject->graph(5)->setData(valueRange,LT_entropy);
+            ActualGraphicalObject->graph(5)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-            AktualniGrafickyObjekt->graph(5)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            ActualGraphicalObject->graph(5)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
 
     }
-    else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
-             ui->E_DPzobraz->isChecked() == true)
+    else if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
+             ui->E_DPzobraz->isChecked())
     {
-        if (std::abs(aktualniHodnotaEDP-dolniPrah_entropie[aktualniIndex])>0.005)
+        if (std::abs(aktualniHodnotaEDP-lowerThreshold_entropy)>0.005)
         {
-            DP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            dolniPrah_entropiePrepocet[aktualniIndex] = (aktualniHodnotaEDP-minEntropie[aktualniIndex])/(maxEntropie[aktualniIndex]-minEntropie[aktualniIndex]);
-            DP_entropie[aktualniIndex].fill(dolniPrah_entropiePrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(5)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            LT_entropy.fill(0.0,frameCount);
+            lowerThreshold_entropyStandardized = (aktualniHodnotaEDP-minEntropy)/(maxEntropy-minEntropy);
+            LT_entropy.fill(lowerThreshold_entropyStandardized,frameCount);
+            ActualGraphicalObject->graph(5)->setData(valueRange,LT_entropy);
+            ActualGraphicalObject->graph(5)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-            DP_entropie[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            DP_entropie[aktualniIndex].fill(dolniPrah_entropiePrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(5)->setData(snimkyRozsah,DP_entropie[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(5)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            LT_entropy.fill(0.0,frameCount);
+            LT_entropy.fill(lowerThreshold_entropyStandardized,frameCount);
+            ActualGraphicalObject->graph(5)->setData(valueRange,LT_entropy);
+            ActualGraphicalObject->graph(5)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
     }
-    else if(ui->E_DPzobraz->isChecked() == false)
+    else if(!ui->E_DPzobraz->isChecked())
     {
-        AktualniGrafickyObjekt->graph(5)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(5)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
-void GrafET::THPZ()
+void GrafET::showTennengradUpperThreshold()
 {
     double aktualHodnotaTHP = ui->T_HP->value();
-    qDebug()<<"Aktualni hodnota THP: "<<aktualHodnotaTHP;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
-             ui->T_HPzobraz->isChecked() == true)
+    //qDebug()<<"Aktualni hodnota THP: "<<aktualHodnotaTHP;
+    if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
+            ui->T_HPzobraz->isChecked())
     {
-        qDebug()<<"Zobrazuji graf horního prahu tennengradu.";
-        if (std::abs(aktualHodnotaTHP-horniPrah_tennengrad[aktualniIndex])>0.005)
+        //qDebug()<<"Zobrazuji graf horního prahu tennengradu.";
+        if (std::abs(aktualHodnotaTHP-upperThreshold_tennengrad)>0.005)
         {
 
-            HP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            horniPrah_tennengradPrepocet[aktualniIndex] = (aktualHodnotaTHP-minTennengrad[aktualniIndex])/(maxTennengrad[aktualniIndex]-minTennengrad[aktualniIndex]);
-            qDebug()<<"THP prepocet: "<<horniPrah_tennengradPrepocet[aktualniIndex];
-            HP_tennengrad[aktualniIndex].fill(horniPrah_tennengradPrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(6)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            HP_tennengrad.fill(0.0,frameCount);
+            upperThreshold_tennengradStandardized = (aktualHodnotaTHP-minTennengrad)/(maxTennengrad-minTennengrad);
+            //qDebug()<<"THP Standardized: "<<upperThreshold_tennengradStandardized;
+            HP_tennengrad.fill(upperThreshold_tennengradStandardized,frameCount);
+            ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
+            ActualGraphicalObject->graph(6)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-            HP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            HP_tennengrad[aktualniIndex].fill(horniPrah_tennengradPrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(6)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            HP_tennengrad.fill(0.0,frameCount);
+            HP_tennengrad.fill(upperThreshold_tennengradStandardized,frameCount);
+            ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
+            ActualGraphicalObject->graph(6)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
     }
-    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true &&
-             ui->T_HPzobraz->isChecked() == true)
+    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
+             ui->T_HPzobraz->isChecked())
     {
-        if (std::abs(aktualHodnotaTHP-horniPrah_tennengrad[aktualniIndex])>0.005)
+        if (std::abs(aktualHodnotaTHP-upperThreshold_tennengrad)>0.005)
         {
-            HP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            horniPrah_tennengrad[aktualniIndex] = aktualHodnotaTHP;
-            HP_tennengrad[aktualniIndex].fill(horniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(6)->setData(snimkyRozsah,HP_tennengrad[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(6)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            HP_tennengrad.fill(0.0,frameCount);
+            upperThreshold_tennengrad = aktualHodnotaTHP;
+            HP_tennengrad.fill(upperThreshold_tennengrad,frameCount);
+            ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
+            ActualGraphicalObject->graph(6)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-            AktualniGrafickyObjekt->graph(6)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            ActualGraphicalObject->graph(6)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
     }
-    else if (ui->T_HPzobraz->isChecked() == false)
+    else if (!ui->T_HPzobraz->isChecked())
     {
-        AktualniGrafickyObjekt->graph(6)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(6)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
-void GrafET::TDPZ()
+void GrafET::showTennengradLowerThreshold()
 {
     double aktualniHodnotaTDP = ui->T_DP->value();
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true &&
-             ui->T_DPzobraz->isChecked() == true)
+    if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
+            ui->T_DPzobraz->isChecked())
     {
-        if (std::abs(aktualniHodnotaTDP-dolniPrah_tennengrad[aktualniIndex])>0.005)
+        if (std::abs(aktualniHodnotaTDP-lowerThreshold_tennengrad)>0.005)
         {
-            DP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            dolniPrah_tennengradPrepocet[aktualniIndex] = (aktualniHodnotaTDP-minTennengrad[aktualniIndex])/(maxTennengrad[aktualniIndex]-minTennengrad[aktualniIndex]);
-            DP_tennengrad[aktualniIndex].fill(dolniPrah_tennengradPrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(7)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            DP_tennengrad.fill(0.0,frameCount);
+            lowerThreshold_tennengradStandardized = (aktualniHodnotaTDP-minTennengrad)/(maxTennengrad-minTennengrad);
+            DP_tennengrad.fill(lowerThreshold_tennengradStandardized,frameCount);
+            ActualGraphicalObject->graph(7)->setData(valueRange,DP_tennengrad);
+            ActualGraphicalObject->graph(7)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-            DP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            DP_tennengrad[aktualniIndex].fill(dolniPrah_tennengradPrepocet[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(7)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            DP_tennengrad.fill(0.0,frameCount);
+            DP_tennengrad.fill(lowerThreshold_tennengradStandardized,frameCount);
+            ActualGraphicalObject->graph(7)->setData(valueRange,DP_tennengrad);
+            ActualGraphicalObject->graph(7)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
     }
-    else if (ui->zobrazGrafE->isChecked() == false && ui->zobrazGrafT->isChecked() == true &&
-             ui->T_DPzobraz->isChecked() == true)
+    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
+             ui->T_DPzobraz->isChecked())
     {
-        if (std::abs(aktualniHodnotaTDP-dolniPrah_tennengrad[aktualniIndex])>0.005)
+        if (std::abs(aktualniHodnotaTDP-lowerThreshold_tennengrad)>0.005)
         {
-            DP_tennengrad[aktualniIndex].fill(0.0,pocetSnimkuVidea);
-            dolniPrah_tennengrad[aktualniIndex] = aktualniHodnotaTDP;
-            DP_tennengrad[aktualniIndex].fill(dolniPrah_tennengrad[aktualniIndex],pocetSnimkuVidea);
-            AktualniGrafickyObjekt->graph(7)->setData(snimkyRozsah,DP_tennengrad[aktualniIndex]);
-            AktualniGrafickyObjekt->graph(7)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            DP_tennengrad.fill(0.0,frameCount);
+            lowerThreshold_tennengrad = aktualniHodnotaTDP;
+            DP_tennengrad.fill(lowerThreshold_tennengrad,frameCount);
+            ActualGraphicalObject->graph(7)->setData(valueRange,DP_tennengrad);
+            ActualGraphicalObject->graph(7)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
         else
         {
-            AktualniGrafickyObjekt->graph(7)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            ActualGraphicalObject->graph(7)->setVisible(true);
+            ActualGraphicalObject->replot();
         }
     }
-    else if(ui->T_DPzobraz->isChecked() == false)
+    else if(!ui->T_DPzobraz->isChecked())
     {
-        AktualniGrafickyObjekt->graph(7)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(7)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
-void GrafET::prOhE()
+void GrafET::firstEvaluationEntropy_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->ohodnoceniEntropyCB->isChecked() == true)
+    if (ui->ohodnoceniEntropyCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyPrvotniOhodnoceniEntropieKomplet[aktualniIndex],
-                                                 entropieStandard[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyPrvotniOhodnoceniEntropieKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(8)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(8)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEntropyFirstEvalComplete,
+                                                 entropyStandard,0);
+            souradniceDouble = transformInt2Double(framesEntropyFirstEvalComplete,0);
+            ActualGraphicalObject->graph(8)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(8)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(8,framesEntropyFirstEvalComplete,entropyStandard,0);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyPrvotniOhodnoceniEntropieKomplet[aktualniIndex],
-                                                 entropie[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyPrvotniOhodnoceniEntropieKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(8)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(8)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEntropyFirstEvalComplete,
+                                                 entropy,0);
+            souradniceDouble = transformInt2Double(framesEntropyFirstEvalComplete,0);
+            ActualGraphicalObject->graph(8)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(8)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(8,framesEntropyFirstEvalComplete,entropy,0);
         }
     }
     else
     {
-        AktualniGrafickyObjekt->graph(8)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(8)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
-void GrafET::prOhT()
+void GrafET::firstEvaluationTennengrad_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->ohodnoceniTennenCB->isChecked() == true)
+    if (ui->ohodnoceniTennenCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyPrvotniOhodnoceniTennengradKomplet[aktualniIndex],
-                                                 tennengradStandard[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyPrvotniOhodnoceniTennengradKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(9)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(9)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesTennengradFirstEvalComplete,
+                                                 tennengradStandard,0);
+            souradniceDouble = transformInt2Double(framesTennengradFirstEvalComplete,0);
+            ActualGraphicalObject->graph(9)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(9)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(9,framesTennengradFirstEvalComplete,tennengradStandard,0);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyPrvotniOhodnoceniTennengradKomplet[aktualniIndex],
-                                                 tennengrad[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyPrvotniOhodnoceniTennengradKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(9)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(9)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesTennengradFirstEvalComplete,
+                                                 tennengrad,0);
+            souradniceDouble = transformInt2Double(framesTennengradFirstEvalComplete,0);
+            ActualGraphicalObject->graph(9)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(9)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(9,framesTennengradFirstEvalComplete,tennengrad,0);
         }
     }
     else
     {
-        AktualniGrafickyObjekt->graph(9)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(9)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
-void GrafET::prvHod()
+void GrafET::firstEvaluation_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->prvniRozhodCB->isChecked() == true)
+    if (ui->prvniRozhodCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyPrvniRozhodovaniKomplet[aktualniIndex],
-                                                 entropieStandard[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyPrvniRozhodovaniKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(10)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(10)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesFirstEvalComplete,
+                                                 entropyStandard,0);
+            souradniceDouble = transformInt2Double(framesFirstEvalComplete,0);
+            ActualGraphicalObject->graph(10)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(10)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(10,framesFirstEvalComplete,entropyStandard,0);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyPrvniRozhodovaniKomplet[aktualniIndex],
-                                                 entropie[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyPrvniRozhodovaniKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(10)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(10)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesFirstEvalComplete,
+                                                 entropy,0);
+            souradniceDouble = transformInt2Double(framesFirstEvalComplete,0);
+            ActualGraphicalObject->graph(10)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(10)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(10,framesFirstEvalComplete,entropy,0);
+        }
+        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesFirstEvalComplete,
+                                                 tennengrad,0);
+            souradniceDouble = transformInt2Double(framesFirstEvalComplete,0);
+            ActualGraphicalObject->graph(10)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(10)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(10,framesFirstEvalComplete,tennengrad,0);
         }
     }
     else
     {
-        AktualniGrafickyObjekt->graph(10)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(10)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
-void GrafET::druhHod()
+void GrafET::secondEvaluation_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
-    if (ui->druheRozhodCB->isChecked() == true)
+    if (ui->druheRozhodCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyDruheRozhodovaniKomplet[aktualniIndex],
-                                                 entropieStandard[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyDruheRozhodovaniKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(11)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(11)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesSecondEvalComplete,
+                                                 entropyStandard,0);
+            souradniceDouble = transformInt2Double(framesSecondEvalComplete,0);
+            ActualGraphicalObject->graph(11)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(11)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(11,framesSecondEvalComplete,entropyStandard,0);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyDruheRozhodovaniKomplet[aktualniIndex],
-                                                 entropie[aktualniIndex],0);
-            souradniceDouble = transformInt2Double(snimkyDruheRozhodovaniKomplet[aktualniIndex],0);
-            AktualniGrafickyObjekt->graph(11)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(11)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesSecondEvalComplete,
+                                                 entropy,0);
+            souradniceDouble = transformInt2Double(framesSecondEvalComplete,0);
+            ActualGraphicalObject->graph(11)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(11)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(11,framesSecondEvalComplete,entropy,0);
+        }
+        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesSecondEvalComplete,
+                                                 tennengrad,0);
+            souradniceDouble = transformInt2Double(framesSecondEvalComplete,0);
+            ActualGraphicalObject->graph(11)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(11)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(11,framesSecondEvalComplete,tennengrad,0);
         }
     }
     else
     {
-        AktualniGrafickyObjekt->graph(11)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(11)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
 void GrafET::on_ohodnocKomplet_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-        vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                             entropieStandard[aktualniIndex],1);
-        souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],1);
-        AktualniGrafickyObjekt->graph(12)->setData(souradniceDouble,vybraneHodnotyY);
-        AktualniGrafickyObjekt->graph(12)->setVisible(true);
-        AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                             entropyStandard,1);
+        souradniceDouble = transformInt2Double(framesEvalComplete,1);
+        ActualGraphicalObject->graph(12)->setData(souradniceDouble,vybraneHodnotyY);
+        ActualGraphicalObject->graph(12)->setVisible(true);
+        ActualGraphicalObject->replot();*/
+            populateGraph(12,framesEvalComplete,entropyStandard,1);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                                 entropie[aktualniIndex],1);
-            souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],1);
-            AktualniGrafickyObjekt->graph(12)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(12)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                                 entropy,1);
+            souradniceDouble = transformInt2Double(framesEvalComplete,1);
+            ActualGraphicalObject->graph(12)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(12)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(12,framesEvalComplete,entropy,1);
+        }
+        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                                 tennengrad,0);
+            souradniceDouble = transformInt2Double(framesEvalComplete,0);
+            ActualGraphicalObject->graph(12)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(12)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(12,framesEvalComplete,tennengrad,1);
         }
     }
     if (arg1 == 0){
-        AktualniGrafickyObjekt->graph(12)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(12)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
 void GrafET::on_IV1_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-        vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                             entropieStandard[aktualniIndex],2);
-        souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],2);
-        AktualniGrafickyObjekt->graph(13)->setData(souradniceDouble,vybraneHodnotyY);
-        AktualniGrafickyObjekt->graph(13)->setVisible(true);
-        AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                             entropyStandard,2);
+        souradniceDouble = transformInt2Double(framesEvalComplete,2);
+        ActualGraphicalObject->graph(13)->setData(souradniceDouble,vybraneHodnotyY);
+        ActualGraphicalObject->graph(13)->setVisible(true);
+        ActualGraphicalObject->replot();*/
+            populateGraph(13,framesEvalComplete,entropyStandard,2);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                                 entropie[aktualniIndex],2);
-            souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],2);
-            AktualniGrafickyObjekt->graph(13)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(13)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                                 entropy,2);
+            souradniceDouble = transformInt2Double(framesEvalComplete,2);
+            ActualGraphicalObject->graph(13)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(13)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(13,framesEvalComplete,entropy,2);
+        }
+        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+            populateGraph(13,framesEvalComplete,tennengrad,2);
         }
     }
     if (arg1 == 0){
-        AktualniGrafickyObjekt->graph(13)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(13)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
 void GrafET::on_IV4_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-        vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                             entropieStandard[aktualniIndex],3);
-        souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],3);
-        AktualniGrafickyObjekt->graph(14)->setData(souradniceDouble,vybraneHodnotyY);
-        AktualniGrafickyObjekt->graph(14)->setVisible(true);
-        AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                             entropyStandard,3);
+        souradniceDouble = transformInt2Double(framesEvalComplete,3);
+        ActualGraphicalObject->graph(14)->setData(souradniceDouble,vybraneHodnotyY);
+        ActualGraphicalObject->graph(14)->setVisible(true);
+        ActualGraphicalObject->replot();*/
+            populateGraph(14,framesEvalComplete,tennengrad,3);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                                 entropie[aktualniIndex],3);
-            souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],3);
-            AktualniGrafickyObjekt->graph(14)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(14)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                                 entropy,3);
+            souradniceDouble = transformInt2Double(framesEvalComplete,3);
+            ActualGraphicalObject->graph(14)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(14)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(14,framesEvalComplete,entropy,3);
+        }
+        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+            populateGraph(14,framesEvalComplete,tennengrad,3);
         }
     }
     if (arg1 == 0){
-        AktualniGrafickyObjekt->graph(14)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(14)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
 }
 
 void GrafET::on_IV5_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    int aktualniIndex = ui->grafyTBW->currentIndex();
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == true)
+        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
         {
-        vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                             entropieStandard[aktualniIndex],4);
-        souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],4);
-        AktualniGrafickyObjekt->graph(15)->setData(souradniceDouble,vybraneHodnotyY);
-        AktualniGrafickyObjekt->graph(15)->setVisible(true);
-        AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                             entropyStandard,4);
+        souradniceDouble = transformInt2Double(framesEvalComplete,4);
+        ActualGraphicalObject->graph(15)->setData(souradniceDouble,vybraneHodnotyY);
+        ActualGraphicalObject->graph(15)->setVisible(true);
+        ActualGraphicalObject->replot();*/
+            populateGraph(15,framesEvalComplete,tennengrad,4);
         }
-        else if (ui->zobrazGrafE->isChecked() == true && ui->zobrazGrafT->isChecked() == false)
+        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
         {
-            vybraneHodnotyY = vyberHodnotySnimku(snimkyOhodnoceniKomplet[aktualniIndex],
-                                                 entropie[aktualniIndex],4);
-            souradniceDouble = transformInt2Double(snimkyOhodnoceniKomplet[aktualniIndex],4);
-            AktualniGrafickyObjekt->graph(15)->setData(souradniceDouble,vybraneHodnotyY);
-            AktualniGrafickyObjekt->graph(15)->setVisible(true);
-            AktualniGrafickyObjekt->replot();
+            /*vybraneHodnotyY = vyberHodnotySnimku(framesEvalComplete,
+                                                 entropy,4);
+            souradniceDouble = transformInt2Double(framesEvalComplete,4);
+            ActualGraphicalObject->graph(15)->setData(souradniceDouble,vybraneHodnotyY);
+            ActualGraphicalObject->graph(15)->setVisible(true);
+            ActualGraphicalObject->replot();*/
+            populateGraph(15,framesEvalComplete,entropy,4);
+        }
+        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+            populateGraph(15,framesEvalComplete,tennengrad,4);
         }
     }
     if (arg1 == 0){
-        AktualniGrafickyObjekt->graph(15)->setVisible(false);
-        AktualniGrafickyObjekt->replot();
+        ActualGraphicalObject->graph(15)->setVisible(false);
+        ActualGraphicalObject->replot();
     }
+}
+
+void GrafET::populateGraph(int i_graphLine,
+                           QVector<int> &i_y_coords, QVector<double> &i_x_coords,
+                           int i_evalType){
+    QVector<double> chosenYcoordinates,coordinatesInDouble;
+    chosenYcoordinates = vyberHodnotySnimku(i_y_coords,i_x_coords,i_evalType);
+    coordinatesInDouble = transformInt2Double(i_y_coords,i_evalType);
+    ActualGraphicalObject->graph(i_graphLine)->setData(coordinatesInDouble,chosenYcoordinates);
+    ActualGraphicalObject->graph(i_graphLine)->setVisible(true);
+    ActualGraphicalObject->replot();
+}
+
+void GrafET::hideAll(){
+    ActualGraphicalObject->graph(0)->setVisible(false);
+    ActualGraphicalObject->graph(1)->setVisible(false);
+    ActualGraphicalObject->graph(2)->setVisible(false);
+    ActualGraphicalObject->graph(3)->setVisible(false);
+    ActualGraphicalObject->graph(4)->setVisible(false);
+    ActualGraphicalObject->graph(5)->setVisible(false);
+    ActualGraphicalObject->graph(6)->setVisible(false);
+    ActualGraphicalObject->graph(7)->setVisible(false);
+    ActualGraphicalObject->replot();
+
+    ui->E_HPzobraz->setEnabled(false);ui->E_DPzobraz->setEnabled(false);
+    ui->T_HPzobraz->setEnabled(false);ui->T_DPzobraz->setEnabled(false);
+    ui->E_DPzobraz->setChecked(false);ui->E_HPzobraz->setChecked(false);
+    ui->T_HPzobraz->setChecked(false);ui->T_DPzobraz->setChecked(false);
+    ui->ohodnoceniEntropyCB->setEnabled(false);ui->ohodnoceniEntropyCB->setChecked(false);
+    ui->ohodnoceniTennenCB->setEnabled(false);ui->ohodnoceniTennenCB->setChecked(false);
+    ui->prvniRozhodCB->setEnabled(false);ui->prvniRozhodCB->setChecked(false);
+    ui->druheRozhodCB->setEnabled(false);ui->druheRozhodCB->setChecked(false);
+    ui->IV1->setEnabled(false);ui->IV1->setChecked(false);
+    ui->IV4->setEnabled(false);ui->IV4->setChecked(false);
+    ui->IV5->setEnabled(false);ui->IV5->setChecked(false);
 }

@@ -14,27 +14,13 @@ HddWidget::HddWidget(QWidget *parent):SystemMonitorWidget(parent),
     QAreaSeries* areaSeries = new QAreaSeries(mSeries);
     QChart* chart = chartView().chart();
     chart->addSeries(areaSeries);
-    //chart->setTitle("HDD used");
     chart->createDefaultAxes();
     chart->axisX()->setVisible(false);
-    //chart->axisY()->setVisible(false);
     chart->axisX()->setRange(0, CHART_X_RANGE_MAX);
     chart->axisY()->setRange(0, 100);
     chart->axisX()->setLabelsVisible(false);
     chart->axisY()->setLabelsVisible(false);
     chart->setMargins(QMargins(0,0,0,0));
-    //chart->zoomIn(QRectF(QPointF(410,300),QPointF(541,411)));
-
-    /*QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
-    customPlot->addGraph();
-    customPlot->graph(0)->setPen(QPen(QColor(40, 110, 255)));
-    customPlot->axisRect()->setupFullAxesBox();
-    customPlot->yAxis->setRange(0, 100);
-    connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
-    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
-    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeDataSlot()));
-    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
-    */
 }
 
 void HddWidget::updateSeries(){

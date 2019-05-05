@@ -62,16 +62,12 @@ private slots:
     void ReferenceLE_textChanged(const QString &arg1);
     void TranslatedLE_textChanged(const QString &arg1);
     void on_areaMaximum_editingFinished();
-    //const QString &arg1
     void on_rotationAngle_editingFinished();
     void on_iterationCount_editingFinished();
     void on_registrateTwo_clicked();
     void showDialog();
     void evaluateCorrectValues();
-    //void on_comboBox_currentIndexChanged(int index);
     void on_comboBox_activated(int index);
-
-
 
 private:
     Ui::LicovaniDvou *ui;
@@ -97,14 +93,14 @@ private:
      * @param analysedFolder
      * @param whereToSave
      */
-    void analyseAndSave(QString analysedFolder, QVector<QString>& whereToSave);
+    void analyseAndSave(QString i_analysedFolder, QVector<QString>& i_whereToSave);
 
     /**
      * @brief Function checks, if input video or images can be loaded for next processing step.
      * @param path
      * @param method
      */
-    void evaluateVideoImageInput(QString path,QString method);
+    void evaluateVideoImageInput(QString i_path,QString i_method);
 
     /**
      * @brief Function check if the input values of area maximum, rotation angle and iteration count
@@ -117,7 +113,8 @@ private:
      * @param finalValue
      * @param evaluation
      */
-    void checkInputNumber(double input,double lower,double upper,QLineEdit* editWidget,double& finalValue,bool& evaluation);
+    void checkInputNumber(double i_input,double i_lower,double i_upper,
+                          QLineEdit* i_editWidget,double& i_finalValue,bool& i_evaluation);
 
     QVector<QString> chosenVideoAnalysis;
     QVector<QString> chosenReferencialImgAnalysis;
@@ -138,7 +135,7 @@ private:
     bool areaMaximumCorrect = false;
     bool angleCorrect = false;
     bool iterationCorrect = false;
-    bool anomalyPresent = false; // time stamp
+    bool anomalyPresent = false;
     bool scaleChanged = false;
 
     cv::Point3d frangiMaximumCoords;

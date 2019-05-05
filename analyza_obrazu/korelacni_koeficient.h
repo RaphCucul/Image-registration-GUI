@@ -5,13 +5,12 @@
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
-//float sum(vector<double> a);
-//float mean(vector<double> a);
-//float sqsum(vector<double> a);
-//float stdev(vector<double> nums);
-//vector<double> operator-(vector<double> a, double b);
-//vector<double> operator*(vector<double> a, vector<double> b);
-//float pearsoncoeff(vector<double> X, vector<double> Y);
-//float vypocet_korel_koef_puvodni(cv::Mat &obraz,cv::Mat &zfazovany,double cislo,double sirka_vyrezu);
-double vypocet_KK(const cv::Mat& referencni, const cv::Mat& slicovany,cv::Rect vyrez_korelace);
+/**
+ * @brief Function calculates the correlation coefficient of referencial and registrated frame.
+ * @param i_referencial
+ * @param i_registrated
+ * @param i_cutoutCorrelation
+ * @return
+ */
+double calculateCorrCoef(const cv::Mat& i_referencial, const cv::Mat& i_registrated,cv::Rect i_cutoutCorrelation);
 #endif // KORELACNI_KOEFICIENT_H_INCLUDED

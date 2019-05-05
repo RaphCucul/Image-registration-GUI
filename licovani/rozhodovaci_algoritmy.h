@@ -77,8 +77,26 @@ void secondDecisionAlgorithm(QVector<double>& framesFirstEval,
                              double averageFWHM,
                              QVector<double>& framesSecondEval);
 
-
-void thirdDecisionAlgorithm(cv::Mat& image,
+/**
+ * @brief Third decision algorithm registrates the problematic frame and then calculates
+ * coordinates of Frangi filter maximum. The euclidean distance of Frangi filter maximum of this
+ * shifted->registrated frame and referencial frame is the last criterium for frame evaluation.
+ * @param image
+ * @param coutouExtra
+ * @param cutoutStandard
+ * @param frangi_x
+ * @param frangi_y
+ * @param frangi_euklid
+ * @param POC_x
+ * @param POC_y
+ * @param Angle
+ * @param scaleChanged
+ * @param cap
+ * @param allFrameCompleteEval
+ * @param framesSecondEval
+ * @param FrangiParameters
+ */
+void thirdDecisionAlgorithm(cv::Mat& frame,
                             cv::Rect& coutouExtra,
                             cv::Rect& cutoutStandard,
                             QVector<double>& frangi_x,

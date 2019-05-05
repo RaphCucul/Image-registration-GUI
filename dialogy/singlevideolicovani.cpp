@@ -217,6 +217,7 @@ void SingleVideoLicovani::registrateVideoframes()
         cancelAllCalculations();
         ui->registratePB->setText(tr("Registrate videoframes"));
         runStatus = true;
+        canProceed = false;
         ui->progress->setValue(0);
     }
 }
@@ -225,10 +226,10 @@ void SingleVideoLicovani::createAndRunThreads(int indexThread, cv::VideoCapture 
                                               int lowerLimit, int upperLimit)
 {
 
-    int cisloReference = findReferenceFrame(videoParametersInt["Ohodnoceni"]);
-    cv::Mat referencniSnimek;
-    cap.set(CV_CAP_PROP_POS_FRAMES,cisloReference);
-    if (!cap.read(referencniSnimek)){
+    int referencialFrameNo = findReferenceFrame(videoParametersInt["Ohodnoceni"]);
+    cv::Mat referencialFrame;
+    cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrameNo);
+    if (!cap.read(referencialFrame)){
         localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",13);
         localErrorDialogHandling[ui->registratePB]->show();
         return;
@@ -245,7 +246,7 @@ void SingleVideoLicovani::createAndRunThreads(int indexThread, cv::VideoCapture 
         int _horizAnom = videoAnomalies["HorizontalAnomaly"][0];
         threadPool[indexThread] = new RegistrationThread(indexThread,_tempVideoPath,_tempVideoName,_tempFrangi,
                                                          _evalFrames,
-                                                         referencniSnimek,lowerLimit,upperLimit,_iter,_arMax,_angle,
+                                                         referencialFrame,lowerLimit,upperLimit,_iter,_arMax,_angle,
                                                          _vertAnom,_horizAnom,false);
 
         QObject::connect(threadPool[indexThread],SIGNAL(x_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
@@ -308,7 +309,7 @@ void SingleVideoLicovani::processAnother(int indexOfThread){
     processResuluts(indexOfThread);
     qDebug()<<"Thread "<<threadProcessed<<" processed.";
     if (threadProcessed == numberOfThreads){
-        terminateThreads();
+        //terminateThreads();
         ui->name_state->setText(tr("Writing properly translated frames to the new video."));
         if(writeToVideo()){
             ui->name_state->setText(tr("Video written properly."));
@@ -317,12 +318,12 @@ void SingleVideoLicovani::processAnother(int indexOfThread){
     }
 }
 
-void SingleVideoLicovani::terminateThreads(){
+/*void SingleVideoLicovani::terminateThreads(){
     for (int threadIndex = 1; threadIndex <= threadPool.count(); threadIndex++){
             qDebug()<<"Termination "<<threadIndex<<". thread.";
             threadPool[threadIndex]->terminate();
     }
-}
+}*/
 
 void SingleVideoLicovani::processResuluts(int analysedThread){
     QVector<int> range = threadPool[analysedThread]->threadFrameRange();
@@ -399,13 +400,13 @@ bool SingleVideoLicovani::writeToVideo()
         else{
             Point3d finalTranslation(0.0,0.0,0.0);
             cv::Mat _fullyRegistrated = cv::Mat::zeros(cv::Size(movedOrig.cols,movedOrig.rows), CV_32FC3);
-            kontrola_typu_snimku_8C3(movedOrig);
+            transformMatTypeTo8C3(movedOrig);
             finalTranslation.x = videoParametersDouble["POCX"][indexImage];
             finalTranslation.y = videoParametersDouble["POCY"][indexImage];
             finalTranslation.z = 0.0;
             //qDebug()<<"For frame "<<indexImage<<" the translation is: "<<finalTranslation.x<<" "<<finalTranslation.y;
-            _fullyRegistrated = translace_snimku(movedOrig,finalTranslation,movedOrig.rows,movedOrig.cols);
-            _fullyRegistrated = rotace_snimku(_fullyRegistrated,videoParametersDouble["Uhel"][indexImage]);
+            _fullyRegistrated = frameTranslation(movedOrig,finalTranslation,movedOrig.rows,movedOrig.cols);
+            _fullyRegistrated = frameRotation(_fullyRegistrated,videoParametersDouble["Uhel"][indexImage]);
             writer.write(_fullyRegistrated);
             movedOrig.release();
             _fullyRegistrated.release();

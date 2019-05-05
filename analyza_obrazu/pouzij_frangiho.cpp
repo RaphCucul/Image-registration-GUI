@@ -11,99 +11,96 @@
 #include <QDebug>
 #include <QVector>
 using namespace cv;
-cv::Mat imageFiltrationPreprocessing(const cv::Mat& inputImage, float sigma_s, float sigma_r)
+cv::Mat imageFiltrationPreprocessing(const cv::Mat& i_inputImage, float i_sigma_s, float i_sigma_r)
 {
-    //qDebug()<<inputImage.rows<<" "<<inputImage.cols;
-    Mat filtered = cv::Mat::zeros(inputImage.rows,inputImage.cols,CV_8UC3);
+    Mat filtered = cv::Mat::zeros(i_inputImage.rows,i_inputImage.cols,CV_8UC3);
     Mat outputImage;
-    medianBlur(inputImage,filtered,5);
-    Mat RF_obraz = cv::Mat::zeros(inputImage.rows,inputImage.cols,CV_8UC3);
-    kontrola_typu_snimku_8C3(filtered);
-    edgePreservingFilter(filtered,RF_obraz,1,sigma_s,sigma_r);
-    //imshow("Filtrovany RF",RF_obraz);
-    //qDebug()<<"Filtration completed.";
-    if (RF_obraz.channels() == 3)
+    medianBlur(i_inputImage,filtered,5);
+    Mat RF_frame = cv::Mat::zeros(i_inputImage.rows,i_inputImage.cols,CV_8UC3);
+    transformMatTypeTo8C3(filtered);
+    edgePreservingFilter(filtered,RF_frame,1,i_sigma_s,i_sigma_r);
+    //imshow("Filtrovany RF",RF_frame);
+    if (RF_frame.channels() == 3)
     {
         Mat ch1, ch3;
         std::vector<Mat> channels(3);
-        split(RF_obraz, channels);
+        split(RF_frame, channels);
         ch1 = channels[0];
         outputImage = channels[1];
         ch3 = channels[2];
     }
     else{
-        RF_obraz.copyTo(outputImage);
+        RF_frame.copyTo(outputImage);
     }
     //imshow("Vybrany snimek",obrazek_vystupni);
-    //qDebug()<<"Pocet kanalu vystupniho filtrovaneho snimku je "<<inputImage.channels();
-    kontrola_typu_snimku_8C1(outputImage);
+    transformMatTypeTo8C1(outputImage);
     return outputImage;
 }
 
-void borderProcessing(cv::Mat &inputImage, int imageType, int padding_r, int padding_s)
+void borderProcessing(cv::Mat &i_inputImage, int i_imageType, int i_padding_r, int i_padding_s)
 {
-    if (imageType == 1)
+    if (i_imageType == 1)
     {
-        Rect area1(0,0,inputImage.cols,padding_r); // first 20 rows
-        Mat area11 = inputImage(area1);
+        Rect area1(0,0,i_inputImage.cols,i_padding_r); // first 20 rows
+        Mat area11 = i_inputImage(area1);
         Scalar tempVal = mean(area11);
         double average_area_11 = tempVal.val[0];
-        inputImage(area1).setTo(average_area_11,inputImage(area1) > average_area_11);
+        i_inputImage(area1).setTo(average_area_11,i_inputImage(area1) > average_area_11);
 
-        Rect area2(0,inputImage.rows-padding_r,inputImage.cols,padding_r); // last 20 rows
-        Mat area22 = inputImage(area2);
+        Rect area2(0,i_inputImage.rows-i_padding_r,i_inputImage.cols,i_padding_r); // last 20 rows
+        Mat area22 = i_inputImage(area2);
         tempVal = mean(area22);
         double average_area_22 = tempVal.val[0];
-        inputImage(area2).setTo(average_area_22,inputImage(area2) > average_area_22);
+        i_inputImage(area2).setTo(average_area_22,i_inputImage(area2) > average_area_22);
 
-        Rect area3(0,0,padding_s,inputImage.rows); // first 20 columns
-        Mat area33 = inputImage(area3);
+        Rect area3(0,0,i_padding_s,i_inputImage.rows); // first 20 columns
+        Mat area33 = i_inputImage(area3);
         tempVal = mean(area33);
         double average_area_33 = tempVal.val[0];
-        inputImage(area3).setTo(average_area_33,inputImage(area3) > average_area_33);
+        i_inputImage(area3).setTo(average_area_33,i_inputImage(area3) > average_area_33);
 
-        Rect area4(inputImage.cols-padding_s,0,padding_s,inputImage.rows); // last 20 columns
-        Mat area44 = inputImage(area4);
+        Rect area4(i_inputImage.cols-i_padding_s,0,i_padding_s,i_inputImage.rows); // last 20 columns
+        Mat area44 = i_inputImage(area4);
         tempVal = mean(area44);
         double average_area_44 = tempVal.val[0];
-        inputImage(area4).setTo(average_area_44,inputImage(area4) > average_area_44);
+        i_inputImage(area4).setTo(average_area_44,i_inputImage(area4) > average_area_44);
     }
-    if (imageType == 2)
+    if (i_imageType == 2)
     {
-        if (padding_r <= 0)
+        if (i_padding_r <= 0)
         {
-            Rect area1(0,0,inputImage.cols,std::abs(padding_r)); // prvnich 20 radku
-            Mat area11 = inputImage(area1);
+            Rect area1(0,0,i_inputImage.cols,std::abs(i_padding_r)); // prvnich 20 radku
+            Mat area11 = i_inputImage(area1);
             Scalar tempVal = mean(area11);
             double average_area_11 = tempVal.val[0];
-            inputImage(area1).setTo(average_area_11,inputImage(area1) > average_area_11);
+            i_inputImage(area1).setTo(average_area_11,i_inputImage(area1) > average_area_11);
         }
-        if (padding_r >= 0)
+        if (i_padding_r >= 0)
         {
-            Rect area2(0,inputImage.rows-std::abs(padding_r),inputImage.cols,std::abs(padding_r)); // poslednich 20 radku
-            Mat area22 = inputImage(area2);
+            Rect area2(0,i_inputImage.rows-std::abs(i_padding_r),i_inputImage.cols,std::abs(i_padding_r)); // poslednich 20 radku
+            Mat area22 = i_inputImage(area2);
             Scalar tempVal = mean(area22);
             double average_area_22 = tempVal.val[0];
-            inputImage(area2).setTo(average_area_22,inputImage(area2) > average_area_22);
+            i_inputImage(area2).setTo(average_area_22,i_inputImage(area2) > average_area_22);
         }
-        if (padding_s <= 0)
+        if (i_padding_s <= 0)
         {
-            Rect area3(0,0,std::abs(padding_s),inputImage.rows); // prvnich 20 sloupcu
-            Mat area33 = inputImage(area3);
+            Rect area3(0,0,std::abs(i_padding_s),i_inputImage.rows); // prvnich 20 sloupcu
+            Mat area33 = i_inputImage(area3);
             Scalar tempVal = mean(area33);
             double average_area_33 = tempVal.val[0];
-            inputImage(area3).setTo(average_area_33,inputImage(area3) > average_area_33);
+            i_inputImage(area3).setTo(average_area_33,i_inputImage(area3) > average_area_33);
         }
-        if (padding_s >= 0)
+        if (i_padding_s >= 0)
         {
-            Rect area4(inputImage.cols-std::abs(padding_s),0,std::abs(padding_s),inputImage.rows); // poslednich 20 sloupcu
-            Mat area44 = inputImage(area4);
+            Rect area4(i_inputImage.cols-std::abs(i_padding_s),0,std::abs(i_padding_s),i_inputImage.rows); // poslednich 20 sloupcu
+            Mat area44 = i_inputImage(area4);
             Scalar tempVal = mean(area44);
             double average_area_44 = tempVal.val[0];
-            inputImage(area4).setTo(average_area_44,inputImage(area4) > average_area_44);
+            i_inputImage(area4).setTo(average_area_44,i_inputImage(area4) > average_area_44);
         }
     }
-    kontrola_typu_snimku_32C1(inputImage);
+    transformMatTypeTo32C1(i_inputImage);
     /*rectangle(vstupni_obraz, area1, Scalar(255), 1, 8, 0);
     rectangle(vstupni_obraz, area2, Scalar(255), 1, 8, 0);
     rectangle(vstupni_obraz, area3, Scalar(255), 1, 8, 0);
@@ -112,62 +109,62 @@ void borderProcessing(cv::Mat &inputImage, int imageType, int padding_r, int pad
 }
 
 
-void zeroBorders(cv::Mat& inputImage, int imageType, int padding_r, int padding_s)
+void zeroBorders(cv::Mat& i_inputImage, int i_imageType, int i_padding_r, int i_padding_s)
 {
-    if (imageType == 1)
+    if (i_imageType == 1)
     {
-        Rect area1(0,0,inputImage.cols,padding_r); // rows
-        inputImage(area1).setTo(0);
+        Rect area1(0,0,i_inputImage.cols,i_padding_r); // rows
+        i_inputImage(area1).setTo(0);
 
-        Rect area2(0,inputImage.rows-padding_r,inputImage.cols,padding_r); // rows
-        inputImage(area2).setTo(0);
+        Rect area2(0,i_inputImage.rows-i_padding_r,i_inputImage.cols,i_padding_r); // rows
+        i_inputImage(area2).setTo(0);
 
-        Rect area3(0,0,padding_s,inputImage.rows); // columns
-        inputImage(area3).setTo(0);
+        Rect area3(0,0,i_padding_s,i_inputImage.rows); // columns
+        i_inputImage(area3).setTo(0);
 
-        Rect area4(inputImage.cols-padding_s,0,padding_s,inputImage.rows); // columns
-        inputImage(area4).setTo(0);
+        Rect area4(i_inputImage.cols-i_padding_s,0,i_padding_s,i_inputImage.rows); // columns
+        i_inputImage(area4).setTo(0);
     }
-    if (imageType == 2)
+    if (i_imageType == 2)
     {
-        if (padding_r <= 0)
+        if (i_padding_r <= 0)
         {
-            Rect area1(0,0,inputImage.cols,std::abs(padding_r)+40);
-            inputImage(area1).setTo(0);
-            Rect area2(0,inputImage.rows-40,inputImage.cols,40);
-            inputImage(area2).setTo(0);
+            Rect area1(0,0,i_inputImage.cols,std::abs(i_padding_r)+40);
+            i_inputImage(area1).setTo(0);
+            Rect area2(0,i_inputImage.rows-40,i_inputImage.cols,40);
+            i_inputImage(area2).setTo(0);
         }
-        if (padding_r >= 0)
+        if (i_padding_r >= 0)
         {
-            Rect area2(0,inputImage.rows-std::abs(padding_r)-40,
-                         inputImage.cols,std::abs(padding_r)+40);
-            inputImage(area2).setTo(0);
-            Rect area1(0,0,inputImage.cols,40);
-            inputImage(area1).setTo(0);
+            Rect area2(0,i_inputImage.rows-std::abs(i_padding_r)-40,
+                         i_inputImage.cols,std::abs(i_padding_r)+40);
+            i_inputImage(area2).setTo(0);
+            Rect area1(0,0,i_inputImage.cols,40);
+            i_inputImage(area1).setTo(0);
         }
-        if (padding_s <= 0)
+        if (i_padding_s <= 0)
         {
-            Rect area3(0,0,std::abs(padding_s)+40,inputImage.rows);
-            inputImage(area3).setTo(0);
-            Rect area4(inputImage.cols-40,0,40,inputImage.rows);
-            inputImage(area4).setTo(0);
+            Rect area3(0,0,std::abs(i_padding_s)+40,i_inputImage.rows);
+            i_inputImage(area3).setTo(0);
+            Rect area4(i_inputImage.cols-40,0,40,i_inputImage.rows);
+            i_inputImage(area4).setTo(0);
         }
-        if (padding_s >= 0)
+        if (i_padding_s >= 0)
         {
-            Rect area4(inputImage.cols-std::abs(padding_s)-40,0,
-                         std::abs(padding_s)+40,inputImage.rows);
-            inputImage(area4).setTo(0);
-            Rect area3(0,0,40,inputImage.rows);
-            inputImage(area3).setTo(0);
+            Rect area4(i_inputImage.cols-std::abs(i_padding_s)-40,0,
+                         std::abs(i_padding_s)+40,i_inputImage.rows);
+            i_inputImage(area4).setTo(0);
+            Rect area3(0,0,40,i_inputImage.rows);
+            i_inputImage(area3).setTo(0);
         }
         //imshow("Nulovani",vstupni_obraz);
     }
 }
 
 
-cv::Point2d FrangiSubpixel(const cv::Mat &frangi,
-                                   const double& maximum_frangi,
-                                   const cv::Point& maximumFrangiCoords)
+cv::Point2d FrangiSubpixel(const cv::Mat &i_frangi,
+                                   const double& i_maximum_frangi,
+                                   const cv::Point& i_maximumFrangiCoords)
 {
     Point2d output(0,0);
     int counter = 0;
@@ -178,22 +175,22 @@ cv::Point2d FrangiSubpixel(const cv::Mat &frangi,
     float frangi_x = 0;
     float frangi_y = 0;
     float pixelValue = 0;
-    for (int i = 0; i<frangi.rows; i++)
+    for (int i = 0; i<i_frangi.rows; i++)
     {
-        for (int j = 0; j<frangi.cols; j++)
+        for (int j = 0; j<i_frangi.cols; j++)
         {
-            if (frangi.at<float>(i,j)>=float(0.98*maximum_frangi))
+            if (i_frangi.at<float>(i,j)>=float(0.98*i_maximum_frangi))
             {
-                difference_x = maximumFrangiCoords.x - j;
-                difference_y = maximumFrangiCoords.y - i;
+                difference_x = i_maximumFrangiCoords.x - j;
+                difference_y = i_maximumFrangiCoords.y - i;
                 difference_sum = float(std::pow(difference_x,2.0f) + std::pow(difference_y,2.0f));
                 euklid = std::sqrt(difference_sum);
                 if (euklid < 3)
                 {
                     counter+=1;
-                    pixelValue += frangi.at<float>(i,j);
-                    frangi_x += j*frangi.at<float>(i,j);
-                    frangi_y += i*frangi.at<float>(i,j);
+                    pixelValue += i_frangi.at<float>(i,j);
+                    frangi_x += j*i_frangi.at<float>(i,j);
+                    frangi_y += i*i_frangi.at<float>(i,j);
                 }
             }
         }
@@ -203,53 +200,50 @@ cv::Point2d FrangiSubpixel(const cv::Mat &frangi,
     return output;
 }
 
-cv::Point3d frangi_analysis(const cv::Mat inputFrame,
-                           int processingMode,
-                           int accuracy,
-                           int showResult,
-                           QString windowName,
-                           int frameType,
-                           cv::Point3d translation,
-                           QVector<double> FrangiParameters)
+cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
+                           int i_processingMode,
+                           int i_accuracy,
+                           int i_showResult,
+                           QString i_windowName,
+                           int i_frameType,
+                           cv::Point3d i_translation,
+                           QVector<double> i_FrangiParameters)
 {
     Point3d definitiveCoords;
     frangi2d_opts_t opts;
     frangi2d_createopts(&opts);
-    if (processingMode == 2)
+    if (i_processingMode == 2)
     {
         opts.BlackWhite = false;
     }
-    else if(processingMode == 1)
+    else if(i_processingMode == 1)
     {
         opts.BlackWhite = true;
     }
-    opts.sigma_start = int(FrangiParameters[0]);
-    opts.sigma_step = int(FrangiParameters[1]);
-    opts.sigma_end = int(FrangiParameters[2]);
-    opts.BetaOne = FrangiParameters[3];
-    opts.BetaTwo = FrangiParameters[4];
+    opts.sigma_start = int(i_FrangiParameters[0]);
+    opts.sigma_step = int(i_FrangiParameters[1]);
+    opts.sigma_end = int(i_FrangiParameters[2]);
+    opts.BetaOne = i_FrangiParameters[3];
+    opts.BetaTwo = i_FrangiParameters[4];
 
-    int r = int(translation.y);
-    int s = int(translation.x);
+    int r = int(i_translation.y);
+    int s = int(i_translation.x);
 
     Mat imageFiltered,imageFrangi,obraz_scale, imageAngles;
-    imageFiltered = imageFiltrationPreprocessing(inputFrame,60.0f,0.4f);
+    imageFiltered = imageFiltrationPreprocessing(i_inputFrame,60.0f,0.4f);
     //qDebug()<<"filtration processed";
-    if (frameType == 1) {borderProcessing(imageFiltered,1,20,20);}
-    if (frameType == 2) {borderProcessing(imageFiltered,2,r,s);}
+    if (i_frameType == 1) {borderProcessing(imageFiltered,1,20,20);}
+    if (i_frameType == 2) {borderProcessing(imageFiltered,2,r,s);}
     //qDebug()<<"border processed";
-    //if (frameType == 2 && pritomnost_casove_znamky == 1) {borderProcessing(imageFiltered,2,40,40);}
-    //if (frameType == 1 && pritomnost_casove_znamky == 1) {borderProcessing(imageFiltered,1,80,50);}
 
     frangi2d(imageFiltered, imageFrangi, obraz_scale, imageAngles, opts);
 
-    //qDebug()<<"Pocet kanalu frangiho vystupu "<<imageFrangi.channels()<<" "<<imageFrangi.type();
     //imwrite(jmeno_okna+"",imageFrangi);
     obraz_scale.release();
     imageAngles.release();
     imageFiltered.release();
-    if (frameType == 1) {zeroBorders(imageFrangi,1,50,50);}
-    if (frameType == 2) {zeroBorders(imageFrangi,2,r,s);}
+    if (i_frameType == 1) {zeroBorders(imageFrangi,1,50,50);}
+    if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,s);}
     //if (frameType == 2 && pritomnost_casove_znamky == 1) {zeroBorders(imageFrangi,2,80,80);}
     //if (frameType == 1 && pritomnost_casove_znamky == 1) {zeroBorders(imageFrangi,1,250,80);}
 
@@ -258,31 +252,29 @@ cv::Point3d frangi_analysis(const cv::Mat inputFrame,
     cv::minMaxLoc(imageFrangi, NULL, &maximum_imageFrangi, NULL, &max_loc_frangi);
     if ((max_loc_frangi.x!=max_loc_frangi.x)== 1 || (max_loc_frangi.y!=max_loc_frangi.y) == 1)
     {
-        //qDebug()<<"Maximum Frangiho funkce se nepodarilo detekovat!";
         definitiveCoords.z = 0.0;
         definitiveCoords.x = -10;
         definitiveCoords.y = -10;
     }
     else
     {
-        //qDebug()<<"Detekce maxima Frangiho funkce se zdarila.";
-        if (accuracy == 1)
+        if (i_accuracy == 1)
         {
             definitiveCoords.x = max_loc_frangi.x;
             definitiveCoords.y = max_loc_frangi.y;
             definitiveCoords.z = 1.0;
         }
-        if (accuracy == 2)
+        if (i_accuracy == 2)
         {
             cv::Point2d teziste = FrangiSubpixel(imageFrangi,maximum_imageFrangi,max_loc_frangi);
             definitiveCoords.x = teziste.x;
             definitiveCoords.y = teziste.y;
             definitiveCoords.z = 1.0;
         }
-        if (showResult == 1)
+        if (i_showResult == 1)
         {
             drawMarker(imageFrangi,max_loc_frangi,(0));
-            cv::imshow(windowName.toLocal8Bit().constData(),imageFrangi);
+            cv::imshow(i_windowName.toLocal8Bit().constData(),imageFrangi);
         }
     }
     return definitiveCoords;

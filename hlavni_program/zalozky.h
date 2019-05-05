@@ -7,7 +7,7 @@
 #include "hlavni_program/frangi_detektor.h"
 #include "hlavni_program/licovanidvou.h"
 #include "hlavni_program/licovanividea.h"
-
+#include "hlavni_program/chartinit.h"
 
 namespace Ui {
 class zalozky;
@@ -19,11 +19,11 @@ class zalozky : public QWidget
 
 public:
     explicit zalozky(QWidget *parent = nullptr);
-    QIcon rotace_ikonky(QIcon ikona_vstup);
+    QIcon iconRotation(QIcon i_icon);
     ~zalozky();
 
 private slots:
-    void on_stranky_tabBarClicked(int index);
+    void on_pages_tabBarClicked(int i_index);
     void fileFolderDirectoryLocated();
     void disableTabs_slot();
     void enableTabs_slot();
@@ -31,12 +31,12 @@ private:
     void enableTabs();
     void disableTabs();
     Ui::zalozky *ui;
-    QIcon* ikona;
 
-    t_b_HO* volba_slozek;
-    Frangi_detektor* detektor;
-    LicovaniDvou* licovaniDvou;
-    LicovaniVidea* licovaniVidea;
+    t_b_HO* chooseFolders;
+    Frangi_detektor* frangiDetector;
+    LicovaniDvou* registrateTwo;
+    LicovaniVidea* registrateVideo;
+    ChartInit* initializeGraph;
 };
 
 #endif // ZALOZKY_H

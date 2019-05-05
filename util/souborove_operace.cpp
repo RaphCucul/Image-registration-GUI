@@ -10,80 +10,80 @@
 #include "util/souborove_operace.h"
 using namespace std;
 
-void analyseFileNames(QString chosenPathToFiles,
-                                QStringList &filenameList,
-                                int &filenameWithSuffixCount,
-                                QString searchedSuffix)
+void analyseFileNames(QString i_chosenPathToFiles,
+                                QStringList &i_filenameList,
+                                int &i_filenameWithSuffixCount,
+                                QString i_searchedSuffix)
 {
-     QDir chosenDirectory(chosenPathToFiles);
-     filenameList = chosenDirectory.entryList(QStringList() << "*."+searchedSuffix << "*."+searchedSuffix.toUpper(),QDir::Files);
-     filenameWithSuffixCount = filenameList.size();
+     QDir chosenDirectory(i_chosenPathToFiles);
+     i_filenameList = chosenDirectory.entryList(QStringList() << "*."+i_searchedSuffix << "*."+i_searchedSuffix.toUpper(),QDir::Files);
+     i_filenameWithSuffixCount = i_filenameList.size();
 }
 
-void processFilePath(QString wholePaht, QString& folder, QString& onlyFilename, QString& suffix)
+void processFilePath(QString i_wholePaht, QString& i_folder, QString& i_onlyFilename, QString& i_suffix)
 {
-    int lastindexSlash = wholePaht.lastIndexOf("/");
-    int lastIndexDot = wholePaht.length() - wholePaht.lastIndexOf(".");
-    folder = wholePaht.left(lastindexSlash);
-    onlyFilename = wholePaht.mid(lastindexSlash+1,
-         (wholePaht.length()-lastindexSlash-lastIndexDot-1));
-    suffix = wholePaht.right(lastIndexDot-1);
+    int lastindexSlash = i_wholePaht.lastIndexOf("/");
+    int lastIndexDot = i_wholePaht.length() - i_wholePaht.lastIndexOf(".");
+    i_folder = i_wholePaht.left(lastindexSlash);
+    i_onlyFilename = i_wholePaht.mid(lastindexSlash+1,
+         (i_wholePaht.length()-lastindexSlash-lastIndexDot-1));
+    i_suffix = i_wholePaht.right(lastIndexDot-1);
 }
 
-QJsonObject readJson(QFile& file)
+QJsonObject readJson(QFile& i_file)
 {
     QByteArray val;
     QJsonParseError* error = nullptr;
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    val = file.readAll();
-    file.close();
+    i_file.open(QIODevice::ReadOnly | QIODevice::Text);
+    val = i_file.readAll();
+    i_file.close();
     //qDebug() << val;
     QJsonDocument d = QJsonDocument::fromJson(val,error);
     QJsonObject sett2 = d.object();
     return sett2;
 }
 
-void writeJson(QJsonObject &object, QJsonArray &array, QString type, QString pathAndName)
+void writeJson(QJsonObject &i_object, QJsonArray &i_array, QString i_type, QString i_pathAndName)
 {
-    object[type] = array;
+    i_object[i_type] = i_array;
     QJsonDocument document;
-    document.setObject(object);
+    document.setObject(i_object);
     QString documentString = document.toJson();
     QFile zapis;
-    zapis.setFileName(pathAndName);
+    zapis.setFileName(i_pathAndName);
     zapis.open(QIODevice::WriteOnly);
     zapis.write(documentString.toLocal8Bit());
     zapis.close();
 }
 
-QJsonArray vector2array(QVector<double> &vector)
+QJsonArray vector2array(QVector<double> &i_vector)
 {
-    QJsonArray pole;
-    copy(vector.begin(), vector.end(), back_inserter(pole));
-    return pole;
+    QJsonArray array;
+    copy(i_vector.begin(), i_vector.end(), back_inserter(array));
+    return array;
 }
 
-QJsonArray vector2array(QVector<int>& vector)
+QJsonArray vector2array(QVector<int>& i_vector)
 {
-    QJsonArray pole;
-    copy(vector.begin(), vector.end(), back_inserter(pole));
-    return pole;
+    QJsonArray array;
+    copy(i_vector.begin(), i_vector.end(), back_inserter(array));
+    return array;
 }
 
-QVector<int> arrayInt2vector(QJsonArray& array)
+QVector<int> arrayInt2vector(QJsonArray& i_array)
 {
     QVector<int> output;
-    for (int indexPole = 0; indexPole < array.size(); indexPole++){
-        output.push_back(array[indexPole].toInt());
+    for (int indexarray = 0; indexarray < i_array.size(); indexarray++){
+        output.push_back(i_array[indexarray].toInt());
     }
     return output;
 }
 
-QVector<double> arrayDouble2vector(QJsonArray& array)
+QVector<double> arrayDouble2vector(QJsonArray& i_array)
 {
     QVector<double> output;
-    for (int indexPole = 0; indexPole < array.size(); indexPole++){
-        output.push_back(array[indexPole].toDouble());
+    for (int indexarray = 0; indexarray < i_array.size(); indexarray++){
+        output.push_back(i_array[indexarray].toDouble());
     }
     return output;
 }

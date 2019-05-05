@@ -164,9 +164,9 @@ void qThreadThirdPart::run()
                 {
                     double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt.z);
                     double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-                    registrated = translace_snimku(moved,pt,rows,cols);
+                    registrated = frameTranslation(moved,pt,rows,cols);
                     registrated(_tempStandard).copyTo(registrated_cutOut);
-                    double R = vypocet_KK(_frame,registrated,_tempStandard);
+                    double R = calculateCorrCoef(_frame,registrated,_tempStandard);
                     qDebug() <<"Tested frame has "<<_badFrames[i]<< "R " << R <<" a FWHM " << FWHM;
                     registrated.release();
                     registrated_cutOut.release();

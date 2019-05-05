@@ -19,35 +19,35 @@ using cv::VideoCapture;
 using cv::Point3d;
 using cv::Rect;
 
-RegistrationThread::RegistrationThread(int& indexOfThread,
-                                       QString &fullVideoPath,
-                                       QString& nameOfVideo,
-                                       QVector<double>& frangiParam,
-                                       QVector<int>& frameEvaluation,
-                                       cv::Mat& referencni_snimek,
+RegistrationThread::RegistrationThread(int& i_indexOfThread,
+                                       QString &i_fullVideoPath,
+                                       QString& i_nameOfVideo,
+                                       QVector<double>& i_frangiParameters,
+                                       QVector<int>& i_frameEvaluation,
+                                       cv::Mat& i_referencialFrame,
                                        int& startFrame,
                                        int& stopFrame,
-                                       int& iterace,
-                                       double& oblastMaxima,
-                                       double& uhel,
-                                       int &timeStamp,
-                                       int &lightAnomaly,
-                                       bool nutnost_zmenit_velikost_snimku,
+                                       int& i_iteration,
+                                       double& i_areaMaximum,
+                                       double& i_angle,
+                                       int &i_horizAnomaly,
+                                       int &i_vertAnomaly,
+                                       bool i_scaleChange,
                                        QObject *parent) : QThread(parent),
-    referencialImage(referencni_snimek),
-    frangiParameters(frangiParam),
-    ohodnoceniSnimku(frameEvaluation),
-    iteration(iterace),
+    referencialImage(i_referencialFrame),
+    frangiParameters(i_frangiParameters),
+    ohodnoceniSnimku(i_frameEvaluation),
+    iteration(i_iteration),
     startingFrame(startFrame),
     stoppingFrame(stopFrame),
-    maximalArea(oblastMaxima),
-    angle(uhel),
-    casovaZnacka(timeStamp),
-    svetelAnomalie(lightAnomaly),
-    scaling(nutnost_zmenit_velikost_snimku),
-    threadIndex(indexOfThread),
-    videoName(nameOfVideo),
-    videoPath(fullVideoPath)
+    maximalArea(i_areaMaximum),
+    angle(i_angle),
+    horizontalAnomaly(i_horizAnomaly),
+    verticalAnomaly(i_vertAnomaly),
+    scaling(i_scaleChange),
+    threadIndex(i_indexOfThread),
+    videoName(i_nameOfVideo),
+    videoPath(i_fullVideoPath)
 {
     emit setTerminationEnabled(true);
     capture = cv::VideoCapture(videoPath.toLocal8Bit().constData());
@@ -93,36 +93,36 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                        QVector<double> &_frangiEucl,
                        QVector<double> &_maxAngles);
 
-bool fullRegistration(cv::VideoCapture& cap,
-                      cv::Mat& referencni_snimek,
-                      int cislo_posunuty,
-                      int iterace,
-                      double oblastMaxima,
-                      double uhel,
-                      cv::Rect& korelacni_vyrez_navic,
-                      cv::Rect& korelacni_vyrez_standardni,
-                      bool nutnost_zmenit_velikost_snimku,
-                      cv::Mat& slicovany_kompletne,
-                      QVector<double> &_pocX,
-                      QVector<double> &_pocY,
-                      QVector<double> &_maxAngles);
+bool fullRegistration(cv::VideoCapture& i_cap,
+                      cv::Mat& i_referencialFrame,
+                      int i_shiftedNo,
+                      int i_iteration,
+                      double i_areaMaximum,
+                      double i_angle,
+                      cv::Rect& i_cutoutExtra,
+                      cv::Rect& i_cutoutStandard,
+                      bool i_scaleChange,
+                      cv::Mat& i_fullyRegistrated,
+                      QVector<double> &i_pocX,
+                      QVector<double> &i_pocY,
+                      QVector<double> &i_maxAngles);
 
-bool imagePreprocessing(cv::Mat &reference,
-                        cv::Mat &obraz,
-                        QVector<double> &parFrang,
-                        cv::Point2f &hraniceAnomalie,
-                        cv::Point2f &hraniceCasu,
-                        cv::Rect &oblastAnomalie,
-                        cv::Rect &vyrezKoreEx,
-                        cv::Rect &vyrezKoreStand,
-                        cv::VideoCapture &cap,
-                        bool &zmeMer);
+bool imagePreprocessing(cv::Mat &i_referencialFrame,
+                        cv::Mat &i_preprocessed,
+                        QVector<double> &i_frangiParameters,
+                        cv::Point2f &i_verticalAnomaly,
+                        cv::Point2f &i_horizontalAnomaly,
+                        cv::Rect &i_anomalyArea,
+                        cv::Rect &i_coutouExtra,
+                        cv::Rect &i_cutoutStandard,
+                        cv::VideoCapture &i_cap,
+                        bool &i_scaleChange);
 
-bool registrationCorrection(cv::Mat& slicovany_snimek,
-                            cv::Mat& obraz,
-                            cv::Mat& snimek_korigovany,
-                            cv::Rect& vyrez_korelace_standard,
-                            cv::Point3d& korekce_bod);
+bool registrationCorrection(cv::Mat& i_registratedFrame,
+                            cv::Mat& i_frame,
+                            cv::Mat& i_corrected,
+                            cv::Rect& i_cutoutStandard,
+                            cv::Point3d& i_correction);
 
 void RegistrationThread::run()
 {
@@ -131,44 +131,44 @@ void RegistrationThread::run()
     bool timeStampPresent = false;
     bool scaling=false;
     /// frame and video properties
-    double sirka = capture.get(CV_CAP_PROP_FRAME_WIDTH);
-    double vyska = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+    double width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
+    double height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
 
-    if (svetelAnomalie >0.0f && svetelAnomalie < float(sirka))
+    if (verticalAnomaly >0.0f && verticalAnomaly < float(width))
     {
-        ziskane_hranice_anomalie.x = svetelAnomalie;
-        ziskane_hranice_anomalie.y = 0;
+        obtainedVerticalAnomalyCoords.x = verticalAnomaly;
+        obtainedVerticalAnomalyCoords.y = 0;
         lightAnomalyPresent=true;
         scaling = true;
     }
     else
     {
-        ziskane_hranice_anomalie.x = 0.0f;
-        ziskane_hranice_anomalie.y = 0.0f;
+        obtainedVerticalAnomalyCoords.x = 0.0f;
+        obtainedVerticalAnomalyCoords.y = 0.0f;
     }
-    if (casovaZnacka > 0.0f && casovaZnacka < float(vyska))
+    if (horizontalAnomaly > 0.0f && horizontalAnomaly < float(height))
     {
-        ziskane_hranice_CasZnac.y = casovaZnacka;
-        ziskane_hranice_CasZnac.x = 0;
+        obtainedHorizontalAnomalyCoords.y = horizontalAnomaly;
+        obtainedHorizontalAnomalyCoords.x = 0;
         timeStampPresent=true;
         scaling=true;
     }
     else
     {
-        ziskane_hranice_CasZnac.y = 0.0f;
-        ziskane_hranice_CasZnac.x = 0.0f;
+        obtainedHorizontalAnomalyCoords.y = 0.0f;
+        obtainedHorizontalAnomalyCoords.x = 0.0f;
     }
     Rect pom(0,0,0,0);
     correl_standard = pom;
     correl_extra = pom;
     anomalyCutoff = pom;
     Point3d pt_temp(0.0,0.0,0.0);
-    Mat obraz,obraz_vyrez;
+    Mat preprocessed,preprocessed_vyrez;
     if(!imagePreprocessing(referencialImage,
-                           obraz,
+                           preprocessed,
                            frangiParameters,
-                           ziskane_hranice_anomalie,
-                           ziskane_hranice_CasZnac,
+                           obtainedVerticalAnomalyCoords,
+                           obtainedHorizontalAnomalyCoords,
                            anomalyCutoff,
                            correl_extra,
                            correl_standard,
@@ -177,8 +177,8 @@ void RegistrationThread::run()
         emit errorDetected(threadIndex,QString(tr("Frame preprocessing failed for %1.")).arg(videoName));
         return;
     }
-    obraz(correl_standard).copyTo(obraz_vyrez);
-    Point3d frangiMaxReversal = frangi_analysis(obraz,2,2,0,"",1,pt_temp,frangiParameters);
+    preprocessed(correl_standard).copyTo(preprocessed_vyrez);
+    Point3d frangiMaxReversal = frangi_analysis(preprocessed,2,2,0,"",1,pt_temp,frangiParameters);
     if (frangiMaxReversal.z == 0.0){
         emit errorDetected(threadIndex,QString(tr("Frangi filter for referencial image failed for %1.")).arg(videoName));
         return;
@@ -197,9 +197,9 @@ void RegistrationThread::run()
         }
         else if (ohodnoceniSnimku[indexFrame] == 2)
         {
-            Mat posunuty_temp;
+            Mat shifted_temp;
             capture.set(CV_CAP_PROP_POS_FRAMES,indexFrame);
-            if (capture.read(posunuty_temp)!=1)
+            if (capture.read(shifted_temp)!=1)
             {
                 qWarning()<<"Frame "<<indexFrame<<" could not be read!";
                 errorOccured = true;
@@ -209,31 +209,31 @@ void RegistrationThread::run()
             {
                 if (scaling == true)
                 {
-                    Mat posunuty;
-                    posunuty_temp(correl_extra).copyTo(posunuty);
-                    Point3d frangi_bod_obraz_reverse = frangi_analysis(posunuty,2,2,0,"",1,pt_temp,frangiParameters);
-                    if (frangi_bod_obraz_reverse.z == 0.0){
+                    Mat shifted;
+                    shifted_temp(correl_extra).copyTo(shifted);
+                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted,2,2,0,"",1,pt_temp,frangiParameters);
+                    if (frangiCoords_preprocessed_reverse.z == 0.0){
                         errorOccured = true;
                         continue;
                     }
-                    frangiX[indexFrame] = frangi_bod_obraz_reverse.x;
-                    frangiY[indexFrame] = frangi_bod_obraz_reverse.y;
+                    frangiX[indexFrame] = frangiCoords_preprocessed_reverse.x;
+                    frangiY[indexFrame] = frangiCoords_preprocessed_reverse.y;
                     frangiEuklidean[indexFrame] = 0.0;
                     //qDebug() << "Referencial frame "<<indexFrame<<" analysed.";
-                    posunuty_temp.release();
-                    posunuty.release();
+                    shifted_temp.release();
+                    shifted.release();
                 }
                 else
                 {
-                    Point3d frangi_bod_obraz_reverse = frangi_analysis(posunuty_temp,2,2,0,"",1,pt_temp,frangiParameters);
-                    if (frangi_bod_obraz_reverse.z == 0.0){
+                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted_temp,2,2,0,"",1,pt_temp,frangiParameters);
+                    if (frangiCoords_preprocessed_reverse.z == 0.0){
                         errorOccured = true;
                         continue;
                     }
                     //qDebug() << "Referencial frame "<<indexFrame<<" analysed.";
-                    posunuty_temp.release();
-                    frangiX[indexFrame] = frangi_bod_obraz_reverse.x;
-                    frangiY[indexFrame] = frangi_bod_obraz_reverse.y;
+                    shifted_temp.release();
+                    frangiX[indexFrame] = frangiCoords_preprocessed_reverse.x;
+                    frangiY[indexFrame] = frangiCoords_preprocessed_reverse.y;
                     frangiEuklidean[indexFrame] = 0.0;
                 }
                 maximalAngles[indexFrame] = 0.0;
@@ -243,9 +243,9 @@ void RegistrationThread::run()
         }
         else if (ohodnoceniSnimku[indexFrame] == 5)
         {
-            Mat posunuty;
+            Mat shifted;
             capture.set(CV_CAP_PROP_POS_FRAMES,indexFrame);
-            if (capture.read(posunuty)!=1)
+            if (capture.read(shifted)!=1)
             {
                 qWarning()<<"Frame "<<indexFrame<<" could not be read!";
                 errorOccured = true;
@@ -254,7 +254,7 @@ void RegistrationThread::run()
             else
             {
                 //qDebug() << "Frame "<<indexFrame<<" written without any changes.";
-                posunuty.release();
+                shifted.release();
                 frangiX[indexFrame] = 999.0;
                 frangiY[indexFrame] = 999.0;
                 frangiEuklidean[indexFrame] = 999.0;
@@ -265,7 +265,7 @@ void RegistrationThread::run()
         }
         else if (ohodnoceniSnimku[indexFrame] == 1 || ohodnoceniSnimku[indexFrame] == 4)
         {
-            Mat slicovany_snimek;
+            Mat registratedFrame;
             if (!fullRegistration(capture,
                                   referencialImage,
                                   indexFrame,
@@ -275,39 +275,39 @@ void RegistrationThread::run()
                                   correl_extra,
                                   correl_standard,
                                   scaling,
-                                  slicovany_snimek,
+                                  registratedFrame,
                                   finalPOCx,
                                   finalPOCy,
                                   maximalAngles)){
                 errorOccured = true;
                 continue;
             }
-            Mat posunuty_temp;
+            Mat shifted_temp;
             capture.set(CV_CAP_PROP_POS_FRAMES,indexFrame);
-            if (capture.read(posunuty_temp)!=1)
+            if (capture.read(shifted_temp)!=1)
             {
                 qWarning()<<"Frame "<<indexFrame<<" could not be read!";
                 continue;
             }
             else
             {
-                Point3d korekce_translace(0.0,0.0,0.0);
-                cv::Mat plne_slicovany_snimek;
-                if (!registrationCorrection(slicovany_snimek,obraz,plne_slicovany_snimek,
+                Point3d translationCorrection(0.0,0.0,0.0);
+                cv::Mat fully_registratedFrame;
+                if (!registrationCorrection(registratedFrame,preprocessed,fully_registratedFrame,
                                             correl_standard,
-                                            korekce_translace)){
+                                            translationCorrection)){
                     errorOccured = true;
                     continue;
                 }
 
-                if (korekce_translace.x != 0.0 || korekce_translace.y != 0.0)
+                if (translationCorrection.x != 0.0 || translationCorrection.y != 0.0)
                 {
-                    finalPOCx[indexFrame] += korekce_translace.x;
-                    finalPOCy[indexFrame] += korekce_translace.y;
-                    Point3d pt6 = fk_translace_hann(obraz,plne_slicovany_snimek);
+                    finalPOCx[indexFrame] += translationCorrection.x;
+                    finalPOCy[indexFrame] += translationCorrection.y;
+                    Point3d pt6 = fk_translace_hann(preprocessed,fully_registratedFrame);
                     if (std::abs(pt6.x)>=290 || std::abs(pt6.y)>=290)
                     {
-                        pt6 = fk_translace(obraz,plne_slicovany_snimek);
+                        pt6 = fk_translace(preprocessed,fully_registratedFrame);
                     }
                     //qDebug() << "After correction of translation Y: " << pt6.y <<" X: "<<pt6.x;
                 }
@@ -315,19 +315,19 @@ void RegistrationThread::run()
                 //qDebug()<<" Translation: "<<finalPOCx[indexFrame]<<" "<<finalPOCy[indexFrame]<<" "<<maximalAngles[indexFrame];
                 if (scaling == true)
                 {
-                    int radky = posunuty_temp.rows;
-                    int sloupce = posunuty_temp.cols;
-                    Mat posunuty_original = translace_snimku(posunuty_temp,_tempTranslation,radky,sloupce);
-                    Mat finalni_licovani2 = rotace_snimku(posunuty_original,maximalAngles[indexFrame]);
-                    plne_slicovany_snimek.release();
-                    finalni_licovani2.release();
-                    posunuty_original.release();
-                    posunuty_temp.release();
+                    int rows = shifted_temp.rows;
+                    int cols = shifted_temp.cols;
+                    Mat shifted_original = frameTranslation(shifted_temp,_tempTranslation,rows,cols);
+                    Mat finalFrame = frameRotation(shifted_original,maximalAngles[indexFrame]);
+                    fully_registratedFrame.release();
+                    finalFrame.release();
+                    shifted_original.release();
+                    shifted_temp.release();
                 }
                 else
                 {
-                    plne_slicovany_snimek.release();
-                    posunuty_temp.release();
+                    fully_registratedFrame.release();
+                    shifted_temp.release();
                 }
             }
         }
@@ -397,7 +397,7 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                        QVector<double> &_frangiEucl,
                        QVector<double> &_maxAngles)
 {
-    Mat plne_slicovany_snimek = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
+    Mat fully_registratedFrame = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
 
     if (!fullRegistration(i_cap,
                           i_referencialFrame,
@@ -408,13 +408,13 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                           i_cutoutExtra,
                           i_cutoutStandard,
                           i_scaleChanged,
-                          plne_slicovany_snimek,
+                          fully_registratedFrame,
                           _pocX,_pocY,_maxAngles)){
         qWarning()<< "Registration error. Frame "<<i_index_translated<<" was not registrated.";
         _frangiX[i_index_translated]=999.0;
         _frangiY[i_index_translated]=999.0;
         _frangiEucl[i_index_translated]=999.0;
-        plne_slicovany_snimek.release();
+        fully_registratedFrame.release();
         return false;
     }
     else
@@ -427,7 +427,7 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
         if (std::abs(_pocX[i_index_translated]) == 999.0)
         {
             qWarning()<< "Frame "<<i_index_translated<<" written without changes.";
-            plne_slicovany_snimek.release();
+            fully_registratedFrame.release();
             _frangiX[i_index_translated]=999.0;
             _frangiY[i_index_translated]=999.0;
             _frangiEucl[i_index_translated]=999.0;
@@ -435,313 +435,313 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
         }
         else
         {
-            Mat posunuty_temp;
+            Mat shifted_temp;
             i_cap.set(CV_CAP_PROP_POS_FRAMES,i_index_translated);
-            if (i_cap.read(posunuty_temp)!=1)
+            if (i_cap.read(shifted_temp)!=1)
             {
                 qWarning()<<"Frame "<<i_index_translated<<" could not be read!";
             }
-            Mat mezivysledek32f,mezivysledek32f_vyrez,posunuty;
+            Mat interresult32f,interresult32f_vyrez,shifted;
             if (i_scaleChanged == true)
             {
-                posunuty_temp(i_cutoutExtra).copyTo(posunuty);
+                shifted_temp(i_cutoutExtra).copyTo(shifted);
             }
             else
             {
-                posunuty_temp.copyTo(posunuty);
+                shifted_temp.copyTo(shifted);
             }
 
-            Point3d translace_korekce(0.0,0.0,0.0);
-            Mat plneSlicovanyKorekce = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
-            if (!registrationCorrection(plne_slicovany_snimek,i_referencialFrame,plneSlicovanyKorekce,
-                                        i_cutoutStandard,translace_korekce)){
+            Point3d translationCorrection(0.0,0.0,0.0);
+            Mat registratedCorrectedFrame = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
+            if (!registrationCorrection(fully_registratedFrame,i_referencialFrame,registratedCorrectedFrame,
+                                        i_cutoutStandard,translationCorrection)){
                 qWarning()<<"Frame "<<i_index_translated<<" - registration correction failed";
                 return false;
             }
             else{
-                if (translace_korekce.x > 0.0 || translace_korekce.y > 0.0)
+                if (translationCorrection.x > 0.0 || translationCorrection.y > 0.0)
                 {
-                    //qDebug()<<"Correction: "<<translace_korekce.x<<" "<<translace_korekce.y;
-                    _pocX[i_index_translated] += translace_korekce.x;
-                    _pocY[i_index_translated] += translace_korekce.y;
-                    Point3d pt6 = fk_translace_hann(i_referencialFrame,plneSlicovanyKorekce);
+                    //qDebug()<<"Correction: "<<translationCorrection.x<<" "<<translationCorrection.y;
+                    _pocX[i_index_translated] += translationCorrection.x;
+                    _pocY[i_index_translated] += translationCorrection.y;
+                    Point3d pt6 = fk_translace_hann(i_referencialFrame,registratedCorrectedFrame);
                     if (std::abs(pt6.x)>=290 || std::abs(pt6.y)>=290)
                     {
-                        pt6 = fk_translace(i_referencialFrame,plneSlicovanyKorekce);
+                        pt6 = fk_translace(i_referencialFrame,registratedCorrectedFrame);
                     }
                     //qDebug()<<"Checking translation after correction: "<<pt6.x<<" "<<pt6.y;
                     _pocX[i_index_translated] += pt6.x;
                     _pocY[i_index_translated] += pt6.y;
                 }
 
-                plneSlicovanyKorekce.copyTo(mezivysledek32f);
-                kontrola_typu_snimku_32C1(mezivysledek32f);
-                mezivysledek32f(i_cutoutStandard).copyTo(mezivysledek32f_vyrez);
-                double R_prvni = vypocet_KK(i_referencialFrame,plneSlicovanyKorekce,i_cutoutStandard);
+                registratedCorrectedFrame.copyTo(interresult32f);
+                transformMatTypeTo32C1(interresult32f);
+                interresult32f(i_cutoutStandard).copyTo(interresult32f_vyrez);
+                double R1 = calculateCorrCoef(i_referencialFrame,registratedCorrectedFrame,i_cutoutStandard);
                 Point3d _tempTranslation = Point3d(_pocX[i_index_translated],_pocY[i_index_translated],0.0);
 
-                Point3d frangi_bod_slicovany_reverse = frangi_analysis(plneSlicovanyKorekce,2,2,0,"",2,_tempTranslation,parametry_frangi);
+                Point3d frangiCoords_registrated_reverse = frangi_analysis(registratedCorrectedFrame,2,2,0,"",2,_tempTranslation,parametry_frangi);
 
-                _frangiX[i_index_translated] = frangi_bod_slicovany_reverse.x;
-                _frangiY[i_index_translated] = frangi_bod_slicovany_reverse.y;
-                double yydef = i_coordsFrangiStandardReferencialReverse.x - frangi_bod_slicovany_reverse.x;
-                double xxdef = i_coordsFrangiStandardReferencialReverse.y - frangi_bod_slicovany_reverse.y;
-                double suma_rozdilu = std::pow(xxdef,2.0) + std::pow(yydef,2.0);
-                double euklid = std::sqrt(suma_rozdilu);
+                _frangiX[i_index_translated] = frangiCoords_registrated_reverse.x;
+                _frangiY[i_index_translated] = frangiCoords_registrated_reverse.y;
+                double yydef = i_coordsFrangiStandardReferencialReverse.x - frangiCoords_registrated_reverse.x;
+                double xxdef = i_coordsFrangiStandardReferencialReverse.y - frangiCoords_registrated_reverse.y;
+                double diffSum = std::pow(xxdef,2.0) + std::pow(yydef,2.0);
+                double euklid = std::sqrt(diffSum);
                 _frangiEucl[i_index_translated] = euklid;
 
-                Point3d vysledne_posunuti(0.0,0.0,0.0);
-                vysledne_posunuti.y = _pocY[i_index_translated] - yydef;
-                vysledne_posunuti.x = _pocX[i_index_translated] - xxdef;
-                vysledne_posunuti.z = 0;
+                Point3d finalTranslation(0.0,0.0,0.0);
+                finalTranslation.y = _pocY[i_index_translated] - yydef;
+                finalTranslation.x = _pocX[i_index_translated] - xxdef;
+                finalTranslation.z = 0;
                 xxdef = 0.0;
                 yydef = 0.0;
-                suma_rozdilu = 0.0;
+                diffSum = 0.0;
                 euklid = 0.0;
 
-                Mat posunuty2 = translace_snimku(posunuty,vysledne_posunuti,rows,cols);
-                Mat finalni_licovani = rotace_snimku(posunuty2,_maxAngles[i_index_translated]);
-                //Mat finalni_licovani_32f,finalni_licovani_32f_vyrez;
-                /*finalni_licovani.copyTo(finalni_licovani_32f);
-                kontrola_typu_snimku_32C1(finalni_licovani_32f);
-                finalni_licovani_32f(i_cutoutStandard).copyTo(finalni_licovani_32f_vyrez);
-                finalni_licovani_32f.release();*/
-                posunuty2.release();
-                double R_druhy = vypocet_KK(i_referencialFrame,finalni_licovani,i_cutoutStandard);
-                // finalni_licovani_32f_vyrez.release();
-                if (R_prvni >= R_druhy)
+                Mat shifted2 = frameTranslation(shifted,finalTranslation,rows,cols);
+                Mat finalFrame = frameRotation(shifted2,_maxAngles[i_index_translated]);
+                //Mat finalFrame_32f,finalFrame_32f_vyrez;
+                /*finalFrame.copyTo(finalFrame_32f);
+                transformMatTypeTo32C1(finalFrame_32f);
+                finalFrame_32f(i_cutoutStandard).copyTo(finalFrame_32f_vyrez);
+                finalFrame_32f.release();*/
+                shifted2.release();
+                double R2 = calculateCorrCoef(i_referencialFrame,finalFrame,i_cutoutStandard);
+                // finalFrame_32f_vyrez.release();
+                if (R1 >= R2)
                 {
                     //qDebug()<< "Frame "<<i_index_translated<<" written after standard registration.";
-                    //qDebug()<<"R1: "<<R_prvni<<" R2: "<<R_druhy;
+                    //qDebug()<<"R1: "<<R1<<" R2: "<<R2;
                     //qDebug()<<"Translation: "<<_pocX[i_index_translated]<<" "<<_pocY[i_index_translated]<<" "<<_maxAngles[i_index_translated];
                     if (i_scaleChanged == true)
                     {
-                        int radky = posunuty_temp.rows;
-                        int sloupce = posunuty_temp.cols;
-                        Mat posunuty_original = translace_snimku(posunuty_temp,_tempTranslation,radky,sloupce);
-                        Mat finalni_licovani2 = rotace_snimku(posunuty_original,_maxAngles[i_index_translated]);
-                        plne_slicovany_snimek.release();
-                        plneSlicovanyKorekce.release();
-                        finalni_licovani2.release();
-                        finalni_licovani.release();
-                        posunuty_original.release();
-                        posunuty_temp.release();
+                        int rows = shifted_temp.rows;
+                        int cols = shifted_temp.cols;
+                        Mat shifted_original = frameTranslation(shifted_temp,_tempTranslation,rows,cols);
+                        Mat finalFrame2 = frameRotation(shifted_original,_maxAngles[i_index_translated]);
+                        fully_registratedFrame.release();
+                        registratedCorrectedFrame.release();
+                        finalFrame2.release();
+                        finalFrame.release();
+                        shifted_original.release();
+                        shifted_temp.release();
                     }
                     else
                     {
-                        plne_slicovany_snimek.release();
-                        finalni_licovani.release();
+                        fully_registratedFrame.release();
+                        finalFrame.release();
                     }
                 }
                 else
                 {
                     qDebug()<< "Frame "<<i_index_translated<<" written after vein analysis";
-                    qDebug()<<" Translation: "<<vysledne_posunuti.x<<" "<<vysledne_posunuti.y<<" "<<_maxAngles[i_index_translated];
+                    qDebug()<<" Translation: "<<finalTranslation.x<<" "<<finalTranslation.y<<" "<<_maxAngles[i_index_translated];
                     if (i_scaleChanged == true)
                     {
-                        int radky = posunuty_temp.rows;
-                        int sloupce = posunuty_temp.cols;
-                        Mat posunuty_original = translace_snimku(posunuty_temp,vysledne_posunuti,radky,sloupce);
-                        Mat finalni_licovani2 = rotace_snimku(posunuty_original,_maxAngles[i_index_translated]);
-                        plne_slicovany_snimek.release();
-                        plneSlicovanyKorekce.release();
-                        finalni_licovani2.release();
-                        finalni_licovani.release();
-                        posunuty_original.release();
-                        posunuty_temp.release();
+                        int rows = shifted_temp.rows;
+                        int cols = shifted_temp.cols;
+                        Mat shifted_original = frameTranslation(shifted_temp,finalTranslation,rows,cols);
+                        Mat finalFrame2 = frameRotation(shifted_original,_maxAngles[i_index_translated]);
+                        fully_registratedFrame.release();
+                        registratedCorrectedFrame.release();
+                        finalFrame2.release();
+                        finalFrame.release();
+                        shifted_original.release();
+                        shifted_temp.release();
                     }
                     else
                     {
-                        plne_slicovany_snimek.release();
-                        finalni_licovani.release();
+                        fully_registratedFrame.release();
+                        finalFrame.release();
                     }
-                    _pocX[i_index_translated] = vysledne_posunuti.x;
-                    _pocY[i_index_translated] = vysledne_posunuti.y;
+                    _pocX[i_index_translated] = finalTranslation.x;
+                    _pocY[i_index_translated] = finalTranslation.y;
                 }
-                mezivysledek32f.release();
-                mezivysledek32f_vyrez.release();
+                interresult32f.release();
+                interresult32f_vyrez.release();
                 return true;
             }
         }
     }
 };
 
-bool fullRegistration(cv::VideoCapture& cap,
-                      cv::Mat& referencni_snimek,
-                      int cislo_posunuty,
-                      int iterace,
-                      double oblastMaxima,
-                      double uhel,
-                      cv::Rect& korelacni_vyrez_navic,
-                      cv::Rect& korelacni_vyrez_standardni,
-                      bool nutnost_zmenit_velikost_snimku,
-                      cv::Mat& slicovany_kompletne,
-                      QVector<double> &_pocX,
-                      QVector<double> &_pocY,
-                      QVector<double> &_maxAngles)
+bool fullRegistration(cv::VideoCapture& i_cap,
+                      cv::Mat& i_referencialFrame,
+                      int i_shiftedNo,
+                      int i_iteration,
+                      double i_areaMaximum,
+                      double i_angle,
+                      cv::Rect& i_cutoutExtra,
+                      cv::Rect& i_cutoutStandard,
+                      bool i_scaleChange,
+                      cv::Mat& i_fullyRegistrated,
+                      QVector<double> &i_pocX,
+                      QVector<double> &i_pocY,
+                      QVector<double> &i_maxAngles)
 {
     try {
-        Mat posunuty_temp;
-        cap.set(CV_CAP_PROP_POS_FRAMES,cislo_posunuty);
-        double celkovy_uhel = 0.0;
-        if(!cap.read(posunuty_temp))
+        Mat shifted_temp;
+        i_cap.set(CV_CAP_PROP_POS_FRAMES,i_shiftedNo);
+        double totalAngle = 0.0;
+        if(!i_cap.read(shifted_temp))
             return false;
 
-        kontrola_typu_snimku_8C3(referencni_snimek);
-        kontrola_typu_snimku_8C3(posunuty_temp);
-        int rows = referencni_snimek.rows;
-        int cols = referencni_snimek.cols;
+        transformMatTypeTo8C3(i_referencialFrame);
+        transformMatTypeTo8C3(shifted_temp);
+        int rows = i_referencialFrame.rows;
+        int cols = i_referencialFrame.cols;
         Mat hann;
-        createHanningWindow(hann, referencni_snimek.size(), CV_32FC1);
-        Mat referencni_snimek_32f,referencni_snimek_vyrez;
-        referencni_snimek.copyTo(referencni_snimek_32f);
-        kontrola_typu_snimku_32C1(referencni_snimek_32f);
-        referencni_snimek_32f(korelacni_vyrez_standardni).copyTo(referencni_snimek_vyrez);
-        Mat posunuty, posunuty_vyrez;
-        if (nutnost_zmenit_velikost_snimku == true)
+        createHanningWindow(hann, i_referencialFrame.size(), CV_32FC1);
+        Mat referencialFrame_32f,referencialFrame_vyrez;
+        i_referencialFrame.copyTo(referencialFrame_32f);
+        transformMatTypeTo32C1(referencialFrame_32f);
+        referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_vyrez);
+        Mat shifted, shifted_vyrez;
+        if (i_scaleChange == true)
         {
-            posunuty_temp(korelacni_vyrez_navic).copyTo(posunuty);
-            posunuty(korelacni_vyrez_standardni).copyTo(posunuty_vyrez);
-            posunuty_temp.release();
+            shifted_temp(i_cutoutExtra).copyTo(shifted);
+            shifted(i_cutoutStandard).copyTo(shifted_vyrez);
+            shifted_temp.release();
         }
         else
         {
-            posunuty_temp.copyTo(posunuty);
-            posunuty(korelacni_vyrez_standardni).copyTo(posunuty_vyrez);
-            posunuty_temp.release();
+            shifted_temp.copyTo(shifted);
+            shifted(i_cutoutStandard).copyTo(shifted_vyrez);
+            shifted_temp.release();
         }
-        Mat posunuty_32f;
-        posunuty.copyTo(posunuty_32f);
-        kontrola_typu_snimku_32C1(posunuty_32f);
+        Mat shifted_32f;
+        shifted.copyTo(shifted_32f);
+        transformMatTypeTo32C1(shifted_32f);
 
-        Mat slicovany1;
+        Mat registrated1;
         Point3d pt1(0.0,0.0,0.0);
-        if (nutnost_zmenit_velikost_snimku == true)
+        if (i_scaleChange == true)
         {
-            pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
+            pt1 = fk_translace_hann(referencialFrame_32f,shifted_32f);
             if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
-                pt1 = fk_translace(referencni_snimek_32f,posunuty_32f);
+                pt1 = fk_translace(referencialFrame_32f,shifted_32f);
 
             if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
-                pt1 = fk_translace(referencni_snimek_vyrez,posunuty_vyrez);
+                pt1 = fk_translace(referencialFrame_vyrez,shifted_vyrez);
         }
-        if (nutnost_zmenit_velikost_snimku == false)
+        if (i_scaleChange == false)
         {
-            pt1 = fk_translace_hann(referencni_snimek_32f,posunuty_32f);
+            pt1 = fk_translace_hann(referencialFrame_32f,shifted_32f);
         }
 
         if (pt1.x>=55 || pt1.y>=55)
         {
-            _pocX[cislo_posunuty] = 999.0;
-            _pocY[cislo_posunuty] = 999.0;
-            _maxAngles[cislo_posunuty] = 999.0;
+            i_pocX[i_shiftedNo] = 999.0;
+            i_pocY[i_shiftedNo] = 999.0;
+            i_maxAngles[i_shiftedNo] = 999.0;
             return false;
         }
         else
         {
             //qDebug()<<"Filling pt1";
-            _pocX[cislo_posunuty] = pt1.x;
-            _pocY[cislo_posunuty] = pt1.y;
+            i_pocX[i_shiftedNo] = pt1.x;
+            i_pocY[i_shiftedNo] = pt1.y;
             //qDebug()<<"pt1 filled.";
-            //if (cislo_posunuty == 0)
+            //if (cislo_shifted == 0)
                 //qDebug()<<"PT1: "<<pt1.x<<" "<<pt1.y;
-            slicovany1 = translace_snimku(posunuty,pt1,rows,cols);
-            cv::Mat slicovany1_32f_rotace,slicovany1_32f,slicovany1_vyrez;
-            slicovany1.copyTo(slicovany1_32f);
-            kontrola_typu_snimku_32C1(slicovany1_32f);
-            Point3d vysledek_rotace = fk_rotace(referencni_snimek_32f,slicovany1_32f,uhel,pt1.z,pt1);
-            if (std::abs(vysledek_rotace.y) > uhel)
-                vysledek_rotace.y=0;
+            registrated1 = frameTranslation(shifted,pt1,rows,cols);
+            cv::Mat registrated1_32f_rotace,registrated1_32f,registrated1_vyrez;
+            registrated1.copyTo(registrated1_32f);
+            transformMatTypeTo32C1(registrated1_32f);
+            Point3d rotation_result = fk_rotace(referencialFrame_32f,registrated1_32f,i_angle,pt1.z,pt1);
+            if (std::abs(rotation_result.y) > i_angle)
+                rotation_result.y=0;
 
-            _maxAngles[cislo_posunuty] = vysledek_rotace.y;
-            slicovany1_32f_rotace = rotace_snimku(slicovany1_32f,vysledek_rotace.y);
-            slicovany1_32f_rotace(korelacni_vyrez_standardni).copyTo(slicovany1_vyrez);
+            i_maxAngles[i_shiftedNo] = rotation_result.y;
+            registrated1_32f_rotace = frameRotation(registrated1_32f,rotation_result.y);
+            registrated1_32f_rotace(i_cutoutStandard).copyTo(registrated1_vyrez);
 
             Point3d pt2(0.0,0.0,0.0);
-            pt2 = fk_translace(referencni_snimek_vyrez,slicovany1_vyrez);
+            pt2 = fk_translace(referencialFrame_vyrez,registrated1_vyrez);
             if (pt2.x >= 55 || pt2.y >= 55)
             {
-                _pocX[cislo_posunuty] = 999.0;
-                _pocY[cislo_posunuty] = 999.0;
-                _maxAngles[cislo_posunuty] = 999.0;
-                slicovany1.copyTo(slicovany_kompletne);
-                slicovany1.release();
+                i_pocX[i_shiftedNo] = 999.0;
+                i_pocY[i_shiftedNo] = 999.0;
+                i_maxAngles[i_shiftedNo] = 999.0;
+                registrated1.copyTo(i_fullyRegistrated);
+                registrated1.release();
                 return false;
             }
             else
             {
                 double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt2.z);
                 double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-                //qDebug()<<"FWHM for "<<cislo_posunuty<<" = "<<FWHM;
-                slicovany1.release();
-                slicovany1_32f.release();
-                slicovany1_vyrez.release();
-                //if (cislo_posunuty == 0)
+                //qDebug()<<"FWHM for "<<cislo_shifted<<" = "<<FWHM;
+                registrated1.release();
+                registrated1_32f.release();
+                registrated1_vyrez.release();
+                //if (cislo_shifted == 0)
                     //qDebug()<<"PT2: "<<pt2.x<<" "<<pt2.y;
 
                 Point3d pt3(0.0,0.0,0.0);
                 pt3.x = pt1.x+pt2.x;
                 pt3.y = pt1.y+pt2.y;
                 pt3.z = pt2.z;
-                _pocX[cislo_posunuty] = pt3.x;
-                _pocY[cislo_posunuty] = pt3.y;
-                Mat slicovany2 = translace_snimku(posunuty,pt3,rows,cols);
-                Mat slicovany2_32f,slicovany2_vyrez;
-                slicovany2.copyTo(slicovany2_32f);
-                kontrola_typu_snimku_32C1(slicovany2_32f);
-                Mat slicovany2_rotace = rotace_snimku(slicovany2_32f,vysledek_rotace.y);
-                slicovany2_rotace(korelacni_vyrez_standardni).copyTo(slicovany2_vyrez);
-                Mat mezivysledek_vyrez,mezivysledek;
-                slicovany2_rotace.copyTo(mezivysledek);
-                slicovany2_vyrez.copyTo(mezivysledek_vyrez);
-                //slicovany2.release();
-                slicovany2_vyrez.release();
-                slicovany2_32f.release();
-                slicovany2_rotace.release();
-                celkovy_uhel+=vysledek_rotace.y;
-                vysledek_rotace.y = 0;
-                int max_pocet_iteraci = 0;
-                if (iterace == -1)
+                i_pocX[i_shiftedNo] = pt3.x;
+                i_pocY[i_shiftedNo] = pt3.y;
+                Mat registrated2 = frameTranslation(shifted,pt3,rows,cols);
+                Mat registrated2_32f,registrated2_vyrez;
+                registrated2.copyTo(registrated2_32f);
+                transformMatTypeTo32C1(registrated2_32f);
+                Mat registrated2_rotace = frameRotation(registrated2_32f,rotation_result.y);
+                registrated2_rotace(i_cutoutStandard).copyTo(registrated2_vyrez);
+                Mat interresult_vyrez,interresult;
+                registrated2_rotace.copyTo(interresult);
+                registrated2_vyrez.copyTo(interresult_vyrez);
+                //registrated2.release();
+                registrated2_vyrez.release();
+                registrated2_32f.release();
+                registrated2_rotace.release();
+                totalAngle+=rotation_result.y;
+                rotation_result.y = 0;
+                int maxIterationCount = 0;
+                if (i_iteration == -1)
                 {
-                    if (FWHM <= 20){max_pocet_iteraci = 2;}
-                    else if (FWHM > 20 && FWHM <= 30){max_pocet_iteraci = 4;}
-                    else if (FWHM > 30 && FWHM <= 35){max_pocet_iteraci = 6;}
-                    else if (FWHM > 35 && FWHM <= 40){max_pocet_iteraci = 8;}
-                    else if (FWHM > 40 && FWHM <= 45){max_pocet_iteraci = 10;}
-                    else if (FWHM > 45){max_pocet_iteraci = 5;};
+                    if (FWHM <= 20){maxIterationCount = 2;}
+                    else if (FWHM > 20 && FWHM <= 30){maxIterationCount = 4;}
+                    else if (FWHM > 30 && FWHM <= 35){maxIterationCount = 6;}
+                    else if (FWHM > 35 && FWHM <= 40){maxIterationCount = 8;}
+                    else if (FWHM > 40 && FWHM <= 45){maxIterationCount = 10;}
+                    else if (FWHM > 45){maxIterationCount = 5;};
                 }
-                if (iterace >= 1)
+                if (i_iteration >= 1)
                 {
-                    max_pocet_iteraci = iterace;
+                    maxIterationCount = i_iteration;
                 }
-                for (int i = 0; i < max_pocet_iteraci; i++)
+                for (int i = 0; i < maxIterationCount; i++)
                 {
                     Point3d rotace_ForLoop(0.0,0.0,0.0);
-                    rotace_ForLoop = fk_rotace(referencni_snimek,mezivysledek,uhel,pt3.z,pt3);
-                    if (std::abs(rotace_ForLoop.y) > uhel)
+                    rotace_ForLoop = fk_rotace(i_referencialFrame,interresult,i_angle,pt3.z,pt3);
+                    if (std::abs(rotace_ForLoop.y) > i_angle)
                         rotace_ForLoop.y = 0.0;
-                    else if (std::abs(celkovy_uhel+rotace_ForLoop.y)>uhel)
+                    else if (std::abs(totalAngle+rotace_ForLoop.y)>i_angle)
                         rotace_ForLoop.y=0.0;
                     else
-                        celkovy_uhel+=rotace_ForLoop.y;
+                        totalAngle+=rotace_ForLoop.y;
 
-                    Mat rotovany;
+                    Mat rotatedFrame;
                     if (rotace_ForLoop.y != 0.0)
-                        rotovany = rotace_snimku(mezivysledek,rotace_ForLoop.y);
+                        rotatedFrame = frameRotation(interresult,rotace_ForLoop.y);
                     else
-                        rotovany = mezivysledek;
+                        rotatedFrame = interresult;
 
                     rotace_ForLoop.y = 0.0;
-                    Mat rotovany_vyrez;
-                    rotovany(korelacni_vyrez_standardni).copyTo(rotovany_vyrez);
-                    rotovany.release();
+                    Mat rotatedFrame_vyrez;
+                    rotatedFrame(i_cutoutStandard).copyTo(rotatedFrame_vyrez);
+                    rotatedFrame.release();
                     Point3d pt4(0.0,0.0,0.0);
-                    pt4 = fk_translace(referencni_snimek_vyrez,rotovany_vyrez);
-                    rotovany_vyrez.release();
+                    pt4 = fk_translace(referencialFrame_vyrez,rotatedFrame_vyrez);
+                    rotatedFrame_vyrez.release();
                     if (pt4.x >= 55 || pt4.y >= 55)
                     {
-                        slicovany2.copyTo(slicovany_kompletne);
-                        //qDebug()<<"Frame "<<cislo_posunuty<<" terminated because \"condition 55\" reached.";
+                        registrated2.copyTo(i_fullyRegistrated);
+                        //qDebug()<<"Frame "<<cislo_shifted<<" terminated because \"condition 55\" reached.";
                         break;
                     }
                     else
@@ -749,160 +749,160 @@ bool fullRegistration(cv::VideoCapture& cap,
                         pt3.x += pt4.x;
                         pt3.y += pt4.y;
                         pt3.z = pt4.z;
-                        //if (cislo_posunuty == 0)
+                        //if (cislo_shifted == 0)
                             //qDebug()<<"PT3 loop: "<<pt3.x<<" "<<pt3.y;
-                        _pocX[cislo_posunuty] = pt3.x;
-                        _pocY[cislo_posunuty] = pt3.y;
-                        _maxAngles[cislo_posunuty] = celkovy_uhel;
-                        Mat posunuty_temp = translace_snimku(posunuty,pt3,rows,cols);
-                        Mat rotovany_temp = rotace_snimku(posunuty_temp,celkovy_uhel);
-                        posunuty_temp.release();
-                        rotovany_temp.copyTo(mezivysledek);
-                        kontrola_typu_snimku_32C1(rotovany_temp);
-                        rotovany_temp.release();
+                        i_pocX[i_shiftedNo] = pt3.x;
+                        i_pocY[i_shiftedNo] = pt3.y;
+                        i_maxAngles[i_shiftedNo] = totalAngle;
+                        Mat shifted_temp = frameTranslation(shifted,pt3,rows,cols);
+                        Mat rotatedFrame_temp = frameRotation(shifted_temp,totalAngle);
+                        shifted_temp.release();
+                        rotatedFrame_temp.copyTo(interresult);
+                        transformMatTypeTo32C1(rotatedFrame_temp);
+                        rotatedFrame_temp.release();
                     }
                 }
-                mezivysledek.copyTo(slicovany_kompletne);
+                interresult.copyTo(i_fullyRegistrated);
                 return true;
             }
         }
     } catch (std::exception &e) {
         qWarning()<<"Full registration error: "<<e.what();
-        _pocX[cislo_posunuty] = 999.0;
-        _pocY[cislo_posunuty] = 999.0;
-        _maxAngles[cislo_posunuty] = 999.0;
+        i_pocX[i_shiftedNo] = 999.0;
+        i_pocY[i_shiftedNo] = 999.0;
+        i_maxAngles[i_shiftedNo] = 999.0;
         return false;
     }
 };
 
-bool imagePreprocessing(cv::Mat &reference,
-                        cv::Mat &obraz,
-                        QVector<double> &parFrang,
-                        cv::Point2f &hraniceAnomalie,
-                        cv::Point2f &hraniceCasu,
-                        cv::Rect &oblastAnomalie,
-                        cv::Rect &vyrezKoreEx,
-                        cv::Rect &vyrezKoreStand,
-                        cv::VideoCapture &cap,
-                        bool &zmeMer)
+bool imagePreprocessing(cv::Mat &i_referencialFrame,
+                        cv::Mat &i_preprocessed,
+                        QVector<double> &i_frangiParameters,
+                        cv::Point2f &i_verticalAnomaly,
+                        cv::Point2f &i_horizontalAnomaly,
+                        cv::Rect &i_anomalyArea,
+                        cv::Rect &i_coutouExtra,
+                        cv::Rect &i_cutoutStandard,
+                        cv::VideoCapture &i_cap,
+                        bool &i_scaleChange)
 {
     try {
         cv::Point3d pt_temp(0.0,0.0,0.0);
-        cv::Point3d frangi_bod(0.0,0.0,0.0);
-        double sirka_framu = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-        double vyska_framu = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-        bool pritomnostAnomalie = false;
-        bool pritomnostCasZn = false;
-        if (hraniceAnomalie.x != 0.0f) // světelná anomálie
+        cv::Point3d frangiCoords(0.0,0.0,0.0);
+        double width = i_cap.get(CV_CAP_PROP_FRAME_WIDTH);
+        double height = i_cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+        bool verticalAnomalyPresence = false;
+        bool horizontalAnomalyPresence = false;
+        if (i_verticalAnomaly.x != 0.0f) // světelná anomálie
         {
-            if (hraniceAnomalie.x < float(sirka_framu/2))
+            if (i_verticalAnomaly.x < float(width/2))
             {
-                oblastAnomalie.x = 0;
-                oblastAnomalie.y = int(hraniceAnomalie.x);
-                oblastAnomalie.width = int(sirka_framu-int(hraniceAnomalie.x)-1);
-                oblastAnomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+                i_anomalyArea.x = 0;
+                i_anomalyArea.y = int(i_verticalAnomaly.x);
+                i_anomalyArea.width = int(width-int(i_verticalAnomaly.x)-1);
+                i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
             }
-            if (hraniceAnomalie.x > float(sirka_framu/2))
+            if (i_verticalAnomaly.x > float(width/2))
             {
-                oblastAnomalie.x = 0;
-                oblastAnomalie.y = 0;
-                oblastAnomalie.width = int(hraniceAnomalie.x);
-                oblastAnomalie.height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+                i_anomalyArea.x = 0;
+                i_anomalyArea.y = 0;
+                i_anomalyArea.width = int(i_verticalAnomaly.x);
+                i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
             }
-            pritomnostAnomalie = true;
+            verticalAnomalyPresence = true;
         }
-        if (hraniceCasu.y != 0.0f) // časová anomálie
+        if (i_horizontalAnomaly.y != 0.0f) // časová anomálie
         {
-            if (hraniceCasu.x < float(vyska_framu/2))
+            if (i_horizontalAnomaly.x < float(height/2))
             {
-                oblastAnomalie.x = int(hraniceCasu.y);
-                oblastAnomalie.y = 0;
-                if (pritomnostAnomalie != true)
-                    oblastAnomalie.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-                oblastAnomalie.height = int(vyska_framu-int(hraniceCasu.y)-1);
+                i_anomalyArea.x = int(i_horizontalAnomaly.y);
+                i_anomalyArea.y = 0;
+                if (verticalAnomalyPresence != true)
+                    i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
+                i_anomalyArea.height = int(height-int(i_horizontalAnomaly.y)-1);
             }
-            if (hraniceCasu.x > float(sirka_framu/2))
+            if (i_horizontalAnomaly.x > float(width/2))
             {
-                oblastAnomalie.x = 0;
-                oblastAnomalie.y = 0;
-                if (pritomnostAnomalie != true)
-                    oblastAnomalie.width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-                oblastAnomalie.height = int(vyska_framu-int(hraniceCasu.y)-1);
+                i_anomalyArea.x = 0;
+                i_anomalyArea.y = 0;
+                if (verticalAnomalyPresence != true)
+                    i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
+                i_anomalyArea.height = int(height-int(i_horizontalAnomaly.y)-1);
             }
-            pritomnostCasZn = true;
+            horizontalAnomalyPresence = true;
         }
-        if (pritomnostAnomalie == true || pritomnostCasZn == true)
-            frangi_bod = frangi_analysis(reference(oblastAnomalie),1,1,0,"",1,pt_temp,parFrang);
+        if (verticalAnomalyPresence == true || horizontalAnomalyPresence == true)
+            frangiCoords = frangi_analysis(i_referencialFrame(i_anomalyArea),1,1,0,"",1,pt_temp,i_frangiParameters);
         else
-            frangi_bod = frangi_analysis(reference,1,1,0,"",1,pt_temp,parFrang);
+            frangiCoords = frangi_analysis(i_referencialFrame,1,1,0,"",1,pt_temp,i_frangiParameters);
 
-        if (frangi_bod.z == 0.0)
+        if (frangiCoords.z == 0.0)
         {
             return false;
         }
         else
         {
-            bool nutnost_zmenit_velikost = false;
-            int rows = reference.rows;
-            int cols = reference.cols;
-            int radek_od = int(round(frangi_bod.y-0.8*frangi_bod.y));
-            int radek_do = int(round(frangi_bod.y+0.8*(rows - frangi_bod.y)));
-            int sloupec_od = 0;
-            int sloupec_do = 0;
+            bool needToChangeScale = false;
+            int rows = i_referencialFrame.rows;
+            int cols = i_referencialFrame.cols;
+            int rowFrom = int(round(frangiCoords.y-0.8*frangiCoords.y));
+            int rowTo = int(round(frangiCoords.y+0.8*(rows - frangiCoords.y)));
+            int columnFrom = 0;
+            int columnTo = 0;
 
-            if (pritomnostAnomalie == true && hraniceAnomalie.y != 0.0f && int(hraniceAnomalie.y)<(cols/2))
+            if (verticalAnomalyPresence == true && i_verticalAnomaly.y != 0.0f && int(i_verticalAnomaly.y)<(cols/2))
             {
-                sloupec_od = int(hraniceAnomalie.y);
-                nutnost_zmenit_velikost = true;
+                columnFrom = int(i_verticalAnomaly.y);
+                needToChangeScale = true;
             }
             else
-                sloupec_od = int(round(frangi_bod.x-0.8*(frangi_bod.x)));
+                columnFrom = int(round(frangiCoords.x-0.8*(frangiCoords.x)));
 
-            if (pritomnostAnomalie == true && hraniceAnomalie.y != 0.0f &&  int(hraniceAnomalie.y)>(cols/2))
+            if (verticalAnomalyPresence == true && i_verticalAnomaly.y != 0.0f &&  int(i_verticalAnomaly.y)>(cols/2))
             {
-                sloupec_do = int(hraniceAnomalie.y);
-                nutnost_zmenit_velikost = true;
+                columnTo = int(i_verticalAnomaly.y);
+                needToChangeScale = true;
             }
             else
-                sloupec_do = int(round(frangi_bod.x+0.8*(cols - frangi_bod.x)));
+                columnTo = int(round(frangiCoords.x+0.8*(cols - frangiCoords.x)));
 
-            int vyrez_sirka = sloupec_do-sloupec_od;
-            int vyrez_vyska = radek_do - radek_od;
+            int cutout_width = columnTo-columnFrom;
+            int cutout_height = rowTo - rowFrom;
 
-            if ((vyrez_vyska>480 || vyrez_sirka>640)|| nutnost_zmenit_velikost == true)
+            if ((cutout_height>480 || cutout_width>640)|| needToChangeScale == true)
             {
-                vyrezKoreEx.x = sloupec_od;
-                vyrezKoreEx.y = radek_od;
-                vyrezKoreEx.width = vyrez_sirka;
-                vyrezKoreEx.height = vyrez_vyska;
+                i_coutouExtra.x = columnFrom;
+                i_coutouExtra.y = rowFrom;
+                i_coutouExtra.width = cutout_width;
+                i_coutouExtra.height = cutout_height;
 
-                reference(vyrezKoreEx).copyTo(obraz);
+                i_referencialFrame(i_coutouExtra).copyTo(i_preprocessed);
 
-                frangi_bod = frangi_analysis(obraz,1,1,0,"",1,pt_temp,parFrang);
-                rows = obraz.rows;
-                cols = obraz.cols;
-                radek_od = int(round(frangi_bod.y-0.9*frangi_bod.y));
-                radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-                sloupec_od = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
-                sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
-                vyrez_sirka = sloupec_do-sloupec_od;
-                vyrez_vyska = radek_do - radek_od;
-                vyrezKoreStand.x = sloupec_od;
-                vyrezKoreStand.y = radek_od;
-                vyrezKoreStand.width = vyrez_sirka;
-                vyrezKoreStand.height = vyrez_vyska;
-                zmeMer = true;
+                frangiCoords = frangi_analysis(i_preprocessed,1,1,0,"",1,pt_temp,i_frangiParameters);
+                rows = i_preprocessed.rows;
+                cols = i_preprocessed.cols;
+                rowFrom = int(round(frangiCoords.y-0.9*frangiCoords.y));
+                rowTo = int(round(frangiCoords.y+0.9*(rows - frangiCoords.y)));
+                columnFrom = int(round(frangiCoords.x-0.9*(frangiCoords.x)));
+                columnTo = int(round(frangiCoords.x+0.9*(cols - frangiCoords.x)));
+                cutout_width = columnTo-columnFrom;
+                cutout_height = rowTo - rowFrom;
+                i_cutoutStandard.x = columnFrom;
+                i_cutoutStandard.y = rowFrom;
+                i_cutoutStandard.width = cutout_width;
+                i_cutoutStandard.height = cutout_height;
+                i_scaleChange = true;
             }
             else
             {
-                vyrezKoreStand.x = int(round(frangi_bod.x-0.9*(frangi_bod.x)));
-                vyrezKoreStand.y = int(round(frangi_bod.y-0.9*frangi_bod.y));
-                radek_do = int(round(frangi_bod.y+0.9*(rows - frangi_bod.y)));
-                sloupec_do = int(round(frangi_bod.x+0.9*(cols - frangi_bod.x)));
-                vyrezKoreStand.width = sloupec_do-vyrezKoreStand.x;
-                vyrezKoreStand.height = radek_do - vyrezKoreStand.y;
+                i_cutoutStandard.x = int(round(frangiCoords.x-0.9*(frangiCoords.x)));
+                i_cutoutStandard.y = int(round(frangiCoords.y-0.9*frangiCoords.y));
+                rowTo = int(round(frangiCoords.y+0.9*(rows - frangiCoords.y)));
+                columnTo = int(round(frangiCoords.x+0.9*(cols - frangiCoords.x)));
+                i_cutoutStandard.width = columnTo-i_cutoutStandard.x;
+                i_cutoutStandard.height = rowTo - i_cutoutStandard.y;
 
-                reference.copyTo(obraz);
+                i_referencialFrame.copyTo(i_preprocessed);
             }
             return true;
         }
@@ -912,42 +912,42 @@ bool imagePreprocessing(cv::Mat &reference,
     }
 };
 
-bool registrationCorrection(cv::Mat& slicovany_snimek,
-                            cv::Mat& obraz,
-                            cv::Mat &snimek_korigovany,
-                            cv::Rect& vyrez_korelace_standard,
-                            cv::Point3d& korekce_bod)
+bool registrationCorrection(cv::Mat& i_registratedFrame,
+                            cv::Mat& i_frame,
+                            cv::Mat &i_corrected,
+                            cv::Rect& i_cutoutStandard,
+                            cv::Point3d& i_correction)
 {
     try {
-        Mat mezivysledek,mezivysledek32f,mezivysledek32f_vyrez,obraz_vyrez;
-        slicovany_snimek.copyTo(mezivysledek);
-        int rows = slicovany_snimek.rows;
-        int cols = slicovany_snimek.cols;
-        //mezivysledek.copyTo(mezivysledek32f);
-        //kontrola_typu_snimku_32C1(mezivysledek32f);
-        //mezivysledek32f(vyrez_korelace_standard).copyTo(mezivysledek32f_vyrez);
-        obraz(vyrez_korelace_standard).copyTo(obraz_vyrez);
+        Mat interresult,interresult32f,interresult32f_vyrez,obraz_vyrez;
+        i_registratedFrame.copyTo(interresult);
+        int rows = i_registratedFrame.rows;
+        int cols = i_registratedFrame.cols;
+        //interresult.copyTo(interresult32f);
+        //transformMatTypeTo32C1(interresult32f);
+        //interresult32f(vyrez_korelace_standard).copyTo(interresult32f_vyrez);
+        i_frame(i_cutoutStandard).copyTo(obraz_vyrez);
 
-        double R1 = vypocet_KK(obraz,mezivysledek,vyrez_korelace_standard);
+        double R1 = calculateCorrCoef(i_frame,interresult,i_cutoutStandard);
 
-        //mezivysledek32f.release();
-        //mezivysledek32f_vyrez.release();
+        //interresult32f.release();
+        //interresult32f_vyrez.release();
 
-        Point3d mira_korekcniho_posunuti(0.0,0.0,0.0);
-        mira_korekcniho_posunuti = fk_translace_hann(obraz,mezivysledek);
-        if (std::abs(mira_korekcniho_posunuti.x) > 290 || std::abs(mira_korekcniho_posunuti.y) > 290)
+        Point3d shiftCorrection(0.0,0.0,0.0);
+        shiftCorrection = fk_translace_hann(i_frame,interresult);
+        if (std::abs(shiftCorrection.x) > 290 || std::abs(shiftCorrection.y) > 290)
         {
-            mira_korekcniho_posunuti = fk_translace(obraz,mezivysledek);
+            shiftCorrection = fk_translace(i_frame,interresult);
         }
-        if (std::abs(mira_korekcniho_posunuti.x) > 290 || std::abs(mira_korekcniho_posunuti.y) > 290)
+        if (std::abs(shiftCorrection.x) > 290 || std::abs(shiftCorrection.y) > 290)
         {
-            mira_korekcniho_posunuti = fk_translace(obraz_vyrez,mezivysledek32f_vyrez);
+            shiftCorrection = fk_translace(obraz_vyrez,interresult32f_vyrez);
         }
-        snimek_korigovany = translace_snimku(mezivysledek,mira_korekcniho_posunuti,rows,cols);
-        double R2 = vypocet_KK(obraz,snimek_korigovany,vyrez_korelace_standard);
-        if ((R2 > R1) && ((std::abs(mira_korekcniho_posunuti.x) > 0.3) || (std::abs(mira_korekcniho_posunuti.y) > 0.3)))
+        i_corrected = frameTranslation(interresult,shiftCorrection,rows,cols);
+        double R2 = calculateCorrCoef(i_frame,i_corrected,i_cutoutStandard);
+        if ((R2 > R1) && ((std::abs(shiftCorrection.x) > 0.3) || (std::abs(shiftCorrection.y) > 0.3)))
         {
-            korekce_bod = mira_korekcniho_posunuti;
+            i_correction = shiftCorrection;
             return true;
         }
         else

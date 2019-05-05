@@ -25,15 +25,28 @@ public:
     void processVideoParameters(QJsonObject& videoData);
     bool writeToVideo();
 
-    void createAndRunThreads(int indexThread, cv::VideoCapture& cap, int lowerLimit,
-                             int upperLimit);
 private slots:
     void on_chooseVideoLE_textChanged(const QString &arg1);
     void on_chooseVideoPB_clicked();
     void registrateVideoframes();
     void totalFramesCompleted(int frameCounter);
+
+    /**
+     * @brief Function adds given string into the corresponding table.
+     * @param row
+     * @param column
+     * @param parameter
+     */
     void addItem(int row,int column,QString parameter);
+
+    /**
+     * @brief Function adds frame processing status to the table.
+     * @param row
+     * @param column
+     * @param status
+     */
     void addStatus(int row, int column, QString status);
+
     void errorHandler(int indexOfThread,QString errorMessage);
     void processAnother(int indexOfThread);
     void on_savePB_clicked();
@@ -61,13 +74,10 @@ private:
      */
     void processResuluts(int analysedThread);
 
-    /**
-     * @brief terminateThreads
-     */
-    void terminateThreads();
-
-
     void populateLists(QVector<QString> _file);
+
+    void createAndRunThreads(int indexThread, cv::VideoCapture& cap, int lowerLimit,
+                             int upperLimit);
     Ui::SingleVideoLicovani *ui;
     QString fullVideoPath;
     QVector<QString> chosenVideo;

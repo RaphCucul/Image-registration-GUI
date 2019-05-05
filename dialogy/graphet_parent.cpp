@@ -1,0 +1,110 @@
+#include "graphet_parent.h"
+#include "ui_graphet_parent.h"
+#include "dialogy/grafet.h"
+#include "util/souborove_operace.h"
+
+GraphET_parent::GraphET_parent(QStringList i_chosenList,QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::GraphET_parent)
+{
+    ui->setupUi(this);
+    fileList = i_chosenList;
+    analyseNames();
+    loadAndShow();
+    this->setStyleSheet("background-color: white");
+}
+
+GraphET_parent::GraphET_parent(QStringList i_chosenList,
+                               QVector<QVector<double> > i_entropy,
+                               QVector<QVector<double> > i_tennengrad,
+                               QVector<QVector<int> > i_FirstEvalEntropy,
+                               QVector<QVector<int> > i_FirstEvalTennengrad,
+                               QVector<QVector<int> > i_FirstDecisionResults,
+                               QVector<QVector<int> > i_SecondDecisionResults,
+                               QVector<QVector<int> > i_CompleteEvaluation,
+                               QWidget *parent) : QDialog(parent),ui(new Ui::GraphET_parent)
+{
+    ui->setupUi(this);
+    fileList = i_chosenList;
+    analyseNames();
+    processAndShow(i_entropy,i_tennengrad,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
+                   i_SecondDecisionResults,i_CompleteEvaluation);
+    this->setStyleSheet("background-color: white");
+}
+
+GraphET_parent::~GraphET_parent()
+{
+    delete ui;
+}
+
+void GraphET_parent::analyseNames(){
+    int maxLength = 0;
+    for (int var = 0; var < fileList.count(); var++) {
+        if (fileList.at(var).length()>maxLength)
+            maxLength = fileList.at(var).length();
+        else
+            continue;
+    }
+    maxLength*=3;
+    ui->tabWidget->setStyleSheet("QTabBar::tab { height:20px; width:"+QString::number(maxLength)+"px; }");
+}
+
+void GraphET_parent::loadAndShow(){
+    QMap<QString,QVector<QVector<double>>> mapDouble;
+    QMap<QString,QVector<QVector<int>>> mapInt;
+
+    for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
+
+
+        QFile datFile(fileList.at(fileIndex));
+        if (datFile.exists()){
+            QJsonObject loadedJSON = readJson(datFile);
+            for (int parameterIndex = 0; parameterIndex < neededParameters.count(); parameterIndex++){
+                QJsonArray loadedArrayData = loadedJSON[neededParameters.at(parameterIndex)].toArray();
+                if (parameterIndex < 2){
+                    QVector<double> _pom = arrayDouble2vector(loadedArrayData);
+                    mapDouble[neededParameters.at(parameterIndex)].append(_pom);
+                }
+                else{
+                    QVector<int> _pom = arrayInt2vector(loadedArrayData);
+                    mapInt[neededParameters.at(parameterIndex)].append(_pom);
+                }
+            }
+        }
+    }
+    for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
+        QStringList nameList;
+        QString folder,file,suffix;
+        processFilePath(fileList.at(fileIndex),folder,file,suffix);
+        GrafET* _graph = new GrafET(mapDouble["entropie"][fileIndex],
+                                    mapDouble["tennengrad"][fileIndex],
+                                    mapInt["PrvotOhodEntropie"][fileIndex],
+                                    mapInt["PrvotOhodTennengrad"][fileIndex],
+                                    mapInt["PrvniRozhod"][fileIndex],
+                                    mapInt["DruheRozhod"][fileIndex],
+                                    mapInt["Ohodnoceni"][fileIndex]);
+        ui->tabWidget->addTab(_graph,file);
+    }
+}
+
+void GraphET_parent::processAndShow(QVector<QVector<double> > i_entropy,
+                                    QVector<QVector<double> > i_tennengrad,
+                                    QVector<QVector<int> > i_FirstEvalEntropy,
+                                    QVector<QVector<int> > i_FirstEvalTennengrad,
+                                    QVector<QVector<int> > i_FirstDecisionResults,
+                                    QVector<QVector<int> > i_SecondDecisionResults,
+                                    QVector<QVector<int> > i_CompleteEvaluation){
+    for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
+        QStringList nameList;
+        QString folder,file,suffix;
+        processFilePath(fileList.at(fileIndex),folder,file,suffix);
+        GrafET* _graph = new GrafET(i_entropy[fileIndex],
+                                    i_tennengrad[fileIndex],
+                                    i_FirstEvalEntropy[fileIndex],
+                                    i_FirstEvalTennengrad[fileIndex],
+                                    i_FirstDecisionResults[fileIndex],
+                                    i_SecondDecisionResults[fileIndex],
+                                    i_CompleteEvaluation[fileIndex]);
+        ui->tabWidget->addTab(_graph,file);
+    }
+}

@@ -4,7 +4,7 @@
 #include "analyza_obrazu/pouzij_frangiho.h"
 #include "analyza_obrazu/upravy_obrazu.h"
 #include "hlavni_program/frangi_detektor.h"
-#include "dialogy/grafet.h"
+#include "dialogy/graphet_parent.h"
 #include "dialogy/clickimageevent.h"
 #include "multithreadET/qThreadFirstPart.h"
 #include "util/prace_s_vektory.h"
@@ -217,18 +217,17 @@ void SingleVideoET::on_showGraphET_clicked()
 {
     QStringList videoList;
     videoList.append(chosenVideoETSingle[1]);
-    GrafET* graf_ET = new GrafET(
-                mapDouble["entropie"],
-                mapDouble["tennengrad"],
-                mapInt["PrvotOhodEntropie"],
-                mapInt["PrvotOhodTennengrad"],
-                mapInt["PrvniRozhod"],
-                mapInt["DruheRozhod"],
-                mapInt["Ohodnoceni"],
-                videoList,
-                this);
-    graf_ET->setModal(true);
-    graf_ET->show();
+    GraphET_parent* graph = new GraphET_parent(videoList,
+                                               mapDouble["entropie"],
+                                               mapDouble["tennengrad"],
+                                               mapInt["PrvotOhodEntropie"],
+                                               mapInt["PrvotOhodTennengrad"],
+                                               mapInt["PrvniRozhod"],
+                                               mapInt["DruheRozhod"],
+                                               mapInt["Ohodnoceni"],
+                                               this);
+    graph->setModal(true);
+    graph->show();
 }
 
 void SingleVideoET::on_savePB_clicked()
@@ -274,13 +273,6 @@ void SingleVideoET::onDone(int thread){
 
     if (thread == 1 && canProceed){
         qDebug()<<"First done, starting second...";
-        /*First[1]->terminate();
-        //First[1]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        First[1]->wait();
-        First[1]->deleteLater();
-        delete First.take(1);
-        qDebug()<<"Deleted completely";*/
 
         Second[2] = new qThreadSecondPart(analysedVideos,
                                           badVideos,
@@ -301,13 +293,6 @@ void SingleVideoET::onDone(int thread){
     }
     else if (thread == 2 && canProceed){
         qDebug()<<"Second done, starting third...";
-        /*Second[2]->terminate();
-        //Second[2]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Second[2]->wait();
-        Second[2]->deleteLater();
-        delete Second.take(2);
-        qDebug()<<"Deleted completely";*/
 
         Third[3] = new qThreadThirdPart(analysedVideos,
                                         badVideos,
@@ -331,13 +316,6 @@ void SingleVideoET::onDone(int thread){
     }
     else if (thread == 3 && canProceed){
         qDebug()<<"Third done, starting fourth...";
-        /*Third[3]->terminate();
-        //Third[3]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Third[3]->wait();
-        Third[3]->deleteLater();
-        delete Third.take(3);
-        qDebug()<<"Deleted completely";*/
 
         Fourth[4] = new qThreadFourthPart(analysedVideos,
                                           badVideos,
@@ -365,13 +343,6 @@ void SingleVideoET::onDone(int thread){
     }
     else if (thread == 4 && canProceed){
         qDebug()<<"Fourth done, starting fifth";
-        /*Fourth[4]->terminate();
-        //Fourth[4]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Fourth[4]->wait();
-        Fourth[4]->deleteLater();
-        delete Fourth.take(4);
-        qDebug()<<"Deleted completely";*/
 
         Fifth[5] = new qThreadFifthPart(analysedVideos,
                                         badVideos,
@@ -407,13 +378,6 @@ void SingleVideoET::onDone(int thread){
         ui->savePB->setEnabled(true);
         ui->actualAlgorithmPart_label->setText(tr("Fifth part done. Analysis completed"));
         qDebug()<<"Fifth done.";
-        /*Fifth[5]->terminate();
-        //Fifth[5]->exit(0);
-        qDebug()<<"Terminated and waiting";
-        Fifth[5]->wait();
-        Fifth[5]->deleteLater();
-        delete Second.take(2);
-        qDebug()<<"Deleted completely";*/
         emit calculationStopped();
     }
 }

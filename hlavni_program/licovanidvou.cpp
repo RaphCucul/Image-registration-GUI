@@ -186,27 +186,27 @@ void LicovaniDvou::placeChoiceTwoWidgets(){
     ui->nabidkaAnalyzy->addItem(horizontalSpacer2,0,4);
 }
 
-void LicovaniDvou::analyseAndSave(QString analysedFolder, QVector<QString> &whereToSave){
+void LicovaniDvou::analyseAndSave(QString i_analysedFolder, QVector<QString> &i_whereToSave){
     QString folder,filename,suffix;
-    processFilePath(analysedFolder,folder,filename,suffix);
-    if (whereToSave.length() == 0)
+    processFilePath(i_analysedFolder,folder,filename,suffix);
+    if (i_whereToSave.length() == 0)
     {
-        whereToSave.push_back(folder);
-        whereToSave.push_back(filename);
-        whereToSave.push_back(suffix);
+        i_whereToSave.push_back(folder);
+        i_whereToSave.push_back(filename);
+        i_whereToSave.push_back(suffix);
     }
     else
     {
-        whereToSave.clear();
-        whereToSave.push_back(folder);
-        whereToSave.push_back(filename);
-        whereToSave.push_back(suffix);
+        i_whereToSave.clear();
+        i_whereToSave.push_back(folder);
+        i_whereToSave.push_back(filename);
+        i_whereToSave.push_back(suffix);
     }
 }
 
-void LicovaniDvou::evaluateVideoImageInput(QString path, QString method){
-    if (method == "video"){
-        cap = cv::VideoCapture(path.toLocal8Bit().constData());
+void LicovaniDvou::evaluateVideoImageInput(QString i_path, QString i_method){
+    if (i_method == "video"){
+        cap = cv::VideoCapture(i_path.toLocal8Bit().constData());
         if (!cap.isOpened())
         {
             chosenVideoLE->setStyleSheet("color: #FF0000");
@@ -227,9 +227,9 @@ void LicovaniDvou::evaluateVideoImageInput(QString path, QString method){
             translatedNoLE->setEnabled(true);
         }
     }
-    else if (method == "referencialImage"){
+    else if (i_method == "referencialImage"){
         cv::Mat referencialImg;
-        referencialImg = cv::imread(path.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
+        referencialImg = cv::imread(i_path.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
         if (referencialImg.empty())
         {
             referenceImgLE->setStyleSheet("color: #FF0000");
@@ -245,9 +245,9 @@ void LicovaniDvou::evaluateVideoImageInput(QString path, QString method){
         }
         referencialImg.release();
     }
-    else if (method == "translatedImage"){
+    else if (i_method == "translatedImage"){
         cv::Mat translatedImg;
-        translatedImg = cv::imread(path.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
+        translatedImg = cv::imread(i_path.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
         if (translatedImg.empty())
         {
             translatedImgLE->setStyleSheet("color: #FF0000");
@@ -488,24 +488,24 @@ void LicovaniDvou::TranslatedLE_textChanged(const QString &arg1)
     }
 }
 
-void LicovaniDvou::checkInputNumber(double input, double lower, double upper, QLineEdit *editWidget, double &finalValue, bool &evaluation){
+void LicovaniDvou::checkInputNumber(double i_input, double i_lower, double i_upper, QLineEdit *i_editWidget, double &i_finalValue, bool &i_evaluation){
 
-    if (input < lower || (input > upper && upper != 0.0)){
-        editWidget->setStyleSheet("color: #FF0000");
-        editWidget->setText("");
-        finalValue = -99;
-        evaluation = false;
+    if (i_input < i_lower || (i_input > i_upper && i_upper != 0.0)){
+        i_editWidget->setStyleSheet("color: #FF0000");
+        i_editWidget->setText("");
+        i_finalValue = -99;
+        i_evaluation = false;
     }
-    else if (input < lower || (upper == 0.0 && input == 0.0)){
-        editWidget->setStyleSheet("color: #FF0000");
-        editWidget->setText("");
-        finalValue = -99;
-        evaluation = false;
+    else if (i_input < i_lower || (i_upper == 0.0 && i_input == 0.0)){
+        i_editWidget->setStyleSheet("color: #FF0000");
+        i_editWidget->setText("");
+        i_finalValue = -99;
+        i_evaluation = false;
     }
     else{
-        editWidget->setStyleSheet("color: #33aa00");
-        evaluation = true;
-        finalValue = input;
+        i_editWidget->setStyleSheet("color: #33aa00");
+        i_evaluation = true;
+        i_finalValue = i_input;
         emit checkRegistrationPass();
     }
 
@@ -549,10 +549,10 @@ void LicovaniDvou::on_registrateTwo_clicked()
     cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber)-1);
     cv::Mat referencialImage,translatedImage;
     cap.read(referencialImage);
-    kontrola_typu_snimku_8C3(referencialImage);
+    transformMatTypeTo8C3(referencialImage);
     cap.set(CV_CAP_PROP_POS_FRAMES,double(translatedNumber)-1);
     cap.read(translatedImage);
-    kontrola_typu_snimku_8C3(translatedImage);
+    transformMatTypeTo8C3(translatedImage);
     double entropyTranslated,entropyReference;
     cv::Scalar tennengradTranslated,tennengradReference;
     if (!calculateParametersET(referencialImage,entropyReference,tennengradReference)){
@@ -638,9 +638,9 @@ void LicovaniDvou::on_registrateTwo_clicked()
         {
             return;
         }
-        kontrola_typu_snimku_8C3(translated);
-        registratedFrame = translace_snimku(translated,translation,rows,cols);
-        registratedFrame = rotace_snimku(registratedFrame,l_angleSum[0]);
+        transformMatTypeTo8C3(translated);
+        registratedFrame = frameTranslation(translated,translation,rows,cols);
+        registratedFrame = frameRotation(registratedFrame,l_angleSum[0]);
 
         VysledekLicovani *showResults = new VysledekLicovani(referencialImage,registratedFrame);
         showResults->start(1);

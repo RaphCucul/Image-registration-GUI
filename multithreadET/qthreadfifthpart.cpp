@@ -156,9 +156,9 @@ void qThreadFifthPart::run()
                 {
                     Mat interresult32f,interresult32f_cutout;
                     registrated.copyTo(interresult32f);
-                    kontrola_typu_snimku_32C1(interresult32f);
+                    transformMatTypeTo32C1(interresult32f);
                     interresult32f(_tempStandard).copyTo(interresult32f_cutout);
-                    double R1 = vypocet_KK(referencialFrame,registrated,_tempStandard);
+                    double R1 = calculateCorrCoef(referencialFrame,registrated,_tempStandard);
                     interresult32f.release();
                     interresult32f_cutout.release();
                     Point3d registrationCorrection(0,0,0);
@@ -174,11 +174,11 @@ void qThreadFifthPart::run()
                     {
                         registrationCorrection = fk_translace_hann(referencialFrame,registrated);
                     }
-                    Mat correctionMat = translace_snimku(registrated,registrationCorrection,rows,cols);
+                    Mat correctionMat = frameTranslation(registrated,registrationCorrection,rows,cols);
                     correctionMat.copyTo(interresult32f);
-                    kontrola_typu_snimku_32C1(interresult32f);
+                    transformMatTypeTo32C1(interresult32f);
                     interresult32f(_tempStandard).copyTo(interresult32f_cutout);
-                    double R2 = vypocet_KK(referencialFrame,correctionMat,_tempStandard);
+                    double R2 = calculateCorrCoef(referencialFrame,correctionMat,_tempStandard);
                     Point3d registratedFrangiReverse(0,0,0);
                     double difference = R2-R1;
                     if (difference>0.015)

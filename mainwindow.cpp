@@ -32,14 +32,6 @@ MainWindow::MainWindow(QWidget *parent) :
     setupUsagePlots();
     QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
     this->setStyleSheet("background-color: white");
-
-    /*QQuickView *view = new QQuickView();
-    QWidget *container = QWidget::createWindowContainer(view, this);
-    container->setMinimumSize(120, 120);
-    container->setMaximumSize(120, 120);
-    container->setFocusPolicy(Qt::TabFocus);
-    view->setSource(QUrl("qrc:///progressIndicator.qml"));
-    ui->stateIndicators->addWidget(container);*/
 }
 
 MainWindow::~MainWindow()
