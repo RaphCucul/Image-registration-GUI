@@ -42,6 +42,7 @@ zalozky::zalozky(QWidget *parent) :
     ui->pages->addTab(registrateTwo,icon_RegistrateTwo,"");
     ui->pages->addTab(registrateVideo,icon_RegistrateVideo,"");
     ui->pages->addTab(initializeGraph,icon_Graph,"");
+    //localErrorDialogHandler[ui->pages->tabBar()->tabRect(1)] = new ErrorDialog(ui->pages->tabBar()->tabRect(1));
 
     bool folderPresent = chooseFolders->checkFileFolderExistence();
     if (!folderPresent){
@@ -59,6 +60,7 @@ zalozky::zalozky(QWidget *parent) :
     connect(registrateVideo,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
     connect(registrateVideo,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
 
+    default_disabled();
 }
 
 QIcon zalozky::iconRotation(QIcon i_icon)
@@ -98,6 +100,11 @@ void zalozky::disableTabs(){
         if (var != ui->pages->currentIndex())
             ui->pages->setTabEnabled(var,false);
     }
+}
+
+void zalozky::default_disabled(){
+    ui->pages->setTabEnabled(2,false);
+    ui->pages->setTabEnabled(3,false);
 }
 
 void zalozky::fileFolderDirectoryLocated()

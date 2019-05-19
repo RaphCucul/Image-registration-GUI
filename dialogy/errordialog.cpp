@@ -97,15 +97,15 @@ bool ErrorDialog::isEvaluated()
 void ErrorDialog::evaluatePosition(QString position)
 {    
     if (position == "left"){
-        QPoint mappingCoordinates = widgetWithError->mapTo(parentOfTheWidget,QPoint(0,0));
+        QPoint mappingCoordinates = widgetWithError->mapTo(parentOfTheWidget,widgetWithError->rect().topLeft());
         errorLabelParent->move(mappingCoordinates + QPoint(-6, -4));
-        qDebug()<<mappingCoordinates;
+        qDebug()<<"Map coords "<<mappingCoordinates<<" "<<widgetWithError->rect().topLeft();
     }
     if (position == "right"){
         int widgetWidth = widgetWithError->width();
         QPoint mappingCoordinates = widgetWithError->mapTo(parentOfTheWidget,QPoint(widgetWidth,0));
         errorLabelParent->move(mappingCoordinates + QPoint(0, -6));
-        qDebug()<<mappingCoordinates;
+        qDebug()<<"Map coords "<<mappingCoordinates;
     }
     if (position == "center"){
         int widgetWidth = widgetWithError->width();
@@ -113,7 +113,7 @@ void ErrorDialog::evaluatePosition(QString position)
         qDebug()<<widgetWidth;
         QPoint mappingCoordinates = widgetWithError->mapTo(parentOfTheWidget,QPoint(widgetWidth/2,0));
         errorLabelParent->move(mappingCoordinates + QPoint(0, -6));
-        qDebug()<<mappingCoordinates;
+        qDebug()<<"Map coords "<<mappingCoordinates;
     }
 
 }

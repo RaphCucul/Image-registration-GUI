@@ -46,7 +46,6 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->iterationCount->setPlaceholderText("1 - Inf; -1~automatic settings");
 
     ui->chooseVideoPB->setText(tr("Choose video"));
-    ui->referencialNumberLE->setPlaceholderText(tr("Ref."));
     ui->horizontalAnomalyCB->setText(tr("Top/bottom anomaly"));
     ui->verticalAnomalyCB->setText(tr("Left/right anomaly"));
     ui->areaSizelabel->setText(tr("Size of calculation area"));
@@ -108,13 +107,11 @@ void SingleVideoET::on_chooseVideoPB_clicked()
         if (!cap.isOpened())
         {
             ui->chosenVideoLE->setStyleSheet("color: #FF0000");
-            ui->referencialNumberLE->setEnabled(false);
         }
         else
         {
             ui->chosenVideoLE->setStyleSheet("color: #33aa00");
             videoETScorrect = true;
-            //ui->referencialNumberLE->setEnabled(true);
             int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
             actualEntropy.fill(0.0,frameCount);
             actualTennengrad.fill(0.0,frameCount);
@@ -135,7 +132,6 @@ void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
     {
         ui->chosenVideoLE->setStyleSheet("color: #FF0000");
         videoETScorrect = false;
-        ui->referencialNumberLE->setEnabled(false);
         ui->horizontalAnomalyCB->setEnabled(false);
         ui->verticalAnomalyCB->setEnabled(false);
     }
@@ -144,7 +140,6 @@ void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
         ui->chosenVideoLE->setStyleSheet("color: #33aa00");
         videoETScorrect = true;
         chosenVideoETSingle[1] = arg1;
-        ui->referencialNumberLE->setEnabled(true);
     }
 }
 
@@ -153,7 +148,7 @@ void SingleVideoET::on_horizontalAnomalyCB_stateChanged(int arg1)
     if (arg1 == 2)
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,2);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,2);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
@@ -164,7 +159,7 @@ void SingleVideoET::on_verticalAnomalyCB_stateChanged(int arg1)
     if (arg1 == 2)
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,1);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,1);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
@@ -183,7 +178,9 @@ void SingleVideoET::on_calculateET_clicked()
             First[1] = new qThreadFirstPart(analysedVideos,
                                             SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
                                             SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
-                                            SharedVariables::getSharedVariables()->getFrangiParameters());
+                                            SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                            SharedVariables::getSharedVariables()->getFrangiMargins(),
+                                            SharedVariables::getSharedVariables()->getFrangiRatios());
             QObject::connect(First[1],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
             QObject::connect(First[1],SIGNAL(done(int)),this,SLOT(onDone(int)));
             QObject::connect(First[1],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -251,12 +248,12 @@ void SingleVideoET::on_savePB_clicked()
                 QJsonArray pomArray = vector2array(pomInt);
                 object[videoParameters.at(parameter)] = pomArray;
             }
-            else{
+            /*else{
                 if (videoParameters.at(parameter) == "VerticalAnomaly")
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().y);
                 else
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x);
-            }
+            }*/
         }
         document.setObject(object);
         QString documentString = document.toJson();
@@ -361,7 +358,8 @@ void SingleVideoET::onDone(int thread){
                                        SharedVariables::getSharedVariables()->getFrangiParameters(),
                                         int(iterationCount),
                                         areaMaximum,
-                                        rotationAngle);
+                                        rotationAngle,
+                                        SharedVariables::getSharedVariables()->getFrangiMargins());
         QObject::connect(Fifth[5],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Fifth[5],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Fifth[5],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -455,37 +453,18 @@ void SingleVideoET::on_iterationCount_editingFinished()
         ui->iterationCount->setText("");
 }
 
-void SingleVideoET::on_referencialNumberLE_textChanged(const QString &arg1)
-{
-    QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-    int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-    int input = arg1.toInt();
-    if (input < 0 || input > frameCount)
-    {
-        ui->referencialNumberLE->setStyleSheet("color: #FF0000");
-        referencialNumber = -1;
-    }
-    else
-    {
-        ui->referencialNumberLE->setStyleSheet("color: #33aa00");
-        referencialNumber = input;
-
-    }
-}
-
 void SingleVideoET::showDialog(){
     if (ui->verticalAnomalyCB->isChecked())
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,1);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,1);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
     if (ui->horizontalAnomalyCB->isChecked())
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,2);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,2);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }

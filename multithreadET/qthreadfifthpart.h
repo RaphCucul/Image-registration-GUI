@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include <QVector>
 #include <QStringList>
+#include <QMap>
 
 class qThreadFifthPart : public QThread
 {
@@ -29,6 +30,7 @@ public:
                               int i_iteration,
                               double i_areaMaximum,
                               double i_maximalAngle,
+                              QMap<QString, int> i_margins,
                               QObject* parent = nullptr);
     void run() override;
     QVector<QVector<int>> framesUpdateEvaluationComplete();
@@ -62,6 +64,8 @@ private:
     QVector<int> referencialFrames,notProcessThese;
     QVector<cv::Rect> obtainedCutoffStandard, obtainedCutoffExtra;
     bool scaleCh;
+
+    QMap<QString, int> margins;
 };
 
 #endif // QTHREADFIFTHPART_H

@@ -74,6 +74,8 @@ private slots:
      */
     void on_listOfVideos_cellClicked(int row, int column);
 
+    void enableWidgets();
+    void disableWidgets();
 private:
     /**
      * @brief Function process computed translations of frames in specific range the thread was
@@ -124,9 +126,6 @@ private:
     void displayStatus(QString status);
 
     void startCalculations(cv::VideoCapture& capture);
-
-    void enableWidgets();
-    void disableWidgets();
 
     Ui::MultiVideoLicovani *ui;
     RegistrationThread *regThread;

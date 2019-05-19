@@ -247,7 +247,9 @@ void SingleVideoLicovani::createAndRunThreads(int indexThread, cv::VideoCapture 
         threadPool[indexThread] = new RegistrationThread(indexThread,_tempVideoPath,_tempVideoName,_tempFrangi,
                                                          _evalFrames,
                                                          referencialFrame,lowerLimit,upperLimit,_iter,_arMax,_angle,
-                                                         _vertAnom,_horizAnom,false);
+                                                         _vertAnom,_horizAnom,false,
+                                                         SharedVariables::getSharedVariables()->getFrangiMargins(),
+                                                         SharedVariables::getSharedVariables()->getFrangiRatios());
 
         QObject::connect(threadPool[indexThread],SIGNAL(x_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));
         QObject::connect(threadPool[indexThread],SIGNAL(y_coordInfo(int,int,QString)),this,SLOT(addItem(int,int,QString)));

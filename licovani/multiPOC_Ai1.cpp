@@ -229,15 +229,17 @@ bool completeRegistration(cv::VideoCapture& cap,
 }
 
 bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
-                                       cv::Mat &i_shifted,
+                                       cv::Mat &i_newreferencial,
                                        QVector<double> i_frangiParameters,
-                                       cv::Point2d &i_verticalAnomalyCoords,
-                                       cv::Point2d &i_horizontalAnomalyCoords,
+                                       cv::Point2d i_verticalAnomalyCoords,
+                                       cv::Point2d i_horizontalAnomalyCoords,
                                        cv::Rect &i_anomalyArea,
                                        cv::Rect &i_cutoutExtra,
                                        cv::Rect &i_cutoutStandard,
                                        cv::VideoCapture &i_cap,
-                                       bool &i_scaleChange)
+                                       bool &i_scaleChange,
+                                       QMap<QString, double> frangiRatios,
+                                       QMap<QString, int> frangiMargins)
 {
     try {
         cv::Point3d pt_temp(0.0,0.0,0.0);
@@ -264,7 +266,7 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
             }
             verticalAnomaly = true;
         }
-        if (i_horizontalAnomalyCoords.y != 0.0) // časová anomálie
+        if (i_horizontalAnomalyCoords.y != 0.0) // horizontal anomaly
         {
             if (i_horizontalAnomalyCoords.x < (height/2))
             {
@@ -285,9 +287,9 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
             horizontalAnomaly = true;
         }
         if (verticalAnomaly == true || horizontalAnomaly == true)
-            frangi_point = frangi_analysis(i_referencial(i_anomalyArea),1,1,0,"",1,pt_temp,i_frangiParameters);
+            frangi_point = frangi_analysis(i_referencial(i_anomalyArea),1,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
         else
-            frangi_point = frangi_analysis(i_referencial,1,1,0,"",1,pt_temp,i_frangiParameters);
+            frangi_point = frangi_analysis(i_referencial,1,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
 
         if (frangi_point.z == 0.0)
         {
@@ -298,8 +300,8 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
             bool needToChangeScale = false;
             int rows = i_referencial.rows;
             int cols = i_referencial.cols;
-            int rowFrom = int(round(frangi_point.y-0.8*frangi_point.y));
-            int rowTo = int(round(frangi_point.y+0.8*(rows - frangi_point.y)));
+            int rowFrom = int(round(frangi_point.y-frangiRatios["top_r"]*frangi_point.y));
+            int rowTo = int(round(frangi_point.y+frangiRatios["bottom_r"]*(rows - frangi_point.y)));
             int columnFrom = 0;
             int columnTo = 0;
 
@@ -309,7 +311,7 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
                 needToChangeScale = true;
             }
             else
-                columnFrom = int(round(frangi_point.x-0.8*(frangi_point.x)));
+                columnFrom = int(round(frangi_point.x-frangiRatios["left_r"]*(frangi_point.x)));
 
             if (verticalAnomaly == true && i_verticalAnomalyCoords.y != 0.0 &&  int(i_verticalAnomalyCoords.y)>(cols/2))
             {
@@ -317,27 +319,27 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
                 needToChangeScale = true;
             }
             else
-                columnTo = int(round(frangi_point.x+0.8*(cols - frangi_point.x)));
+                columnTo = int(round(frangi_point.x+frangiRatios["right_r"]*(cols - frangi_point.x)));
 
             int cutout_width = columnTo-columnFrom;
             int cutout_height = rowTo - rowFrom;
 
-            if ((cutout_height>480 || cutout_width>640)|| needToChangeScale == true)
+            if (needToChangeScale)
             {
                 i_cutoutExtra.x = columnFrom;
                 i_cutoutExtra.y = rowFrom;
                 i_cutoutExtra.width = cutout_width;
                 i_cutoutExtra.height = cutout_height;
 
-                i_referencial(i_cutoutExtra).copyTo(i_shifted);
+                i_referencial(i_cutoutExtra).copyTo(i_newreferencial);
 
-                frangi_point = frangi_analysis(i_shifted,1,1,0,"",1,pt_temp,i_frangiParameters);
-                rows = i_shifted.rows;
-                cols = i_shifted.cols;
-                rowFrom = int(round(frangi_point.y-0.9*frangi_point.y));
-                rowTo = int(round(frangi_point.y+0.9*(rows - frangi_point.y)));
-                columnFrom = int(round(frangi_point.x-0.9*(frangi_point.x)));
-                columnTo = int(round(frangi_point.x+0.9*(cols - frangi_point.x)));
+                frangi_point = frangi_analysis(i_newreferencial,1,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
+                rows = i_newreferencial.rows;
+                cols = i_newreferencial.cols;
+                rowFrom = int(round(frangi_point.y-frangiRatios["top_r"]*frangi_point.y));
+                rowTo = int(round(frangi_point.y+frangiRatios["bottom_r"]*(rows - frangi_point.y)));
+                columnFrom = int(round(frangi_point.x-frangiRatios["left_r"]*(frangi_point.x)));
+                columnTo = int(round(frangi_point.x+frangiRatios["right_r"]*(cols - frangi_point.x)));
                 cutout_width = columnTo-columnFrom;
                 cutout_height = rowTo - rowFrom;
                 i_cutoutStandard.x = columnFrom;
@@ -348,14 +350,14 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
             }
             else
             {
-                i_cutoutStandard.x = int(round(frangi_point.x-0.9*(frangi_point.x)));
-                i_cutoutStandard.y = int(round(frangi_point.y-0.9*frangi_point.y));
-                rowTo = int(round(frangi_point.y+0.9*(rows - frangi_point.y)));
-                columnTo = int(round(frangi_point.x+0.9*(cols - frangi_point.x)));
+                i_cutoutStandard.x = int(round(frangi_point.x-frangiRatios["left_r"]*(frangi_point.x)));
+                i_cutoutStandard.y = int(round(frangi_point.y-frangiRatios["top_r"]*frangi_point.y));
+                rowTo = int(round(frangi_point.y+frangiRatios["bottom_r"]*(rows - frangi_point.y)));
+                columnTo = int(round(frangi_point.x+frangiRatios["right_r"]*(cols - frangi_point.x)));
                 i_cutoutStandard.width = columnTo-i_cutoutStandard.x;
                 i_cutoutStandard.height = rowTo - i_cutoutStandard.y;
 
-                i_referencial.copyTo(i_shifted);
+                i_referencial.copyTo(i_newreferencial);
             }
             return true;
         }

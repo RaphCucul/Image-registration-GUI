@@ -6,6 +6,9 @@
 #include <QFile>
 #include <QJsonArray>
 #include <QVector>
+#include <QMap>
+#include <QRectF>
+#include <opencv2/opencv.hpp>
 using namespace std;
 /**
  * @brief Funcion analyse the content of the provided directory, tries to find all files with the given
@@ -73,4 +76,6 @@ QVector<int> arrayInt2vector(QJsonArray& i_array);
  * @return
  */
 QVector<double> arrayDouble2vector(QJsonArray& i_array);
+
+QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input);
 #endif // SOUBOROVE_OPERACE_H_INCLUDED

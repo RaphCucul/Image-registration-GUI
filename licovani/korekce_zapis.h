@@ -41,7 +41,8 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                                     QVector<double> &_frangiX,
                                     QVector<double> &_frangiY,
                                     QVector<double> &_frangiEucl,
-                                    QVector<double> &_maxAngles);
+                                    QVector<double> &_maxAngles,
+                                    QMap<QString,int> i_margins);
 
 /**
  * @brief It is possible that after full registration process a translation correction can be necessary. This

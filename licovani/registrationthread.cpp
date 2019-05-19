@@ -32,7 +32,7 @@ RegistrationThread::RegistrationThread(int& i_indexOfThread,
                                        double& i_angle,
                                        int &i_horizAnomaly,
                                        int &i_vertAnomaly,
-                                       bool i_scaleChange,
+                                       bool i_scaleChange, QMap<QString, int> i_margins, QMap<QString, double> i_ratios,
                                        QObject *parent) : QThread(parent),
     referencialImage(i_referencialFrame),
     frangiParameters(i_frangiParameters),
@@ -47,7 +47,9 @@ RegistrationThread::RegistrationThread(int& i_indexOfThread,
     scaling(i_scaleChange),
     threadIndex(i_indexOfThread),
     videoName(i_nameOfVideo),
-    videoPath(i_fullVideoPath)
+    videoPath(i_fullVideoPath),
+    margins(i_margins),
+    ratios(i_ratios)
 {
     emit setTerminationEnabled(true);
     capture = cv::VideoCapture(videoPath.toLocal8Bit().constData());
@@ -91,7 +93,8 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                        QVector<double> &_frangiX,
                        QVector<double> &_frangiY,
                        QVector<double> &_frangiEucl,
-                       QVector<double> &_maxAngles);
+                       QVector<double> &_maxAngles,
+                       QMap<QString, int> i_margins);
 
 bool fullRegistration(cv::VideoCapture& i_cap,
                       cv::Mat& i_referencialFrame,
@@ -116,7 +119,9 @@ bool imagePreprocessing(cv::Mat &i_referencialFrame,
                         cv::Rect &i_coutouExtra,
                         cv::Rect &i_cutoutStandard,
                         cv::VideoCapture &i_cap,
-                        bool &i_scaleChange);
+                        bool &i_scaleChange,
+                        QMap<QString, int> i_margins,
+                        QMap<QString, double> i_ratios);
 
 bool registrationCorrection(cv::Mat& i_registratedFrame,
                             cv::Mat& i_frame,
@@ -173,12 +178,14 @@ void RegistrationThread::run()
                            correl_extra,
                            correl_standard,
                            capture,
-                           scaling)){
+                           scaling,
+                           margins,
+                           ratios)){
         emit errorDetected(threadIndex,QString(tr("Frame preprocessing failed for %1.")).arg(videoName));
         return;
     }
     preprocessed(correl_standard).copyTo(preprocessed_vyrez);
-    Point3d frangiMaxReversal = frangi_analysis(preprocessed,2,2,0,"",1,pt_temp,frangiParameters);
+    Point3d frangiMaxReversal = frangi_analysis(preprocessed,2,2,0,"",1,pt_temp,frangiParameters,margins);
     if (frangiMaxReversal.z == 0.0){
         emit errorDetected(threadIndex,QString(tr("Frangi filter for referencial image failed for %1.")).arg(videoName));
         return;
@@ -190,7 +197,7 @@ void RegistrationThread::run()
         if (ohodnoceniSnimku[indexFrame] == 0){
             if (!registrateTheBest(capture,referencialImage,frangiMaxReversal,indexFrame,iteration,maximalArea,
                                    totalAngle,correl_extra,correl_standard,scaling,frangiParameters,
-                                   finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles)){
+                                   finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles,margins)){
                 errorOccured = true;
                 continue;
             }
@@ -211,7 +218,8 @@ void RegistrationThread::run()
                 {
                     Mat shifted;
                     shifted_temp(correl_extra).copyTo(shifted);
-                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted,2,2,0,"",1,pt_temp,frangiParameters);
+                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted,2,2,0,"",1,pt_temp,
+                                                                                frangiParameters,margins);
                     if (frangiCoords_preprocessed_reverse.z == 0.0){
                         errorOccured = true;
                         continue;
@@ -225,7 +233,8 @@ void RegistrationThread::run()
                 }
                 else
                 {
-                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted_temp,2,2,0,"",1,pt_temp,frangiParameters);
+                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted_temp,2,2,0,"",1,pt_temp,
+                                                                                frangiParameters,margins);
                     if (frangiCoords_preprocessed_reverse.z == 0.0){
                         errorOccured = true;
                         continue;
@@ -365,7 +374,7 @@ void RegistrationThread::run()
         //qDebug()<<"Recalculating starting frame "<<startingFrame;
         if (registrateTheBest(capture,referencialImage,frangiMaxReversal,startingFrame,iteration,maximalArea,
                                totalAngle,correl_extra,correl_standard,scaling,frangiParameters,
-                               finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles)){
+                               finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles,margins)){
             emit x_coordInfo(startingFrame,0,QString::number(finalPOCx[startingFrame]));
             emit y_coordInfo(startingFrame,1,QString::number(finalPOCy[startingFrame]));
             emit angleInfo(startingFrame,2,QString::number(maximalAngles[startingFrame]));
@@ -395,7 +404,8 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                        QVector<double> &_frangiX,
                        QVector<double> &_frangiY,
                        QVector<double> &_frangiEucl,
-                       QVector<double> &_maxAngles)
+                       QVector<double> &_maxAngles,
+                       QMap<QString,int> i_margins)
 {
     Mat fully_registratedFrame = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
 
@@ -480,7 +490,8 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                 double R1 = calculateCorrCoef(i_referencialFrame,registratedCorrectedFrame,i_cutoutStandard);
                 Point3d _tempTranslation = Point3d(_pocX[i_index_translated],_pocY[i_index_translated],0.0);
 
-                Point3d frangiCoords_registrated_reverse = frangi_analysis(registratedCorrectedFrame,2,2,0,"",2,_tempTranslation,parametry_frangi);
+                Point3d frangiCoords_registrated_reverse = frangi_analysis(registratedCorrectedFrame,2,2,0,"",2,
+                                                                           _tempTranslation,parametry_frangi,i_margins);
 
                 _frangiX[i_index_translated] = frangiCoords_registrated_reverse.x;
                 _frangiY[i_index_translated] = frangiCoords_registrated_reverse.y;
@@ -784,7 +795,9 @@ bool imagePreprocessing(cv::Mat &i_referencialFrame,
                         cv::Rect &i_coutouExtra,
                         cv::Rect &i_cutoutStandard,
                         cv::VideoCapture &i_cap,
-                        bool &i_scaleChange)
+                        bool &i_scaleChange,
+                        QMap<QString,int> i_margins,
+                        QMap<QString,double> i_ratios)
 {
     try {
         cv::Point3d pt_temp(0.0,0.0,0.0);
@@ -832,9 +845,10 @@ bool imagePreprocessing(cv::Mat &i_referencialFrame,
             horizontalAnomalyPresence = true;
         }
         if (verticalAnomalyPresence == true || horizontalAnomalyPresence == true)
-            frangiCoords = frangi_analysis(i_referencialFrame(i_anomalyArea),1,1,0,"",1,pt_temp,i_frangiParameters);
+            frangiCoords = frangi_analysis(i_referencialFrame(i_anomalyArea),1,1,0,"",1,pt_temp,
+                                           i_frangiParameters,i_margins);
         else
-            frangiCoords = frangi_analysis(i_referencialFrame,1,1,0,"",1,pt_temp,i_frangiParameters);
+            frangiCoords = frangi_analysis(i_referencialFrame,1,1,0,"",1,pt_temp,i_frangiParameters,i_margins);
 
         if (frangiCoords.z == 0.0)
         {
@@ -878,7 +892,7 @@ bool imagePreprocessing(cv::Mat &i_referencialFrame,
 
                 i_referencialFrame(i_coutouExtra).copyTo(i_preprocessed);
 
-                frangiCoords = frangi_analysis(i_preprocessed,1,1,0,"",1,pt_temp,i_frangiParameters);
+                frangiCoords = frangi_analysis(i_preprocessed,1,1,0,"",1,pt_temp,i_frangiParameters,i_margins);
                 rows = i_preprocessed.rows;
                 cols = i_preprocessed.cols;
                 rowFrom = int(round(frangiCoords.y-0.9*frangiCoords.y));

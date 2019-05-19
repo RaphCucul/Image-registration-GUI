@@ -59,7 +59,6 @@ private slots:
     void on_areaMaximum_editingFinished();
     void on_rotationAngle_editingFinished();
     void on_iterationCount_editingFinished();
-    void on_referencialNumberLE_textChanged(const QString &arg1);
 
     /**
      * @brief Function enables the main push button if all parameters - area, iteration and angle - are set

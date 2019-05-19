@@ -23,6 +23,8 @@ qThreadFirstPart::qThreadFirstPart(QStringList i_videosForAnalysis,
                                    cv::Point2d i_verticalAnomalyCoords,
                                    cv::Point2d i_horizontalAnomalyCoords,
                                    QVector<double> i_FrangiParametersValues,
+                                   QMap<QString, int> i_margins,
+                                   QMap<QString, double> i_ratios,
                                    QObject *parent):QThread(parent)
 {
     processVideos = i_videosForAnalysis;
@@ -30,6 +32,8 @@ qThreadFirstPart::qThreadFirstPart(QStringList i_videosForAnalysis,
     verticalAnomaly = i_verticalAnomalyCoords;
     horizontalAnomaly = i_horizontalAnomalyCoords;
     FrangiParameters = i_FrangiParametersValues;
+    margins = i_margins;
+    ratios = i_ratios;
 
     if (horizontalAnomaly.y != 0.0 || verticalAnomaly.x != 0.0)
         anomalyPresence = true;
@@ -159,7 +163,8 @@ void qThreadFirstPart::run()
                                         cutoutExtra,
                                         cutoutStandard,
                                         cap,
-                                        scaleChange);
+                                        scaleChange,
+                                        ratios,margins);
         if(!preprocessingSuccessfull){
             emit unexpectedTermination(videoIndex,"hardError");
             fillEmpty(frameCount);

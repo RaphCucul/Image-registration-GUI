@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>301</height>
+    <width>577</width>
+    <height>497</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,16 +19,29 @@
   <property name="windowTitle">
    <string>Označte nejvnitřnější stranu anomálie</string>
   </property>
-  <widget class="QGraphicsView" name="clickImage">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>401</width>
-     <height>301</height>
-    </rect>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
    </property>
-  </widget>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QGraphicsView" name="clickImage"/>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="optionalContent"/>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

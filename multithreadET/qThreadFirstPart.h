@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <QVector>
 #include <QStringList>
+#include <QMap>
 
 class qThreadFirstPart : public QThread
 {
@@ -13,6 +14,8 @@ public:
                              cv::Point2d i_verticalAnomalyCoords,
                              cv::Point2d i_horizontalAnomalyCoords,
                              QVector<double> i_FrangiParametersValues,
+                             QMap<QString, int> i_margins,
+                             QMap<QString, double> i_ratios,
                              QObject* parent=nullptr);
     QVector<QVector<double>> computedEntropy();
     QVector<QVector<double>> computedTennengrad();
@@ -48,6 +51,8 @@ private:
     QVector<cv::Rect> obtainedCutoffExtra;
     bool anomalyPresence = false;
 
+    QMap<QString, int> margins;
+    QMap<QString, double> ratios;
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);

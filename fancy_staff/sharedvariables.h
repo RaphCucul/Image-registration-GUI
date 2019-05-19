@@ -86,6 +86,11 @@ public:
     cv::Point2d getVerticalAnomalyCoords();
     void setVerticalAnomalyCoords(QPointF coords);
 
+    void setFrangiMargins(QMap<QString,int> i_margins);
+    QMap<QString,int> getFrangiMargins();
+    void setFrangiRatios(QMap<QString,double> i_ratios);
+    QMap<QString,double> getFrangiRatios();
+
 private:
     SharedVariables();
     /**
@@ -117,9 +122,13 @@ private:
     QVector<double> FrangiParameters;
     QMap<QString,double> FrangiParametersMap;
     QStringList FrangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    QStringList FrangiMarginsList = {"top_m","bottom_m","left_m","right_m"};
+    QStringList FrangiRatiosList = {"top_r","bottom_r","left_r","right_r"};
     cv::Point3d detectedFrangiMaximum;
     cv::Point2d horizontalAnomalyCoords;
     cv::Point2d verticalAnomalyCoords;
+    QMap<QString,double> frangiRatios;
+    QMap<QString,int> frangiMargins;
 
 };
 

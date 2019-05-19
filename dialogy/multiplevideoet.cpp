@@ -137,7 +137,9 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
             First[1] = new qThreadFirstPart(analysedVideos,
                                             SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
                                             SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
-                                            SharedVariables::getSharedVariables()->getFrangiParameters());
+                                            SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                            SharedVariables::getSharedVariables()->getFrangiMargins(),
+                                            SharedVariables::getSharedVariables()->getFrangiRatios());
             QObject::connect(First[1],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
             QObject::connect(First[1],SIGNAL(done(int)),this,SLOT(onDone(int)));
             QObject::connect(First[1],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -224,12 +226,12 @@ void MultipleVideoET::on_savePB_clicked()
                 QJsonArray pomArray = vector2array(pomInt);
                 object[videoParameters.at(parameter)] = pomArray;
             }
-            else{
+            /*else{
                 if (videoParameters.at(parameter) == "VerticalAnomaly")
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y);
                 else
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
-            }
+            }*/
         }
         document.setObject(object);
         QString documentString = document.toJson();
@@ -333,7 +335,8 @@ void MultipleVideoET::onDone(int thread){
                                        SharedVariables::getSharedVariables()->getFrangiParameters(),
                                         int(iterationCount),
                                         areaMaximum,
-                                        rotationAngle);
+                                        rotationAngle,
+                                        SharedVariables::getSharedVariables()->getFrangiMargins());
         QObject::connect(Fifth[5],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Fifth[5],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Fifth[5],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -450,14 +453,14 @@ void MultipleVideoET::showDialog(){
     if (ui->verticalAnomaly->isChecked())
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,1);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,1);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
     if (ui->horizontalAnomaly->isChecked())
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,2);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,2);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }

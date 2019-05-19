@@ -58,7 +58,13 @@ bool SharedVariables::processFrangiParameters(QString path){
                 break;
             }
         }
-    }
+        for (int b = 0; b < FrangiMarginsList.count(); b++){
+            frangiMargins[FrangiMarginsList.at(b)] = FrangiParametersObject[FrangiMarginsList.at(b)].toInt();
+        }
+        for (int b = 0; b < FrangiRatiosList.count(); b++){
+            frangiRatios[FrangiRatiosList.at(b)] = FrangiParametersObject[FrangiRatiosList.at(b)].toDouble();
+        }
+    }    
     return processingResult;
 }
 
@@ -141,4 +147,20 @@ cv::Point2d SharedVariables::getVerticalAnomalyCoords(){
 void SharedVariables::setVerticalAnomalyCoords(QPointF coords){
     verticalAnomalyCoords.x = double(coords.x());
     verticalAnomalyCoords.y = double(coords.y());
+}
+
+QMap<QString,double> SharedVariables::getFrangiRatios(){
+    return frangiRatios;
+}
+
+void SharedVariables::setFrangiRatios(QMap<QString, double> i_ratios){
+    frangiRatios = i_ratios;
+}
+
+QMap<QString,int> SharedVariables::getFrangiMargins(){
+    return frangiMargins;
+}
+
+void SharedVariables::setFrangiMargins(QMap<QString, int> i_margins){
+    frangiMargins = i_margins;
 }

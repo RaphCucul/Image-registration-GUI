@@ -87,3 +87,18 @@ QVector<double> arrayDouble2vector(QJsonArray& i_array)
     }
     return output;
 }
+
+QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input){
+    QMap<QString,cv::Rect> _output;
+    _output["extra"].x = int(i_input["extra"].x());
+    _output["extra"].y = int(i_input["extra"].y());
+    _output["extra"].width = int(i_input["extra"].width());
+    _output["extra"].height = int(i_input["extra"].height());
+
+    _output["standard"].x = int(i_input["standard"].x());
+    _output["standard"].y = int(i_input["standard"].y());
+    _output["standard"].width = int(i_input["standard"].width());
+    _output["standard"].height = int(i_input["standard"].height());
+
+    return _output;
+}

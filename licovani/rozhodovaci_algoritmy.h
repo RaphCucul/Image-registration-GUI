@@ -25,24 +25,24 @@
  * @param computedCC
  * @param computedFWHM
  */
-void firstDecisionAlgorithm(QVector<double>& badFrames_FirstEval,
-                            QVector<double>& allFrameCompleteEval,
-                            QVector<double>& POC_x,
-                            QVector<double>& POC_y,
-                            QVector<double>& Angle,
-                            QVector<double>& frangi_x,
-                            QVector<double>& frangi_y,
-                            QVector<double>& frangi_euklid,
-                            double averageCC,
-                            double averageFWHM,
-                            cv::VideoCapture& cap,
-                            cv::Mat& referImage,
-                            cv::Rect& COStandard,
-                            cv::Rect& COExtra,
-                            bool scaleChanged,
-                            QVector<double>& framesFirstEval,
-                            QVector<double>& computedCC,
-                            QVector<double>& computedFWHM);
+void firstDecisionAlgorithm(QVector<double>& i_badFrames_FirstEval,
+                            QVector<double>& i_allFrameCompleteEval,
+                            QVector<double>& i_POC_x,
+                            QVector<double>& i_POC_y,
+                            QVector<double>& i_Angle,
+                            QVector<double>& i_frangi_x,
+                            QVector<double>& i_frangi_y,
+                            QVector<double>& i_frangi_euklid,
+                            double i_averageCC,
+                            double i_averageFWHM,
+                            cv::VideoCapture& i_cap,
+                            cv::Mat& i_referImage,
+                            cv::Rect& i_COStandard,
+                            cv::Rect& i_COExtra,
+                            bool i_scaleChanged,
+                            QVector<double>& i_framesFirstEval,
+                            QVector<double>& i_computedCC,
+                            QVector<double>& i_computedFWHM);
 
 /**
  * @brief Second decision algorithm takes frames marked as not good for registration and checks if the first
@@ -63,19 +63,19 @@ void firstDecisionAlgorithm(QVector<double>& badFrames_FirstEval,
  * @param averageFWHM
  * @param framesSecondEval
  */
-void secondDecisionAlgorithm(QVector<double>& framesFirstEval,
-                             QVector<double>& allFrameCompleteEval,
-                             QVector<double>& computedCC,
-                             QVector<double>& computedFWHM,
-                             QVector<double>& POC_x,
-                             QVector<double>& POC_y,
-                             QVector<double>& Angle,
-                             QVector<double>& frangi_x,
-                             QVector<double>& frangi_y,
-                             QVector<double>& frangi_euklid,
-                             double averageCC,
-                             double averageFWHM,
-                             QVector<double>& framesSecondEval);
+void secondDecisionAlgorithm(QVector<double>& i_framesFirstEval,
+                             QVector<double>& i_allFrameCompleteEval,
+                             QVector<double>& i_computedCC,
+                             QVector<double>& vcomputedFWHM,
+                             QVector<double>& i_POC_x,
+                             QVector<double>& i_POC_y,
+                             QVector<double>& i_Angle,
+                             QVector<double>& i_frangi_x,
+                             QVector<double>& i_frangi_y,
+                             QVector<double>& i_frangi_euklid,
+                             double i_averageCC,
+                             double i_averageFWHM,
+                             QVector<double>& i_framesSecondEval);
 
 /**
  * @brief Third decision algorithm registrates the problematic frame and then calculates
@@ -96,19 +96,20 @@ void secondDecisionAlgorithm(QVector<double>& framesFirstEval,
  * @param framesSecondEval
  * @param FrangiParameters
  */
-void thirdDecisionAlgorithm(cv::Mat& frame,
-                            cv::Rect& coutouExtra,
-                            cv::Rect& cutoutStandard,
-                            QVector<double>& frangi_x,
-                            QVector<double>& frangi_y,
-                            QVector<double>& frangi_euklid,
-                            QVector<double>& POC_x,
-                            QVector<double>& POC_y,
-                            QVector<double>& Angle,
-                            bool scaleChanged,
-                            cv::VideoCapture& cap,
-                            QVector<double>& allFrameCompleteEval,
-                            QVector<double>& framesSecondEval,
-                            QVector<double>& FrangiParameters);
+void thirdDecisionAlgorithm(cv::Mat& i_frame,
+                            cv::Rect& i_coutouExtra,
+                            cv::Rect& i_cutoutStandard,
+                            QVector<double>& i_frangi_x,
+                            QVector<double>& i_frangi_y,
+                            QVector<double>& i_frangi_euklid,
+                            QVector<double>& i_POC_x,
+                            QVector<double>& i_POC_y,
+                            QVector<double>& i_Angle,
+                            bool i_scaleChanged,
+                            cv::VideoCapture& i_cap,
+                            QVector<double>& i_allFrameCompleteEval,
+                            QVector<double>& i_framesSecondEval,
+                            QVector<double>& i_FrangiParameters,
+                            QMap<QString, int> i_margins);
 
 #endif // ROZHODOVACI_ALGORITMY_H_INCLUDED

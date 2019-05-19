@@ -12,6 +12,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <QDebug>
+#include <QMap>
 
 using cv::Mat;
 using cv::VideoCapture;
@@ -36,7 +37,8 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                                     QVector<double> &_frangiX,
                                     QVector<double> &_frangiY,
                                     QVector<double> &_frangiEucl,
-                                    QVector<double> &_maxAngles)
+                                    QVector<double> &_maxAngles,
+                                    QMap<QString,int> i_margins)
 {
     Mat fullyRegistratedFrame = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
     QVector<double> _tempPOCX = _pocX;
@@ -128,7 +130,8 @@ bool licovani_nejvhodnejsich_snimku(cv::VideoCapture& i_cap,
                 double CC_first = calculateCorrCoef(i_referencialFrame,fullyRegistratedFrame_correction,i_cutoutStandard);
                 Point3d _tempTranslation = Point3d(_tempPOCX[0],_tempPOCY[0],0.0);
 
-                Point3d frangi_registrated_reverse = frangi_analysis(fullyRegistratedFrame_correction,2,2,0,"",2,_tempTranslation,i_frangiParameters);
+                Point3d frangi_registrated_reverse = frangi_analysis(fullyRegistratedFrame_correction,2,2,0,"",2,
+                                                                     _tempTranslation,i_frangiParameters,i_margins);
 
                 _frangiX[0] = frangi_registrated_reverse.x;
                 _frangiY[0] = frangi_registrated_reverse.y;

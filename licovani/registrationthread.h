@@ -26,6 +26,8 @@ public:
                                 int &i_horizAnomaly,
                                 int &i_vertAnomaly,
                                 bool i_scaleChange,
+                                QMap<QString,int> i_margins,
+                                QMap<QString,double> i_ratios,
                                 QObject *parent = nullptr);
     QMap<QString,QVector<double>> provideResults();
     QVector<int> threadFrameRange();
@@ -73,6 +75,8 @@ private:
     int threadIndex = -1;
     QString videoName;
     QString videoPath;
+    QMap<QString,int> margins;
+    QMap<QString,double> ratios;
 };
 
 #endif // REGISTRATIONTHREAD_H

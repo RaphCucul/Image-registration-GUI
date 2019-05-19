@@ -146,7 +146,7 @@ void LicovaniDvou::placeChoiceOneWidgets(){
     referenceNoLE->setMaximumWidth(35);
     referenceNoLE->setMaximumHeight(20);
 
-    translatedNoLE->setPlaceholderText(tr("Moved"));
+    translatedNoLE->setPlaceholderText(tr("Shifted"));
     translatedNoLE->setMinimumWidth(20);
     translatedNoLE->setMinimumHeight(20);
     translatedNoLE->setMaximumWidth(50);
@@ -168,11 +168,11 @@ void LicovaniDvou::placeChoiceTwoWidgets(){
 
     translatedImgLE->setMinimumWidth(20);
     translatedImgLE->setMinimumHeight(20);    
-    translatedImgLE->setPlaceholderText(tr("Moved"));
+    translatedImgLE->setPlaceholderText(tr("Shifted"));
     translatedImgLE->setMaximumWidth(35);
     translatedImgLE->setMaximumHeight(20);
 
-    chooseReferencialImagePB->setText(tr("Chooce referrence"));
+    chooseReferencialImagePB->setText(tr("Chooce referencial"));
     chooseReferencialImagePB->setMinimumWidth(90);
     chooseReferencialImagePB->setMinimumHeight(23);
     chooseTranslatedImagePB->setText(tr("Choose moved"));
@@ -445,7 +445,7 @@ void LicovaniDvou::Slot_VideoLE_textChanged(const QString &s)
 void LicovaniDvou::ReferenceLE_textChanged(const QString &arg1)
 {
     int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-    int referenceFrameNo = arg1.toInt();
+    int referenceFrameNo = arg1.toInt()-1;
     if (referenceFrameNo < 0 || referenceFrameNo > frameCount)
     {
         referenceNoLE->setStyleSheet("color: #FF0000");
@@ -468,7 +468,7 @@ void LicovaniDvou::ReferenceLE_textChanged(const QString &arg1)
 void LicovaniDvou::TranslatedLE_textChanged(const QString &arg1)
 {
     int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-    int translatedFrameNo = arg1.toInt();
+    int translatedFrameNo = arg1.toInt()-1;
     if (translatedFrameNo < 0 || translatedFrameNo > frameCount)
     {
         translatedNoLE->setStyleSheet("color: #FF0000");
@@ -546,7 +546,7 @@ void LicovaniDvou::on_registrateTwo_clicked()
     emit calculationStarted();
     QString filePath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
     cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
-    cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber)-1);
+    cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber)-1.0);
     cv::Mat referencialImage,translatedImage;
     cap.read(referencialImage);
     transformMatTypeTo8C3(referencialImage);
@@ -572,21 +572,22 @@ void LicovaniDvou::on_registrateTwo_clicked()
 
     cv::Rect cutoutExtra(0,0,0,0);
     cv::Rect cutoutStandard(0,0,0,0);
-    cv::Rect cutoutAnomaly(0,0,0,0);
+    cv::Rect anomalyArea(0,0,0,0);
     cv::Point3d pt_temp(0.0,0.0,0.0);
-    cv::Point2d horizontalAnomaly = SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords();
-    cv::Point2d verticalAnomaly = SharedVariables::getSharedVariables()->getVerticalAnomalyCoords();
     cv::Mat image;
     if (!preprocessingCompleteRegistration(referencialImage,
                                            image,
                                            SharedVariables::getSharedVariables()->getFrangiParameters(),
-                                           verticalAnomaly,
-                                           horizontalAnomaly,
-                                           cutoutAnomaly,
+                                           SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
+                                           SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
+                                           anomalyArea,
                                            cutoutExtra,
                                            cutoutStandard,
                                            cap,
-                                           scaleChanged)){
+                                           scaleChanged,
+                                           SharedVariables::getSharedVariables()->getFrangiRatios(),
+                                           SharedVariables::getSharedVariables()->getFrangiMargins()
+                                           )){
         localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",10);
         localErrorDialogHandling[ui->registrateTwo]->show();
         return;
@@ -595,7 +596,8 @@ void LicovaniDvou::on_registrateTwo_clicked()
     int cols = referencialImage.cols;
     qDebug()<<"preprocessing completed."<<image.rows<<" "<<image.cols;
     cv::Point3d maximum_frangi_reverse = frangi_analysis(image,2,2,0,"",1,pt_temp,
-                                                         SharedVariables::getSharedVariables()->getFrangiParameters());
+                                                         SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                                         SharedVariables::getSharedVariables()->getFrangiMargins());
     qDebug()<<"Maximum frangi reverse "<<maximum_frangi_reverse.x<<" "<<maximum_frangi_reverse.y;
     /// Beginning
     cv::Point3d pt3(0.0,0.0,0.0);
@@ -609,7 +611,7 @@ void LicovaniDvou::on_registrateTwo_clicked()
     //QVector<double> pomD(static_cast<int>(cap.get(CV_CAP_PROP_FRAME_COUNT)),0.0);
     //fr_x = pomD;fr_y = pomD;fr_eukl = pomD;_pocX = pomD;_pocY = pomD;l_angleSum = pomD;
     bool registrationSuccessfull = licovani_nejvhodnejsich_snimku(cap,
-                                                                  referencialImage,
+                                                                  image,
                                                                   maximum_frangi_reverse,
                                                                   translatedNumber,
                                                                   iteration,
@@ -620,7 +622,8 @@ void LicovaniDvou::on_registrateTwo_clicked()
                                                                   scaleChanged,
                                                                   SharedVariables::getSharedVariables()->getFrangiParameters(),
                                                                   _pocX,_pocY,fr_x,fr_y,fr_eukl,
-                                                                  l_angleSum);
+                                                                  l_angleSum,
+                                                                  SharedVariables::getSharedVariables()->getFrangiMargins());
     /// Konec
     if (!registrationSuccessfull){
         localErrorDialogHandling[ui->registrateTwo]->evaluate("left","hardError",11);
@@ -652,18 +655,25 @@ void LicovaniDvou::on_registrateTwo_clicked()
 
 void LicovaniDvou::showDialog()
 {
-    if (ui->verticalAnomaly->isChecked())
-    {
-        QString fullPath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,1);
-        markAnomaly->setModal(true);
-        markAnomaly->show();
+    if (QObject::sender() == ui->verticalAnomaly){
+        if (ui->verticalAnomaly->isChecked())
+        {
+            QString fullPath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
+            ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,(referencialNumber+1),1);
+            markAnomaly->setModal(true);
+            markAnomaly->show();
+        }
+        else{
+
+        }
     }
-    if (ui->horizontalAnomaly->isChecked())
-    {
-        QString fullPath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,2);
-        markAnomaly->setModal(true);
-        markAnomaly->show();
+    if (QObject::sender() == ui->horizontalAnomaly){
+        if (ui->horizontalAnomaly->isChecked())
+        {
+            QString fullPath = chosenVideoAnalysis[0]+"/"+chosenVideoAnalysis[1]+"."+chosenVideoAnalysis[2];
+            ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,(referencialNumber+1),2);
+            markAnomaly->setModal(true);
+            markAnomaly->show();
+        }
     }
 }

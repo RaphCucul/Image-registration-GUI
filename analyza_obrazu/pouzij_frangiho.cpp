@@ -37,122 +37,132 @@ cv::Mat imageFiltrationPreprocessing(const cv::Mat& i_inputImage, float i_sigma_
     return outputImage;
 }
 
-void borderProcessing(cv::Mat &i_inputImage, int i_imageType, int i_padding_r, int i_padding_s)
+void borderProcessing(cv::Mat &i_inputImage, int i_imageType, int i_padding_top, int i_padding_bottom, int i_padding_left, int i_padding_right)
 {
     if (i_imageType == 1)
     {
-        Rect area1(0,0,i_inputImage.cols,i_padding_r); // first 20 rows
+        Rect area1(0,0,i_inputImage.cols,i_padding_top); // first 20 rows
         Mat area11 = i_inputImage(area1);
         Scalar tempVal = mean(area11);
         double average_area_11 = tempVal.val[0];
         i_inputImage(area1).setTo(average_area_11,i_inputImage(area1) > average_area_11);
+        //rectangle(i_inputImage, area1, Scalar(255), 1, 8, 0);
 
-        Rect area2(0,i_inputImage.rows-i_padding_r,i_inputImage.cols,i_padding_r); // last 20 rows
+        Rect area2(0,i_inputImage.rows-i_padding_bottom,i_inputImage.cols,i_padding_bottom); // last 20 rows
         Mat area22 = i_inputImage(area2);
         tempVal = mean(area22);
         double average_area_22 = tempVal.val[0];
         i_inputImage(area2).setTo(average_area_22,i_inputImage(area2) > average_area_22);
+        //rectangle(i_inputImage, area2, Scalar(255), 1, 8, 0);
 
-        Rect area3(0,0,i_padding_s,i_inputImage.rows); // first 20 columns
+        Rect area3(0,0,i_padding_left,i_inputImage.rows); // first 20 columns
         Mat area33 = i_inputImage(area3);
         tempVal = mean(area33);
         double average_area_33 = tempVal.val[0];
         i_inputImage(area3).setTo(average_area_33,i_inputImage(area3) > average_area_33);
+        //rectangle(i_inputImage, area3, Scalar(255), 1, 8, 0);
 
-        Rect area4(i_inputImage.cols-i_padding_s,0,i_padding_s,i_inputImage.rows); // last 20 columns
+        Rect area4(i_inputImage.cols-i_padding_right,0,i_padding_right,i_inputImage.rows); // last 20 columns
         Mat area44 = i_inputImage(area4);
         tempVal = mean(area44);
         double average_area_44 = tempVal.val[0];
         i_inputImage(area4).setTo(average_area_44,i_inputImage(area4) > average_area_44);
+        //rectangle(i_inputImage, area4, Scalar(255), 1, 8, 0);
     }
     if (i_imageType == 2)
     {
-        if (i_padding_r <= 0)
+        Q_UNUSED(i_padding_left)
+        Q_UNUSED(i_padding_right)
+        if (i_padding_top <= 0)
         {
-            Rect area1(0,0,i_inputImage.cols,std::abs(i_padding_r)); // prvnich 20 radku
+            Rect area1(0,0,i_inputImage.cols,std::abs(i_padding_top)); // first 20 rows
             Mat area11 = i_inputImage(area1);
             Scalar tempVal = mean(area11);
             double average_area_11 = tempVal.val[0];
             i_inputImage(area1).setTo(average_area_11,i_inputImage(area1) > average_area_11);
+            //rectangle(i_inputImage, area1, Scalar(255), 1, 8, 0);
         }
-        if (i_padding_r >= 0)
+        if (i_padding_top >= 0)
         {
-            Rect area2(0,i_inputImage.rows-std::abs(i_padding_r),i_inputImage.cols,std::abs(i_padding_r)); // poslednich 20 radku
+            Rect area2(0,i_inputImage.rows-std::abs(i_padding_bottom),i_inputImage.cols,std::abs(i_padding_bottom)); // last 20 rows
             Mat area22 = i_inputImage(area2);
             Scalar tempVal = mean(area22);
             double average_area_22 = tempVal.val[0];
             i_inputImage(area2).setTo(average_area_22,i_inputImage(area2) > average_area_22);
+            //rectangle(i_inputImage, area2, Scalar(255), 1, 8, 0);
         }
-        if (i_padding_s <= 0)
+        if (i_padding_bottom <= 0)
         {
-            Rect area3(0,0,std::abs(i_padding_s),i_inputImage.rows); // prvnich 20 sloupcu
+            Rect area3(0,0,std::abs(i_padding_left),i_inputImage.rows); // first 20 columns
             Mat area33 = i_inputImage(area3);
             Scalar tempVal = mean(area33);
             double average_area_33 = tempVal.val[0];
             i_inputImage(area3).setTo(average_area_33,i_inputImage(area3) > average_area_33);
+            //rectangle(i_inputImage, area3, Scalar(255), 1, 8, 0);
         }
-        if (i_padding_s >= 0)
+        if (i_padding_bottom >= 0)
         {
-            Rect area4(i_inputImage.cols-std::abs(i_padding_s),0,std::abs(i_padding_s),i_inputImage.rows); // poslednich 20 sloupcu
+            Rect area4(i_inputImage.cols-std::abs(i_padding_bottom),0,std::abs(i_padding_bottom),i_inputImage.rows); // poslednich 20 sloupcu
             Mat area44 = i_inputImage(area4);
             Scalar tempVal = mean(area44);
             double average_area_44 = tempVal.val[0];
             i_inputImage(area4).setTo(average_area_44,i_inputImage(area4) > average_area_44);
+            //rectangle(i_inputImage, area4, Scalar(255), 1, 8, 0);
         }
     }
+    //imshow("Okraje",i_inputImage);
     transformMatTypeTo32C1(i_inputImage);
-    /*rectangle(vstupni_obraz, area1, Scalar(255), 1, 8, 0);
-    rectangle(vstupni_obraz, area2, Scalar(255), 1, 8, 0);
-    rectangle(vstupni_obraz, area3, Scalar(255), 1, 8, 0);
-    rectangle(vstupni_obraz, area4, Scalar(255), 1, 8, 0);*/
-    //imshow("Okraje",vstupni_obraz);
+
 }
 
 
-void zeroBorders(cv::Mat& i_inputImage, int i_imageType, int i_padding_r, int i_padding_s)
+void zeroBorders(cv::Mat& i_inputImage, int i_imageType, int i_padding_top,
+                 int i_padding_bottom, int i_padding_left, int i_padding_right)
 {
     if (i_imageType == 1)
     {
-        Rect area1(0,0,i_inputImage.cols,i_padding_r); // rows
+        Rect area1(0,0,i_inputImage.cols,i_padding_top); // rows
         i_inputImage(area1).setTo(0);
 
-        Rect area2(0,i_inputImage.rows-i_padding_r,i_inputImage.cols,i_padding_r); // rows
+        Rect area2(0,i_inputImage.rows-i_padding_bottom,i_inputImage.cols,i_padding_bottom); // rows
         i_inputImage(area2).setTo(0);
 
-        Rect area3(0,0,i_padding_s,i_inputImage.rows); // columns
+        Rect area3(0,0,i_padding_left,i_inputImage.rows); // columns
         i_inputImage(area3).setTo(0);
 
-        Rect area4(i_inputImage.cols-i_padding_s,0,i_padding_s,i_inputImage.rows); // columns
+        Rect area4(i_inputImage.cols-i_padding_right,0,i_padding_right,i_inputImage.rows); // columns
         i_inputImage(area4).setTo(0);
     }
     if (i_imageType == 2)
     {
-        if (i_padding_r <= 0)
+        Q_UNUSED(i_padding_left)
+        Q_UNUSED(i_padding_right)
+        if (i_padding_top <= 0)
         {
-            Rect area1(0,0,i_inputImage.cols,std::abs(i_padding_r)+40);
+            Rect area1(0,0,i_inputImage.cols,std::abs(i_padding_top)+40);
             i_inputImage(area1).setTo(0);
             Rect area2(0,i_inputImage.rows-40,i_inputImage.cols,40);
             i_inputImage(area2).setTo(0);
         }
-        if (i_padding_r >= 0)
+        if (i_padding_top >= 0)
         {
-            Rect area2(0,i_inputImage.rows-std::abs(i_padding_r)-40,
-                         i_inputImage.cols,std::abs(i_padding_r)+40);
+            Rect area2(0,i_inputImage.rows-std::abs(i_padding_top)-40,
+                         i_inputImage.cols,std::abs(i_padding_top)+40);
             i_inputImage(area2).setTo(0);
             Rect area1(0,0,i_inputImage.cols,40);
             i_inputImage(area1).setTo(0);
         }
-        if (i_padding_s <= 0)
+        if (i_padding_bottom <= 0)
         {
-            Rect area3(0,0,std::abs(i_padding_s)+40,i_inputImage.rows);
+            Rect area3(0,0,std::abs(i_padding_bottom)+40,i_inputImage.rows);
             i_inputImage(area3).setTo(0);
             Rect area4(i_inputImage.cols-40,0,40,i_inputImage.rows);
             i_inputImage(area4).setTo(0);
         }
-        if (i_padding_s >= 0)
+        if (i_padding_bottom >= 0)
         {
-            Rect area4(i_inputImage.cols-std::abs(i_padding_s)-40,0,
-                         std::abs(i_padding_s)+40,i_inputImage.rows);
+            Rect area4(i_inputImage.cols-std::abs(i_padding_bottom)-40,0,
+                         std::abs(i_padding_bottom)+40,i_inputImage.rows);
             i_inputImage(area4).setTo(0);
             Rect area3(0,0,40,i_inputImage.rows);
             i_inputImage(area3).setTo(0);
@@ -201,13 +211,14 @@ cv::Point2d FrangiSubpixel(const cv::Mat &i_frangi,
 }
 
 cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
-                           int i_processingMode,
-                           int i_accuracy,
-                           int i_showResult,
-                           QString i_windowName,
-                           int i_frameType,
-                           cv::Point3d i_translation,
-                           QVector<double> i_FrangiParameters)
+                            int i_processingMode,
+                            int i_accuracy,
+                            int i_showResult,
+                            QString i_windowName,
+                            int i_frameType,
+                            cv::Point3d i_translation,
+                            QVector<double> i_FrangiParameters,
+                            QMap<QString,int> i_margins)
 {
     Point3d definitiveCoords;
     frangi2d_opts_t opts;
@@ -232,8 +243,10 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     Mat imageFiltered,imageFrangi,obraz_scale, imageAngles;
     imageFiltered = imageFiltrationPreprocessing(i_inputFrame,60.0f,0.4f);
     //qDebug()<<"filtration processed";
-    if (i_frameType == 1) {borderProcessing(imageFiltered,1,20,20);}
-    if (i_frameType == 2) {borderProcessing(imageFiltered,2,r,s);}
+    if (i_frameType == 1) {borderProcessing(imageFiltered,1,
+                                            i_margins["top_m"],i_margins["bottom_m"],
+                                            i_margins["left_m"],i_margins["right_m"]);}
+    if (i_frameType == 2) {borderProcessing(imageFiltered,2,r,s,0,0);}
     //qDebug()<<"border processed";
 
     frangi2d(imageFiltered, imageFrangi, obraz_scale, imageAngles, opts);
@@ -242,8 +255,9 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     obraz_scale.release();
     imageAngles.release();
     imageFiltered.release();
-    if (i_frameType == 1) {zeroBorders(imageFrangi,1,50,50);}
-    if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,s);}
+    if (i_frameType == 1) {zeroBorders(imageFrangi,1,i_margins["top_m"],i_margins["bottom_m"],
+                            i_margins["left_m"],i_margins["right_m"]);}
+    if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,s,0,0);}
     //if (frameType == 2 && pritomnost_casove_znamky == 1) {zeroBorders(imageFrangi,2,80,80);}
     //if (frameType == 1 && pritomnost_casove_znamky == 1) {zeroBorders(imageFrangi,1,250,80);}
 

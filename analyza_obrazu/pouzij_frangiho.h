@@ -24,7 +24,8 @@ cv::Mat imageFiltrationPreprocessing(const cv::Mat &i_inputImage, float i_sigma_
  * @param padding_r
  * @param padding_s
  */
-void borderProcessing(cv::Mat &i_inputImage,int i_imageType, int i_padding_r,int i_padding_s);
+void borderProcessing(cv::Mat &i_inputImage,int i_imageType, int i_padding_top,int i_padding_bottom,
+                      int i_padding_left, int i_padding_right);
 
 /**
  * @brief Function set zeros to specific pixels
@@ -33,7 +34,8 @@ void borderProcessing(cv::Mat &i_inputImage,int i_imageType, int i_padding_r,int
  * @param padding_r
  * @param padding_s
  */
-void zeroBorders(cv::Mat &i_inputImage,int i_imageType, int i_padding_r,int i_padding_s);
+void zeroBorders(cv::Mat &i_inputImage,int i_imageType, int i_padding_top,int i_padding_bottom,
+                 int i_padding_left, int i_padding_right);
 
 /**
  * @brief Function calculates frangi maximum coords. Frame type indicates, if the maximum is calculated from
@@ -48,16 +50,19 @@ void zeroBorders(cv::Mat &i_inputImage,int i_imageType, int i_padding_r,int i_pa
  * @param frameType
  * @param translation
  * @param FrangiParameters
+ * @param i_margins
+ * @param i_ratios
  * @return
  */
 cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
-                           int i_processingMode,
-                           int i_accuracy,
-                           int i_showResult,
-                           QString i_windowName,
-                           int i_frameType,
-                           cv::Point3d i_translation,
-                           QVector<double> i_FrangiParameters);
+                            int i_processingMode,
+                            int i_accuracy,
+                            int i_showResult,
+                            QString i_windowName,
+                            int i_frameType,
+                            cv::Point3d i_translation,
+                            QVector<double> i_FrangiParameters,
+                            QMap<QString, int> i_margins);
 
 /**
  * @brief Computing subpixel accuracy of the Frangi maximum

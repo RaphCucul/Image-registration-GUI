@@ -35,6 +35,7 @@ qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
                                    int i_iteration,
                                    double i_areaMaximum,
                                    double i_maximalAngle,
+                                   QMap<QString, int> i_margins,
                                    QObject *parent):QThread(parent)
 {
     videoList = i_videos;
@@ -55,6 +56,8 @@ qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
     iteration = i_iteration;
     areaMaximum = i_areaMaximum;
     maximalAngle = i_maximalAngle;
+
+    margins = i_margins;
 
     emit setTerminationEnabled(true);
 }
@@ -116,7 +119,7 @@ void qThreadFifthPart::run()
             }
 
             cv::Point3d pt_temp(0,0,0);
-            Point3d frame_FrangiReverse = frangi_analysis(referencialFrame,2,2,0,"",1,pt_temp,FrangiParameters);
+            Point3d frame_FrangiReverse = frangi_analysis(referencialFrame,2,2,0,"",1,pt_temp,FrangiParameters,margins);
             referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
             qDebug()<<"Analysing "<<framesToAnalyse<<" of "<<filename;
             for (int i = 0; i < framesSecondEval[videoIndex].length(); i++)
@@ -188,11 +191,13 @@ void qThreadFifthPart::run()
                         extra_translace.y = calculatedTranslation.y+registrationCorrection.y;
                         extra_translace.z = calculatedTranslation.z;
                         qDebug()<< "Frame was translated for more objective frangi filter analysis.";
-                        registratedFrangiReverse = frangi_analysis(correctionMat,2,2,0,"",2,extra_translace,FrangiParameters);
+                        registratedFrangiReverse = frangi_analysis(correctionMat,2,2,0,"",2,extra_translace,
+                                                                   FrangiParameters,margins);
                     }
                     else
                     {
-                        registratedFrangiReverse = frangi_analysis(registrated,2,2,0,"",2,calculatedTranslation,FrangiParameters);
+                        registratedFrangiReverse = frangi_analysis(registrated,2,2,0,"",2,calculatedTranslation,
+                                                                   FrangiParameters,margins);
                     }
                     registrated.release();
                     if (registratedFrangiReverse.z == 0.0)

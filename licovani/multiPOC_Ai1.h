@@ -51,13 +51,15 @@ bool completeRegistration(cv::VideoCapture& cap,
  * @param scalingNeeded
  */
 bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
-                                       cv::Mat &i_shifted,
+                                       cv::Mat &i_newreferencial,
                                        QVector<double> i_frangiParameters,
-                                       cv::Point2d &i_verticalAnomalyCoords,
-                                       cv::Point2d &i_horizontalAnomalyCoords,
+                                       cv::Point2d i_verticalAnomalyCoords,
+                                       cv::Point2d i_horizontalAnomalyCoords,
                                        cv::Rect &i_anomalyArea,
                                        cv::Rect &i_cutoutExtra,
                                        cv::Rect &i_cutoutStandard,
                                        cv::VideoCapture &i_cap,
-                                       bool &i_scaleChange);
+                                       bool &i_scaleChange,
+                                       QMap<QString,double> frangiRatios,
+                                       QMap<QString,int> frangiMargins);
 #endif // MULTIPOC_AI1_H_INCLUDED

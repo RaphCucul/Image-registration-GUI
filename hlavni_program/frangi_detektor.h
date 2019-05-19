@@ -30,6 +30,7 @@ public:
     void checkPaths();
 
     void setParametersToUI();
+
 private slots:   
     void on_sigma_start_sliderMoved(int value);
     void on_sigma_end_sliderMoved(int value);
@@ -47,6 +48,10 @@ private slots:
     void on_frameNumber_textChanged(const QString &arg1);
     void on_chosenFile_textChanged(const QString &arg1);
     void on_saveParameters_clicked();
+
+    void processMargins(int i_margin);
+    void processRatio(double i_ratio);
+
 signals:
     void calculationStarted();
     void calculationStopped();
@@ -69,7 +74,23 @@ private:
      */
     void analyseSliderInput(QSlider* _slider, QString parameter);
 
+    /**
+     * @brief Function sets the given value to Slider and double spin boxes for synchronized changes.
+     * @param _spinbox
+     * @param _slider
+     */
     void setSliderValue(QDoubleSpinBox* _spinbox, QSlider *_slider);
+
+    /**
+     * @brief Function fills the private QHash variables with corresponding widgets
+     */
+    void initWidgetHashes();
+
+    /**
+     * @brief Function plots the chosen frame with the Frangi filter maximum mark and with the standard
+     * cutout rectangular.
+     */
+    void showStandardCutout(cv::Mat& i_chosenFrame);
 
     int analyseFrame = -1;
     Ui::Frangi_detektor *ui;
@@ -80,7 +101,14 @@ private:
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
     QHash<QString,QDoubleSpinBox*> spinBoxes;
     QHash<QString,QSlider*> sliders;
+    QHash<QString,QSpinBox*> marginSpinBoxes;
+    QHash<QString,QDoubleSpinBox*> ratioSpinBoxes;
     QStringList frangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    QStringList MarginsRatios = {"left_m","right_m","top_m","bottom_m","left_r","right_r","top_r","bottom_r"};
+    QMap<QString,int> frangiMargins;
+    QMap<QString,double> cutoutRatios;
+    bool loading = true;
+    bool readyToCalculate = false;
 };
 
 #endif // FRANGI_DETEKTOR_H

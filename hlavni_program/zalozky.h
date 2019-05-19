@@ -8,6 +8,7 @@
 #include "hlavni_program/licovanidvou.h"
 #include "hlavni_program/licovanividea.h"
 #include "hlavni_program/chartinit.h"
+//#include "dialogy/errordialog.h"
 
 namespace Ui {
 class zalozky;
@@ -28,8 +29,22 @@ private slots:
     void disableTabs_slot();
     void enableTabs_slot();
 private:
+    /**
+     * @brief Function enables the program tabs when a calculation is finished.
+     */
     void enableTabs();
+
+    /**
+     * @brief Function disables the program tabs when a calculation starts.
+     */
     void disableTabs();
+
+    /**
+     * @brief Tabs for registration are disabled on the application startup by default until
+     * the coordinates of frangi filter maximum are not obtained.
+     */
+    void default_disabled();
+
     Ui::zalozky *ui;
 
     t_b_HO* chooseFolders;
@@ -37,6 +52,7 @@ private:
     LicovaniDvou* registrateTwo;
     LicovaniVidea* registrateVideo;
     ChartInit* initializeGraph;
+    //QHash<QRect,ErrorDialog*> localErrorDialogHandler;
 };
 
 #endif // ZALOZKY_H
