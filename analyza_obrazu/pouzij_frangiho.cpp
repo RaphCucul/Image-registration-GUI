@@ -246,12 +246,19 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     if (i_frameType == 1) {borderProcessing(imageFiltered,1,
                                             i_margins["top_m"],i_margins["bottom_m"],
                                             i_margins["left_m"],i_margins["right_m"]);}
-    if (i_frameType == 2) {borderProcessing(imageFiltered,2,r,s,0,0);}
+    else if (i_frameType == 2) {borderProcessing(imageFiltered,2,r,s,0,0);}
+    else if (i_frameType == 3) {borderProcessing(imageFiltered,1,
+                                                 20,20,
+                                                 20,20);}
     //qDebug()<<"border processed";
+    cv::Mat _pom;
+    imageFiltered.copyTo(_pom);
+    transformMatTypeTo8C3(_pom);
+    //cv::imshow("forFrangi",_pom);
 
     frangi2d(imageFiltered, imageFrangi, obraz_scale, imageAngles, opts);
 
-    //imwrite(jmeno_okna+"",imageFrangi);
+    //imwrite("frangi",imageFrangi);
     obraz_scale.release();
     imageAngles.release();
     imageFiltered.release();

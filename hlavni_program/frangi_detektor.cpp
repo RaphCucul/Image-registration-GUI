@@ -40,7 +40,7 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QFile qssFile(":/style.qss");
+    QFile qssFile(":/images/style.qss");
     qssFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);
@@ -117,11 +117,11 @@ void Frangi_detektor::setParametersToUI(){
     frangiMargins = SharedVariables::getSharedVariables()->getFrangiMargins();
     cutoutRatios = SharedVariables::getSharedVariables()->getFrangiRatios();
 
-    for (int hashIndex = 0; hashIndex < MarginsRatios.count(); hashIndex++) {
+    for (int hashIndex = 0; hashIndex < MarginsRatiosList.count(); hashIndex++) {
         if (hashIndex < 4)
-            marginSpinBoxes[MarginsRatios.at(hashIndex)]->setValue(frangiMargins[MarginsRatios.at(hashIndex)]);
+            marginSpinBoxes[MarginsRatiosList.at(hashIndex)]->setValue(frangiMargins[MarginsRatiosList.at(hashIndex)]);
         else
-            ratioSpinBoxes[MarginsRatios.at(hashIndex)]->setValue(cutoutRatios[MarginsRatios.at(hashIndex)]);
+            ratioSpinBoxes[MarginsRatiosList.at(hashIndex)]->setValue(cutoutRatios[MarginsRatiosList.at(hashIndex)]);
     }
 
     ui->chosenFile->setEnabled(true);
@@ -170,12 +170,14 @@ void Frangi_detektor::on_sigma_start_sliderMoved(int value)
 {
     double valueD = (value/50.0)*10.0;
     ui->sigma_start_DSB->setValue(valueD);
+    checkStartEndValues();
 }
 
 void Frangi_detektor::on_sigma_end_sliderMoved(int value)
 {
     double valueD = (value/50.0)*10.0;
     ui->sigma_end_DSB->setValue(valueD);
+    checkStartEndValues();
 }
 
 void Frangi_detektor::on_sigma_step_sliderMoved(int value)
@@ -204,9 +206,11 @@ void Frangi_detektor::setSliderValue(QDoubleSpinBox *_spinbox, QSlider* _slider)
 
 void Frangi_detektor::changeValue_slider_start(){
     setSliderValue(ui->sigma_start_DSB,ui->sigma_start);
+    checkStartEndValues();
 }
 void Frangi_detektor::changeValue_slider_end(){
     setSliderValue(ui->sigma_end_DSB,ui->sigma_end);
+    checkStartEndValues();
 }
 void Frangi_detektor::changeValue_slider_step(){
     setSliderValue(ui->sigma_step_DSB,ui->sigma_step);
@@ -216,6 +220,21 @@ void Frangi_detektor::changeValue_slider_one(){
 }
 void Frangi_detektor::changeValue_slider_two(){
     setSliderValue(ui->beta_two_DSB,ui->beta_two);
+}
+
+void Frangi_detektor::checkStartEndValues(){
+    if (ui->sigma_start_DSB->value() >= ui->sigma_end_DSB->value()){
+        if ((ui->sigma_start_DSB->value()+1) <= ui->sigma_end_DSB->maximum()){
+            ui->sigma_end_DSB->setValue(ui->sigma_start_DSB->value()+1);
+            setSliderValue(ui->sigma_end_DSB,ui->sigma_end);
+        }
+        else{
+            ui->sigma_end_DSB->setValue(ui->sigma_end_DSB->maximum()-1);
+            ui->sigma_end_DSB->setValue(ui->sigma_end_DSB->maximum());
+            setSliderValue(ui->sigma_end_DSB,ui->sigma_end);
+            setSliderValue(ui->sigma_start_DSB,ui->sigma_start);
+        }
+    }
 }
 
 void Frangi_detektor::on_Frangi_filtr_clicked()
@@ -248,7 +267,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
             if (analyseChosenFile[2] == "avi")
             {
                 QString chosenFile = analyseChosenFile[0]+"/"+analyseChosenFile[1]+"."+analyseChosenFile[2];
-                VideoCapture cap = VideoCapture(chosenFile.toLocal8Bit().constData()); // konverze z QString do string
+                VideoCapture cap = VideoCapture(chosenFile.toLocal8Bit().constData());
                 if (!cap.isOpened()){
                     localErrorDialogHandling[ui->Frangi_filtr]->evaluate("left","hardError",6);
                     return;

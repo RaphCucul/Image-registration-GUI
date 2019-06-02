@@ -20,7 +20,7 @@ GrafET::GrafET(QVector<double> i_entropy,
 {
     ui->setupUi(this);
 
-    QFile qssFile(":/style.qss");
+    QFile qssFile(":/images/style.qss");
     qssFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);

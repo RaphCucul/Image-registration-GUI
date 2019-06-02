@@ -92,6 +92,8 @@ private:
      */
     void showStandardCutout(cv::Mat& i_chosenFrame);
 
+    void checkStartEndValues();
+
     int analyseFrame = -1;
     Ui::Frangi_detektor *ui;
     int minimum = 0;
@@ -104,7 +106,7 @@ private:
     QHash<QString,QSpinBox*> marginSpinBoxes;
     QHash<QString,QDoubleSpinBox*> ratioSpinBoxes;
     QStringList frangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
-    QStringList MarginsRatios = {"left_m","right_m","top_m","bottom_m","left_r","right_r","top_r","bottom_r"};
+    QStringList MarginsRatiosList = {"left_m","right_m","top_m","bottom_m","left_r","right_r","top_r","bottom_r"};
     QMap<QString,int> frangiMargins;
     QMap<QString,double> cutoutRatios;
     bool loading = true;

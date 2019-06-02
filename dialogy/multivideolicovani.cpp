@@ -25,12 +25,7 @@ MultiVideoLicovani::MultiVideoLicovani(QWidget *parent) :
 {
     ui->setupUi(this);
     setAcceptDrops(true);
-
-    /*QIcon leftArrow(":/images/leftArrow.png");
-    QIcon rightArrow(":/images/rightArrow.png");
-    ui->leftArrowPB->setIcon(leftArrow);
-    ui->rightArrowPB->setIcon(rightArrow);*/
-
+    initMaps();
     //ui->videoParameters->setColumnCount(4);
 
    // ui->videoParameters->setHorizontalHeaderLabels(columnHeaders);

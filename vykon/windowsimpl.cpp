@@ -31,7 +31,18 @@ double WindowsImpl::hddUsed(){
     WCHAR CounterPathBuffer[PDH_MAX_COUNTER_PATH];
     Status = PdhOpenQuery(NULL, NULL, &Query);
 
-    wchar_t* cesta = L"\\\\honza-toshiba\\logický disk(_total)\\% času disku";
+    TCHAR szBuffer[MAX_COMPUTERNAME_LENGTH +1];
+    DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
+    GetComputerName(szBuffer, &dwSize); //Get the computer name
+    /*//"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
+        std::wstring s(L"\\\\");
+        s+= std::wstring(L"HONZA-TOSHIBA");
+        s+= std::wstring(L"\\Fyzický disk");
+        s+= std::wstring(L"(_total)\\");
+        s+= std::wstring(L"% času disku");
+        std::wcout<<s<<std::endl;*/
+    wchar_t* cesta = L"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
+
     wcscpy_s(CounterPathBuffer,sizeof(CounterPathBuffer),cesta);
     Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);
     if (Status != ERROR_SUCCESS)
@@ -65,6 +76,7 @@ double WindowsImpl::hddUsed(){
    if (Query)
    {
       PdhCloseQuery(Query);
+      return -999.0;
    }
 
 }

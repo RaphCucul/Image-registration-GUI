@@ -20,7 +20,7 @@ ChartInit::ChartInit(QWidget *parent) :
     setAcceptDrops(true);
     installEventFilter(this);
 
-    QFile qssFile(":/style.qss");
+    QFile qssFile(":/images/style.qss");
     qssFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);

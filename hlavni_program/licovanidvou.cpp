@@ -57,7 +57,7 @@ LicovaniDvou::LicovaniDvou(QWidget *parent) :
     ui->registrateTwo->setText(tr("Registrate"));
     ui->registrateTwo->setEnabled(false);
 
-    QFile qssFile(":/style.qss");
+    QFile qssFile(":/images/style.qss");
     qssFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);
@@ -204,7 +204,7 @@ void LicovaniDvou::analyseAndSave(QString i_analysedFolder, QVector<QString> &i_
     }
 }
 
-void LicovaniDvou::evaluateVideoImageInput(QString i_path, QString i_method){
+bool LicovaniDvou::evaluateVideoImageInput(QString i_path, QString i_method){
     if (i_method == "video"){
         cap = cv::VideoCapture(i_path.toLocal8Bit().constData());
         if (!cap.isOpened())
@@ -218,6 +218,7 @@ void LicovaniDvou::evaluateVideoImageInput(QString i_path, QString i_method){
             ui->areaMaximum->setEnabled(false);
             ui->rotationAngle->setEnabled(false);
             ui->iterationCount->setEnabled(false);
+            return false;
         }
         else
         {
@@ -225,6 +226,7 @@ void LicovaniDvou::evaluateVideoImageInput(QString i_path, QString i_method){
             videoCorrect = true;
             referenceNoLE->setEnabled(true);
             translatedNoLE->setEnabled(true);
+            return true;
         }
     }
     else if (i_method == "referencialImage"){
@@ -237,13 +239,16 @@ void LicovaniDvou::evaluateVideoImageInput(QString i_path, QString i_method){
             ui->areaMaximum->setEnabled(false);
             ui->rotationAngle->setEnabled(false);
             ui->iterationCount->setEnabled(false);
+            referencialImg.release();
+            return false;
         }
         else
         {
             referenceImgLE->setStyleSheet("color: #339900");
             referencialImgCorrect = true;
-        }
-        referencialImg.release();
+            referencialImg.release();
+            return true;
+        }        
     }
     else if (i_method == "translatedImage"){
         cv::Mat translatedImg;
@@ -252,14 +257,19 @@ void LicovaniDvou::evaluateVideoImageInput(QString i_path, QString i_method){
         {
             translatedImgLE->setStyleSheet("color: #FF0000");
             translatedImgCorrect = false;
+            translatedImg.release();
+            return false;
         }
         else
         {
             translatedImgLE->setStyleSheet("color: #339900");
             translatedImgCorrect = true;
-        }
-        translatedImg.release();
+            translatedImg.release();
+            return true;
+        }        
     }
+    else
+        return false;
 }
 
 void LicovaniDvou::evaluateCorrectValues(){
@@ -388,7 +398,9 @@ void LicovaniDvou::chosenVideoPB_clicked(QWidget *W)
 {
     QString pathToVideo = QFileDialog::getOpenFileName(this,
          tr("Choose video"), "","*.avi;;All files (*)");
-    analyseAndSaveFirst(pathToVideo,chosenVideoAnalysis);
+    analyseAndSave(pathToVideo,chosenVideoAnalysis);
+    /*QString folder,file,suffix;
+    processFilePath(pathToVideo,folder,file,suffix);*/
     chosenVideoLE = qobject_cast<QLineEdit*>(W);
     chosenVideoLE->setText(chosenVideoAnalysis[1]);
     evaluateVideoImageInput(pathToVideo,"video");

@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Označte nejvnitřnější stranu anomálie</string>
+   <string>Mark the edge of the anomaly</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

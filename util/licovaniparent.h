@@ -13,6 +13,25 @@
 #include <QPointer>
 #include <QThread>
 
+class VideoWriter : public QObject
+{
+    Q_OBJECT
+public:
+    VideoWriter(QString i_videoFullPath,QMap<QString,QVector<double>> i_data, QString i_writePath);
+    ~VideoWriter();
+
+    friend class LicovaniParent;
+public slots:
+    void writeVideo();
+signals:
+    void errorOccured(int errorIndex);
+    void errorOccured(QString errorMessage);
+    void finished();
+private:
+    QString videoReadPath,videoWritePath;
+    QMap<QString,QVector<double>> obtainedData;
+};
+
 class LicovaniParent : public QWidget
 {
     Q_OBJECT
@@ -35,6 +54,11 @@ public slots:
      * in this function.
      */
     void onFinishThread(int);
+
+    /**
+     * @brief Function handles the end of video write.
+     */
+    void onVideoWriterFinished();
 protected:
     /**
      * @brief Function initialise QMaps with vectors of vectors, filled by values during analysis.

@@ -47,8 +47,23 @@ private slots:
      */
     void addStatus(int row, int column, QString status);
 
+    /**
+     * @brief Function handes the error signals from the RegistrationThread.
+     * @param indexOfThread
+     * @param errorMessage
+     */
     void errorHandler(int indexOfThread,QString errorMessage);
+
+    /**
+     * @brief Function starts processing another video if available. All imported function are invoked in this
+     * function before moving to another video.
+     * @param indexOfThread
+     */
     void processAnother(int indexOfThread);
+
+    void VideoWriterErrorHandler(int errorIndex);
+    void VideoWriterErrorHandler(QString errorMessage);
+
     void on_savePB_clicked();
 
     /**

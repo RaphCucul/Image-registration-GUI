@@ -576,7 +576,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../ikonky.qrc">
+        <iconset resource="../images/icons.qrc">
          <normaloff>:/images/frangi.png</normaloff>:/images/frangi.png</iconset>
        </property>
        <property name="iconSize">
@@ -605,7 +605,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../ikonky.qrc"/>
+  <include location="../images/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

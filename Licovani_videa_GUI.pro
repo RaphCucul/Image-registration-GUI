@@ -12,7 +12,6 @@ TARGET = Licovani_videa_GUI
 TEMPLATE = app
 
 CONFIG += c++14
-TRANSLATIONS = appTranslation_CS.ts
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -33,6 +32,7 @@ SOURCES += \
     analyza_obrazu/upravy_obrazu.cpp \
 ###############################################
     dialogy/graphet_parent.cpp \
+    dialogy/hdd_settings.cpp \
     dialogy/multiplevideoet.cpp \
     dialogy/clickimageevent.cpp \
     dialogy/errordialog.cpp \
@@ -93,6 +93,7 @@ HEADERS += \
     dialogy/errordialog.h \
     dialogy/grafet.h \
     dialogy/graphet_parent.h \
+    dialogy/hdd_settings.h \
     dialogy/multiplevideoet.h \
     dialogy/singlevideoet.h \
     dialogy/singlevideolicovani.h \
@@ -141,6 +142,7 @@ HEADERS += \
     multithreadET/qthreadfifthpart.h
 
 FORMS += \
+    dialogy/hdd_settings.ui \
     ui/graphet_parent.ui \
     ui/chartinit.ui \
     ui/t_b_ho.ui \
@@ -157,8 +159,8 @@ FORMS += \
     dialogy/singlevideolicovani.ui \
     dialogy/multivideolicovani.ui \
     dialogy/clickimageevent.ui
-RESOURCES += \
-    ikonky.qrc
+
+QMAKE_RESOURCE_FLAGS += -no-compress
 
 INCLUDEPATH += C:\opencv_installed\build\include
 
@@ -171,3 +173,6 @@ LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgproc320.d
 LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_photo320.dll
 LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_videoio320.dll
 LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_video320.dll
+
+RESOURCES += images/icons.qrc \
+    translations.qrc

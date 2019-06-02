@@ -114,6 +114,10 @@ void SharedVariables::saveFrangiParameters(){
     qDebug()<<"Saving Frangi parameters to "<<whereToSaveFrangi;
     for (int indexParameter=0; indexParameter < FrangiParametersList.count(); indexParameter++)
         object[FrangiParametersList.at(indexParameter)] = FrangiParameters[indexParameter];
+    for (int marginIndex = 0; marginIndex < FrangiMarginsList.count(); marginIndex++)
+        object[FrangiMarginsList.at(marginIndex)] = frangiMargins[FrangiMarginsList.at(marginIndex)];
+    for (int ratioIndex = 0; ratioIndex < FrangiMarginsList.count(); ratioIndex++)
+        object[FrangiRatiosList.at(ratioIndex)] = frangiRatios[FrangiRatiosList.at(ratioIndex)];
     document.setObject(object);
     QString documentString = document.toJson();
     QFile writer;

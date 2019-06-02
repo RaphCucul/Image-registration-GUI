@@ -100,7 +100,7 @@ private:
      * @param path
      * @param method
      */
-    void evaluateVideoImageInput(QString i_path,QString i_method);
+    bool evaluateVideoImageInput(QString i_path,QString i_method);
 
     /**
      * @brief Function check if the input values of area maximum, rotation angle and iteration count

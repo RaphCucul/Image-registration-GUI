@@ -33,7 +33,7 @@ t_b_HO::t_b_HO(QWidget *parent) :
     ui->ChooseFileFolderDirectory->setText(tr("Choose file folder directories"));
     ui->FileFolderDirectory->setPlaceholderText(tr("Folder with paths"));
 
-    QFile qssFile(":/style.qss");
+    QFile qssFile(":/images/style.qss");
     qssFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);
@@ -135,7 +135,6 @@ bool t_b_HO::loadJsonPaths()
         localErrorDialogHandling[ui->FileFolderDirectory]->show();
         return false;
     }
-
 }
 
 bool t_b_HO::getPathFromJson(QString i_type, QComboBox *i_box, bool i_onlyCheckEmpty)
@@ -341,7 +340,7 @@ void t_b_HO::processPath(QString i_type, QString i_path){
 
 void t_b_HO::on_pathToVideos_clicked()
 {
-    QString pathToVideos = QFileDialog::getExistingDirectory(this,"",QDir::currentPath());
+    QString pathToVideos = QFileDialog::getExistingDirectory(this,tr("Choose folder where the videos will be loaded from"),QDir::currentPath());
     if (pathToVideos != ""){
         processPath("cestaKvideim",pathToVideos);
         ui->Combo_videoPath->addItem(pathToVideos);
@@ -353,7 +352,7 @@ void t_b_HO::on_pathToVideos_clicked()
 
 void t_b_HO::on_SaveVideos_clicked()
 {
-    QString pathToVideoSave = QFileDialog::getExistingDirectory(this,"Vyberte složku pro uložení slícovaného videa",QDir::currentPath());
+    QString pathToVideoSave = QFileDialog::getExistingDirectory(this,tr("Choose folder where registrated videos will be saved"),QDir::currentPath());
     if (pathToVideoSave != ""){
         processPath("ulozeniVidea",pathToVideoSave);
         ui->Combo_savingVideo->addItem(pathToVideoSave);
@@ -365,7 +364,7 @@ void t_b_HO::on_SaveVideos_clicked()
 
 void t_b_HO::on_LoadingDataFolder_clicked()
 {
-    QString pathToVideoParameters = QFileDialog::getExistingDirectory(this,tr("Vyberte složku obsahující parametrický soubory"),QDir::currentPath());
+    QString pathToVideoParameters = QFileDialog::getExistingDirectory(this,tr("Choose folder with video parametric files"),QDir::currentPath());
     if (pathToVideoParameters != ""){
         processPath("adresarTXT_nacteni",pathToVideoParameters);
         ui->Combo_VideoDataLoad->addItem(pathToVideoParameters);
@@ -377,7 +376,7 @@ void t_b_HO::on_LoadingDataFolder_clicked()
 
 void t_b_HO::on_SavingDataFolder_clicked()
 {
-    QString pathToSaveVideoParameters = QFileDialog::getExistingDirectory(this,tr("Vyberte složku pro uložení parametrických souborů"),QDir::currentPath());
+    QString pathToSaveVideoParameters = QFileDialog::getExistingDirectory(this,tr("Choose folder where video parametric files will be saved"),QDir::currentPath());
     if (pathToSaveVideoParameters != ""){
         processPath("adresarTXT_ulozeni",pathToSaveVideoParameters);
         ui->Combo_VideoDataSave->addItem(pathToSaveVideoParameters);
@@ -429,7 +428,17 @@ bool t_b_HO::eventFilter(QObject *obj, QEvent *event){
 
 void t_b_HO::on_FileFolderDirectory_textEdited(const QString &arg1)
 {
-
+    QStringList foundJSONs;
+    int JSONsCount;
+    analyseFileNames(arg1,foundJSONs,JSONsCount,"json");
+    if (JSONsCount == 0){
+        disableElements();
+        emit fileFolderDirectoryNotFound();
+    }
+    else{
+        enableElements();
+        emit fileFolderDirectoryFound();
+    }
 }
 
 void t_b_HO::enableElements(){

@@ -50,8 +50,6 @@ SingleVideoLicovani::SingleVideoLicovani(QWidget *parent) :
     QStringList columnHeaders = {"X","Y",tr("Angle"),"Status"};
     ui->vysledkyLicovaniTW->setHorizontalHeaderLabels(columnHeaders);
 
-    initMaps();
-
     QObject::connect(ui->registratePB,SIGNAL(clicked()),this,SLOT(registrateVideoframes()));
     QObject::connect(this,SIGNAL(calculationStarted()),this,SLOT(disableWidgets()));
     QObject::connect(this,SIGNAL(calculationStopped()),this,SLOT(enableWidgets()));
@@ -197,7 +195,6 @@ void SingleVideoLicovani::registrateVideoframes()
             return;
         }
         else{
-            initMaps();
             emit calculationStarted();
             ui->registratePB->setText(tr("Cancel"));
             runStatus = false;
@@ -343,6 +340,7 @@ void SingleVideoLicovani::processResuluts(int analysedThread){
 }
 void SingleVideoLicovani::processVideoParameters(QJsonObject &videoData)
 {
+    initMaps();
     for (int parameter = 0; parameter < videoParameters.count(); parameter++){
         if (parameter < 6){
             QJsonArray arrayDouble = videoData[videoParameters.at(parameter)].toArray();
@@ -361,9 +359,34 @@ void SingleVideoLicovani::processVideoParameters(QJsonObject &videoData)
     }
 }
 
+void SingleVideoLicovani::VideoWriterErrorHandler(int errorIndex){
+    localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",errorIndex);
+    localErrorDialogHandling[ui->registratePB]->show();
+}
+
+void SingleVideoLicovani::VideoWriterErrorHandler(QString errorMessage){
+    localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",errorMessage);
+    localErrorDialogHandling[ui->registratePB]->show();
+}
+
 bool SingleVideoLicovani::writeToVideo()
 {
-    QString fullPath = videoListFull.at(0);//chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2];
+    QString whereToWrite = SharedVariables::getSharedVariables()->getPath("ulozeniVidea")+"/"+chosenVideo[1]+"_GUI.avi";
+    VideoWriter* videoWriter = new VideoWriter(videoListFull.at(0),videoParametersDouble,whereToWrite);
+
+    QObject::connect(videoWriter,SIGNAL(errorOccured(int)),this,SLOT(VideoWriterErrorHandler(int)));
+    QObject::connect(videoWriter,SIGNAL(errorOccured(QString)),this,SLOT(VideoWriterErrorHandler(QString)));
+
+    QThread* thread = new QThread;
+    videoWriter->moveToThread(thread);
+
+    QObject::connect(thread,SIGNAL(started()),videoWriter,SLOT(writeVideo()));
+    QObject::connect(videoWriter, SIGNAL(finished()), thread, SLOT(quit()));
+    QObject::connect(videoWriter, SIGNAL(finished()), videoWriter, SLOT(deleteLater()));
+    QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
+    thread->start();
+    /*QString fullPath = videoListFull.at(0);//chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2];
     cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
     if (!cap.isOpened())
     {
@@ -413,7 +436,7 @@ bool SingleVideoLicovani::writeToVideo()
             movedOrig.release();
             _fullyRegistrated.release();
        }
-    }
+    }*/
     return true;
 }
 

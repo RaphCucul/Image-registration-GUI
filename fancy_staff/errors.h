@@ -36,6 +36,6 @@ static QJsonArray infoList = {
 };
 
 static QJsonArray whatToDoList = {
-
+    "Problem with HDD counter occured. Please use the Settings option \"Add counter name\" to enable HDD usage plot", //0
 };
 #endif // ERRORS_H

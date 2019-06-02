@@ -23,7 +23,7 @@ GlobalSettings *GlobalSettings::getSettings()
 
 QString GlobalSettings::getFileFolderDirectoriesPath() const
 {
-    qDebug()<<settings->value("fileFolderDirectoryPath").toString();
+    qDebug()<<"Actual file folder directory: "<<settings->value("fileFolderDirectoryPath").toString();
     QString pom = settings->value("fileFolderDirectoryPath").toString();
     return pom;
 }
@@ -31,7 +31,7 @@ QString GlobalSettings::getFileFolderDirectoriesPath() const
 void GlobalSettings::setFileFolderDirectoriesPath(const QString &input)
 {
     settings->setValue("fileFolderDirectoryPath", input);
-    qDebug()<<settings->value("fileFolderDirectoryPath").toString();
+    qDebug()<<"Saving file folder directory: "<<settings->value("fileFolderDirectoryPath").toString();
     settings->sync();
 }
 
@@ -46,4 +46,24 @@ void GlobalSettings::setIniPath(const QString &inputPath, const QString &inputFi
     QString pom = iniPath+"/"+iniFileName;
     qDebug()<<"User choice expected *.ini path: "<<pom;
     settings = new QSettings(pom, QSettings::IniFormat);
+}
+
+QString GlobalSettings::getLanguage(){
+    QString pom = settings->value("language").toString();
+    return pom;
+}
+
+void GlobalSettings::setLanguage(QString i_language){
+    settings->setValue("language",i_language);
+    settings->sync();
+}
+
+QString GlobalSettings::getHDDCounterName(){
+    QString pom = settings->value("HDDcounterName").toString();
+    return pom;
+}
+
+void GlobalSettings::setHDDCounterName(QString i_name){
+    settings->setValue("HDDcounterName",i_name);
+    settings->sync();
 }

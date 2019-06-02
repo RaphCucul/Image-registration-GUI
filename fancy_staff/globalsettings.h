@@ -16,6 +16,11 @@ public:
      * with stored paths loaded in t_b_HO class
      */
     void setFileFolderDirectoriesPath(const QString& input);
+
+    /**
+     * @brief Function returns the settings data.
+     * @return
+     */
     QString getFileFolderDirectoriesPath() const;
 
     /**
@@ -29,6 +34,21 @@ public:
      * @param input
      */
     void setIniPath(const QString &inputPath, const QString &inputFile);
+
+    /**
+     * @brief Function returns saved language from ini file.
+     * @return
+     */
+    QString getLanguage();
+
+    /**
+     * @brief Function saves language, if user changes it.
+     * @param i_language
+     */
+    void setLanguage(QString i_language);
+
+    QString getHDDCounterName();
+    void setHDDCounterName(QString i_name);
 private:
     GlobalSettings();
     static GlobalSettings * m_Settings;

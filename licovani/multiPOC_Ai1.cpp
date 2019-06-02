@@ -248,46 +248,40 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
         double height = i_cap.get(CV_CAP_PROP_FRAME_HEIGHT);
         bool verticalAnomaly = false;
         bool horizontalAnomaly = false;
-        if (i_verticalAnomalyCoords.x != 0.0) // x for vertical anomaly
+        if (i_verticalAnomalyCoords.y != 0.0) // x for vertical anomaly
         {
-            if (i_verticalAnomalyCoords.x < (width/2))
+            if (i_verticalAnomalyCoords.y < (width/2))
             {
-                i_anomalyArea.x = 0;
-                i_anomalyArea.y = int(i_verticalAnomalyCoords.x);
-                i_anomalyArea.width = int(width-int(i_verticalAnomalyCoords.x)-1);
-                i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+                i_anomalyArea.y = int(i_verticalAnomalyCoords.y);
+                i_anomalyArea.height = int(height-int(i_verticalAnomalyCoords.y));
+                i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
             }
-            if (i_verticalAnomalyCoords.x > (width/2))
+            if (i_verticalAnomalyCoords.y > (width/2))
             {
-                i_anomalyArea.x = 0;
-                i_anomalyArea.y = 0;
-                i_anomalyArea.width = int(i_verticalAnomalyCoords.x);
-                i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+                i_anomalyArea.height = int(i_verticalAnomalyCoords.y);
+                i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
             }
             verticalAnomaly = true;
         }
-        if (i_horizontalAnomalyCoords.y != 0.0) // horizontal anomaly
+        if (i_horizontalAnomalyCoords.x != 0.0) // horizontal anomaly
         {
             if (i_horizontalAnomalyCoords.x < (height/2))
             {
-                i_anomalyArea.x = int(i_horizontalAnomalyCoords.y);
-                i_anomalyArea.y = 0;
-                if (verticalAnomaly != true)
-                    i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
-                i_anomalyArea.height = int(height-int(i_horizontalAnomalyCoords.y)-1);
+                i_anomalyArea.x = int(i_horizontalAnomalyCoords.x);
+                if (!verticalAnomaly)
+                    i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+                i_anomalyArea.width = int(width-int(i_horizontalAnomalyCoords.x));
             }
             if (i_horizontalAnomalyCoords.x > (width/2))
             {
-                i_anomalyArea.x = 0;
-                i_anomalyArea.y = 0;
-                if (verticalAnomaly != true)
-                    i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
-                i_anomalyArea.height = int(height-int(i_horizontalAnomalyCoords.y)-1);
+                if (!verticalAnomaly)
+                    i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+                i_anomalyArea.width = int(i_horizontalAnomalyCoords.x);
             }
             horizontalAnomaly = true;
         }
         if (verticalAnomaly == true || horizontalAnomaly == true)
-            frangi_point = frangi_analysis(i_referencial(i_anomalyArea),1,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
+            frangi_point = frangi_analysis(i_referencial(i_anomalyArea),1,1,0,"",3,pt_temp,i_frangiParameters,frangiMargins);
         else
             frangi_point = frangi_analysis(i_referencial,1,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
 
@@ -297,6 +291,7 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
         }
         else
         {
+            qDebug()<<"Preprocessing - frangi: "<<frangi_point.x<<frangi_point.y;
             bool needToChangeScale = false;
             int rows = i_referencial.rows;
             int cols = i_referencial.cols;

@@ -59,6 +59,11 @@ signals:
      * @brief Unblocks all tabs of the program, if the paths were loaded successfully
      */
     void fileFolderDirectoryFound();
+
+    /**
+     * @brief Signal blocks the GUI until the proper path to the directory with json file is found.
+     */
+    void fileFolderDirectoryNotFound();
 private:
     Ui::t_b_HO *ui;
 

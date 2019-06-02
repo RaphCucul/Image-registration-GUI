@@ -50,6 +50,7 @@ zalozky::zalozky(QWidget *parent) :
     }
 
     connect(chooseFolders,SIGNAL(fileFolderDirectoryFound()),this,SLOT(fileFolderDirectoryLocated()));
+    connect(chooseFolders,SIGNAL(fileFolderDirectoryNotFound()),this,SLOT(disableTabs_slot()));
 
     connect(frangiDetector,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
     connect(frangiDetector,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
