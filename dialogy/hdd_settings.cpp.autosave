@@ -43,11 +43,7 @@ HDD_Settings::~HDD_Settings()
 }
 
 void HDD_Settings::slot_accepted(){
-    QString counterName = ui->counterNameLE->text();
-    QString counterParameter = ui->counterParameterLE->text();
-    //qDebug()<< counterName<<" "<<counterParameter;
-    //GlobalSettings::getSettings()->setHDDCounterName(counterName);
-    //GlobalSettings::getSettings()->setHDDCounterParameter(counterParameter);
+    GlobalSettings::getSettings()->setHDDCounter(scriptResults.at(0),scriptResults.at(1));
 }
 
 void HDD_Settings::slot_rejected(){

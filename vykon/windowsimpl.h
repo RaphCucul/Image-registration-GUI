@@ -37,6 +37,8 @@ private:
 
     QVector<qulonglong> mCpuLoadLastValues;
     // will store system timing (idle, Kernel, and User) at a given moment.
+
+    QString _name,_parameter;
 };
 
 #endif // WINDOWSIMPL_H

@@ -7,8 +7,6 @@
 #include <QTextStream>
 #include <QComboBox>
 #include <QLineEdit>
-#include <fstream>
-#include <iostream>
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QApplication>
@@ -18,6 +16,7 @@
 #include "vykon/hddwidget.h"
 #include "hlavni_program/zalozky.h"
 #include "fancy_staff/globalsettings.h"
+#include "dialogy/hdd_settings.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -120,14 +119,13 @@ void MainWindow::loadLanguage(const QString& rLanguage)
         switchTranslator("CZ");
 }
 
-void MainWindow::slotSettingsChanged(QAction* action){
+void MainWindow::slotSettingsChanged(QAction* action){    
     if (nullptr != action){
         if (action->text() == "Add HDD counter name"){
-            bool ok;
-            QString text = QInputDialog::getText(this, tr("Add name of HDD counter"),
-                                                 tr("Counter name:"), QLineEdit::Normal,
-                                                 GlobalSettings::getSettings()->getHDDCounterName(),&ok);
-            //if (ok && !text.isEmpty())
+            HDD_Settings* _hddSettings = new HDD_Settings;
+            _hddSettings->setModal(true);
+            _hddSettings->exec();
         }
+
     }
 }

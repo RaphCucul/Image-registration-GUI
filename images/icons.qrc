@@ -8,7 +8,6 @@
         <file>everythingBad.png</file>
         <file>everythingOK.png</file>
         <file>frangi.png</file>
-        <file>frangiCancel.png</file>
         <file>licovaniDvou.png</file>
         <file>noProgress.png</file>
         <file>Piechart.png</file>
@@ -18,5 +17,9 @@
         <file>iconfinder_71_Ensign_Flag_Nation_czech_2634499.png</file>
         <file>iconfinder_273_Ensign_Flag_Nation_kingdom_2634450.png</file>
         <file>AppLogo.png</file>
+        <file>greenDiode.png</file>
+        <file>greyDiode.png</file>
+        <file>orangeDiode.png</file>
+        <file>redDiode.png</file>
     </qresource>
 </RCC>

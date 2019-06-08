@@ -17,7 +17,7 @@ void analyseFileNames(QString i_chosenPathToFiles,
 {
      QDir chosenDirectory(i_chosenPathToFiles);
      i_filenameList = chosenDirectory.entryList(QStringList() << "*."+i_searchedSuffix << "*."+i_searchedSuffix.toUpper(),QDir::Files);
-     i_filenameWithSuffixCount = i_filenameList.size();
+     i_filenameWithSuffixCount = i_filenameList.count();
 }
 
 void processFilePath(QString i_wholePaht, QString& i_folder, QString& i_onlyFilename, QString& i_suffix)

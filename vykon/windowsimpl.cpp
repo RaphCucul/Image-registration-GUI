@@ -1,22 +1,26 @@
 #include "windowsimpl.h"
+#include "fancy_staff/globalsettings.h"
 #include <windows.h>
 #include <pdh.h>
 #include <QDebug>
 #include <conio.h>
 #include <pdhmsg.h>
 #include <stdio.h>
+
+#include <QString>
 CONST ULONG SAMPLE_INTERVAL_MS    = 10;
 
 WindowsImpl::WindowsImpl() : SystemMonitor(), mCpuLoadLastValues()
 {
-
+    _name = GlobalSettings::getSettings()->getHDDCounterName();
+    _parameter = GlobalSettings::getSettings()->getHDDCounterParameter();
 }
 double WindowsImpl::memoryUsed(){
     MEMORYSTATUSEX memoryStatus;
     memoryStatus.dwLength = sizeof(MEMORYSTATUSEX);
     GlobalMemoryStatusEx(&memoryStatus);
     qulonglong memoryPhysicalUsed = memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys;
-    return ((double)memoryPhysicalUsed / (double)memoryStatus.ullTotalPhys * 100.0);
+    return (double(memoryPhysicalUsed) / double(memoryStatus.ullTotalPhys) * 100.0);
 }
 
 double WindowsImpl::hddUsed(){
@@ -34,16 +38,17 @@ double WindowsImpl::hddUsed(){
     TCHAR szBuffer[MAX_COMPUTERNAME_LENGTH +1];
     DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
     GetComputerName(szBuffer, &dwSize); //Get the computer name
-    /*//"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
-        std::wstring s(L"\\\\");
-        s+= std::wstring(L"HONZA-TOSHIBA");
-        s+= std::wstring(L"\\Fyzický disk");
-        s+= std::wstring(L"(_total)\\");
-        s+= std::wstring(L"% času disku");
-        std::wcout<<s<<std::endl;*/
-    wchar_t* cesta = L"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
+    //"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
 
-    wcscpy_s(CounterPathBuffer,sizeof(CounterPathBuffer),cesta);
+    std::wstring s(L"\\\\");
+    s+= std::wstring(szBuffer);
+    s+= std::wstring(L"\\");
+    s+= std::wstring(_name.toStdWString().c_str());
+    s+= std::wstring(L"(_total)\\");
+    s+= std::wstring(_parameter.toStdWString().c_str());
+    //wchar_t* cesta = L"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
+
+    wcscpy_s(CounterPathBuffer,sizeof(CounterPathBuffer),s.c_str());
     Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);
     if (Status != ERROR_SUCCESS)
         {

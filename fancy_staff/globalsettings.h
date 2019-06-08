@@ -48,7 +48,11 @@ public:
     void setLanguage(QString i_language);
 
     QString getHDDCounterName();
-    void setHDDCounterName(QString i_name);
+    QString getHDDCounterParameter();
+    void setHDDCounter(QString i_name,QString i_parameter);
+
+    QString getAppPath();
+    void setAppPath(QString i_path);
 private:
     GlobalSettings();
     static GlobalSettings * m_Settings;
