@@ -101,23 +101,23 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
                 shifted_temp.copyTo(shifted);
             }
 
-            Point3d translationCorrection(0.0,0.0,0.0);
+            Point3d correction(0.0,0.0,0.0);
             Mat fullyRegistratedFrame_correction = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
             if (!translationCorrection(fullyRegistratedFrame,
                                               i_referencialFrame,
                                               fullyRegistratedFrame_correction,
                                               i_cutoutStandard,
-                                              translationCorrection,
+                                              correction,
                                               i_areaMaximum)){
                 qWarning()<<"Frame "<<i_index_noved<<" - registration correction failed";
                 return false;
             }
             else{
-                if (translationCorrection.x > 0.0 || translationCorrection.y > 0.0)
+                if (correction.x > 0.0 || correction.y > 0.0)
                 {
-                    qDebug()<<"Correction: "<<translationCorrection.x<<" "<<translationCorrection.y;
-                    _tempPOCX[0] += translationCorrection.x;
-                    _tempPOCY[0] += translationCorrection.y;
+                    qDebug()<<"Correction: "<<correction.x<<" "<<correction.y;
+                    _tempPOCX[0] += correction.x;
+                    _tempPOCY[0] += correction.y;
                     Point3d pt6 = pc_translation_hann(i_referencialFrame,fullyRegistratedFrame_correction,i_areaMaximum);
                     if (std::abs(pt6.x)>=290 || std::abs(pt6.y)>=290)
                     {
