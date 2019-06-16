@@ -17,7 +17,8 @@ public:
                                QVector<cv::Rect> i_cutoutExtra,
                                QVector<QVector<int>> i_badFramesCompleteList,
                                QVector<int> i_videoReferencialFramesList,
-                               bool i_scaleChange);
+                               bool i_scaleChange,
+                               double i_areaMaximum);
     void run() override;
     QVector<double> vectorForFWHM(QVector<int> &badFrames, int frameCount);
     QVector<double> computedCC();
@@ -38,6 +39,7 @@ private:
     QStringList videoList;
     double videoCount;
     double frameCount;
+    double areaMaximum;
     QVector<cv::Rect> obtainedCutoffStandard;//ziskany_VK_standard;
     QVector<cv::Rect> obtainedCutoffExtra;//ziskany_VK_extra;
     QVector<QVector<int>> badFramesComplete;

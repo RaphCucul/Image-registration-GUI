@@ -1,6 +1,6 @@
 #ifndef UTIL_GRAFET_H
 #define UTIL_GRAFET_H
-#include "fancy_staff/qcustomplot.h"
+#include "shared_staff/qcustomplot.h"
 
 /**
  * @brief Function initializes all necessary graphs and all corresponing elements for GraphET class.

@@ -1,9 +1,9 @@
 #include "mainwindow.h"
-#include "hlavni_program/zalozky.h"
-#include "fancy_staff/globalsettings.h"
-#include "vykon/cpuwidget.h"
-#include "vykon/hddusageplot.h"
-#include "vykon/memorywidget.h"
+#include "main_program/tabs.h"
+#include "shared_staff/globalsettings.h"
+#include "power/cpuwidget.h"
+#include "power/hddusageplot.h"
+#include "power/memorywidget.h"
 #include <QApplication>
 #include <QTranslator>
 

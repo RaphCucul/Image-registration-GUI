@@ -82,9 +82,9 @@ protected:
     QMap<QString,QVector<QVector<int>>> mapInt;
     QMap<QString,QVector<int>> mapAnomalies;
     QVector<QVector<double>> CC_problematicFrames,FWHM_problematicFrames;
-    QStringList videoParameters = {"entropie","tennengrad","FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
-                                 "Uhel","Ohodnoceni","PrvotOhodEntropie","PrvotOhodTennengrad",
-                                 "PrvniRozhod","DruheRozhod","VerticalAnomaly","HorizontalAnomaly"};
+    QStringList videoParameters = {"entropy","tennengrad","FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
+                                 "angle","evaluation","firstEvalEntropy","firstEvalTennengrad",
+                                 "firstEval","secondEval","VerticalAnomaly","HorizontalAnomaly"};
 
     QVector<int> framesReferencial;
     QVector<double> averageCCcomplete;

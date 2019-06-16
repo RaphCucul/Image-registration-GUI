@@ -1,5 +1,5 @@
 #include "util/systemmonitor.h"
-#include "vykon/windowsimpl.h"
+#include "power/windowsimpl.h"
 
 SystemMonitor::SystemMonitor()
 {

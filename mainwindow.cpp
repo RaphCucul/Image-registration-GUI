@@ -11,12 +11,12 @@
 #include <QSettings>
 #include <QApplication>
 
-#include "vykon/cpuwidget.h"
-#include "vykon/memorywidget.h"
-#include "vykon/hddwidget.h"
-#include "hlavni_program/zalozky.h"
-#include "fancy_staff/globalsettings.h"
-#include "dialogy/hdd_settings.h"
+#include "power/cpuwidget.h"
+#include "power/memorywidget.h"
+#include "power/hddwidget.h"
+#include "main_program/tabs.h"
+#include "shared_staff/globalsettings.h"
+#include "dialogs/hdd_settings.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -36,35 +36,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->menuLanguage,SIGNAL(triggered(QAction*)),this,SLOT(slotLanguageChanged(QAction*)));
     connect(ui->menuSettings,SIGNAL(triggered(QAction*)),this,SLOT(slotSettingsChanged(QAction*)));
     localErrorDialogHandler[ui->hddWidget] = new ErrorDialog(ui->hddWidget);
-
-
-    /*QString defaultLocale = QLocale::system().name(); // e.g. "de_DE"
-    defaultLocale.truncate(defaultLocale.lastIndexOf('_')); // e.g. "de"
-    QString savedLanguage = GlobalSettings::getSettings()->getLanguage();
-    QTranslator translator;
-    if (defaultLocale == "cs" && savedLanguage != "CS"){
-        if (translator.load(":/czech.qm"))
-            qDebug()<<"Loading successful";
-        GlobalSettings::getSettings()->setLanguage("CS");
-    }
-    else if (defaultLocale != "cs" && savedLanguage == "CS"){
-        if (translator.load(":/english.qm"))
-            qDebug()<<"Loading successful";
-        GlobalSettings::getSettings()->setLanguage("EN");
-    }
-    else if (defaultLocale == "cs" && savedLanguage == "CS"){
-        if (translator.load(":/czech.qm"))
-            qDebug()<<"Loading successful";
-    }
-    else{
-        if (translator.load(":/english.qm"))
-            qDebug()<<"Loading successful";
-    }
-    qApp->installTranslator(&translator);*/
-    //system("start powershell.exe Set-ExecutionPolicy RemoteSigned \n");
-
-    //system("pause");
-    //system("cls");
 }
 
 MainWindow::~MainWindow()
@@ -86,7 +57,7 @@ void MainWindow::updateWidget()
         ui->hddWidget->pridejData(hddused);
     else if (hddused < 0.0 && !alreadyEvaluated){
         localErrorDialogHandler[ui->hddWidget]->evaluate("center","",0);
-        localErrorDialogHandler[ui->hddWidget]->show();
+        localErrorDialogHandler[ui->hddWidget]->show(false);
         alreadyEvaluated = true;
     }
 }
@@ -121,7 +92,7 @@ void MainWindow::loadLanguage(const QString& rLanguage)
 
 void MainWindow::slotSettingsChanged(QAction* action){    
     if (nullptr != action){
-        if (action->text() == "Add HDD counter name"){
+        if (action->text() == tr("Add HDD counter name")){
             HDD_Settings* _hddSettings = new HDD_Settings;
             _hddSettings->setModal(true);
             _hddSettings->exec();

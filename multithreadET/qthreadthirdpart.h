@@ -21,7 +21,7 @@ public:
                               QVector<double> i_averageFWHM,
                               QVector<cv::Rect> i_standardCutout,
                               QVector<cv::Rect> i_extraCutout,
-                              bool i_scaleChange, QObject *parent=nullptr);
+                              bool i_scaleChange, double i_areaMaximum, QObject *parent=nullptr);
     void run() override;
     QVector<QVector<int>> framesUpdateEvaluation();
     QVector<QVector<int>> framesFirstEvaluationComplete();
@@ -65,7 +65,7 @@ private:
     QVector<QVector<double>> framesPOCX;
     QVector<QVector<double>> framesPOCY;
     QVector<QVector<double>> framesUhel;
-    double videoCount;
+    double videoCount,areaMaximum;
 };
 
 #endif // QTHREADTHIRDPART_H

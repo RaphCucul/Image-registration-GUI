@@ -7,18 +7,20 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 
-#include "analyza_obrazu/korelacni_koeficient.h"
-#include "analyza_obrazu/pouzij_frangiho.h"
-#include "licovani/fazova_korelace_funkce.h"
-#include "util/prace_s_vektory.h"
-#include "util/souborove_operace.h"
+#include "image_analysis/correlation_coefficient.h"
+#include "image_analysis/frangi_utilization.h"
+#include "registration/phase_correlation_function.h"
+#include "util/vector_operations.h"
+#include "util/files_folders_operations.h"
 
 qThreadSecondPart::qThreadSecondPart(QStringList i_videosForAnalysis,
                                      QVector<int> i_badVideos,
                                      QVector<cv::Rect> i_cutoutStandard,
                                      QVector<cv::Rect> i_cutoutExtra,
                                      QVector<QVector<int> > i_badFramesCompleteList,
-                                     QVector<int> i_videoReferencialFramesList, bool i_scaleChange)
+                                     QVector<int> i_videoReferencialFramesList,
+                                     bool i_scaleChange,
+                                     double i_areaMaximum)
 {
     videoList = i_videosForAnalysis;
     obtainedCutoffStandard = i_cutoutStandard;
@@ -27,6 +29,7 @@ qThreadSecondPart::qThreadSecondPart(QStringList i_videosForAnalysis,
     scaleChanged = i_scaleChange;
     referencialFrames = i_videoReferencialFramesList;
     notProcessThese = i_badVideos;
+    areaMaximum = i_areaMaximum;
 
     emit setTerminationEnabled(true);
 }
@@ -121,16 +124,16 @@ void qThreadSecondPart::run()
                     pt.x = 0.0;pt.y = 0.0;pt.z = 0.0;
                     if (scaleChanged == true)
                     {
-                        pt = fk_translace_hann(referencialImage,translated);
+                        pt = pc_translation_hann(referencialImage,translated,areaMaximum);
                         if (std::abs(pt.x)>=55 || std::abs(pt.y)>=55)
                         {
                             qDebug()<<"Too big translation, recalculating";
-                            pt = fk_translace(referencialImage,translated);
+                            pt = pc_translation(referencialImage,translated,areaMaximum);
                         }
                     }
                     if (scaleChanged == false)
                     {
-                        pt = fk_translace_hann(referencialImage,translated);
+                        pt = pc_translation_hann(referencialImage,translated,areaMaximum);
                     }
                     cv::Mat registrated;
                     registrated = frameTranslation(translated,pt,rows,cols);

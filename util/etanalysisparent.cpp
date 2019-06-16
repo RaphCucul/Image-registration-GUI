@@ -88,13 +88,13 @@ void ETanalysisParent::done(int done)
 {
     if (done == 1)
     {
-        mapDouble["entropie"] = First[1]->computedEntropy();
+        mapDouble["entropy"] = First[1]->computedEntropy();
         mapDouble["tennengrad"] = First[1]->computedTennengrad();
-        mapInt["PrvotOhodEntropie"] = First[1]->computedFirstEntropyEvaluation();
-        mapInt["PrvotOhodTennengrad"] = First[1]->computedFirstTennengradEvalueation();
+        mapInt["firstEvalEntropy"] = First[1]->computedFirstEntropyEvaluation();
+        mapInt["firstEvalTennengrad"] = First[1]->computedFirstTennengradEvalueation();
         obtainedCutoffStandard = First[1]->computedCOstandard();
         obtainedCutoffExtra = First[1]->computedCOextra();
-        mapInt["Ohodnoceni"] = First[1]->computedCompleteEvaluation();
+        mapInt["evaluation"] = First[1]->computedCompleteEvaluation();
         framesReferencial = First[1]->estimatedReferencialFrames();
         badFramesComplete = First[1]->computedBadFrames();
         emit dataObtained_first();
@@ -107,8 +107,8 @@ void ETanalysisParent::done(int done)
     }
     if (done == 3)
     {
-        mapInt["Ohodnoceni"] = Third[3]->framesUpdateEvaluation();
-        mapInt["PrvniRozhod"] = Third[3]->framesFirstEvaluationComplete();
+        mapInt["evaluation"] = Third[3]->framesUpdateEvaluation();
+        mapInt["firstEval"] = Third[3]->framesFirstEvaluationComplete();
         CC_problematicFrames = Third[3]->framesProblematic_CC();
         FWHM_problematicFrames = Third[3]->framesProblematic_FWHM();
         mapDouble["FrangiX"] = Third[3]->framesFrangiXestimated();
@@ -116,19 +116,19 @@ void ETanalysisParent::done(int done)
         mapDouble["FrangiEuklid"] = Third[3]->framesFrangiEuklidestimated();
         mapDouble["POCX"] = Third[3]->framesPOCXestimated();
         mapDouble["POCY"] = Third[3]->framesPOCYestimated();
-        mapDouble["Uhel"] = Third[3]->framesUhelestimated();
+        mapDouble["angle"] = Third[3]->framesUhelestimated();
         emit dataObtained_third();
     }
     if (done == 4)
     {
-        mapInt["Ohodnoceni"] = Fourth[4]->framesUpdateEvaluationComplete();
-        mapInt["DruheRozhod"] = Fourth[4]->framesSecondEvaluation();
+        mapInt["evaluation"] = Fourth[4]->framesUpdateEvaluationComplete();
+        mapInt["secondEval"] = Fourth[4]->framesSecondEvaluation();
         mapDouble["FrangiX"] = Fourth[4]->framesFrangiXestimated();
         mapDouble["FrangiY"] = Fourth[4]->framesFrangiYestimated();
         mapDouble["FrangiEuklid"] = Fourth[4]->framesFrangiEuklidestimated();
         mapDouble["POCX"] = Fourth[4]->framesPOCXestimated();
         mapDouble["POCY"] = Fourth[4]->framesPOCYestimated();
-        mapDouble["Uhel"] = Fourth[4]->framesAngleestimated();
+        mapDouble["angle"] = Fourth[4]->framesAngleestimated();
         emit dataObtained_fourth();
     }
     if (done == 5)
@@ -138,8 +138,8 @@ void ETanalysisParent::done(int done)
         mapDouble["FrangiEuklid"] = Fifth[5]->framesFrangiEuklidestimated();
         mapDouble["POCX"] = Fifth[5]->framesPOCXestimated();
         mapDouble["POCY"] = Fifth[5]->framesPOCYestimated();
-        mapDouble["Uhel"] = Fifth[5]->framesAngleestimated();
-        mapInt["Ohodnoceni"] = Fifth[5]->framesUpdateEvaluationComplete();
+        mapDouble["angle"] = Fifth[5]->framesAngleestimated();
+        mapInt["evaluation"] = Fifth[5]->framesUpdateEvaluationComplete();
         emit dataObtained_fifth();
     }
 }

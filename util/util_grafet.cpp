@@ -18,6 +18,8 @@ void inicializujGrafickyObjekt(QCustomPlot* i_QCustomPlot,
     i_QCustomPlot->xAxis->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
     i_QCustomPlot->yAxis->setTickPen(QPen(QColor(255, 255, 255, 0)));
     i_QCustomPlot->yAxis->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
+    i_QCustomPlot->setInteraction(QCP::iRangeDrag, Qt::Horizontal);
+    i_QCustomPlot->setInteraction(QCP::iRangeZoom);
 
     i_QCustomPlot->addGraph();
     i_QCustomPlot->graph(0)->setData(i_framesRange,i_entropy,true);

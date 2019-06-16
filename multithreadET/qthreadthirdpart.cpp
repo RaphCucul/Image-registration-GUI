@@ -4,10 +4,10 @@
 #include <QStringList>
 #include <QThread>
 
-#include "licovani/fazova_korelace_funkce.h"
-#include "analyza_obrazu/upravy_obrazu.h"
-#include "analyza_obrazu/korelacni_koeficient.h"
-#include "util/souborove_operace.h"
+#include "registration/phase_correlation_function.h"
+#include "image_analysis/image_processing.h"
+#include "image_analysis/correlation_coefficient.h"
+#include "util/files_folders_operations.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -26,7 +26,7 @@ qThreadThirdPart::qThreadThirdPart(QStringList i_videoList,
                                    QVector<double> i_averageFWHM,
                                    QVector<cv::Rect> i_standardCutout,
                                    QVector<cv::Rect> i_extraCutout,
-                                   bool i_scaleChange, QObject *parent):QThread(parent)
+                                   bool i_scaleChange, double i_areaMaximum, QObject *parent):QThread(parent)
 {
     videoList = i_videoList;
     badFrames_firstEvaluation = i_badFramesFirstEval;
@@ -38,6 +38,7 @@ qThreadThirdPart::qThreadThirdPart(QStringList i_videoList,
     averageCCcomplete = i_averageCC;
     averageFWHMcomplete = i_averageFWHM;
     notProcessThese = i_badVideos;
+    areaMaximum = i_areaMaximum;
 
     emit setTerminationEnabled(true);
 }
@@ -138,15 +139,15 @@ void qThreadThirdPart::run()
                 cv::Point3d pt(0,0,0);
                 if (scaleChanged == true)
                 {
-                    pt = fk_translace_hann(_frame,moved);
+                    pt = pc_translation_hann(_frame,moved,areaMaximum);
                     if (std::abs(pt.x)>=290 || std::abs(pt.y)>=290)
                     {
-                        pt = fk_translace(_frame,moved);
+                        pt = pc_translation(_frame,moved,areaMaximum);
                     }
                 }
                 if (scaleChanged == false)
                 {
-                    pt = fk_translace_hann(_frame,moved);
+                    pt = pc_translation_hann(_frame,moved,areaMaximum);
                 }
                 if (pt.x >= 55 || pt.y >= 55)
                 {

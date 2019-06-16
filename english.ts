@@ -150,7 +150,8 @@
     </message>
     <message>
         <location filename="hlavni_program/frangi_detektor.cpp" line="281"/>
-        <source>Frangi of chosen frame</source>
+        <source>Frangi of chosen</source>
+        <oldsource>Frangi of chosen frame</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -273,6 +274,49 @@
     </message>
 </context>
 <context>
+    <name>HDD_Settings</name>
+    <message>
+        <location filename="dialogy/hdd_settings.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/hdd_settings.ui" line="20"/>
+        <source>Counter name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/hdd_settings.ui" line="56"/>
+        <source>Counter parameter:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/hdd_settings.ui" line="88"/>
+        <source>Run the script</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/hdd_settings.cpp" line="95"/>
+        <source>An error occured when launching the script: %i</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/hdd_settings.cpp" line="100"/>
+        <source>Processing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/hdd_settings.cpp" line="110"/>
+        <source>Unable to load the script</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dialogy/hdd_settings.cpp" line="124"/>
+        <source>Counter and parameter found</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>LicovaniDvou</name>
     <message>
         <location filename="ui/licovanidvou.ui" line="14"/>
@@ -367,6 +411,22 @@
         <source>Choose moved</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="hlavni_program/licovanidvou.cpp" line="411"/>
+        <source>Choose referencial image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hlavni_program/licovanidvou.cpp" line="411"/>
+        <location filename="hlavni_program/licovanidvou.cpp" line="421"/>
+        <source>*.bmp;;All files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hlavni_program/licovanidvou.cpp" line="421"/>
+        <source>Choose translated image</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>LicovaniVidea</name>
@@ -404,13 +464,24 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ui/mainwindow.ui" line="170"/>
+        <location filename="ui/mainwindow.ui" line="164"/>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ui/mainwindow.ui" line="177"/>
         <source>English</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ui/mainwindow.ui" line="179"/>
+        <location filename="ui/mainwindow.ui" line="186"/>
         <source>Czech</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ui/mainwindow.ui" line="191"/>
+        <location filename="mainwindow.cpp" line="95"/>
+        <source>Add HDD counter name</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -433,57 +504,52 @@
     </message>
     <message>
         <location filename="dialogy/multivideolicovani.cpp" line="39"/>
-        <source>Delete selected</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="40"/>
-        <location filename="dialogy/multivideolicovani.cpp" line="358"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="359"/>
         <source>Registrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="41"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="40"/>
         <source>Save computed results</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="178"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="177"/>
         <source>Choose avi files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="180"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="179"/>
         <source>Video files (*.avi);;;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="213"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="212"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="352"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="353"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="399"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="400"/>
         <source>Processing video </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="442"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="443"/>
         <source>Writing properly translated frames to the new video.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.cpp" line="445"/>
+        <location filename="dialogy/multivideolicovani.cpp" line="451"/>
         <source>Video written properly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multivideolicovani.h" line="152"/>
+        <location filename="dialogy/multivideolicovani.h" line="179"/>
         <source>Angle</source>
         <translation type="unfinished"></translation>
     </message>
@@ -496,7 +562,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.ui" line="472"/>
+        <location filename="dialogy/multiplevideoet.ui" line="454"/>
         <source>%p%</source>
         <translation type="unfinished"></translation>
     </message>
@@ -547,62 +613,57 @@
     </message>
     <message>
         <location filename="dialogy/multiplevideoet.cpp" line="58"/>
-        <source>Delete selected</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="59"/>
-        <location filename="dialogy/multiplevideoet.cpp" line="161"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="160"/>
         <source>Analyse videos</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="102"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="101"/>
         <source>Choose avi files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="104"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="103"/>
         <source>Video files (*.avi);;;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="117"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="116"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="155"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="154"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="354"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="366"/>
         <source>Fifth part done. Analysis completed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="378"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="390"/>
         <source>1/5 Entropy and tennengrad computation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="380"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="392"/>
         <source>2/5 Average correlation and FWHM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="382"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="394"/>
         <source>3/5 First decision algorithm started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="384"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="396"/>
         <source>4/5 Second decision algorithm started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/multiplevideoet.cpp" line="386"/>
+        <location filename="dialogy/multiplevideoet.cpp" line="398"/>
         <source>5/5 Third decision algorithm started</source>
         <translation type="unfinished"></translation>
     </message>
@@ -610,12 +671,12 @@
 <context>
     <name>RegistrationThread</name>
     <message>
-        <location filename="licovani/registrationthread.cpp" line="186"/>
+        <location filename="licovani/registrationthread.cpp" line="187"/>
         <source>Frame preprocessing failed for %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="licovani/registrationthread.cpp" line="192"/>
+        <location filename="licovani/registrationthread.cpp" line="193"/>
         <source>Frangi filter for referencial image failed for %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -742,60 +803,60 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="41"/>
-        <location filename="dialogy/singlevideolicovani.cpp" line="129"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="42"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="130"/>
         <source>Choose video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="43"/>
-        <location filename="dialogy/singlevideolicovani.cpp" line="215"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="44"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="216"/>
         <source>Registrate videoframes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="45"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="46"/>
         <source>Save computed parameters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="47"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="48"/>
         <source>Show registration result</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="50"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="51"/>
         <source>Angle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="67"/>
-        <location filename="dialogy/singlevideolicovani.cpp" line="87"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="68"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="88"/>
         <source>Chosen video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="129"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="130"/>
         <source>*.avi;;;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="199"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="200"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="259"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="260"/>
         <source>Processing video </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="312"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="313"/>
         <source>Writing properly translated frames to the new video.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dialogy/singlevideolicovani.cpp" line="314"/>
+        <location filename="dialogy/singlevideolicovani.cpp" line="315"/>
         <source>Video written properly.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -803,7 +864,7 @@
 <context>
     <name>VideoWriter</name>
     <message>
-        <location filename="util/licovaniparent.cpp" line="95"/>
+        <location filename="util/licovaniparent.cpp" line="93"/>
         <source>Frame %1 could not be loaded from the video for registration. Process interrupted</source>
         <translation type="unfinished"></translation>
     </message>
@@ -878,23 +939,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hlavni_program/t_b_ho.cpp" line="343"/>
+        <location filename="hlavni_program/t_b_ho.cpp" line="344"/>
         <source>Choose folder where the videos will be loaded from</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hlavni_program/t_b_ho.cpp" line="355"/>
+        <location filename="hlavni_program/t_b_ho.cpp" line="358"/>
         <source>Choose folder where registrated videos will be saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hlavni_program/t_b_ho.cpp" line="367"/>
+        <location filename="hlavni_program/t_b_ho.cpp" line="372"/>
         <source>Choose folder with video parametric files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hlavni_program/t_b_ho.cpp" line="379"/>
+        <location filename="hlavni_program/t_b_ho.cpp" line="386"/>
         <source>Choose folder where video parametric files will be saved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hlavni_program/t_b_ho.cpp" line="399"/>
+        <source>Choose folder with Frangi parameters file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

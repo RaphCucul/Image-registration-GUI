@@ -8,7 +8,7 @@
 #include <QTranslator>
 //#include <QEvent>
 #include "util/systemmonitor.h"
-#include "dialogy/errordialog.h"
+#include "dialogs/errordialog.h"
 
 namespace Ui {
 class MainWindow;

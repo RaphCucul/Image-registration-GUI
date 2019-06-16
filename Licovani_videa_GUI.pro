@@ -25,53 +25,52 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-    analyza_obrazu/entropie.cpp \
-    analyza_obrazu/frangi.cpp \
-    analyza_obrazu/korelacni_koeficient.cpp \
-    analyza_obrazu/pouzij_frangiho.cpp \
-    analyza_obrazu/upravy_obrazu.cpp \
+    image_analysis/entropy.cpp \
+    image_analysis/frangi.cpp \
+    image_analysis/correlation_coefficient.cpp \
+    image_analysis/frangi_utilization.cpp \
+    image_analysis/image_processing.cpp \
 ###############################################
-    dialogy/graphet_parent.cpp \
-    dialogy/hdd_settings.cpp \
-    dialogy/multiplevideoet.cpp \
-    dialogy/clickimageevent.cpp \
-    dialogy/errordialog.cpp \
-    dialogy/grafet.cpp \
-    dialogy/singlevideoet.cpp \
-    dialogy/singlevideolicovani.cpp \
-    dialogy/multivideolicovani.cpp \
+    dialogs/graphet_parent.cpp \
+    dialogs/hdd_settings.cpp \
+    dialogs/multiplevideoet.cpp \
+    dialogs/clickimageevent.cpp \
+    dialogs/errordialog.cpp \
+    dialogs/grafet.cpp \
+    dialogs/singlevideoet.cpp \
+    dialogs/multivideoregistration.cpp \
+    dialogs/singlevideoregistration.cpp \
+###############################################            
+    shared_staff/qcustomplot.cpp \
+    shared_staff/systemmonitorwidget.cpp \
+    shared_staff/globalsettings.cpp \
+    shared_staff/sharedvariables.cpp \
 ###############################################
-    fancy_staff/qcustomplot.cpp \
-    fancy_staff/systemmonitorwidget.cpp \
-    fancy_staff/globalsettings.cpp \
-    fancy_staff/sharedvariables.cpp \
-###############################################
-    hlavni_program/frangi_detektor.cpp \
-    hlavni_program/licovanidvou.cpp \
-    hlavni_program/licovanividea.cpp \
-    hlavni_program/t_b_ho.cpp \
-    hlavni_program/vysledeklicovani.cpp \
-    hlavni_program/zalozky.cpp \
-    hlavni_program/chartinit.cpp \
+    main_program/frangi_detektor.cpp \
+    main_program/registratetwo.cpp \
+    main_program/registratevideo.cpp \
+    main_program/t_b_ho.cpp \
+    main_program/registrationresult.cpp \
+    main_program/chartinit.cpp \
+    main_program/tabs.cpp \
 ################################################
-    licovani/fazova_korelace_funkce.cpp \
-    licovani/korekce_zapis.cpp \
-    licovani/multiPOC_Ai1.cpp \
-    licovani/rozhodovaci_algoritmy.cpp \
-    licovani/registrationthread.cpp \
+    registration/phase_correlation_function.cpp \
+    registration/registration_correction.cpp \
+    registration/multiPOC_Ai1.cpp \
+    registration/registrationthread.cpp \
 ################################################
-    util/souborove_operace.cpp \
+    util/files_folders_operations.cpp \
     util/systemmonitor.cpp \
     util/util_grafet.cpp \
-    util/licovaniparent.cpp \
-    util/prace_s_vektory.cpp \
+    util/registrationparent.cpp \
+    util/vector_operations.cpp \
     util/etanalysisparent.cpp \
 ################################################
-    vykon/cpuwidget.cpp \
-    vykon/hddusageplot.cpp \
-    vykon/hddwidget.cpp \
-    vykon/memorywidget.cpp \
-    vykon/windowsimpl.cpp \
+    power/cpuwidget.cpp \
+    power/hddusageplot.cpp \
+    power/hddwidget.cpp \
+    power/memorywidget.cpp \
+    power/windowsimpl.cpp \
 ################################################
     main.cpp \
     mainwindow.cpp \
@@ -83,55 +82,53 @@ SOURCES += \
     multithreadET/qthreadfifthpart.cpp
 
 HEADERS += \
-    analyza_obrazu/entropie.h \
-    analyza_obrazu/frangi.h \
-    analyza_obrazu/korelacni_koeficient.h \
-    analyza_obrazu/pouzij_frangiho.h \
-    analyza_obrazu/upravy_obrazu.h \
+    image_analysis/entropy.h \
+    image_analysis/frangi.h \
+    image_analysis/correlation_coefficient.h \
+    image_analysis/frangi_utilization.h \
+    image_analysis/image_processing.h \
 ################################################
-    dialogy/clickimageevent.h \
-    dialogy/errordialog.h \
-    dialogy/grafet.h \
-    dialogy/graphet_parent.h \
-    dialogy/hdd_settings.h \
-    dialogy/multiplevideoet.h \
-    dialogy/singlevideoet.h \
-    dialogy/singlevideolicovani.h \
-    dialogy/multivideolicovani.h \
+    dialogs/clickimageevent.h \
+    dialogs/errordialog.h \
+    dialogs/grafet.h \
+    dialogs/graphet_parent.h \
+    dialogs/hdd_settings.h \
+    dialogs/multiplevideoet.h \
+    dialogs/singlevideoet.h \
+    dialogs/multivideoregistration.h\
+    dialogs/singlevideoregistration.h \
 ################################################
-    fancy_staff/qcustomplot.h \
-    fancy_staff/systemmonitorwidget.h \
-    fancy_staff/globalsettings.h \
-    fancy_staff/errors.h \
-    fancy_staff/sharedvariables.h \
+    shared_staff/qcustomplot.h \
+    shared_staff/systemmonitorwidget.h \
+    shared_staff/globalsettings.h \
+    shared_staff/errors.h \
+    shared_staff/sharedvariables.h \
 ################################################
-    hlavni_program/frangi_detektor.h \
-    hlavni_program/licovanidvou.h \
-    hlavni_program/licovanividea.h \
-    hlavni_program/t_b_ho.h \
-    hlavni_program/vysledeklicovani.h \
-    hlavni_program/zalozky.h \
-    hlavni_program/chartinit.h \
+    main_program/frangi_detektor.h \
+    main_program/registratetwo.h \
+    main_program/registratevideo.h \
+    main_program/registrationresult.h \
+    main_program/t_b_ho.h \
+    main_program/chartinit.h \
+    main_program/tabs.h \
 ################################################
-    licovani/fazova_korelace_funkce.h \
-    licovani/korekce_zapis.h \
-    licovani/multiPOC_Ai1.h \
-    licovani/rozhodovaci_algoritmy.h \
-    licovani/registrationthread.h \
+    registration/phase_correlation_function.h \
+    registration/registration_correction.h \
+    registration/multiPOC_Ai1.h \
+    registration/registrationthread.h \
 ################################################
-    util/souborove_operace.h \
+    util/files_folders_operations.h \
     util/systemmonitor.h \
     util/util_grafet.h \
-    util/licovaniparent.h \
-    util/prace_s_vektory.h \
+    util/registrationparent.h \
+    util/vector_operations.h \
     util/etanalysisparent.h \
 ################################################
-    vykon/cpuwidget.h \
-    vykon/hddusageplot.h \
-    vykon/hddwidget.h \
-    vykon/knihovny_pro_vykony.h \
-    vykon/memorywidget.h \
-    vykon/windowsimpl.h \
+    power/cpuwidget.h \
+    power/hddusageplot.h \
+    power/hddwidget.h \
+    power/memorywidget.h \
+    power/windowsimpl.h \
 #################################################
     mainwindow.h \
 #################################################
@@ -142,23 +139,23 @@ HEADERS += \
     multithreadET/qthreadfifthpart.h
 
 FORMS += \
-    dialogy/hdd_settings.ui \
+    dialogs/hdd_settings.ui \
+    dialogs/singlevideoregistration.ui \
     ui/graphet_parent.ui \
     ui/chartinit.ui \
+    ui/registratetwo.ui \
+    ui/registratevideo.ui \
+    ui/registrationresult.ui \
     ui/t_b_ho.ui \
-    ui/zalozky.ui \
     ui/frangi_detektor.ui \
-    ui/licovanidvou.ui \
-    ui/licovanividea.ui \
     ui/mainwindow.ui \
-    dialogy/grafet.ui \
-    dialogy/singlevideoet.ui \
-    dialogy/multiplevideoet.ui \
-    dialogy/errordialog.ui \
-    ui/vysledeklicovani.ui \
-    dialogy/singlevideolicovani.ui \
-    dialogy/multivideolicovani.ui \
-    dialogy/clickimageevent.ui
+    dialogs/grafet.ui \
+    dialogs/singlevideoet.ui \
+    dialogs/multiplevideoet.ui \
+    dialogs/errordialog.ui \
+    ui/tabs.ui \
+    dialogs/multivideoregistration.ui \
+    dialogs/clickimageevent.ui
 
 QMAKE_RESOURCE_FLAGS += -no-compress
 

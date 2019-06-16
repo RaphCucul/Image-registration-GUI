@@ -1,9 +1,9 @@
 #include "multithreadET/qthreadfifthpart.h"
-#include "licovani/fazova_korelace_funkce.h"
-#include "licovani/multiPOC_Ai1.h"
-#include "util/souborove_operace.h"
-#include "analyza_obrazu/pouzij_frangiho.h"
-#include "analyza_obrazu/korelacni_koeficient.h"
+#include "registration/phase_correlation_function.h"
+#include "registration/multiPOC_Ai1.h"
+#include "util/files_folders_operations.h"
+#include "image_analysis/frangi_utilization.h"
+#include "image_analysis/correlation_coefficient.h"
 
 #include <QThread>
 #include <QStringList>
@@ -167,15 +167,15 @@ void qThreadFifthPart::run()
                     Point3d registrationCorrection(0,0,0);
                     if (scaleCh == true)
                     {
-                        registrationCorrection = fk_translace(referencialFrame,registrated);
+                        registrationCorrection = pc_translation(referencialFrame,registrated,areaMaximum);
                         if (std::abs(registrationCorrection.x)>=290.0 || std::abs(registrationCorrection.y)>=290.0)
                         {
-                            registrationCorrection = fk_translace_hann(referencialFrame,registrated);
+                            registrationCorrection = pc_translation_hann(referencialFrame,registrated,areaMaximum);
                         }
                     }
                     else
                     {
-                        registrationCorrection = fk_translace_hann(referencialFrame,registrated);
+                        registrationCorrection = pc_translation_hann(referencialFrame,registrated,areaMaximum);
                     }
                     Mat correctionMat = frameTranslation(registrated,registrationCorrection,rows,cols);
                     correctionMat.copyTo(interresult32f);
