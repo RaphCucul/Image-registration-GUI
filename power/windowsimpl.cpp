@@ -75,7 +75,9 @@ double WindowsImpl::hddUsed(){
                        goto Cleanup;
                    }
            //qDebug()<<DisplayValue.doubleValue;
-           return DisplayValue.doubleValue;
+           double counterValue = DisplayValue.doubleValue;
+           PdhRemoveCounter(Counter);
+           return counterValue;
        }
    Cleanup:
    if (Query)

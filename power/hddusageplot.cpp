@@ -43,9 +43,17 @@ void HddUsagePlot::setMaximumUsage(double max)
 
 void HddUsagePlot::pridejData(double data)
 {
-    vyuziti.removeLast();
+    if (!vyuziti.isEmpty()){
+        vyuziti.removeLast();
+        graph(0)->data().data()->clear();
+    }
+
+    if (vyuziti.length() > 100)
+        vyuziti.clear();
+
     vyuziti.prepend(data);
     graph(0)->setData(cas, vyuziti);
+
     replot();
 }
 

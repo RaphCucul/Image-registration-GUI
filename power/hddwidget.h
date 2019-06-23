@@ -10,7 +10,7 @@ class HddWidget : public SystemMonitorWidget
     Q_OBJECT
 public:
     explicit HddWidget(QWidget* parent = nullptr);
-protected slots:
+public slots:
     void updateSeries() override;
 private:
     QtCharts::QLineSeries* mSeries;

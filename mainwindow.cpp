@@ -28,6 +28,10 @@ MainWindow::MainWindow(QWidget *parent) :
     setupUsagePlots();
     QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
     this->setStyleSheet("background-color: white");
+    /*QFile qssFile(":/images/style.qss");
+    qssFile.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(qssFile.readAll());
+    setStyleSheet(styleSheet);*/
 
     languageGroup = new QActionGroup(ui->menuLanguage);
     languageGroup->setExclusive(true);
@@ -52,6 +56,10 @@ void MainWindow::setupUsagePlots()
 
 void MainWindow::updateWidget()
 {
+    /*double hddused = SystemMonitor::instance().hddUsed();
+    if (hddused >= 0.0)
+        ui->hddWidget->updateSeries();*/
+
     double hddused = SystemMonitor::instance().hddUsed();
     if (hddused >= 0.0)
         ui->hddWidget->pridejData(hddused);
