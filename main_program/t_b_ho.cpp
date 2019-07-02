@@ -266,8 +266,9 @@ void t_b_HO::chosenPath(int i_index)
 
 void t_b_HO::on_ChooseFileFolderDirectory_clicked()
 {
-    if (search == "json"){
-        localErrorDialogHandling[ui->FileFolderDirectory]->hide();
+    if (search == "json" || search == ""){
+        if (localErrorDialogHandling[ui->FileFolderDirectory]->isEvaluated())
+            localErrorDialogHandling[ui->FileFolderDirectory]->hide();
         QString jsonPath = QFileDialog::getOpenFileName(this,
              tr("Find json file"), QDir::currentPath(),"*.json");
         if (jsonPath != ""){
@@ -317,7 +318,7 @@ void t_b_HO::on_ChooseFileFolderDirectory_clicked()
             search = "json";
             GlobalSettings::getSettings()->setIniPath(QCoreApplication::applicationDirPath(),"settings.ini");
         }
-    }
+    }    
 }
 
 void t_b_HO::createIni(){
