@@ -24,9 +24,9 @@ public:
 public slots:
     void writeVideo();
 signals:
-    void errorOccured(int errorIndex, VideoWriter* w);
-    void errorOccured(QString errorMessage, VideoWriter* w);
-    void finished();
+    void errorOccured(int errorIndex);
+    void errorOccured(QString errorMessage);
+    void finishedSuccessfully();
 private:
     QString videoReadPath,videoWritePath;
     QMap<QString,QVector<double>> obtainedData;

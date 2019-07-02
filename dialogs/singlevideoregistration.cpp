@@ -71,17 +71,12 @@ void SingleVideoRegistration::checkPaths(){
     {
         analyseAndSaveFirst(SharedVariables::getSharedVariables()->getPath("videosPath"),chosenVideo);
         if (chosenVideo[1] != ""){
-            QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+chosenVideo[1]+".dat");
-            if (videoParametersFile.exists()){
-                videoParametersJson = readJson(videoParametersFile);
-                processVideoParameters(videoParametersJson);
-                ui->chooseVideoLE->setText(chosenVideo[1]);
-                ui->registratePB->setEnabled(true);
-                ui->chooseVideoLE->setReadOnly(false);
-                videoListFull.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
-                videoListNames.append(chosenVideo[1]);
-                ui->chooseVideoLE->setStyleSheet("color: #33aa00");
-            }
+            ui->chooseVideoLE->setText(chosenVideo[1]);
+            ui->registratePB->setEnabled(true);
+            ui->chooseVideoLE->setReadOnly(false);
+            videoListFull.append(chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2]);
+            videoListNames.append(chosenVideo[1]);
+            ui->chooseVideoLE->setStyleSheet("color: #33aa00");
         }
         else{
             ui->chooseVideoLE->setPlaceholderText(tr("Chosen video"));
@@ -93,17 +88,19 @@ void SingleVideoRegistration::checkPaths(){
 void SingleVideoRegistration::on_chooseVideoLE_textChanged(const QString &arg1)
 {
     QString fullPath = chosenVideo[0]+"/"+arg1+"."+chosenVideo[2];
-    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-    if (!cap.isOpened())
+    QFile file(fullPath);
+
+    if (!file.exists())
     {
         ui->chooseVideoLE->setStyleSheet("color: #FF0000");
     }
     else
     {
-        QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+arg1+".dat");
-        if (videoParametersFile.exists()){
-            videoParametersJson = readJson(videoParametersFile);
-            processVideoParameters(videoParametersJson);
+        //QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+arg1+".dat");
+        //if (videoParametersFile.exists()){
+            //videoParametersJson = readJson(videoParametersFile);
+            //processVideoParameters(videoParametersJson);
+            cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
             ui->registratePB->setEnabled(true);
             ui->chooseVideoLE->setReadOnly(false);
             chosenVideo[1] = arg1;
@@ -117,9 +114,9 @@ void SingleVideoRegistration::on_chooseVideoLE_textChanged(const QString &arg1)
                 videoListNames.insert(0,chosenVideo[1]);
             }
             ui->chooseVideoLE->setStyleSheet("color: #33aa00");
-        }
-        else
-            ui->chooseVideoLE->setStyleSheet("color: #FF0000");
+        //}
+        //else
+            //ui->chooseVideoLE->setStyleSheet("color: #FF0000");
     }
 }
 
@@ -135,6 +132,7 @@ void SingleVideoRegistration::on_chooseVideoPB_clicked()
     {
         ui->chooseVideoLE->setText(filename);
         ui->chooseVideoLE->setStyleSheet("color: #FF0000");
+        cap.release();
     }
     else
     {
@@ -155,7 +153,7 @@ void SingleVideoRegistration::on_chooseVideoPB_clicked()
         }
         ui->chooseVideoLE->setText(chosenVideo[1]);
         ui->chooseVideoLE->setStyleSheet("color: #33aa00");
-        QString dir = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
+        /*QString dir = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
         QDir chosenDirectory(dir);
         QStringList JsonInDirectory = chosenDirectory.entryList(QStringList() << "*.dat" << "*.DAT",QDir::Files);
         for (int a = 0; a < JsonInDirectory.count(); a++)
@@ -179,7 +177,7 @@ void SingleVideoRegistration::on_chooseVideoPB_clicked()
         }
         QFile videoParametersFile(chosenJson[0]+"/"+chosenJson[1]+"."+chosenJson[2]);
         videoParametersJson = readJson(videoParametersFile);
-        processVideoParameters(videoParametersJson);
+        processVideoParameters(videoParametersJson);*/
         ui->registratePB->setEnabled(true);
     }
 }
@@ -192,21 +190,34 @@ void SingleVideoRegistration::registrateVideoframes()
         {
             localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",6);
             localErrorDialogHandling[ui->registratePB]->show(true);
+            cap.release();
             return;
         }
         else{
-            emit calculationStarted();
-            ui->registratePB->setText(tr("Cancel"));
-            runStatus = false;
-            canProceed = true;
+            QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+chosenVideo[1]+".dat");
+            if (videoParametersFile.exists()){
+                videoParametersJson = readJson(videoParametersFile);
+                processVideoParameters(videoParametersJson);
 
-            actualFrameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
-            ui->vysledkyLicovaniTW->setRowCount(int(actualFrameCount));
-            QVector<QVector<int>> threadRange = divideIntoPeaces(int(actualFrameCount),numberOfThreads);
-            int threadIndex = 1;
-            for (int indexThreshold = 0; indexThreshold < threadRange[0].length() && canProceed; indexThreshold++){
-                createAndRunThreads(threadIndex,cap,threadRange[0][indexThreshold],threadRange[1][indexThreshold]);
-                threadIndex++;
+                emit calculationStarted();
+                ui->registratePB->setText(tr("Cancel"));
+                runStatus = false;
+                canProceed = true;
+
+                qDebug()<<"Initiating registration for "<<videoListNames.at(videoCounter);
+                actualFrameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+                ui->vysledkyLicovaniTW->setRowCount(int(actualFrameCount));
+                QVector<QVector<int>> threadRange = divideIntoPeaces(int(actualFrameCount),numberOfThreads);
+                int threadIndex = 1;
+                for (int indexThreshold = 0; indexThreshold < threadRange[0].length() && canProceed; indexThreshold++){
+                    createAndRunThreads(threadIndex,cap,threadRange[0][indexThreshold],threadRange[1][indexThreshold]);
+                    threadIndex++;
+                }
+            }
+            else{
+                ui->chooseVideoLE->setStyleSheet("color: #FF0000");
+                localErrorDialogHandling[ui->registratePB]->evaluate("left","infoList",3);
+                localErrorDialogHandling[ui->registratePB]->show(true);
             }
         }
     }
@@ -222,7 +233,6 @@ void SingleVideoRegistration::registrateVideoframes()
 void SingleVideoRegistration::createAndRunThreads(int indexThread, cv::VideoCapture &cap,
                                               int lowerLimit, int upperLimit)
 {
-
     int referencialFrameNo = findReferenceFrame(videoParametersInt["evaluation"]);
     cv::Mat referencialFrame;
     cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrameNo);
@@ -308,12 +318,16 @@ void SingleVideoRegistration::processAnother(int indexOfThread){
     processResuluts(indexOfThread);
     qDebug()<<"Thread "<<threadProcessed<<" processed.";
     if (threadProcessed == numberOfThreads){
-        //terminateThreads();
         ui->name_state->setText(tr("Writing properly translated frames to the new video."));
-        if(writeToVideo()){
-            ui->name_state->setText(tr("Video written properly."));
-            calculationStopped();
-        }
+        writeToVideo();
+    }
+}
+
+void SingleVideoRegistration::continueAlgorithm(){
+    if (readyToContinue){
+        ui->name_state->setText(tr("Video written properly."));
+        calculationStopped();
+        ui->registratePB->setText(tr("Registrate videoframes"));
     }
 }
 
@@ -362,21 +376,42 @@ void SingleVideoRegistration::VideoWriterErrorHandler(QString errorMessage){
     localErrorDialogHandling[ui->registratePB]->show(true);
 }
 
+void SingleVideoRegistration::processWriterError(int errorNumber){
+    localErrorDialogHandling[ui->registratePB]->evaluate("center","hardError",errorNumber);
+    localErrorDialogHandling[ui->registratePB]->show(true);
+    readyToContinue = false;
+    emit terminateWriter();
+}
+
+void SingleVideoRegistration::processWriterError(QString errorMessage){
+    localErrorDialogHandling[ui->registratePB]->evaluate("center","hardError",errorMessage);
+    localErrorDialogHandling[ui->registratePB]->show(true);
+    readyToContinue = false;
+    emit terminateWriter();
+}
+
+void SingleVideoRegistration::processSuccess(){
+    readyToContinue = true;    
+    emit terminateWriter();
+}
+
 bool SingleVideoRegistration::writeToVideo()
 {
     QString whereToWrite = SharedVariables::getSharedVariables()->getPath("saveVideosPath")+"/"+chosenVideo[1]+"_GUI.avi";
     VideoWriter* videoWriter = new VideoWriter(videoListFull.at(0),videoParametersDouble,whereToWrite);
 
-    QObject::connect(videoWriter,SIGNAL(errorOccured(int)),this,SLOT(VideoWriterErrorHandler(int)));
-    QObject::connect(videoWriter,SIGNAL(errorOccured(QString)),this,SLOT(VideoWriterErrorHandler(QString)));
-
     QThread* thread = new QThread;
     videoWriter->moveToThread(thread);
 
     QObject::connect(thread,SIGNAL(started()),videoWriter,SLOT(writeVideo()));
-    QObject::connect(videoWriter, SIGNAL(finished()), thread, SLOT(quit()));
-    QObject::connect(videoWriter, SIGNAL(finished()), videoWriter, SLOT(deleteLater()));
+    QObject::connect(videoWriter, SIGNAL(finishedSuccessfully()), this, SLOT(processSuccess()));
+    QObject::connect(videoWriter, SIGNAL(errorOccured(int)), this, SLOT(processWriterError(int)));
+    QObject::connect(videoWriter, SIGNAL(errorOccured(QString)), this, SLOT(processWriterError(QString)));
+
+    QObject::connect(this, SIGNAL(terminateWriter()), thread, SLOT(quit()));
+    QObject::connect(this, SIGNAL(terminateWriter()), videoWriter, SLOT(deleteLater()));
     QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    QObject::connect(thread, SIGNAL(finished()), this, SLOT(continueAlgorithm()));
 
     thread->start();
     /*QString fullPath = videoListFull.at(0);//chosenVideo[0]+"/"+chosenVideo[1]+"."+chosenVideo[2];

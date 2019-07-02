@@ -31,6 +31,7 @@ protected:
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
 signals:
+    void terminateWriter();
 private slots:
     /**
      * @brief Function deactivates specific widgets when the calculations start.
@@ -86,8 +87,8 @@ private slots:
     void on_listOfVideos_cellClicked(int row, int column);
 
     void continueAlgorithm();
-    void processWriterError(int errorNumber, VideoWriter* w);
-    void processWriterError(QString errorMessage, VideoWriter* w);
+    void processWriterError(int errorNumber);
+    void processWriterError(QString errorMessage);
     void processSuccess();
 private:
     /**

@@ -24,7 +24,8 @@ public:
     ~SingleVideoRegistration();
     void processVideoParameters(QJsonObject& videoData);
     bool writeToVideo();
-
+signals:
+    void terminateWriter();
 private slots:
     void on_chooseVideoLE_textChanged(const QString &arg1);
     void on_chooseVideoPB_clicked();
@@ -81,6 +82,11 @@ private slots:
      * found in the folder is placed into the line edit.
      */
     void checkPaths();
+
+    void continueAlgorithm();
+    void processWriterError(int errorNumber);
+    void processWriterError(QString errorMessage);
+    void processSuccess();
 private:
     /**
      * @brief Function process computed translations of frames in specific range the thread was
@@ -106,6 +112,7 @@ private:
     double actualFrameCount = 0.0;
     int videoCounter = 0;
     int threadProcessed = 0;
+    bool readyToContinue = false;
 
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };

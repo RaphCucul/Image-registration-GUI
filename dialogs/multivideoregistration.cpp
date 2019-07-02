@@ -488,17 +488,15 @@ void MultiVideoRegistration::saveTheResults(QMap<QString, QVector<double> > inpu
     }
 }
 
-void MultiVideoRegistration::processWriterError(int errorNumber, VideoWriter* w){
+void MultiVideoRegistration::processWriterError(int errorNumber){
     localErrorDialogHandling[ui->registratePB]->evaluate("center","hardError",errorNumber);
     localErrorDialogHandling[ui->registratePB]->show(true);
-    w->finished();
     readyToContinue = false;
 }
 
-void MultiVideoRegistration::processWriterError(QString errorMessage, VideoWriter *w){
+void MultiVideoRegistration::processWriterError(QString errorMessage){
     localErrorDialogHandling[ui->registratePB]->evaluate("center","hardError",errorMessage);
     localErrorDialogHandling[ui->registratePB]->show(true);
-    w->finished();
     readyToContinue = false;
 }
 
