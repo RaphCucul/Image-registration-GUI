@@ -31,8 +31,8 @@ static QJsonArray softErrorList = {
 static QJsonArray infoList = {
     "No *.dat file found for some chosen video. Use entropy and tennengrad analysis to add info about this video", //0
     "More than one *.json file found. Can't decide, which one is correct.", //1
-    "Check the Frangi filter parameters if the values are suitable for the video(s)." //2
-
+    "Check the Frangi filter parameters if the values are suitable for the video(s).", //2
+    "No *.dat file found for this video.", //3
 };
 
 static QJsonArray whatToDoList = {
