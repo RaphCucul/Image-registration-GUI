@@ -62,7 +62,7 @@ void MainWindow::updateWidget()
 
     double hddused = SystemMonitor::instance().hddUsed();
     if (hddused >= 0.0)
-        ui->hddWidget->pridejData(hddused);
+        ui->hddWidget->addData(hddused);
     else if (hddused < 0.0 && !alreadyEvaluated){
         localErrorDialogHandler[ui->hddWidget]->evaluate("center","",0);
         localErrorDialogHandler[ui->hddWidget]->show(false);

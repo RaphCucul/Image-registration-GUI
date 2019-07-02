@@ -2,9 +2,9 @@
 #include "shared_staff/qcustomplot.h"
 
 HddUsagePlot::HddUsagePlot(QWidget *parent) : QCustomPlot (parent),
-    cas(30),vyuziti(30)
+    time(30),usage(30)
 {
-    blokacePrekresleni = false;
+    blockRedraw = false;
     axisRect()->setMinimumMargins(QMargins(0,20,0,20));
     //xAxis2->setVisible(false);
     //yAxis2->setVisible(false);
@@ -22,16 +22,16 @@ HddUsagePlot::HddUsagePlot(QWidget *parent) : QCustomPlot (parent),
     //yAxis2->setTickPen(QPen(QColor(255, 255, 255, 0)));
     //yAxis2->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
     addGraph();
-    graph(0)->addData(cas,vyuziti);
+    graph(0)->addData(time,usage);
 }
 
 void HddUsagePlot::setMaximumTime(unsigned int max)
 {
-    cas.clear();
+    time.clear();
     for (unsigned int i = 0; i <= max; i++)
-        cas.append(i);
+        time.append(i);
 
-    vyuziti.resize(max + 1);
+    usage.resize(max + 1);
 
     xAxis->setRange(0, max);
 }
@@ -41,25 +41,25 @@ void HddUsagePlot::setMaximumUsage(double max)
     yAxis->setRange(0, max);
 }
 
-void HddUsagePlot::pridejData(double data)
+void HddUsagePlot::addData(double data)
 {
-    if (!vyuziti.isEmpty()){
-        vyuziti.removeLast();
+    if (!usage.isEmpty()){
+        usage.removeLast();
         graph(0)->data().data()->clear();
     }
 
-    if (vyuziti.length() > 100)
-        vyuziti.clear();
+    if (usage.length() > 100)
+        usage.clear();
 
-    vyuziti.prepend(data);
-    graph(0)->setData(cas, vyuziti);
+    usage.prepend(data);
+    graph(0)->setData(time, usage);
 
     replot();
 }
 
-QPixmap HddUsagePlot::prevedDoPixmap(int width, int height, double scale)
+QPixmap HddUsagePlot::convertToPixmap(int width, int height, double scale)
 {
-    blokacePrekresleni = true;
+    blockRedraw = true;
 
     xAxis->grid()->setVisible(false);
     yAxis->grid()->setVisible(false);
@@ -69,13 +69,13 @@ QPixmap HddUsagePlot::prevedDoPixmap(int width, int height, double scale)
     xAxis->grid()->setVisible(true);
     yAxis->grid()->setVisible(true);
 
-    blokacePrekresleni = false;
+    blockRedraw = false;
     return pixmap;
 }
 
-void HddUsagePlot::prekresleni()
+void HddUsagePlot::redraw()
 {
-    if(blokacePrekresleni)
+    if(blockRedraw)
         return;
     else
         QCustomPlot::replot();
@@ -106,5 +106,5 @@ void HddUsagePlot::setThemeColor(const QColor & themeColor, unsigned int scale)
     //color.setAlpha(30);
     graph(0)->setBrush(QBrush(QColor(0,0,100,100)));
 
-    prekresleni();
+    redraw();
 }

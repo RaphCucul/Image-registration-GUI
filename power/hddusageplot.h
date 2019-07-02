@@ -14,13 +14,13 @@ public:
     HddUsagePlot(QWidget *parent = nullptr);
     void setMaximumTime(unsigned int max);
     void setMaximumUsage(double max);
-    void pridejData(double data);
-    QPixmap prevedDoPixmap(int width = 0, int height = 0, double scale = 1.0);
-    void prekresleni();
+    void addData(double data);
+    QPixmap convertToPixmap(int width = 0, int height = 0, double scale = 1.0);
+    void redraw();
     void setThemeColor(const QColor & themeColor, unsigned int scale = 1);
 private:
-    bool blokacePrekresleni;
-    QVector<double> cas, vyuziti;
+    bool blockRedraw;
+    QVector<double> time, usage;
 
 protected:
     virtual void resizeEvent(QResizeEvent * event);
