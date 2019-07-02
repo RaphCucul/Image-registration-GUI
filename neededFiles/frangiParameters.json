@@ -1,0 +1,16 @@
+{
+    "beta_one": 7,
+    "beta_two": 5,
+    "bottom_m": 20,
+    "bottom_r": 0.8,
+    "left_m": 20,
+    "left_r": 0.8,
+    "right_m": 20,
+    "right_r": 0.8,
+    "sigma_end": 12,
+    "sigma_start": 1,
+    "sigma_step": 1,
+    "top_m": 20,
+    "top_r": 0.8,
+    "zpracovani": 1
+}
