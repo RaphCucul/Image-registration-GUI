@@ -161,6 +161,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
         ui->actualMethod_label->setText("");
         ui->actualVideo_label->setText("");
         canProceed = false;
+        runStatus = true;
     }
 }
 
@@ -364,7 +365,14 @@ void MultipleVideoET::onDone(int thread){
         ui->savePB->setEnabled(true);
         ui->actualMethod_label->setText(tr("Fifth part done. Analysis completed"));
         qDebug()<<"Fifth done.";
+        ui->analyzeVideosPB->setText(tr("Analyse videos"));
         emit calculationStopped();
+        runStatus = true;
+        First.clear();
+        Second.clear();
+        Third.clear();
+        Fourth.clear();
+        Fifth.clear();
     }
 }
 

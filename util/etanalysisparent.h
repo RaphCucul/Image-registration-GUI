@@ -97,7 +97,6 @@ protected:
     bool areaMaximumCorrect = false;
     bool rotationAngleCorrect = false;
     bool iterationCountCorrect = false;
-    bool canProceed = true;
 
     QVector<cv::Rect> obtainedCutoffStandard;
     QVector<cv::Rect> obtainedCutoffExtra;

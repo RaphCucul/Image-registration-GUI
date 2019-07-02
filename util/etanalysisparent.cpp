@@ -79,7 +79,6 @@ void ETanalysisParent::cancelAllCalculations(){
         }
     }
 
-    canProceed = false;
     initMaps();
     emit calculationStopped();
 }

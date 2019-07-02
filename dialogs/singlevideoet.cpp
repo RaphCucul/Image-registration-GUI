@@ -106,6 +106,7 @@ void SingleVideoET::on_chooseVideoPB_clicked()
         if (!cap.isOpened())
         {
             ui->chosenVideoLE->setStyleSheet("color: #FF0000");
+            cap.release();
         }
         else
         {
@@ -126,9 +127,8 @@ void SingleVideoET::on_chooseVideoPB_clicked()
 void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
 {
     QString fullPath = chosenVideoETSingle[0]+"/"+arg1+"."+chosenVideoETSingle[2];
-    cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-    if (!cap.isOpened())
-    {
+    QFile file(fullPath);
+    if (!file.exists()){
         ui->chosenVideoLE->setStyleSheet("color: #FF0000");
         videoETScorrect = false;
         ui->horizontalAnomalyCB->setEnabled(false);
@@ -136,6 +136,7 @@ void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
     }
     else
     {
+        cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         ui->chosenVideoLE->setStyleSheet("color: #339900");
         videoETScorrect = true;
         chosenVideoETSingle[1] = arg1;
@@ -197,11 +198,14 @@ void SingleVideoET::on_calculateET_clicked()
         else{
             localErrorDialogHandling[ui->calculateET]->evaluate("left","hardError",6);
             localErrorDialogHandling[ui->calculateET]->show(false);
+            canProceed = false;
+            cap.release();
         }
     }
     else {
         cancelAllCalculations();
         runStatus = true;
+        canProceed = false;
         ui->calculateET->setText(tr("Analyze video"));
         ui->computationProgress->setValue(0);
         ui->actualAlgorithmPart_label->setText("");
@@ -375,7 +379,15 @@ void SingleVideoET::onDone(int thread){
         ui->savePB->setEnabled(true);
         ui->actualAlgorithmPart_label->setText(tr("Fifth part done. Analysis completed"));
         qDebug()<<"Fifth done.";
+        ui->calculateET->setText(tr("Analyze video"));
         emit calculationStopped();
+        runStatus = true;
+        canProceed = false;
+        First.clear();
+        Second.clear();
+        Third.clear();
+        Fourth.clear();
+        Fifth.clear();
     }
 }
 

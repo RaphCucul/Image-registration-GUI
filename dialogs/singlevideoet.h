@@ -98,6 +98,8 @@ private:
     int formerIndex = 0;
     bool runStatus = true;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
+    bool canProceed;
+
 };
 
 #endif // SINGLEVIDEOET_H

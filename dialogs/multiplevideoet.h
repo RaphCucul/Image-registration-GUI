@@ -118,6 +118,8 @@ private:
     Ui::MultipleVideoET *ui;
     QStringList videoList;
     bool runStatus = true;
+    bool canProceed = true;
+
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };
 
