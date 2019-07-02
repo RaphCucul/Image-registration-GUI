@@ -184,6 +184,7 @@ QPointF ClickImageEvent::loadFrangiMaxCoordinates(){
 }
 
 void ClickImageEvent::fillGraphicScene(){
+
     if (!cap.isOpened())
         cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
     frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
@@ -293,12 +294,13 @@ void ClickImageEvent::referencialFrameChosen(const QString &arg1)
 
 void ClickImageEvent::processChosenVideo(int videoIndex){
     QString chosenVideoPath = filePaths.at(videoIndex);
-    cap = cv::VideoCapture(chosenVideoPath.toLocal8Bit().constData());
-    if (!cap.isOpened()){
+    QFile file(chosenVideoPath);
+    if (!file.exists()){
         referencialFrame_LE->setEnabled(false);
         cap.release();
     }
     else{
+        cap = cv::VideoCapture(chosenVideoPath.toLocal8Bit().constData());
         referencialFrame_LE->setEnabled(true);
         frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
     }

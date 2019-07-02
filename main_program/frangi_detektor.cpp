@@ -267,11 +267,12 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
             if (analyseChosenFile[2] == "avi")
             {
                 QString chosenFile = analyseChosenFile[0]+"/"+analyseChosenFile[1]+"."+analyseChosenFile[2];
-                VideoCapture cap = VideoCapture(chosenFile.toLocal8Bit().constData());
-                if (!cap.isOpened()){
+                QFile file(chosenFile);
+                if (!file.exists()){
                     localErrorDialogHandling[ui->Frangi_filtr]->evaluate("left","hardError",6);
                     return;
                 }
+                VideoCapture cap = VideoCapture(chosenFile.toLocal8Bit().constData());
                 cap.set(CV_CAP_PROP_POS_FRAMES,analyseFrame);
                 cap.read(chosenFrame);
             }
@@ -356,14 +357,15 @@ void Frangi_detektor::on_frameNumber_textChanged(const QString &arg1)
 void Frangi_detektor::on_chosenFile_textChanged(const QString &arg1)
 {
     QString fullPath = analyseChosenFile[0]+"/"+arg1+"."+analyseChosenFile[2];
-    actualVideo = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-    if (!actualVideo.isOpened()){
+    QFile file(fullPath);
+    if (!file.exists()){
         ui->chosenFile->setStyleSheet("color: #FF0000");
         ui->frameNumber->setText("");
         ui->frameNumber->setEnabled(false);
     }
     else
     {
+        actualVideo = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         ui->chosenFile->setStyleSheet("color: #339933");
         analyseChosenFile[1] = arg1;
         ui->frameNumber->setEnabled(true);
