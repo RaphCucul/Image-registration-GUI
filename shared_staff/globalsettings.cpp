@@ -102,6 +102,10 @@ void GlobalSettings::setIniPath(const QString &inputPath, const QString &inputFi
 
 QString GlobalSettings::getLanguage(){
     QString pom = settings->value("language").toString();
+    if (pom == ""){
+        pom = "EN";
+        setLanguage("EN");
+    }
     return pom;
 }
 
@@ -113,13 +117,21 @@ void GlobalSettings::setLanguage(QString i_language){
 QString GlobalSettings::getHDDCounterName(){    
     string filename = QString("/HDDparameters.json").toLocal8Bit().constData();
     string fullPath = iniPath.toLocal8Bit().constData()+filename;
-    return readAndConvert(fullPath).at(0);
+    QFile file(QString::fromStdString(fullPath));
+    if (file.exists())
+        return readAndConvert(fullPath).at(0);
+    else
+        return "";
 }
 
 QString GlobalSettings::getHDDCounterParameter(){
     string filename = QString("/HDDparameters.json").toLocal8Bit().constData();
     string fullPath = iniPath.toLocal8Bit().constData()+filename;
-    return readAndConvert(fullPath).at(1);
+    QFile file(QString::fromStdString(fullPath));
+    if (file.exists())
+        return readAndConvert(fullPath).at(1);
+    else
+        return "";
 }
 
 void GlobalSettings::setHDDCounter(QString i_name, QString i_parameter){
