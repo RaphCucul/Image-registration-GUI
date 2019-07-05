@@ -86,7 +86,7 @@
       <widget class="QPushButton" name="saveResultsPB">
        <property name="maximumSize">
         <size>
-         <width>100</width>
+         <width>150</width>
          <height>20</height>
         </size>
        </property>
