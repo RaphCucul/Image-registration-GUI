@@ -224,8 +224,7 @@ void SingleVideoET::on_showGraphET_clicked()
                                                mapInt["firstEvalTennengrad"],
                                                mapInt["firstEval"],
                                                mapInt["secondEval"],
-                                               mapInt["evaluation"],
-                                               this);
+                                               mapInt["evaluation"]);
     graph->setModal(true);
     graph->show();
 }

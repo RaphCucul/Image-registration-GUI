@@ -76,7 +76,7 @@ void ChartInit::deleteSelectedFiles(){
 
 void ChartInit::on_pushButton_clicked()
 {
-    GraphET_parent* _parent = new GraphET_parent(fileList);
+    GraphET_parent* _parent = new GraphET_parent(fileList,this);
     _parent->setModal(true);
     _parent->show();
 }

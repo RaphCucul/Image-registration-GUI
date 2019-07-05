@@ -25,11 +25,11 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,
                                QWidget *parent) : QDialog(parent),ui(new Ui::GraphET_parent)
 {
     ui->setupUi(this);
-    fileList = i_chosenList;
-    analyseNames();
+    fileList = i_chosenList;    
     processAndShow(i_entropy,i_tennengrad,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
                    i_SecondDecisionResults,i_CompleteEvaluation);
     this->setStyleSheet("background-color: white");
+    analyseNames();
 }
 
 GraphET_parent::~GraphET_parent()
