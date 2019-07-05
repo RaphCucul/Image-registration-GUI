@@ -1,4 +1,4 @@
-# Videoframes registration
+# Video frames registration
 
 The program is based on a console application written in C++ aimed on the registration of videoframes, using OpenCV libraries, which are used for image processing. The source code of the console app with additional informations (in Czech) can be found here: https://www.vutbr.cz/studenti/zav-prace/detail/110555
 Check the Wiki page to learn more about the program.
