@@ -1,3 +1,2 @@
-{	version: 1.0.0,
-	description: First release	
-}
+version: 1.0.0,
+description: First release
