@@ -154,3 +154,13 @@ void GlobalSettings::setAppPath(QString i_path){
     settings->setValue("applicationDirectory",i_path);
     settings->sync();
 }
+
+bool GlobalSettings::getAutoUpdateSetting(){
+    bool status = settings->value("updatesAutocheck").toBool();
+    return status;
+}
+
+void GlobalSettings::setAutoUpdateSetting(bool i_status){
+    settings->setValue("updatesAutocheck",i_status);
+    settings->sync();
+}

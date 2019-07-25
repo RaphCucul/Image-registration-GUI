@@ -47,12 +47,49 @@ public:
      */
     void setLanguage(QString i_language);
 
+    /**
+     * @brief Function returns the name of HDD counter localized to system language
+     * @return
+     */
     QString getHDDCounterName();
+
+    /**
+     * @brief Function returns the name of HDD counter parameter localized to system language
+     * @return
+     */
     QString getHDDCounterParameter();
+
+    /**
+     * @brief Function saves the counter name and counter parameter name into tje HDDparameters.json file.
+     * @param i_name
+     * @param i_parameter
+     */
     void setHDDCounter(QString i_name,QString i_parameter);
 
+    /**
+     * @brief Function returns application path, where almost all files
+     * necessary for the program should be located.
+     * @return
+     */
     QString getAppPath();
+
+    /**
+     * @brief Function saves application path, where almost all files
+     * necessary for the program should be located.
+     * @param i_path
+     */
     void setAppPath(QString i_path);
+
+    /**
+     * @brief Function returns user's choice of auto update check.
+     * @return
+     */
+    bool getAutoUpdateSetting();
+
+    /**
+     * @brief Function saves user's choice of auto update check.
+     */
+    void setAutoUpdateSetting(bool i_status);
 private:
     GlobalSettings();
     static GlobalSettings * m_Settings;
