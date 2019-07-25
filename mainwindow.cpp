@@ -10,6 +10,7 @@
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QApplication>
+#include <QThread>
 
 #include "power/cpuwidget.h"
 #include "power/memorywidget.h"
@@ -17,6 +18,7 @@
 #include "main_program/tabs.h"
 #include "shared_staff/globalsettings.h"
 #include "dialogs/hdd_settings.h"
+#include "util/versioncheckerparent.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,10 +30,10 @@ MainWindow::MainWindow(QWidget *parent) :
     setupUsagePlots();
     QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
     this->setStyleSheet("background-color: white");
-    /*QFile qssFile(":/images/style.qss");
-    qssFile.open(QFile::ReadOnly);
-    QString styleSheet = QLatin1String(qssFile.readAll());
-    setStyleSheet(styleSheet);*/
+
+    versionInfoStatus = new QLabel(this);
+    versionInfoStatus->setText(tr("No data"));
+    ui->statusBar->addPermanentWidget(versionInfoStatus);
 
     languageGroup = new QActionGroup(ui->menuLanguage);
     languageGroup->setExclusive(true);
@@ -40,6 +42,33 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->menuLanguage,SIGNAL(triggered(QAction*)),this,SLOT(slotLanguageChanged(QAction*)));
     connect(ui->menuSettings,SIGNAL(triggered(QAction*)),this,SLOT(slotSettingsChanged(QAction*)));
     localErrorDialogHandler[ui->hddWidget] = new ErrorDialog(ui->hddWidget);
+
+    if (GlobalSettings::getSettings()->getAutoUpdateSetting()){
+        timer = new QTimer(this);
+        timer->setInterval(1000);
+        timer->setTimerType(Qt::PreciseTimer);
+        QObject::connect(timer,SIGNAL(timeout()),this,SLOT(timerTimeOut()));
+        timer->start(1000);
+    }
+}
+
+void MainWindow::timerTimeOut(){
+    timerCounter++;
+    if (timerCounter > 5){
+        timer->stop();
+        VersionCheckerParent* vcp = new VersionCheckerParent;
+        QThread* thread = new QThread;
+
+        QObject::connect(vcp,SIGNAL(analysed()),vcp,SLOT(deleteLater()));
+        QObject::connect(vcp,SIGNAL(versionChecked(bool)),this,SLOT(versionChecked(bool)));
+
+        QObject::connect(thread,SIGNAL(started()),vcp,SLOT(initiateDownload()));
+
+        QObject::connect(vcp,SIGNAL(analysed()),thread,SLOT(quit()));
+        QObject::connect(thread,SIGNAL(finished()),thread,SLOT(deleteLater()));
+
+        thread->start();
+    }
 }
 
 MainWindow::~MainWindow()
@@ -56,10 +85,6 @@ void MainWindow::setupUsagePlots()
 
 void MainWindow::updateWidget()
 {
-    /*double hddused = SystemMonitor::instance().hddUsed();
-    if (hddused >= 0.0)
-        ui->hddWidget->updateSeries();*/
-
     double hddused = SystemMonitor::instance().hddUsed();
     if (hddused >= 0.0)
         ui->hddWidget->addData(hddused);
@@ -98,6 +123,17 @@ void MainWindow::loadLanguage(const QString& rLanguage)
         switchTranslator("CZ");
 }
 
+void MainWindow::versionChecked(bool status){
+    if (status){
+        versionInfoStatus->setText(tr("Out of date"));
+        versionInfoStatus->setStyleSheet("color: red");
+    }
+    else{
+        versionInfoStatus->setText(tr("Up to date"));
+        versionInfoStatus->setStyleSheet("color: green");
+    }
+}
+
 void MainWindow::slotSettingsChanged(QAction* action){    
     if (nullptr != action){
         if (action->text() == tr("Add HDD counter name")){
@@ -105,6 +141,22 @@ void MainWindow::slotSettingsChanged(QAction* action){
             _hddSettings->setModal(true);
             _hddSettings->exec();
         }
+        else if (action->text() == tr("Check for update")){
+            VersionCheckerParent* vcp = new VersionCheckerParent;
+            QThread* thread = new QThread;
 
+            QObject::connect(vcp,SIGNAL(analysed()),vcp,SLOT(deleteLater()));
+            QObject::connect(vcp,SIGNAL(versionChecked(bool)),this,SLOT(versionChecked(bool)));
+
+            QObject::connect(thread,SIGNAL(started()),vcp,SLOT(initiateDownload()));
+
+            QObject::connect(vcp,SIGNAL(analysed()),thread,SLOT(quit()));
+            QObject::connect(thread,SIGNAL(finished()),thread,SLOT(deleteLater()));
+
+            thread->start();
+        }
+        else if (action->text() == tr("Check for update automatically")){
+            GlobalSettings::getSettings()->setAutoUpdateSetting(action->isChecked());
+        }
     }
 }
