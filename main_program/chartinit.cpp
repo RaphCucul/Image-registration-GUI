@@ -38,17 +38,15 @@ void ChartInit::dropEvent(QDropEvent *event)
         return;
     }
     QList<QUrl> urls = mimeData->urls();
-    QStringList _newFiles;
     foreach (QUrl url,urls){
         QMimeType mime = QMimeDatabase().mimeTypeForUrl(url);
         if (mime.inherits("text/plain")) {
             fileList.append(url.toLocalFile());
-            _newFiles.append(url.toLocalFile());
         }
     }
 
     qDebug()<<"Update video list: "<<fileList;
-    ui->selectedFiles->addItems(_newFiles);
+    ui->selectedFiles->addItems(fileList);
 }
 
 void ChartInit::dragEnterEvent(QDragEnterEvent *event)

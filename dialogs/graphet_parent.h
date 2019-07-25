@@ -13,6 +13,10 @@ class GraphET_parent : public QDialog
     Q_OBJECT
 
 public:
+    enum class namesFlag {
+        Fullname,FilenameOnly
+    };
+
     explicit GraphET_parent(QStringList i_chosenList, QWidget *parent = nullptr);
     explicit GraphET_parent(QStringList i_chosenList,
                             QVector<QVector<double>> i_entropy,
@@ -29,7 +33,7 @@ private:
     /**
      * @brief Function analyses the length of all given video names.
      */
-    void analyseNames();
+    void analyseNames(namesFlag parameter);
 
     /**
      * @brief Function loads data from chosen *.dat files, creates GraphET class object and adds a new tab
@@ -50,7 +54,7 @@ private:
                         QVector<QVector<int> > i_CompleteEvaluation);
 
     Ui::GraphET_parent *ui;
-    QStringList fileList;
+    QStringList fileList,filenameList;
     QStringList neededParameters = {"entropy","tennengrad","firstEvalEntropy","firstEvalTennengrad",
                                    "firstEval","secondEval","evaluation"};
 };

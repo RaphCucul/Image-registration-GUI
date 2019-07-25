@@ -199,6 +199,8 @@ QMenu::item:selected{
      <string>Settings</string>
     </property>
     <addaction name="actionHDD_counter"/>
+    <addaction name="actionCheck_version"/>
+    <addaction name="actionCheck_for_update_automatically"/>
    </widget>
    <addaction name="menuLanguage"/>
    <addaction name="menuSettings"/>
@@ -224,6 +226,30 @@ QMenu::item:selected{
   <action name="actionHDD_counter">
    <property name="text">
     <string>Add HDD counter name</string>
+   </property>
+  </action>
+  <action name="actionEnable_auto_check">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable auto-check</string>
+   </property>
+  </action>
+  <action name="actionCheck_version">
+   <property name="text">
+    <string>Check for update</string>
+   </property>
+  </action>
+  <action name="actionCheck_for_update_automatically">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Check for update automatically</string>
    </property>
   </action>
  </widget>

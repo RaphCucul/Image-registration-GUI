@@ -9,7 +9,7 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,QWidget *parent) :
 {
     ui->setupUi(this);
     fileList = i_chosenList;
-    analyseNames();
+    analyseNames(namesFlag::Fullname);
     loadAndShow();
     this->setStyleSheet("background-color: white");
 }
@@ -29,7 +29,7 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,
     processAndShow(i_entropy,i_tennengrad,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
                    i_SecondDecisionResults,i_CompleteEvaluation);
     this->setStyleSheet("background-color: white");
-    analyseNames();
+    analyseNames(namesFlag::FilenameOnly);
 }
 
 GraphET_parent::~GraphET_parent()
@@ -37,15 +37,30 @@ GraphET_parent::~GraphET_parent()
     delete ui;
 }
 
-void GraphET_parent::analyseNames(){
+void GraphET_parent::analyseNames(namesFlag parameter){
     int maxLength = 0;
     for (int var = 0; var < fileList.count(); var++) {
-        if (fileList.at(var).length()>maxLength)
-            maxLength = fileList.at(var).length();
-        else
-            continue;
+        if (parameter == namesFlag::Fullname){
+            QStringList nameList;
+            QString folder,file,suffix;
+            processFilePath(fileList.at(var),folder,file,suffix);
+            if (file.length() > maxLength){
+                maxLength = file.length();
+                filenameList.append(file);
+            }
+            else{
+                filenameList.append(file);
+                continue;
+            }
+        }
+        else{
+            if (fileList.at(var).length()>maxLength)
+                maxLength = fileList.at(var).length();
+            else
+                continue;
+        }
     }
-    maxLength*=3;
+    maxLength*=7;
     ui->tabWidget->setStyleSheet("QTabBar::tab { height:20px; width:"+QString::number(maxLength)+"px; }");
 }
 
@@ -54,8 +69,6 @@ void GraphET_parent::loadAndShow(){
     QMap<QString,QVector<QVector<int>>> mapInt;
 
     for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
-
-
         QFile datFile(fileList.at(fileIndex));
         if (datFile.exists()){
             QJsonObject loadedJSON = readJson(datFile);
@@ -73,9 +86,7 @@ void GraphET_parent::loadAndShow(){
         }
     }
     for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
-        QStringList nameList;
-        QString folder,file,suffix;
-        processFilePath(fileList.at(fileIndex),folder,file,suffix);
+
         GrafET* _graph = new GrafET(mapDouble["entropy"][fileIndex],
                                     mapDouble["tennengrad"][fileIndex],
                                     mapInt["firstEvalEntropy"][fileIndex],
@@ -83,7 +94,7 @@ void GraphET_parent::loadAndShow(){
                                     mapInt["firstEval"][fileIndex],
                                     mapInt["secondEval"][fileIndex],
                                     mapInt["evaluation"][fileIndex]);
-        ui->tabWidget->addTab(_graph,file);
+        ui->tabWidget->addTab(_graph,filenameList.at(fileIndex));
     }
 }
 
