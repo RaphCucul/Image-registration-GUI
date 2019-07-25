@@ -6,7 +6,7 @@
 
 QT       += core gui charts
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport network
 
 TARGET = frames_registration
 TEMPLATE = app
@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    dialogs/newversiondialog.cpp \
     image_analysis/entropy.cpp \
     image_analysis/frangi.cpp \
     image_analysis/correlation_coefficient.cpp \
@@ -79,9 +80,12 @@ SOURCES += \
     multithreadET/qthreadsecondpart.cpp \
     multithreadET/qthreadthirdpart.cpp \
     multithreadET/qthreadfourthpart.cpp \
-    multithreadET/qthreadfifthpart.cpp
+    multithreadET/qthreadfifthpart.cpp \
+    util/versionchecker.cpp \
+    util/versioncheckerparent.cpp
 
 HEADERS += \
+    dialogs/newversiondialog.h \
     image_analysis/entropy.h \
     image_analysis/frangi.h \
     image_analysis/correlation_coefficient.h \
@@ -117,6 +121,7 @@ HEADERS += \
     registration/multiPOC_Ai1.h \
     registration/registrationthread.h \
 ################################################
+    shared_staff/version.h \
     util/files_folders_operations.h \
     util/systemmonitor.h \
     util/util_grafet.h \
@@ -136,10 +141,13 @@ HEADERS += \
     multithreadET/qthreadsecondpart.h \
     multithreadET/qthreadthirdpart.h \
     multithreadET/qthreadfourthpart.h \
-    multithreadET/qthreadfifthpart.h
+    multithreadET/qthreadfifthpart.h \
+    util/versionchecker.h \
+    util/versioncheckerparent.h
 
 FORMS += \
     dialogs/hdd_settings.ui \
+    dialogs/newversiondialog.ui \
     dialogs/singlevideoregistration.ui \
     ui/graphet_parent.ui \
     ui/chartinit.ui \
