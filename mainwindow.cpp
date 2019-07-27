@@ -42,8 +42,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->menuLanguage,SIGNAL(triggered(QAction*)),this,SLOT(slotLanguageChanged(QAction*)));
     connect(ui->menuSettings,SIGNAL(triggered(QAction*)),this,SLOT(slotSettingsChanged(QAction*)));
     localErrorDialogHandler[ui->hddWidget] = new ErrorDialog(ui->hddWidget);
-
-    if (GlobalSettings::getSettings()->getAutoUpdateSetting()){
+    bool status = GlobalSettings::getSettings()->getAutoUpdateSetting();
+    ui->menuSettings->actions().at(2)->setChecked(status);
+    if (status){
         timer = new QTimer(this);
         timer->setInterval(1000);
         timer->setTimerType(Qt::PreciseTimer);
@@ -116,10 +117,10 @@ void MainWindow::loadLanguage(const QString& rLanguage)
 {
     QString currentLanguage = GlobalSettings::getSettings()->getLanguage();
     qDebug()<<rLanguage;
-    if ((rLanguage == "Angličtina" || rLanguage == "English") && currentLanguage != "EN"){
+    if ((rLanguage == tr("English")) && currentLanguage != "EN"){
         switchTranslator("EN");
     }
-    else if ((rLanguage == "Čeština" || rLanguage == "Czech") && currentLanguage != "CZ")
+    else if ((rLanguage == tr("Czech")) && currentLanguage != "CZ")
         switchTranslator("CZ");
 }
 
@@ -157,6 +158,7 @@ void MainWindow::slotSettingsChanged(QAction* action){
         }
         else if (action->text() == tr("Check for update automatically")){
             GlobalSettings::getSettings()->setAutoUpdateSetting(action->isChecked());
+            action->setChecked(action->isChecked());
         }
     }
 }

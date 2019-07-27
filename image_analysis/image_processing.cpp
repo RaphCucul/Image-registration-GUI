@@ -59,6 +59,7 @@ void showMat(std::string i_windowName, cv::Mat i_frameToShow)
             frameToShow_8U.convertTo(frameToShow_8U,CV_8UC1);
         }
     }
+    namedWindow(i_windowName);
     imshow(i_windowName,frameToShow_8U);
     frameToShow_8U.release();
 }

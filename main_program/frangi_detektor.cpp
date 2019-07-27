@@ -306,6 +306,7 @@ void Frangi_detektor::showStandardCutout(Mat &i_chosenFrame){
     cutoutStandard.height = rowTo - cutoutStandard.y;
 
     cv::rectangle(i_chosenFrame, cutoutStandard, Scalar(255), 1, 8, 0);
+    cv::namedWindow("Chosen frame with standard cutout area");
     cv::imshow("Chosen frame with standard cutout area",i_chosenFrame);
 }
 
@@ -332,7 +333,6 @@ void Frangi_detektor::on_fileToAnalyse_clicked()
         this->ui->frameNumber->setEnabled(true);
         ui->chosenFile->setText(analyseChosenFile[1]);
     }
-
 }
 
 void Frangi_detektor::on_frameNumber_textChanged(const QString &arg1)

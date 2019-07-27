@@ -289,6 +289,7 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
         }
         if (i_showResult == 1)
         {
+            namedWindow(i_windowName.toLocal8Bit().constData());
             drawMarker(imageFrangi,max_loc_frangi,(0));
             cv::imshow(i_windowName.toLocal8Bit().constData(),imageFrangi);
         }
