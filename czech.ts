@@ -74,42 +74,42 @@
         <translation>BETA TWO</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="386"/>
+        <location filename="ui/frangi_detektor.ui" line="392"/>
         <source>Left margin</source>
         <translation>levý okraj</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="393"/>
+        <location filename="ui/frangi_detektor.ui" line="399"/>
         <source>Right margin</source>
         <translation>pravý okraj</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="400"/>
+        <location filename="ui/frangi_detektor.ui" line="406"/>
         <source>Top margin</source>
         <translation>horní okraj</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="407"/>
+        <location filename="ui/frangi_detektor.ui" line="413"/>
         <source>Bottom margin</source>
         <translation>dolní okraj</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="463"/>
+        <location filename="ui/frangi_detektor.ui" line="469"/>
         <source>Left ratio</source>
         <translation>levý poměr</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="470"/>
+        <location filename="ui/frangi_detektor.ui" line="476"/>
         <source>Right ratio</source>
         <translation>pravý poměr</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="477"/>
+        <location filename="ui/frangi_detektor.ui" line="483"/>
         <source>Top ratio</source>
         <translation>horní poměr</translation>
     </message>
     <message>
-        <location filename="ui/frangi_detektor.ui" line="484"/>
+        <location filename="ui/frangi_detektor.ui" line="490"/>
         <source>Bottom ratio</source>
         <translation>dolní poměr</translation>
     </message>
@@ -155,7 +155,7 @@
         <translation>Frangi filtrace vybraneho videosnimku</translation>
     </message>
     <message>
-        <location filename="main_program/frangi_detektor.cpp" line="315"/>
+        <location filename="main_program/frangi_detektor.cpp" line="316"/>
         <source>Choose frame for Frangi filter analysis</source>
         <translation>Vyberte videosnímek pro Frangiho filtr</translation>
     </message>
@@ -446,20 +446,54 @@
         <translation>Nastavení</translation>
     </message>
     <message>
-        <location filename="ui/mainwindow.ui" line="212"/>
+        <location filename="ui/mainwindow.ui" line="214"/>
+        <location filename="mainwindow.cpp" line="120"/>
         <source>English</source>
         <translation>Angličtina</translation>
     </message>
     <message>
-        <location filename="ui/mainwindow.ui" line="221"/>
+        <location filename="ui/mainwindow.ui" line="223"/>
+        <location filename="mainwindow.cpp" line="123"/>
         <source>Czech</source>
         <translation>Čeština</translation>
     </message>
     <message>
-        <location filename="ui/mainwindow.ui" line="226"/>
-        <location filename="mainwindow.cpp" line="103"/>
+        <location filename="ui/mainwindow.ui" line="228"/>
+        <location filename="mainwindow.cpp" line="140"/>
         <source>Add HDD counter name</source>
         <translation>Přidat jméno HDD čítače</translation>
+    </message>
+    <message>
+        <location filename="ui/mainwindow.ui" line="236"/>
+        <source>Enable auto-check</source>
+        <translation>Povolit automatickou kontrolu aktualizací</translation>
+    </message>
+    <message>
+        <location filename="ui/mainwindow.ui" line="241"/>
+        <location filename="mainwindow.cpp" line="145"/>
+        <source>Check for update</source>
+        <translation>Zkontrolovat aktualizace</translation>
+    </message>
+    <message>
+        <location filename="ui/mainwindow.ui" line="252"/>
+        <location filename="mainwindow.cpp" line="159"/>
+        <source>Check for update automatically</source>
+        <translation>Zkontrolovat aktualizace automaticky</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="35"/>
+        <source>No data</source>
+        <translation>Žádná data</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="129"/>
+        <source>Out of date</source>
+        <translation>Zastaralý</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="133"/>
+        <source>Up to date</source>
+        <translation>Aktuální</translation>
     </message>
 </context>
 <context>
@@ -715,6 +749,29 @@
     </message>
 </context>
 <context>
+    <name>NewVersionDialog</name>
+    <message>
+        <location filename="dialogs/newversiondialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation>Nová verze k dispozici</translation>
+    </message>
+    <message>
+        <location filename="dialogs/newversiondialog.ui" line="20"/>
+        <source>Current version:</source>
+        <translation>Aktuální verze:</translation>
+    </message>
+    <message>
+        <location filename="dialogs/newversiondialog.ui" line="37"/>
+        <source>New version:</source>
+        <translation>Nová verze:</translation>
+    </message>
+    <message>
+        <location filename="dialogs/newversiondialog.ui" line="78"/>
+        <source>Confirm</source>
+        <translation>Potvrdit</translation>
+    </message>
+</context>
+<context>
     <name>RegistrateTwo</name>
     <message>
         <location filename="ui/registratetwo.ui" line="14"/>
@@ -900,7 +957,7 @@
     <message>
         <location filename="dialogs/singlevideoet.cpp" line="53"/>
         <location filename="dialogs/singlevideoet.cpp" line="209"/>
-        <location filename="dialogs/singlevideoet.cpp" line="382"/>
+        <location filename="dialogs/singlevideoet.cpp" line="381"/>
         <source>Analyze video</source>
         <translation>Analyzovat video</translation>
     </message>
@@ -935,32 +992,32 @@
         <translation>Zrušit</translation>
     </message>
     <message>
-        <location filename="dialogs/singlevideoet.cpp" line="380"/>
+        <location filename="dialogs/singlevideoet.cpp" line="379"/>
         <source>Fifth part done. Analysis completed</source>
         <translation>Pátá část dokončena. Analýza kompletní</translation>
     </message>
     <message>
-        <location filename="dialogs/singlevideoet.cpp" line="402"/>
+        <location filename="dialogs/singlevideoet.cpp" line="401"/>
         <source>1/5 Entropy and tennengrad computation</source>
         <translation>1/5 Výpočet entropie a tennengradu</translation>
     </message>
     <message>
-        <location filename="dialogs/singlevideoet.cpp" line="404"/>
+        <location filename="dialogs/singlevideoet.cpp" line="403"/>
         <source>2/5 Average correlation and FWHM</source>
         <translation>2/5 Průměrná korelace a FWHM</translation>
     </message>
     <message>
-        <location filename="dialogs/singlevideoet.cpp" line="406"/>
+        <location filename="dialogs/singlevideoet.cpp" line="405"/>
         <source>3/5 First decision algorithm started</source>
         <translation>3/5 První rozhodovací algoritmus</translation>
     </message>
     <message>
-        <location filename="dialogs/singlevideoet.cpp" line="408"/>
+        <location filename="dialogs/singlevideoet.cpp" line="407"/>
         <source>4/5 Second decision algorithm started</source>
         <translation>4/5 Druhý rozhodovací algoritmus</translation>
     </message>
     <message>
-        <location filename="dialogs/singlevideoet.cpp" line="410"/>
+        <location filename="dialogs/singlevideoet.cpp" line="409"/>
         <source>5/5 Third decision algorithm started</source>
         <translation>5/5 Třetí rozhodovací algoritmus</translation>
     </message>
