@@ -8,7 +8,11 @@
 #include <QVector>
 #include <QMap>
 #include <QRectF>
+#include <typeinfo>
 #include <opencv2/opencv.hpp>
+
+#include "shared_staff/sharedvariables.h"
+#include "util/vector_operations.h"
 using namespace std;
 /**
  * @brief Funcion analyse the content of the provided directory, tries to find all files with the given
@@ -54,28 +58,122 @@ void writeJson(QJsonObject& i_object, QJsonArray& i_array, QString i_type, QStri
  * @param vector
  * @return
  */
-QJsonArray vector2array(QVector<double>& i_vector);
+//QJsonArray vector2array(QVector<double>& i_vector);
 
 /**
  * @brief
  * @param vector
  * @return
  */
-QJsonArray vector2array(QVector<int>& i_vector);
+//QJsonArray vector2array(QVector<int>& i_vector);
 
 /**
  * @brief
  * @param array
  * @return
  */
-QVector<int> arrayInt2vector(QJsonArray& i_array);
+//QVector<int> arrayInt2vector(QJsonArray& i_array);
 
 /**
  * @brief
  * @param array
  * @return
  */
-QVector<double> arrayDouble2vector(QJsonArray& i_array);
+//QVector<double> arrayDouble2vector(QJsonArray& i_array);
 
+/**
+ * @brief
+ * @tparam T
+ */
+template <class T>
+QJsonArray vector2array(QVector<T> i_vector){
+    QJsonArray array;
+    copy(i_vector.begin(), i_vector.end(), back_inserter(array));
+    return array;
+}
+
+/**
+ * @brief
+ * @tparam T
+ */
+template <class T>
+QVector<T> array2vector(QJsonArray i_array){
+    QVector<T> output;
+    for (T indexarray = T(0); indexarray < T(i_array.size()); indexarray++){
+        if (typeid(T) == typeid(int))
+            output.push_back(i_array[indexarray].toInt());
+        else
+            output.push_back(i_array[indexarray].toDouble());
+    }
+    return output;
+}
+
+QJsonObject maps2Object(QStringList i_parameters, QString i_videoName,
+                        QMap<QString,QMap<QString,QVector<double>>> i_mapDouble,
+                        QMap<QString,QMap<QString,QVector<int>>> i_mapInt,
+                        QMap<QString,QMap<QString,cv::Rect>> i_mapAnomaly);
+
+/**
+ * @brief
+ * @tparam i_parameter
+ * @tparam i_videoName
+ * @tparam T vector type to work with
+ */
+template <class T>
+bool checkAndLoadData(QString i_parameter, QString i_videoName, QVector<T>& o_vector) {
+    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
+    QFile file;
+    file.setFileName(actualDatFilePath+"/"+i_videoName+".dat");
+    if (file.exists()) {
+        QJsonObject data = readJson(file);
+        if (!data[i_parameter].isUndefined()) {
+            QJsonArray dataArray = data[i_parameter].toArray();
+            o_vector = array2vector<T>(dataArray);
+            if (vectorSum(o_vector) > 0)
+                return true;
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+    else
+        return false;
+}
+
+/**
+ * @brief convertQRectToRect
+ * @param i_input
+ * @return
+ */
 QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input);
+
+/**
+ * @brief convertRect2Vector
+ * @param i_rectangular
+ * @return
+ */
+QVector<int> convertRect2Vector(cv::Rect i_rectangular);
+
+/**
+ * @brief checkReferentialFrameExistence
+ * @param i_folder
+ * @param i_videoName
+ * @param i_referentialFrame
+ * @return
+ */
+bool checkReferentialFrameExistence(QString i_folder,QString i_videoName,int i_referentialFrame);
+
+/**
+ * @brief checkAndLoadData
+ * @param i_parameter
+ * @return
+ */
+//bool checkAndLoadData(QString i_parameter, QString i_videoName, QString i_type, QVector<T> &o_vector);
+
+/**
+ * @brief findReferentialFrameData
+ * @return
+ */
+bool findReferentialFrameData(QString i_name, int& i_referentialFrame, QPoint& i_point);
 #endif // FILES_FOLDERS_OPERATIONS_H_INCLUDED

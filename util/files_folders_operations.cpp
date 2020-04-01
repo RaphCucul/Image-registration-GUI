@@ -56,7 +56,7 @@ void writeJson(QJsonObject &i_object, QJsonArray &i_array, QString i_type, QStri
     zapis.close();
 }
 
-QJsonArray vector2array(QVector<double> &i_vector)
+/*QJsonArray vector2array(QVector<double> &i_vector)
 {
     QJsonArray array;
     copy(i_vector.begin(), i_vector.end(), back_inserter(array));
@@ -68,9 +68,9 @@ QJsonArray vector2array(QVector<int>& i_vector)
     QJsonArray array;
     copy(i_vector.begin(), i_vector.end(), back_inserter(array));
     return array;
-}
+}*/
 
-QVector<int> arrayInt2vector(QJsonArray& i_array)
+/*QVector<int> arrayInt2vector(QJsonArray& i_array)
 {
     QVector<int> output;
     for (int indexarray = 0; indexarray < i_array.size(); indexarray++){
@@ -86,6 +86,35 @@ QVector<double> arrayDouble2vector(QJsonArray& i_array)
         output.push_back(i_array[indexarray].toDouble());
     }
     return output;
+}*/
+
+QJsonObject maps2Object(QStringList i_parameters,
+                        QString i_videoName,
+                        QMap<QString,QMap<QString,QVector<double>>> i_mapDouble,
+                        QMap<QString,QMap<QString,QVector<int>>> i_mapInt,
+                        QMap<QString, QMap<QString, cv::Rect> > i_mapAnomaly) {
+
+    QJsonObject _returnObject;
+    for (int parameter = 0; parameter < i_parameters.count(); parameter++){
+        //qDebug()<<videoParameters.at(parameter);
+        if (parameter <= 8){
+            QVector<double> pomDouble = i_mapDouble[i_parameters.at(parameter)][i_videoName];
+            QJsonArray pomArray = vector2array(pomDouble);
+            _returnObject[i_parameters.at(parameter)] = pomArray;
+        }
+        else if (parameter > 8 && parameter <= 13){
+            QVector<int> pomInt = i_mapInt[i_parameters.at(parameter)][i_videoName];
+            /*if (i_parameters.at(parameter) == "evaluation")
+                pomInt[framesReferencial[i_videoName]]=2;*/
+            QJsonArray pomArray = vector2array(pomInt);
+            _returnObject[i_parameters.at(parameter)] = pomArray;
+        }
+        else if (parameter > 13 && parameter <= 15) {
+            QVector<int> pomInt = convertRect2Vector(i_mapAnomaly[i_parameters.at(parameter)][i_videoName]);
+            QJsonArray pomArray = vector2array(pomInt);
+            _returnObject[i_parameters.at(parameter)] = pomArray;
+        }
+    }
 }
 
 QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input){
@@ -102,3 +131,93 @@ QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input){
 
     return _output;
 }
+
+QVector<int> convertRect2Vector(cv::Rect i_rectangular) {
+    QVector<int> _returnVector;
+
+    _returnVector.push_back(i_rectangular.x);
+    _returnVector.push_back(i_rectangular.y);
+    _returnVector.push_back(i_rectangular.width);
+    _returnVector.push_back(i_rectangular.height);
+
+    return _returnVector;
+}
+
+bool checkReferentialFrameExistence(QString i_folder, QString i_videoName, int i_referentialFrame){
+    QFile file;
+    file.setFileName(i_folder+"/"+i_videoName+".dat");
+    if (file.exists()){
+        // if the file exists, try to find referential frame info
+        QJsonObject data = readJson(file);
+        QJsonArray dataArray = data["evaluation"].toArray();
+
+        // if the user set referential frame number, check it first
+        if (i_referentialFrame != -1){
+            if (dataArray.at(i_referentialFrame).toInt() == 2)
+                return true;
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+    else // the dat file not found -> terminate with true -> the error label will not be activated
+        return true;
+}
+
+bool findReferentialFrameData(QString i_name, int &i_referentialFrame, QPoint& i_point){
+    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
+    // get *.dat file
+    QFile file;
+    file.setFileName(actualDatFilePath+"/"+i_name+".dat");
+    if (file.exists()){
+        // if the file exists, try to find referential frame info
+        QJsonObject data = readJson(file);
+        QJsonArray dataArray = data["evaluation"].toArray();
+
+        // user set referential frame - it can be true referential frame
+        // but it could not be -> -1 indicates a user does not know referential frame
+        if (i_referentialFrame == -1){
+            for (int i=0;i<dataArray.count();i++){
+                if (dataArray.at(i).toInt() == 2){
+                    i_referentialFrame = i;
+                    break;
+                }
+                else
+                    continue;
+            }
+        }
+
+        if (i_referentialFrame == -1) // referential frame was not found in the file
+            return false;
+        else{
+            QJsonArray _frangiX = data["FrangiX"].toArray();
+            QJsonArray _frangiY = data["FrangiY"].toArray();
+            // the frangi coordinates still can be (0,0)
+            if (_frangiX.at(i_referentialFrame).toDouble() != 0.0 && _frangiY.at(i_referentialFrame).toDouble() != 0.0){
+                i_point.setX(_frangiX.at(i_referentialFrame).toInt());
+                i_point.setY(_frangiY.at(i_referentialFrame).toInt());
+                return true;
+            }
+            else
+                return false;
+        }
+    }
+    else
+        return false;
+}
+
+/*bool checkAndLoadData(QString i_parameter, QString i_videoName, QString i_type) {
+    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
+    // get *.dat file
+    QFile file;
+    file.setFileName(actualDatFilePath+"/"+i_videoName+".dat");
+    if (file.exists()) {
+        // if the file exists, try to find referential frame info
+        QJsonObject data = readJson(file);
+        QJsonArray dataArray = data[i_parameter].toArray();
+        if (i_type == "int"){
+            QVector<int>
+        }
+    }
+}*/

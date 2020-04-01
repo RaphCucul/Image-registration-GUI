@@ -68,7 +68,8 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
                             int& i_dmin,
                             double& i_restToEnd,
                             QVector<int>& i_badFrames,
-                            QVector<double>& i_forEvaluation);
+                            QVector<double>& i_forEvaluation,
+                            bool explicitThresholds);
 
 /**
  * @brief Find referencial frame.
@@ -110,6 +111,26 @@ QVector<QVector<int>> divideIntoPeaces(int i_totalLength, int i_threadCount);
  */
 void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString>& i_whereToSave);
 
-int vectorSum(QVector<int> i_input);
-double vectorSum(QVector<double> i_input);
+template <typename T>
+T vectorSum(QVector<T> i_input) {
+    T output=0;
+    for (int vectorElement = 0; vectorElement < i_input.length(); vectorElement++)
+        output += i_input[vectorElement];
+
+    return output;
+}
+
+/**
+ * @brief vectorSum
+ * @param i_input
+ * @return
+ */
+//int vectorSum(QVector<int> i_input);
+
+/**
+ * @brief vectorSum
+ * @param i_input
+ * @return
+ */
+//double vectorSum(QVector<double> i_input);
 #endif // VECTOR_OPERATIONS_H_INCLUDED
