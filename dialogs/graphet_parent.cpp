@@ -2,6 +2,7 @@
 #include "ui_graphet_parent.h"
 #include "dialogs/grafet.h"
 #include "util/files_folders_operations.h"
+#include "shared_staff/sharedvariables.h"
 
 GraphET_parent::GraphET_parent(QStringList i_chosenList,QWidget *parent) :
     QDialog(parent),
@@ -9,27 +10,28 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,QWidget *parent) :
 {
     ui->setupUi(this);
     fileList = i_chosenList;
-    analyseNames(namesFlag::Fullname);
+    analyseNames(namesFlag::FilenameOnly);
     loadAndShow();
     this->setStyleSheet("background-color: white");
 }
 
 GraphET_parent::GraphET_parent(QStringList i_chosenList,
-                               QVector<QVector<double> > i_entropy,
-                               QVector<QVector<double> > i_tennengrad,
-                               QVector<QVector<int> > i_FirstEvalEntropy,
-                               QVector<QVector<int> > i_FirstEvalTennengrad,
-                               QVector<QVector<int> > i_FirstDecisionResults,
-                               QVector<QVector<int> > i_SecondDecisionResults,
-                               QVector<QVector<int> > i_CompleteEvaluation,
+                               QMap<QString, QVector<double>> i_entropy,
+                               QMap<QString, QVector<double>> i_tennengrad,
+                               QMap<QString, QVector<double> > i_thresholds,
+                               QMap<QString, QVector<int>> i_FirstEvalEntropy,
+                               QMap<QString, QVector<int>> i_FirstEvalTennengrad,
+                               QMap<QString, QVector<int>> i_FirstDecisionResults,
+                               QMap<QString, QVector<int>> i_SecondDecisionResults,
+                               QMap<QString, QVector<int>> i_CompleteEvaluation,
                                QWidget *parent) : QDialog(parent),ui(new Ui::GraphET_parent)
 {
     ui->setupUi(this);
-    fileList = i_chosenList;    
-    processAndShow(i_entropy,i_tennengrad,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
+    fileList = i_chosenList;
+    analyseNames(namesFlag::FilenameOnly);
+    processAndShow(i_entropy,i_tennengrad,i_thresholds,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
                    i_SecondDecisionResults,i_CompleteEvaluation);
     this->setStyleSheet("background-color: white");
-    analyseNames(namesFlag::FilenameOnly);
 }
 
 GraphET_parent::~GraphET_parent()
@@ -40,7 +42,7 @@ GraphET_parent::~GraphET_parent()
 void GraphET_parent::analyseNames(namesFlag parameter){
     int maxLength = 0;
     for (int var = 0; var < fileList.count(); var++) {
-        if (parameter == namesFlag::Fullname){
+        if (parameter == namesFlag::FilenameOnly){
             QStringList nameList;
             QString folder,file,suffix;
             processFilePath(fileList.at(var),folder,file,suffix);
@@ -52,6 +54,7 @@ void GraphET_parent::analyseNames(namesFlag parameter){
                 filenameList.append(file);
                 continue;
             }
+            videoReferences.insert(fileList.at(var),file);
         }
         else{
             if (fileList.at(var).length()>maxLength)
@@ -64,58 +67,117 @@ void GraphET_parent::analyseNames(namesFlag parameter){
     ui->tabWidget->setStyleSheet("QTabBar::tab { height:20px; width:"+QString::number(maxLength)+"px; }");
 }
 
-void GraphET_parent::loadAndShow(){
-    QMap<QString,QVector<QVector<double>>> mapDouble;
-    QMap<QString,QVector<QVector<int>>> mapInt;
+bool GraphET_parent::prepareData(QString i_videoName, QJsonObject& loadedData) {
+    QString filePath = videoReferences.key(i_videoName);
+    QFile datFile(filePath);
+    if (datFile.exists()){
+        loadedData = readJson(datFile);
+        return true;
+    }
+    else
+        return false;
+}
 
-    for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
-        QFile datFile(fileList.at(fileIndex));
-        if (datFile.exists()){
-            QJsonObject loadedJSON = readJson(datFile);
-            for (int parameterIndex = 0; parameterIndex < neededParameters.count(); parameterIndex++){
+void GraphET_parent::loadAndShow(){
+    QMap<QString,QMap<QString,QVector<double>>> mapDouble;
+    QMap<QString,QMap<QString,QVector<int>>> mapInt;
+
+    for (int parameterIndex = 0; parameterIndex < neededParameters.count(); parameterIndex++) {
+        foreach (QString filePath, fileList ) {
+            QFile datFile(filePath);
+            if (datFile.exists()) {
+                QString video = videoReferences[filePath];
+                QJsonObject loadedJSON = readJson(datFile);
+
+                QMap<QString,QVector<double>> _pomD;
+                QMap<QString,QVector<int>> _pomI;
                 QJsonArray loadedArrayData = loadedJSON[neededParameters.at(parameterIndex)].toArray();
-                if (parameterIndex < 2){
-                    QVector<double> _pom = arrayDouble2vector(loadedArrayData);
-                    mapDouble[neededParameters.at(parameterIndex)].append(_pom);
+                if (parameterIndex < 3){
+                    _pomD.insert(video,array2vector<double>(loadedArrayData));
                 }
                 else{
-                    QVector<int> _pom = arrayInt2vector(loadedArrayData);
-                    mapInt[neededParameters.at(parameterIndex)].append(_pom);
+                    _pomI.insert(video,array2vector<int>(loadedArrayData));
+                }
+                if (parameterIndex < 3){
+                    mapDouble.insert(neededParameters.at(parameterIndex),_pomD);
+                }
+                else{
+                    mapInt.insert(neededParameters.at(parameterIndex),_pomI);
                 }
             }
         }
     }
-    for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
 
-        GrafET* _graph = new GrafET(mapDouble["entropy"][fileIndex],
-                                    mapDouble["tennengrad"][fileIndex],
-                                    mapInt["firstEvalEntropy"][fileIndex],
-                                    mapInt["firstEvalTennengrad"][fileIndex],
-                                    mapInt["firstEval"][fileIndex],
-                                    mapInt["secondEval"][fileIndex],
-                                    mapInt["evaluation"][fileIndex]);
-        ui->tabWidget->addTab(_graph,filenameList.at(fileIndex));
+    int index = 0;
+    foreach (QString video, filenameList){
+        GrafET* _graph = new GrafET(mapDouble["entropy"][video],
+                                    mapDouble["tennengrad"][video],
+                                    mapDouble["thresholds"][video],
+                                    mapInt["firstEvalEntropy"][video],
+                                    mapInt["firstEvalTennengrad"][video],
+                                    mapInt["firstEval"][video],
+                                    mapInt["secondEval"][video],
+                                    mapInt["evaluation"][video],
+                                    video,"avi");
+        ui->tabWidget->addTab(_graph,filenameList.at(index));
+        index++;
+        /*connect(_graph,&GrafET::saveCalculatedData,[=](){
+            qDebug()<<"Saving data from GrafET class object for video "<<_graph->getVideoName()<<"\n"<<"passing the signal";
+            emit saveCalculatedData(_graph->getVideoName(), _graph->getReturnJSONObject());
+        });*/
+        connect(_graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SLOT(saveDataForGivenVideo(QString,QJsonObject)));
+        connect(_graph,&GrafET::resizeWindow,[=](){
+            resize(sizeHint());
+        });
     }
 }
 
-void GraphET_parent::processAndShow(QVector<QVector<double> > i_entropy,
-                                    QVector<QVector<double> > i_tennengrad,
-                                    QVector<QVector<int> > i_FirstEvalEntropy,
-                                    QVector<QVector<int> > i_FirstEvalTennengrad,
-                                    QVector<QVector<int> > i_FirstDecisionResults,
-                                    QVector<QVector<int> > i_SecondDecisionResults,
-                                    QVector<QVector<int> > i_CompleteEvaluation){
-    for (int fileIndex = 0; fileIndex < fileList.count(); fileIndex++){
-        QStringList nameList;
-        QString folder,file,suffix;
-        processFilePath(fileList.at(fileIndex),folder,file,suffix);
-        GrafET* _graph = new GrafET(i_entropy[fileIndex],
-                                    i_tennengrad[fileIndex],
-                                    i_FirstEvalEntropy[fileIndex],
-                                    i_FirstEvalTennengrad[fileIndex],
-                                    i_FirstDecisionResults[fileIndex],
-                                    i_SecondDecisionResults[fileIndex],
-                                    i_CompleteEvaluation[fileIndex]);
+void GraphET_parent::processAndShow(QMap<QString,QVector<double>> i_entropy,
+                                    QMap<QString,QVector<double>> i_tennengrad,
+                                    QMap<QString, QVector<double> > i_thresholds,
+                                    QMap<QString,QVector<int>> i_FirstEvalEntropy,
+                                    QMap<QString,QVector<int>> i_FirstEvalTennengrad,
+                                    QMap<QString,QVector<int>> i_FirstDecisionResults,
+                                    QMap<QString,QVector<int>> i_SecondDecisionResults,
+                                    QMap<QString,QVector<int>> i_CompleteEvaluation)
+{
+    foreach (QString file, filenameList){
+        GrafET* _graph = new GrafET(i_entropy[file],
+                                    i_tennengrad[file],
+                                    i_thresholds[file],
+                                    i_FirstEvalEntropy[file],
+                                    i_FirstEvalTennengrad[file],
+                                    i_FirstDecisionResults[file],
+                                    i_SecondDecisionResults[file],
+                                    i_CompleteEvaluation[file],
+                                    file,"avi");
         ui->tabWidget->addTab(_graph,file);
+        /*connect(_graph,&GrafET::saveCalculatedData,[=](){
+            qDebug()<<"Saving data from GrafET class object for video "<<_graph->getVideoName()<<"\n"<<"passing the signal";
+            emit saveCalculatedData(_graph->getVideoName(), _graph->getReturnJSONObject());
+        });*/
+        connect(_graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SIGNAL(saveCalculatedData(QString,QJsonObject)));
+        connect(_graph,&GrafET::resizeWindow,[=](){
+            resize(sizeHint());
+        });
     }
+}
+
+void GraphET_parent::saveDataForGivenVideo(QString i_videoName,QJsonObject i_newData) {
+    QJsonObject loadedData;
+    QJsonDocument document;
+    if (prepareData(i_videoName,loadedData)){
+        foreach (QString key, i_newData.keys()) {
+            loadedData[key] = i_newData[key];
+        }
+        document.setObject(loadedData);
+        QString documentString = document.toJson();
+        QFile writer;
+        writer.setFileName(videoReferences.key(i_videoName));
+        writer.open(QIODevice::WriteOnly);
+        writer.write(documentString.toLocal8Bit());
+        writer.close();
+    }
+    else
+        qDebug()<<"Saving for "<<i_videoName<<" failed";
 }
