@@ -130,3 +130,29 @@ void transformMatTypeTo8C3(cv::Mat& i_MatToCheck)
         }
     }
 }
+
+QRect transform_CV_RECT_to_QRect(cv::Rect i_rect){
+    return QRect(i_rect.x,i_rect.y,i_rect.width,i_rect.height);
+    /*QRect result;
+    result.setX(i_rect.x);
+    result.setY(i_rect.y);
+    result.setWidth(i_rect.width);
+    result.setHeight(i_rect.height);
+    return result;*/
+}
+
+cv::Rect transform_QRect_to_CV_RECT(QRect i_rect){
+    return cv::Rect(i_rect.x(),i_rect.y(),i_rect.width(),i_rect.height());
+}
+
+QPoint transform_CV_POINT_to_QPoint(cv::Point i_point){
+    return QPoint(i_point.x,i_point.y);
+}
+
+QPointF transform_CV_POINTF_to_QPointF(cv::Point3d i_point){
+    return QPointF(i_point.x,i_point.y);
+}
+
+cv::Point3d transform_QPoint_to_CV_Point3d(QPoint i_point){
+    return cv::Point3d(i_point.x(),i_point.y(),0.0);
+}
