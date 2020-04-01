@@ -2,6 +2,7 @@
 #define MULTIPOC_AI1_H_INCLUDED
 #include <opencv2/opencv.hpp>
 #include <QCheckBox>
+#include <QObject>
 
 /**
  * @brief The main function performing the registration of two frames - referencial and another one.
@@ -34,14 +35,14 @@ bool completeRegistration(cv::VideoCapture& cap,
                           QVector<double> &i_maxAngles);
 
 /**
- * @brief Function does preprocessing before main registration function. It populates cutouts cv::Rect variables
- * according to the existing anomalies - if at least one anomaly exists, area of the image the final translation
- * will be computed from must be adjusted.
+ * @brief Function does preprocessing before main registration function is called. It populates cv::Rect objects
+ * according to the userly made changes. If the change in extra cutout was made, it is necessary to recalculate
+ * standard cutout, if this parameter was to modified too.
  * @param reference
  * @param image
  * @param parFrang
- * @param verticalAnomaly
- * @param horizontalAnomaly
+ * @param i_standardCutout
+ * @param i_extraCutout
  * @param fraMax
  * @param anomalyArea
  * @param cutoutStandard
@@ -51,15 +52,14 @@ bool completeRegistration(cv::VideoCapture& cap,
  * @param scalingNeeded
  */
 bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
-                                       cv::Mat &i_newreferencial,
+                                       cv::Point3d& i_frangi_point,
+                                       cv::Rect &i_standardCutout,
                                        QVector<double> i_frangiParameters,
-                                       cv::Point2d i_verticalAnomalyCoords,
-                                       cv::Point2d i_horizontalAnomalyCoords,
-                                       cv::Rect &i_anomalyArea,
-                                       cv::Rect &i_cutoutExtra,
-                                       cv::Rect &i_cutoutStandard,
-                                       cv::VideoCapture &i_cap,
-                                       bool &i_scaleChange,
                                        QMap<QString,double> frangiRatios,
                                        QMap<QString,int> frangiMargins);
+
+cv::Rect calculateStandardCutout(cv::Point3d i_frangi, QMap<QString, double> i_ratios, int i_rows,
+                                 int i_cols);
+cv::Rect adjustStandardCutout(cv::Rect i_extraCutoutParameters, cv::Rect i_originalStandardCutout,
+                              int i_rows, int i_cols);
 #endif // MULTIPOC_AI1_H_INCLUDED

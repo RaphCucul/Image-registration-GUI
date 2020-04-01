@@ -33,41 +33,52 @@ bool completeRegistration(cv::VideoCapture& cap,
         i_pocX.push_back(0.0);
         i_pocY.push_back(0.0);
         i_maxAngles.push_back(0.0);
-
-        Mat shifted_temp;
-        cap.set(CV_CAP_PROP_POS_FRAMES,i_translatedNo);
+        cv::Rect adjustedStandardCutout(0,0,0,0);
+        qDebug()<<"Extra: "<<i_cutoutExtra.width<<" "<<i_cutoutExtra.height;
+        qDebug()<<"Standard: "<<i_cutoutStandard.width<<" "<<i_cutoutStandard.height;
         double totalAngle = 0.0;
-        if(!cap.read(shifted_temp))
-            return false;
 
-        transformMatTypeTo8C3(i_referencial);
-        transformMatTypeTo8C3(shifted_temp);
-        int rows = i_referencial.rows;
-        int cols = i_referencial.cols;
-        Mat hann;
-        createHanningWindow(hann, i_referencial.size(), CV_32FC1);
+        //transformMatTypeTo8C3(i_referencial);
+        //transformMatTypeTo8C3(shifted_temp);
         Mat referencialFrame_32f,referencialFrame_vyrez;
         i_referencial.copyTo(referencialFrame_32f);
         transformMatTypeTo32C1(referencialFrame_32f);
-        referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_vyrez);
-        Mat shifted, shifted_vyrez;
-        if (i_scaleChanged == true)
-        {
-            shifted_temp(i_cutoutExtra).copyTo(shifted);
-            shifted(i_cutoutStandard).copyTo(shifted_vyrez);
-            shifted_temp.release();
+
+        if (i_scaleChanged){
+            referencialFrame_32f(i_cutoutExtra).copyTo(referencialFrame_32f);
+            adjustedStandardCutout = adjustStandardCutout(i_cutoutExtra,i_cutoutStandard,
+                                                          i_referencial.rows,i_referencial.cols);
+            referencialFrame_32f(adjustedStandardCutout).copyTo(referencialFrame_vyrez);
         }
         else
-        {
-            shifted_temp.copyTo(shifted);
-            shifted(i_cutoutStandard).copyTo(shifted_vyrez);
-            shifted_temp.release();
-        }
-        Mat shifted_32f;
-        shifted.copyTo(shifted_32f);
-        transformMatTypeTo32C1(shifted_32f);
+            referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_vyrez);
 
-        Mat registrated1;
+        qDebug()<<referencialFrame_vyrez.rows<<" "<<referencialFrame_vyrez.cols;
+        int rows = referencialFrame_32f.rows;
+        int cols = referencialFrame_32f.cols;
+        qDebug()<<rows<<" "<<cols;
+
+        Mat hann;
+        createHanningWindow(hann, referencialFrame_32f.size(), CV_32FC1);
+
+        Mat shifted_temp,shifted_32f,shifted_vyrez;
+        cap.set(CV_CAP_PROP_POS_FRAMES,i_translatedNo);
+        if(!cap.read(shifted_temp))
+            return false;
+        shifted_temp.copyTo(shifted_32f);
+        transformMatTypeTo32C1(shifted_32f);
+        if (i_scaleChanged == true)
+        {
+            shifted_32f(i_cutoutExtra).copyTo(shifted_32f);
+            qDebug()<<"Extra shifted done";
+            shifted_32f(adjustedStandardCutout).copyTo(shifted_vyrez);
+        }
+        else
+            shifted_32f(i_cutoutStandard).copyTo(shifted_vyrez);
+
+        qDebug()<<shifted_32f.rows<<" "<<shifted_32f.cols;
+        qDebug()<<shifted_vyrez.rows<<" "<<shifted_vyrez.cols;
+
         Point3d pt1(0.0,0.0,0.0);
         if (i_scaleChanged == true)
         {
@@ -96,19 +107,27 @@ bool completeRegistration(cv::VideoCapture& cap,
             i_pocX[0] = pt1.x;
             i_pocY[0] = pt1.y;
             qDebug()<<"pt1 filled.";
-            if (i_translatedNo == 0)
+            //if (i_translatedNo == 0)
                 qDebug()<<"PT1: "<<pt1.x<<" "<<pt1.y;
-            registrated1 = frameTranslation(shifted,pt1,rows,cols);
+            Mat registrated1;
+            registrated1 = frameTranslation(shifted_32f,pt1,rows,cols);
+            qDebug()<<"registrated1 done";
             cv::Mat registrated1_32f_rotace,registrated1_32f,registrated1_vyrez;
             registrated1.copyTo(registrated1_32f);
             transformMatTypeTo32C1(registrated1_32f);
             Point3d rotation_result = pc_rotation(referencialFrame_32f,registrated1_32f,i_angleLimit,pt1.z,pt1);
             if (std::abs(rotation_result.y) > i_angleLimit)
                 rotation_result.y=0;
+            qDebug()<<"rotation1 done ("<<rotation_result.y<<")";
 
             i_maxAngles[0] = rotation_result.y;
             registrated1_32f_rotace = frameRotation(registrated1_32f,rotation_result.y);
-            registrated1_32f_rotace(i_cutoutStandard).copyTo(registrated1_vyrez);
+
+            if (!i_scaleChanged)
+                registrated1_32f_rotace(i_cutoutStandard).copyTo(registrated1_vyrez);
+            else
+                registrated1_32f_rotace(adjustedStandardCutout).copyTo(registrated1_vyrez);
+            qDebug()<<"rotated";
 
             Point3d pt2(0.0,0.0,0.0);
             pt2 = pc_translation(referencialFrame_vyrez,registrated1_vyrez,i_areaMaximum);
@@ -129,7 +148,7 @@ bool completeRegistration(cv::VideoCapture& cap,
                 registrated1.release();
                 registrated1_32f.release();
                 registrated1_vyrez.release();
-                if (i_translatedNo == 0)
+                //if (i_translatedNo == 0)
                     qDebug()<<"PT2: "<<pt2.x<<" "<<pt2.y;
 
                 Point3d pt3(0.0,0.0,0.0);
@@ -138,12 +157,18 @@ bool completeRegistration(cv::VideoCapture& cap,
                 pt3.z = pt2.z;
                 i_pocX[0] = pt3.x;
                 i_pocY[0] = pt3.y;
-                Mat registrated2 = frameTranslation(shifted,pt3,rows,cols);
+                Mat registrated2 = frameTranslation(shifted_32f,pt3,rows,cols);
                 Mat registrated2_32f,registrated2_vyrez;
                 registrated2.copyTo(registrated2_32f);
                 transformMatTypeTo32C1(registrated2_32f);
                 Mat registrated2_rotace = frameRotation(registrated2_32f,rotation_result.y);
-                registrated2_rotace(i_cutoutStandard).copyTo(registrated2_vyrez);
+                qDebug()<<"translation2 done";
+
+                if (!i_scaleChanged)
+                    registrated2_rotace(i_cutoutStandard).copyTo(registrated2_vyrez);
+                else
+                    registrated2_rotace(adjustedStandardCutout).copyTo(registrated2_vyrez);
+
                 Mat interresult_vyrez,interresult;
                 registrated2_rotace.copyTo(interresult);
                 registrated2_vyrez.copyTo(interresult_vyrez);
@@ -161,16 +186,17 @@ bool completeRegistration(cv::VideoCapture& cap,
                     else if (FWHM > 30 && FWHM <= 35){maxIterationCount = 6;}
                     else if (FWHM > 35 && FWHM <= 40){maxIterationCount = 8;}
                     else if (FWHM > 40 && FWHM <= 45){maxIterationCount = 10;}
-                    else if (FWHM > 45){maxIterationCount = 5;};
+                    else if (FWHM > 45){maxIterationCount = 5;}
                 }
-                if (i_iteration >= 1)
+                if (i_iteration >= 1.0)
                 {
                     maxIterationCount = int(i_iteration);
                 }
+                qDebug()<<"Entering loop ("<<maxIterationCount<<")";
                 for (int i = 0; i < maxIterationCount; i++)
                 {
                     Point3d rotace_ForLoop(0.0,0.0,0.0);
-                    rotace_ForLoop = pc_rotation(i_referencial,interresult,i_angleLimit,pt3.z,pt3);
+                    rotace_ForLoop = pc_rotation(referencialFrame_32f,interresult,i_angleLimit,pt3.z,pt3);
                     if (std::abs(rotace_ForLoop.y) > i_angleLimit)
                         rotace_ForLoop.y = 0.0;
                     else if (std::abs(totalAngle+rotace_ForLoop.y)>i_angleLimit)
@@ -178,17 +204,26 @@ bool completeRegistration(cv::VideoCapture& cap,
                     else
                         totalAngle+=rotace_ForLoop.y;
 
+                    qDebug()<<"rotation done ("<<totalAngle<<")";
                     Mat rotated;
                     if (rotace_ForLoop.y != 0.0)
                         rotated = frameRotation(interresult,rotace_ForLoop.y);
                     else
-                        rotated = interresult;
+                        interresult.copyTo(rotated);
+                    qDebug()<<"rotated";
 
                     rotace_ForLoop.y = 0.0;
                     Mat rotated_vyrez;
-                    rotated(i_cutoutStandard).copyTo(rotated_vyrez);
+
+                    if (!i_scaleChanged)
+                        rotated(i_cutoutStandard).copyTo(rotated_vyrez);
+                    else
+                        rotated(adjustedStandardCutout).copyTo(rotated_vyrez);
+
                     rotated.release();
                     Point3d pt4(0.0,0.0,0.0);
+                    qDebug()<<referencialFrame_vyrez.cols<<" "<<referencialFrame_vyrez.rows;
+                    qDebug()<<rotated_vyrez.cols<<" "<<rotated_vyrez.rows;
                     pt4 = pc_translation(referencialFrame_vyrez,rotated_vyrez,i_areaMaximum);
                     rotated_vyrez.release();
                     if (pt4.x >= 55 || pt4.y >= 55)
@@ -207,7 +242,7 @@ bool completeRegistration(cv::VideoCapture& cap,
                         i_pocX[0] = pt3.x;
                         i_pocY[0] = pt3.y;
                         i_maxAngles[0] = totalAngle;
-                        Mat shifted_temp = frameTranslation(shifted,pt3,rows,cols);
+                        Mat shifted_temp = frameTranslation(shifted_32f,pt3,rows,cols);
                         Mat rotated_temp = frameRotation(shifted_temp,totalAngle);
                         shifted_temp.release();
                         rotated_temp.copyTo(interresult);
@@ -229,58 +264,60 @@ bool completeRegistration(cv::VideoCapture& cap,
 }
 
 bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
-                                       cv::Mat &i_newreferencial,
+                                       cv::Point3d &i_frangi_point,
+                                       cv::Rect &i_standardCutout,
                                        QVector<double> i_frangiParameters,
-                                       cv::Point2d i_verticalAnomalyCoords,
-                                       cv::Point2d i_horizontalAnomalyCoords,
-                                       cv::Rect &i_anomalyArea,
-                                       cv::Rect &i_cutoutExtra,
-                                       cv::Rect &i_cutoutStandard,
-                                       cv::VideoCapture &i_cap,
-                                       bool &i_scaleChange,
                                        QMap<QString, double> frangiRatios,
                                        QMap<QString, int> frangiMargins)
 {
     try {
         cv::Point3d pt_temp(0.0,0.0,0.0);
-        cv::Point3d frangi_point(0.0,0.0,0.0);
-        double width = i_cap.get(CV_CAP_PROP_FRAME_WIDTH);
-        double height = i_cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-        bool verticalAnomaly = false;
-        bool horizontalAnomaly = false;
-        if (i_verticalAnomalyCoords.y != 0.0) // x for vertical anomaly
+        int rows = i_referencial.rows;
+        int cols = i_referencial.cols;
+
+        // calculate frangi
+        i_frangi_point = frangi_analysis(i_referencial,1,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
+        if (i_frangi_point.z == 0.0)
+            return false;
+
+        // extra cutout is not necessary, just calculate standard cutout
+        i_standardCutout = calculateStandardCutout(i_frangi_point,frangiRatios,rows,cols);
+
+        return true;
+
+        /*if (i_standardCutout.y != 0.0) // x for vertical anomaly
         {
-            if (i_verticalAnomalyCoords.y < (width/2))
+            if (i_standardCutout.y < (width/2))
             {
-                i_anomalyArea.y = int(i_verticalAnomalyCoords.y);
-                i_anomalyArea.height = int(height-int(i_verticalAnomalyCoords.y));
+                i_anomalyArea.y = int(i_standardCutout.y);
+                i_anomalyArea.height = int(height-int(i_standardCutout.y));
                 i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
             }
-            if (i_verticalAnomalyCoords.y > (width/2))
+            if (i_standardCutout.y > (width/2))
             {
-                i_anomalyArea.height = int(i_verticalAnomalyCoords.y);
+                i_anomalyArea.height = int(i_standardCutout.y);
                 i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
             }
             verticalAnomaly = true;
         }
-        if (i_horizontalAnomalyCoords.x != 0.0) // horizontal anomaly
+        if (i_extraCutout.x != 0.0) // horizontal anomaly
         {
-            if (i_horizontalAnomalyCoords.x < (height/2))
+            if (i_extraCutout.x < (height/2))
             {
-                i_anomalyArea.x = int(i_horizontalAnomalyCoords.x);
+                i_anomalyArea.x = int(i_extraCutout.x);
                 if (!verticalAnomaly)
                     i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-                i_anomalyArea.width = int(width-int(i_horizontalAnomalyCoords.x));
+                i_anomalyArea.width = int(width-int(i_extraCutout.x));
             }
-            if (i_horizontalAnomalyCoords.x > (width/2))
+            if (i_extraCutout.x > (width/2))
             {
                 if (!verticalAnomaly)
                     i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-                i_anomalyArea.width = int(i_horizontalAnomalyCoords.x);
+                i_anomalyArea.width = int(i_extraCutout.x);
             }
             horizontalAnomaly = true;
-        }
-        if (verticalAnomaly == true || horizontalAnomaly == true)
+        }*/
+        /*if (verticalAnomaly == true || horizontalAnomaly == true)
             frangi_point = frangi_analysis(i_referencial(i_anomalyArea),1,1,0,"",3,pt_temp,i_frangiParameters,frangiMargins);
         else
             frangi_point = frangi_analysis(i_referencial,1,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
@@ -300,17 +337,17 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
             int columnFrom = 0;
             int columnTo = 0;
 
-            if (verticalAnomaly == true && i_verticalAnomalyCoords.y != 0.0 && int(i_verticalAnomalyCoords.y)<(cols/2))
+            if (verticalAnomaly == true && standardCutoutEdited.y != 0.0 && int(standardCutoutEdited.y)<(cols/2))
             {
-                columnFrom = int(i_verticalAnomalyCoords.y);
+                columnFrom = int(standardCutoutEdited.y);
                 needToChangeScale = true;
             }
             else
                 columnFrom = int(round(frangi_point.x-frangiRatios["left_r"]*(frangi_point.x)));
 
-            if (verticalAnomaly == true && i_verticalAnomalyCoords.y != 0.0 &&  int(i_verticalAnomalyCoords.y)>(cols/2))
+            if (verticalAnomaly == true && standardCutoutEdited.y != 0.0 &&  int(standardCutoutEdited.y)>(cols/2))
             {
-                columnTo = int(i_verticalAnomalyCoords.y);
+                columnTo = int(standardCutoutEdited.y);
                 needToChangeScale = true;
             }
             else
@@ -355,10 +392,40 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
                 i_referencial.copyTo(i_newreferencial);
             }
             return true;
-        }
+        }*/
     } catch (std::exception &e) {
         qWarning()<<"Image preprocessing error: "<<e.what();
         return false;
     }
 }
 
+cv::Rect calculateStandardCutout(cv::Point3d i_frangi, QMap<QString, double> i_ratios,
+                                 int i_rows, int i_cols){
+    cv::Rect output;
+    int rowFrom = int(round(i_frangi.y-i_ratios["top_r"]*i_frangi.y));
+    int rowTo = int(round(i_frangi.y+i_ratios["bottom_r"]*(i_rows - i_frangi.y)));
+    int columnFrom = int(round(i_frangi.x-i_ratios["left_r"]*(i_frangi.x)));
+    int columnTo = int(round(i_frangi.x+i_ratios["right_r"]*(i_cols - i_frangi.x)));
+    int cutout_width = columnTo-columnFrom;
+    int cutout_height = rowTo - rowFrom;
+    output.x = columnFrom;
+    output.y = rowFrom;
+    output.width = cutout_width;
+    output.height = cutout_height;
+
+    return output;
+}
+
+cv::Rect adjustStandardCutout(cv::Rect i_extraCutoutParameters, cv::Rect i_originalStandardCutout,
+                              int i_rows, int i_cols){
+    cv::Rect output;
+    // when the extra cutout is applied, standard cutout must be recalculated to fit the new frame
+    // x and y coordinates are adjusted to (0,0) point
+    output.x = i_originalStandardCutout.x - i_extraCutoutParameters.x;
+    output.y = i_originalStandardCutout.y - i_extraCutoutParameters.y;
+    // width and height are adjusted to the row and column count of the standard "full" frame
+    output.width = i_originalStandardCutout.width - (i_cols - i_extraCutoutParameters.width);
+    output.height = i_originalStandardCutout.height - (i_rows - i_extraCutoutParameters.height);
+
+    return output;
+}

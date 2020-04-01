@@ -47,6 +47,8 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
     _frangiX.push_back(0.0);
     _frangiY.push_back(0.0);
     _frangiEucl.push_back(0.0);
+    cv::Rect adjustedCutoutStandard = adjustStandardCutout(i_cutoutExtra,i_cutoutStandard,
+                                                           i_referencialFrame.rows,i_referencialFrame.cols);
 
     if (!completeRegistration(i_cap,
                               i_referencialFrame,
@@ -69,10 +71,20 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
     else
     {
         qDebug()<<"Full registration correct. Results: "<<_tempPOCX[0]<<" "<<_tempPOCY[0];
-        Mat referencialCutout;
-        i_referencialFrame(i_cutoutStandard).copyTo(referencialCutout);
-        int rows = i_referencialFrame.rows;
-        int cols = i_referencialFrame.cols;
+        qDebug()<<"Full registration correct. Rows: "<<fullyRegistratedFrame.rows<<" cols: "<<fullyRegistratedFrame.cols;
+        // because of extra cutout, fullyRegistratedFrame do not need to have "full" size
+        cv::Mat _referentialSubstituion,referencialCutout;
+        if (i_scaleChanged){
+            i_referencialFrame(i_cutoutExtra).copyTo(_referentialSubstituion);
+            _referentialSubstituion(adjustedCutoutStandard).copyTo(referencialCutout);
+        }
+        else{
+            i_referencialFrame.copyTo(_referentialSubstituion);
+            _referentialSubstituion(i_cutoutStandard).copyTo(referencialCutout);
+        }
+
+        int rows = _referentialSubstituion.rows;
+        int cols = _referentialSubstituion.cols;
         if (std::abs(_tempPOCX[0]) == 999.0)
         {
             qWarning()<< "Frame "<<i_index_noved<<" written without changes.";
@@ -93,22 +105,19 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
             }
             Mat interresult32f,interresult32f_vyrez,shifted;
             if (i_scaleChanged == true)
-            {
                 shifted_temp(i_cutoutExtra).copyTo(shifted);
-            }
             else
-            {
                 shifted_temp.copyTo(shifted);
-            }
 
             Point3d correction(0.0,0.0,0.0);
-            Mat fullyRegistratedFrame_correction = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
+            Mat fullyRegistratedFrame_correction = cv::Mat::zeros(cv::Size(_referentialSubstituion.cols,_referentialSubstituion.rows),
+                                                                  CV_32FC3);
             if (!translationCorrection(fullyRegistratedFrame,
-                                              i_referencialFrame,
-                                              fullyRegistratedFrame_correction,
-                                              i_cutoutStandard,
-                                              correction,
-                                              i_areaMaximum)){
+                                       _referentialSubstituion,
+                                       fullyRegistratedFrame_correction,
+                                       i_scaleChanged ? adjustedCutoutStandard : i_cutoutStandard,
+                                       correction,
+                                       i_areaMaximum)){
                 qWarning()<<"Frame "<<i_index_noved<<" - registration correction failed";
                 return false;
             }
@@ -118,10 +127,12 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
                     qDebug()<<"Correction: "<<correction.x<<" "<<correction.y;
                     _tempPOCX[0] += correction.x;
                     _tempPOCY[0] += correction.y;
-                    Point3d pt6 = pc_translation_hann(i_referencialFrame,fullyRegistratedFrame_correction,i_areaMaximum);
+                    Point3d pt6 = pc_translation_hann(_referentialSubstituion,fullyRegistratedFrame_correction,
+                                                      i_areaMaximum);
                     if (std::abs(pt6.x)>=290 || std::abs(pt6.y)>=290)
                     {
-                        pt6 = pc_translation(i_referencialFrame,fullyRegistratedFrame_correction,i_areaMaximum);
+                        pt6 = pc_translation(_referentialSubstituion,fullyRegistratedFrame_correction,
+                                             i_areaMaximum);
                     }
                     qDebug()<<"Checking translation after correction: "<<pt6.x<<" "<<pt6.y;
                     _tempPOCX[0] += pt6.x;
@@ -130,10 +141,15 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
 
                 fullyRegistratedFrame_correction.copyTo(interresult32f);
                 transformMatTypeTo32C1(interresult32f);
-                interresult32f(i_cutoutStandard).copyTo(interresult32f_vyrez);
-                double CC_first = calculateCorrCoef(i_referencialFrame,fullyRegistratedFrame_correction,i_cutoutStandard);
-                Point3d _tempTranslation = Point3d(_tempPOCX[0],_tempPOCY[0],0.0);
 
+                if (!i_scaleChanged)
+                    interresult32f(i_cutoutStandard).copyTo(interresult32f_vyrez);
+                else
+                    interresult32f(adjustedCutoutStandard).copyTo(interresult32f_vyrez);
+
+                double CC_first = calculateCorrCoef(_referentialSubstituion,fullyRegistratedFrame_correction,
+                                                    i_scaleChanged ? adjustedCutoutStandard : i_cutoutStandard);
+                Point3d _tempTranslation = Point3d(_tempPOCX[0],_tempPOCY[0],0.0);
                 Point3d frangi_registrated_reverse = frangi_analysis(fullyRegistratedFrame_correction,2,2,0,"",2,
                                                                      _tempTranslation,i_frangiParameters,i_margins);
 
@@ -158,7 +174,8 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
                 Mat finalRegistrationFrame = frameRotation(shifted2,_tempAngles[0]);
 
                 shifted2.release();
-                double CC_second = calculateCorrCoef(i_referencialFrame,finalRegistrationFrame,i_cutoutStandard);
+                double CC_second = calculateCorrCoef(_referentialSubstituion,finalRegistrationFrame,
+                                                     i_scaleChanged ? adjustedCutoutStandard : i_cutoutStandard);
                 if (CC_first >= CC_second)
                 {
                     qDebug()<< "Frame "<<i_index_noved<<" written after standard registration.";
