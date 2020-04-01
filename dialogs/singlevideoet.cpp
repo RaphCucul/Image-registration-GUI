@@ -35,8 +35,8 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui(new Ui::SingleVideoET)
 {
     ui->setupUi(this);
-    ui->horizontalAnomalyCB->setEnabled(false);
-    ui->verticalAnomalyCB->setEnabled(false);
+    ui->standardCutout->setEnabled(false);
+    ui->extraCutout->setEnabled(false);
     ui->calculateET->setEnabled(false);
     ui->showGraphET->setEnabled(false);
     ui->savePB->setEnabled(false);
@@ -45,18 +45,20 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->iterationCount->setPlaceholderText("1 - Inf; -1~automatic settings");
 
     ui->chooseVideoPB->setText(tr("Choose video"));
-    ui->horizontalAnomalyCB->setText(tr("Top/bottom anomaly"));
-    ui->verticalAnomalyCB->setText(tr("Left/right anomaly"));
+    ui->standardCutout->setText(tr("Modify standard cutout"));
+    ui->extraCutout->setText(tr("Modify extra cutout"));
     ui->areaSizelabel->setText(tr("Size of calculation area"));
     ui->angleTolerancelabel->setText(tr("Maximal tolerated rotation angle"));
     ui->iterationNumberlabel->setText(tr("Number of iterations of algorithm"));
     ui->calculateET->setText(tr("Analyze video"));
     ui->showGraphET->setText(tr("Show computed results"));
     ui->savePB->setText(tr("Save results"));
+    ui->previousThresholdsCB->setText(tr("Use previous thresholds"));
+    ui->previousThresholdsCB->setEnabled(false);
 
     QObject::connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
-    QObject::connect(ui->verticalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
-    QObject::connect(ui->horizontalAnomalyCB,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    QObject::connect(ui->standardCutout,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    QObject::connect(ui->extraCutout,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
     QObject::connect(this,SIGNAL(calculationStarted()),this,SLOT(disableWidgets()));
     QObject::connect(this,SIGNAL(calculationStopped()),this,SLOT(enableWidgets()));
 
@@ -115,8 +117,8 @@ void SingleVideoET::on_chooseVideoPB_clicked()
             int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
             actualEntropy.fill(0.0,frameCount);
             actualTennengrad.fill(0.0,frameCount);
-            ui->horizontalAnomalyCB->setEnabled(true);
-            ui->verticalAnomalyCB->setEnabled(true);
+            ui->standardCutout->setEnabled(true);
+            ui->extraCutout->setEnabled(true);
         }
     }
     else{
@@ -131,39 +133,29 @@ void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
     if (!file.exists()){
         ui->chosenVideoLE->setStyleSheet("color: #FF0000");
         videoETScorrect = false;
-        ui->horizontalAnomalyCB->setEnabled(false);
-        ui->verticalAnomalyCB->setEnabled(false);
+        ui->standardCutout->setEnabled(false);
+        ui->extraCutout->setEnabled(false);
     }
     else
     {
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         ui->chosenVideoLE->setStyleSheet("color: #339900");
         videoETScorrect = true;
+        ui->standardCutout->setEnabled(false);
+        ui->extraCutout->setEnabled(false);
         chosenVideoETSingle[1] = arg1;
+        QVector<double> videoETthresholds;
+        if (checkAndLoadData("thresholds",arg1,videoETthresholds)){
+            fillMap(arg1,videoETthresholds,mapDouble["thresholds"]);
+            //mapDouble["thresholds"][arg1] = videoETthresholds;
+            ui->previousThresholdsCB->setEnabled(true);
+            ETthresholdsFound.insert(arg1,true);
+        }
+        else{
+            ETthresholdsFound.insert(arg1,false);
+            ui->previousThresholdsCB->setEnabled(false);
+        }
     }
-}
-
-void SingleVideoET::on_horizontalAnomalyCB_stateChanged(int arg1)
-{
-    if (arg1 == 2)
-    {
-        QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,2);
-        markAnomaly->setModal(true);
-        markAnomaly->show();
-    }
-}
-
-void SingleVideoET::on_verticalAnomalyCB_stateChanged(int arg1)
-{
-    if (arg1 == 2)
-    {
-        QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,1);
-        markAnomaly->setModal(true);
-        markAnomaly->show();
-    }
-
 }
 
 void SingleVideoET::on_calculateET_clicked()
@@ -172,15 +164,22 @@ void SingleVideoET::on_calculateET_clicked()
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
 
+
+
         if (cap.isOpened()){
             analysedVideos.clear();
             analysedVideos.append(fullPath);
+            videoNamesList.append(chosenVideoETSingle[1]);
+            initMaps(videoNamesList);
+            canProceed = true;
             First[1] = new qThreadFirstPart(analysedVideos,
-                                            SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
-                                            SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
+                                            ui->extraCutout->isChecked(),
                                             SharedVariables::getSharedVariables()->getFrangiParameters(),
                                             SharedVariables::getSharedVariables()->getFrangiMargins(),
-                                            SharedVariables::getSharedVariables()->getFrangiRatios());
+                                            SharedVariables::getSharedVariables()->getFrangiRatios(),
+                                            mapDouble["thresholds"],
+                                            ETthresholdsFound,
+                                            ui->previousThresholdsCB->isChecked());
             QObject::connect(First[1],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
             QObject::connect(First[1],SIGNAL(done(int)),this,SLOT(onDone(int)));
             QObject::connect(First[1],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -188,9 +187,6 @@ void SingleVideoET::on_calculateET_clicked()
             QObject::connect(First[1],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
             QObject::connect(First[1],SIGNAL(readyForFinish()),First[1],SLOT(deleteLater()));
             First[1]->start();
-
-            initMaps();
-            canProceed = true;
             emit calculationStarted();
             ui->calculateET->setText(tr("Cancel"));
             runStatus = false;
@@ -203,7 +199,7 @@ void SingleVideoET::on_calculateET_clicked()
         }
     }
     else {
-        cancelAllCalculations();
+        cancelAllCalculations(videoNamesList);
         runStatus = true;
         canProceed = false;
         ui->calculateET->setText(tr("Analyze video"));
@@ -215,56 +211,92 @@ void SingleVideoET::on_calculateET_clicked()
 
 void SingleVideoET::on_showGraphET_clicked()
 {
-    QStringList videoList;
-    videoList.append(chosenVideoETSingle[1]);
-    GraphET_parent* graph = new GraphET_parent(videoList,
+    GraphET_parent* graph = new GraphET_parent(analysedVideos,
                                                mapDouble["entropy"],
                                                mapDouble["tennengrad"],
+                                               mapDouble["thresholds"],
                                                mapInt["firstEvalEntropy"],
                                                mapInt["firstEvalTennengrad"],
                                                mapInt["firstEval"],
                                                mapInt["secondEval"],
                                                mapInt["evaluation"]);
+    connect(graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SLOT(onSaveFromGraphET(QString,QJsonObject)));
     graph->setModal(true);
     graph->show();
 }
 
 void SingleVideoET::on_savePB_clicked()
 {   
-    QJsonDocument document;
+    /*QJsonDocument document;
     QJsonObject object;
     QString actualName = chosenVideoETSingle[1];
     QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+actualName+".dat";
-    for (int indexVideo=0; indexVideo<mapDouble["entropy"].length(); indexVideo++){
-        for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-            if (parameter < 8){
-                QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][indexVideo];
-                QJsonArray pomArray = vector2array(pomDouble);
-                object[videoParameters.at(parameter)] = pomArray;
-            }
-            else if (parameter >= 8 && parameter <= 12){
-                QVector<int> pomInt = mapInt[videoParameters.at(parameter)][indexVideo];
-                if (videoParameters.at(parameter) == "evaluation")
-                    pomInt[framesReferencial[indexVideo]]=2;
-
-                QJsonArray pomArray = vector2array(pomInt);
-                object[videoParameters.at(parameter)] = pomArray;
-            }
-            else{
-                if (videoParameters.at(parameter) == "VerticalAnomaly")
+    //for (int indexVideo=0; indexVideo<mapDouble[actualName]["entropy"].length(); indexVideo++){
+    foreach (QString name,videoNamesList){
+        if (badVideos.indexOf(name) == -1){
+            for (int parameter = 0; parameter < videoParameters.count(); parameter++){
+                if (parameter < 8){
+                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][name];
+                    QJsonArray pomArray = vector2array(pomDouble);
+                    object[videoParameters.at(parameter)] = pomArray;
+                }
+                else if (parameter >= 8 && parameter <= 12){
+                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][name];
+                    if (videoParameters.at(parameter) == "evaluation"){
+                        pomInt[framesReferencial[name]]=2;
+                    }
+                    else{
+                        QJsonArray pomArray = vector2array(pomInt);
+                        object[videoParameters.at(parameter)] = pomArray;
+                    }
+                }
+                else{*/
+                    /*if (videoParameters.at(parameter) == "VerticalAnomaly")
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().y);
                 else
-                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x);
+                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x);*/
+                /*}
             }
+            document.setObject(object);
+            QString documentString = document.toJson();
+            QFile writer;
+            writer.setFileName(path);
+            writer.open(QIODevice::WriteOnly);
+            writer.write(documentString.toLocal8Bit());
+            writer.close();
         }
-        document.setObject(object);
-        QString documentString = document.toJson();
-        QFile writer;
-        writer.setFileName(path);
-        writer.open(QIODevice::WriteOnly);
-        writer.write(documentString.toLocal8Bit());
-        writer.close();
+    }*/
+    saveVideoAnalysisResults();
+}
+
+void SingleVideoET::onSaveFromGraphET(QString i_videoName, QJsonObject i_object){
+    /*QJsonDocument document;
+    QJsonObject object;
+    //QString actualName = chosenVideoETSingle[1];
+    QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+i_videoName+".dat";
+    for (int parameter = 0; parameter < videoParameters.count(); parameter++){
+        if (parameter < 8){
+            QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][i_videoName];
+            QJsonArray pomArray = vector2array(pomDouble);
+            object[videoParameters.at(parameter)] = pomArray;
+        }
+        else if (parameter >= 8 && parameter <= 12){
+            QVector<int> pomInt = mapInt[videoParameters.at(parameter)][i_videoName];
+            if (videoParameters.at(parameter) == "evaluation")
+                pomInt[framesReferencial[i_videoName]]=2;
+
+            QJsonArray pomArray = vector2array(pomInt);
+            object[videoParameters.at(parameter)] = pomArray;
+        }
     }
+    document.setObject(object);
+    QString documentString = document.toJson();
+    QFile writer;
+    writer.setFileName(path);
+    writer.open(QIODevice::WriteOnly);
+    writer.write(documentString.toLocal8Bit());
+    writer.close();*/
+    saveVideoAnalysisResultsFromGraphET(i_videoName, i_object);
 }
 
 void SingleVideoET::onDone(int thread){
@@ -275,10 +307,12 @@ void SingleVideoET::onDone(int thread){
 
         Second[2] = new qThreadSecondPart(analysedVideos,
                                           badVideos,
-                                          obtainedCutoffStandard,
-                                          obtainedCutoffExtra,
+                                          mapAnomalies["standard"],
+                                          mapAnomalies["extra"],
                                           badFramesComplete,
-                                          framesReferencial,false,areaMaximum);
+                                          framesReferencial,
+                                          ui->extraCutout->isChecked(),
+                                          areaMaximum);
         QObject::connect(Second[2],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Second[2],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Second[2],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -300,8 +334,10 @@ void SingleVideoET::onDone(int thread){
                                         framesReferencial,
                                         averageCCcomplete,
                                         averageFWHMcomplete,
-                                        obtainedCutoffStandard,
-                                        obtainedCutoffExtra,false,areaMaximum);
+                                        mapAnomalies["standard"],
+                                        mapAnomalies["extra"],
+                                        false,
+                                        areaMaximum);
         QObject::connect(Third[3],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Third[3],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Third[3],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -345,19 +381,19 @@ void SingleVideoET::onDone(int thread){
 
         Fifth[5] = new qThreadFifthPart(analysedVideos,
                                         badVideos,
-                                       obtainedCutoffStandard,
-                                       obtainedCutoffExtra,
-                                       mapDouble["POCX"],
-                                       mapDouble["POCY"],
-                                       mapDouble["angle"],
-                                       mapDouble["FrangiX"],
-                                       mapDouble["FrangiY"],
-                                       mapDouble["FrangiEuklid"],
-                                       false,
-                                       mapInt["evaluation"],
-                                       mapInt["secondEval"],
-                                       framesReferencial,
-                                       SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                        mapAnomalies["standard"],
+                                        mapAnomalies["extra"],
+                                        mapDouble["POCX"],
+                                        mapDouble["POCY"],
+                                        mapDouble["angle"],
+                                        mapDouble["FrangiX"],
+                                        mapDouble["FrangiY"],
+                                        mapDouble["FrangiEuklid"],
+                                        false,
+                                        mapInt["evaluation"],
+                                        mapInt["secondEval"],
+                                        framesReferencial,
+                                        SharedVariables::getSharedVariables()->getFrangiParameters(),
                                         int(iterationCount),
                                         areaMaximum,
                                         rotationAngle,
@@ -410,11 +446,11 @@ void SingleVideoET::movedToMethod(int method)
 }
 
 void SingleVideoET::onUnexpectedTermination(int videoIndex, QString errorType){
-    Q_UNUSED(videoIndex);
+    Q_UNUSED(videoIndex)
     localErrorDialogHandling[ui->calculateET]->evaluate("left",errorType,"Video could not be analysed.");
     localErrorDialogHandling[ui->calculateET]->show(false);
     if (errorType == "hardError"){
-        cancelAllCalculations();
+        cancelAllCalculations(videoNamesList);
         emit calculationStopped();
     }
 }
@@ -434,9 +470,14 @@ void SingleVideoET::on_areaMaximum_editingFinished()
 void SingleVideoET::evaluateCorrectValues(){
     if (areaMaximumCorrect && rotationAngleCorrect && iterationCountCorrect){
         ui->calculateET->setEnabled(true);
+        ui->standardCutout->setEnabled(true);
+        ui->extraCutout->setEnabled(true);
     }
-    else
+    else{
         ui->calculateET->setEnabled(false);
+        ui->standardCutout->setEnabled(false);
+        ui->extraCutout->setEnabled(false);
+    }
 }
 
 void SingleVideoET::on_rotationAngle_editingFinished()
@@ -464,17 +505,18 @@ void SingleVideoET::on_iterationCount_editingFinished()
 }
 
 void SingleVideoET::showDialog(){
-    if (ui->verticalAnomalyCB->isChecked())
+    if (ui->standardCutout->isChecked())
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,1);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,cutoutType::STANDARD);
         markAnomaly->setModal(true);
         markAnomaly->show();
+
     }
-    if (ui->horizontalAnomalyCB->isChecked())
+    if (ui->extraCutout->isChecked())
     {
         QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,2);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,cutoutType::EXTRA);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
@@ -483,8 +525,8 @@ void SingleVideoET::showDialog(){
 void SingleVideoET::disableWidgets(){
     ui->chooseVideoPB->setEnabled(false);
     ui->chosenVideoLE->setEnabled(false);
-    ui->verticalAnomalyCB->setEnabled(false);
-    ui->horizontalAnomalyCB->setEnabled(false);
+    ui->standardCutout->setEnabled(false);
+    ui->extraCutout->setEnabled(false);
     ui->savePB->setEnabled(false);
     ui->showGraphET->setEnabled(false);
 }
@@ -492,8 +534,8 @@ void SingleVideoET::disableWidgets(){
 void SingleVideoET::enableWidgets(){
     ui->chooseVideoPB->setEnabled(true);
     ui->chosenVideoLE->setEnabled(true);
-    ui->verticalAnomalyCB->setEnabled(true);
-    ui->horizontalAnomalyCB->setEnabled(true);
+    ui->standardCutout->setEnabled(true);
+    ui->extraCutout->setEnabled(true);
     ui->savePB->setEnabled(true);
     ui->showGraphET->setEnabled(true);
 }

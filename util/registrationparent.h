@@ -37,6 +37,7 @@ class RegistrationParent : public QWidget
     Q_OBJECT
 public:
     explicit RegistrationParent(QWidget *parent = nullptr);
+    virtual ~RegistrationParent() { }
 signals:
     /**
      * @brief Signal informs the GUI to block all tabs except the current one
@@ -54,11 +55,6 @@ public slots:
      * in this function.
      */
     void onFinishThread(int);
-
-    /**
-     * @brief Function handles the end of video write.
-     */
-    void onVideoWriterFinished();
 protected:
     /**
      * @brief Function initialise QMaps with vectors of vectors, filled by values during analysis.
@@ -81,7 +77,7 @@ protected:
     QHash<int,RegistrationThread*> threadPool;
 
     QStringList videoParameters = {"FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
-                                 "angle","evaluation","VerticalAnomaly","HorizontalAnomaly"};
+                                 "angle","evaluation","standard","extra"};
     QMap<QString,QVector<double>> videoParametersDouble;
     QMap<QString,QVector<int>> videoParametersInt;
     QMap<QString,QVector<int>> videoAnomalies;

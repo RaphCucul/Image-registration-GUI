@@ -6,23 +6,25 @@
 #include <QVector>
 #include <opencv2/opencv.hpp>
 #include <QStringList>
+#include <QMap>
 
 class qThreadSecondPart : public QThread
 {
     Q_OBJECT
 public:
     explicit qThreadSecondPart(QStringList i_videosForAnalysis,
-                               QVector<int> i_badVideos,
-                               QVector<cv::Rect> i_cutoutStandard,
-                               QVector<cv::Rect> i_cutoutExtra,
-                               QVector<QVector<int>> i_badFramesCompleteList,
-                               QVector<int> i_videoReferencialFramesList,
+                               QVector<QString> i_badVideos,
+                               QMap<QString,cv::Rect> i_cutoutStandard,
+                               QMap<QString,cv::Rect> i_cutoutExtra,
+                               QMap<QString,QVector<int>> i_badFramesCompleteList,
+                               QMap<QString, int> i_videoReferencialFramesList,
                                bool i_scaleChange,
                                double i_areaMaximum);
     void run() override;
     QVector<double> vectorForFWHM(QVector<int> &badFrames, int frameCount);
-    QVector<double> computedCC();
-    QVector<double> computedFWHM();
+    QMap<QString,double> computedCC();
+    QMap<QString, double> computedFWHM();
+    QVector<QString> unprocessableVideos();
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
@@ -34,20 +36,20 @@ private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty();
+    void fillEmpty(QString i_videoName);
 
     QStringList videoList;
     double videoCount;
     double frameCount;
     double areaMaximum;
-    QVector<cv::Rect> obtainedCutoffStandard;//ziskany_VK_standard;
-    QVector<cv::Rect> obtainedCutoffExtra;//ziskany_VK_extra;
-    QVector<QVector<int>> badFramesComplete;
+    QMap<QString,cv::Rect> obtainedCutoffStandard;
+    QMap<QString,cv::Rect> obtainedCutoffExtra;
+    QMap<QString,QVector<int>> badFramesComplete;
     bool scaleChanged;
-    QVector<double> CC;
-    QVector<double> FWHM;
-    QVector<int> referencialFrames;
-    QVector<int> notProcessThese;
+    QMap<QString,double> CC;
+    QMap<QString,double> FWHM;
+    QMap<QString,int> referencialFrames;
+    QVector<QString> notProcessThis;
 private slots:
     void onDataObtained();
 };

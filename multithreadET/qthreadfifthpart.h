@@ -13,19 +13,19 @@ class qThreadFifthPart : public QThread
     Q_OBJECT
 public:
     explicit qThreadFifthPart(QStringList i_videos,
-                              QVector<int> i_badVideos,
-                              QVector<cv::Rect> i_standardCutout,
-                              QVector<cv::Rect> i_extraCutout,
-                              QVector<QVector<double>> i_POCX,
-                              QVector<QVector<double>> i_POCY,
-                              QVector<QVector<double>> i_Angle,
-                              QVector<QVector<double>> i_Fr_X,
-                              QVector<QVector<double>> i_Fr_Y,
-                              QVector<QVector<double>> i_Fr_E,
+                              QVector<QString> i_badVideos,
+                              QMap<QString,cv::Rect> i_standardCutout,
+                              QMap<QString,cv::Rect> i_extraCutout,
+                              QMap<QString,QVector<double>> i_POCX,
+                              QMap<QString,QVector<double>> i_POCY,
+                              QMap<QString,QVector<double>> i_Angle,
+                              QMap<QString,QVector<double>> i_Fr_X,
+                              QMap<QString,QVector<double>> i_Fr_Y,
+                              QMap<QString,QVector<double>> i_Fr_E,
                               bool i_scaleChanged,
-                              QVector<QVector<int>> i_EvaluationComplete,
-                              QVector<QVector<int>> i_frEvalSec,
-                              QVector<int> i_referFrames,
+                              QMap<QString,QVector<int>> i_EvaluationComplete,
+                              QMap<QString,QVector<int>> i_frEvalSec,
+                              QMap<QString,int> i_referFrames,
                               QVector<double> i_FrangiParams,
                               int i_iteration,
                               double i_areaMaximum,
@@ -33,13 +33,14 @@ public:
                               QMap<QString, int> i_margins,
                               QObject* parent = nullptr);
     void run() override;
-    QVector<QVector<int>> framesUpdateEvaluationComplete();
-    QVector<QVector<double>> framesFrangiXestimated();
-    QVector<QVector<double>> framesFrangiYestimated();
-    QVector<QVector<double>> framesFrangiEuklidestimated();
-    QVector<QVector<double>> framesPOCXestimated();
-    QVector<QVector<double>> framesPOCYestimated();
-    QVector<QVector<double>> framesAngleestimated();
+    QMap<QString,QVector<int>> framesUpdateEvaluationComplete();
+    QMap<QString,QVector<double>> framesFrangiXestimated();
+    QMap<QString,QVector<double>> framesFrangiYestimated();
+    QMap<QString,QVector<double>> framesFrangiEuklidestimated();
+    QMap<QString,QVector<double>> framesPOCXestimated();
+    QMap<QString,QVector<double>> framesPOCYestimated();
+    QMap<QString,QVector<double>> framesAngleestimated();
+    QVector<QString> unprocessableVideos();
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
@@ -53,16 +54,17 @@ private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty(int i_frameCount);
+    void fillEmpty(QString i_videoName, int i_frameCount);
 
     double videoCount, framesToAnalyse, maximalAngle, areaMaximum;
     int iteration;
     QStringList videoList;
-    QVector<QVector<int>> framesSecondEval,framesCompleteEvaluation;
-    QVector<QVector<double>> POC_x,POC_y,angle,frangi_x,frangi_y,frangi_euklid;
+    QMap<QString,QVector<int>> framesSecondEval,framesCompleteEvaluation;
+    QMap<QString,QVector<double>> POC_x,POC_y,angle,frangi_x,frangi_y,frangi_euklid;
     QVector<double> average_CC,average_FWHM,FrangiParameters;
-    QVector<int> referencialFrames,notProcessThese;
-    QVector<cv::Rect> obtainedCutoffStandard, obtainedCutoffExtra;
+    QMap<QString,int> referencialFrames;
+    QVector<QString> notProcessThese;
+    QMap<QString,cv::Rect> obtainedCutoffStandard, obtainedCutoffExtra;
     bool scaleCh;
 
     QMap<QString, int> margins;

@@ -1,6 +1,27 @@
 #include "etanalysisparent.h"
+#include "util/files_folders_operations.h"
+#include "shared_staff/sharedvariables.h"
 
 #include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QFile>
+
+/*template <typename T>
+static QMap<QString,QMap<QString,QVector<T>>> initMap(QStringList parameters,
+                                                      QStringList i_videoList,
+                                                      int start_pos,
+                                                      int end_pos) {
+    QMap<QString,QMap<QString,QVector<T>>> outputMap;
+    QVector<T> _v;
+    for (int parameterIndex = start_pos; parameterIndex <= end_pos; parameterIndex++){
+        foreach (QString name, i_videoList){
+            QMap<QString,QVector<T>> _pom;
+            _pom.insert(name,_v);
+            outputMap.insert(parameters.at(parameterIndex),_pom);
+        }
+    }
+}*/
 
 ETanalysisParent::ETanalysisParent(QWidget *parent) : QWidget(parent)
 {
@@ -27,24 +48,61 @@ void ETanalysisParent::checkInputNumber(double i_input, double i_lower, double i
     }
 }
 
-void ETanalysisParent::initMaps(){
-    QVector<QVector<double>> pomD;
-    QVector<QVector<int>> pomI;
-    QVector<int> pomI_;
-    for (int index = 0; index < videoParameters.count(); index++){
-        if (index < 8){
-            mapDouble[videoParameters.at(index)] = pomD;
-        }
-        else if (index >= 8 && index < 13){
-            mapInt[videoParameters.at(index)] = pomI;
-        }
-        else if (index >= 13 && index <= 14){
-            mapAnomalies[videoParameters.at(index)] = pomI_;
-        }
-    }
+void ETanalysisParent::initMaps(QStringList i_videoNames){
+    QVector<double> pomD;
+    QVector<int> pomI;
+    // QMap<i_videoName,QMap<videoParameter,QVector<T>>>
+    //for (int index = 0; index < videoParameters.count(); index++){
+        //foreach (QString name, i_videoNames){
+            //if (index < 8){ // entropy -> angle
+            //if (index <= 8) {
+                /*QMap<QString,QVector<double>> _pom;
+                _pom.insert(name,pomD);
+                mapDouble.insert(videoParameters.at(index),_pom);*/
+                mapDouble = initMap<double>(videoParameters,videoNamesList,0,8);
+            //}
+            //else if (index >= 8 && index < 13){ // evaluation -> secondEval
+            //else if (index > 8 && index <= 13) {
+                /*QMap<QString,QVector<int>> _pom;
+                _pom.insert(name,pomI);
+                mapInt.insert(videoParameters.at(index),_pom);*/
+                mapInt = initMap<int>(videoParameters,videoNamesList,9,13);
+            //}
+            //else if (index > 13 && index <= 15) {
+                mapAnomalies = initAnomaly(videoParameters,videoNamesList,14,15);
+            //}
+            /*else if (index >= 13 && index <= 14){ // standard + extra
+                QMap<QString,cv::Rect> _pom;
+                cv::Rect _rect(0,0,0,0);
+                _pom.insert(name,_rect);
+                mapAnomalies.insert(videoParameters.at(index),_pom);
+            }
+            else if (index == 15){ // thresholds
+                QMap<QString,QVector<double>> _pom;
+                _pom.insert(name,pomD);
+                mapThresholds.insert(videoParameters.at(index),_pom);
+            }*/
+        //}
+    //}
 }
 
-void ETanalysisParent::cancelAllCalculations(){
+QMap<QString,QMap<QString,cv::Rect>> ETanalysisParent::initAnomaly(QStringList parameters,
+                                                        QStringList i_videoList,
+                                                        int start_pos,
+                                                        int end_pos) {
+    QMap<QString,QMap<QString,cv::Rect>> outputMap;
+    cv::Rect _r(0,0,0,0);
+    for (int parameterIndex = start_pos; parameterIndex <= end_pos; parameterIndex++){
+        foreach (QString name, i_videoList){
+            QMap<QString,cv::Rect> _pom;
+            _pom.insert(name,_r);
+            outputMap.insert(parameters.at(parameterIndex),_pom);
+        }
+    }
+    return outputMap;
+}
+
+void ETanalysisParent::cancelAllCalculations(QStringList i_videoNames){
     if (First[1]->isRunning()){
         First[1]->terminate();
         First[1]->wait(10);
@@ -79,7 +137,7 @@ void ETanalysisParent::cancelAllCalculations(){
         }
     }
 
-    initMaps();
+    initMaps(i_videoNames);
     emit calculationStopped();
 }
 
@@ -87,58 +145,162 @@ void ETanalysisParent::done(int done)
 {
     if (done == 1)
     {
-        mapDouble["entropy"] = First[1]->computedEntropy();
-        mapDouble["tennengrad"] = First[1]->computedTennengrad();
-        mapInt["firstEvalEntropy"] = First[1]->computedFirstEntropyEvaluation();
-        mapInt["firstEvalTennengrad"] = First[1]->computedFirstTennengradEvalueation();
-        obtainedCutoffStandard = First[1]->computedCOstandard();
-        obtainedCutoffExtra = First[1]->computedCOextra();
-        mapInt["evaluation"] = First[1]->computedCompleteEvaluation();
-        framesReferencial = First[1]->estimatedReferencialFrames();
-        badFramesComplete = First[1]->computedBadFrames();
+        badVideos = First[1]->unprocessableVideos();
+        foreach (QString name,videoNamesList) {
+            if (badVideos.indexOf(name) == -1){
+                mapDouble["entropy"][name] = First[1]->computedEntropy()[name];
+                mapDouble["tennengrad"][name] = First[1]->computedTennengrad()[name];
+                mapInt["firstEvalEntropy"][name] = First[1]->computedFirstEntropyEvaluation()[name];
+                mapInt["firstEvalTennengrad"][name] = First[1]->computedFirstTennengradEvalueation()[name];
+                mapAnomalies["standard"][name] = First[1]->computedCOstandard()[name];
+                mapAnomalies["extra"][name] = First[1]->computedCOextra()[name];
+                mapInt["evaluation"][name] = First[1]->computedCompleteEvaluation()[name];
+                mapDouble["thresholds"][name] = First[1]->computedThresholds()[name];
+                badFramesComplete.insert(name,First[1]->computedBadFrames()[name]);
+                framesReferencial.insert(name,First[1]->estimatedReferencialFrames()[name]);
+            }
+        }
         emit dataObtained_first();
     }
     if (done == 2)
     {
-        averageCCcomplete = Second[2]->computedCC();
-        averageFWHMcomplete = Second[2]->computedFWHM();
+        badVideos.clear();
+        badVideos = Second[2]->unprocessableVideos();
+        foreach (QString name,videoNamesList) {
+            if (badVideos.indexOf(name) == -1){
+                averageCCcomplete[name] = Second[2]->computedCC()[name];
+                averageFWHMcomplete[name] = Second[2]->computedFWHM()[name];
+            }
+        }
         emit dataObtained_second();
     }
     if (done == 3)
     {
-        mapInt["evaluation"] = Third[3]->framesUpdateEvaluation();
-        mapInt["firstEval"] = Third[3]->framesFirstEvaluationComplete();
-        CC_problematicFrames = Third[3]->framesProblematic_CC();
-        FWHM_problematicFrames = Third[3]->framesProblematic_FWHM();
-        mapDouble["FrangiX"] = Third[3]->framesFrangiXestimated();
-        mapDouble["FrangiY"] = Third[3]->framesFrangiYestimated();
-        mapDouble["FrangiEuklid"] = Third[3]->framesFrangiEuklidestimated();
-        mapDouble["POCX"] = Third[3]->framesPOCXestimated();
-        mapDouble["POCY"] = Third[3]->framesPOCYestimated();
-        mapDouble["angle"] = Third[3]->framesUhelestimated();
+        badVideos.clear();
+        badVideos = Third[3]->unprocessableVideos();
+        foreach (QString name, videoNamesList){
+            if (badVideos.indexOf(name) == -1){
+                mapInt["evaluation"][name] = Third[3]->framesUpdateEvaluation()[name];
+                mapInt["firstEval"][name] = Third[3]->framesFirstEvaluationComplete()[name];
+                CC_problematicFrames[name] = Third[3]->framesProblematic_CC()[name];
+                FWHM_problematicFrames[name] = Third[3]->framesProblematic_FWHM()[name];
+                mapDouble["FrangiX"][name] = Third[3]->framesFrangiXestimated()[name];
+                mapDouble["FrangiY"][name] = Third[3]->framesFrangiYestimated()[name];
+                mapDouble["FrangiEuklid"][name] = Third[3]->framesFrangiEuklidestimated()[name];
+                mapDouble["POCX"][name] = Third[3]->framesPOCXestimated()[name];
+                mapDouble["POCY"][name] = Third[3]->framesPOCYestimated()[name];
+                mapDouble["angle"][name] = Third[3]->framesUhelestimated()[name];
+            }
+        }
         emit dataObtained_third();
     }
     if (done == 4)
     {
-        mapInt["evaluation"] = Fourth[4]->framesUpdateEvaluationComplete();
-        mapInt["secondEval"] = Fourth[4]->framesSecondEvaluation();
-        mapDouble["FrangiX"] = Fourth[4]->framesFrangiXestimated();
-        mapDouble["FrangiY"] = Fourth[4]->framesFrangiYestimated();
-        mapDouble["FrangiEuklid"] = Fourth[4]->framesFrangiEuklidestimated();
-        mapDouble["POCX"] = Fourth[4]->framesPOCXestimated();
-        mapDouble["POCY"] = Fourth[4]->framesPOCYestimated();
-        mapDouble["angle"] = Fourth[4]->framesAngleestimated();
+        badVideos.clear();
+        badVideos = Fourth[4]->unprocessableVideos();
+        foreach (QString name, videoNamesList){
+            if (badVideos.indexOf(name) == -1){
+                mapInt["evaluation"][name] = Fourth[4]->framesUpdateEvaluationComplete()[name];
+                mapInt["secondEval"][name] = Fourth[4]->framesSecondEvaluation()[name];
+                mapDouble["FrangiX"][name] = Fourth[4]->framesFrangiXestimated()[name];
+                mapDouble["FrangiY"][name] = Fourth[4]->framesFrangiYestimated()[name];
+                mapDouble["FrangiEuklid"][name] = Fourth[4]->framesFrangiEuklidestimated()[name];
+                mapDouble["POCX"][name] = Fourth[4]->framesPOCXestimated()[name];
+                mapDouble["POCY"][name] = Fourth[4]->framesPOCYestimated()[name];
+                mapDouble["angle"][name] = Fourth[4]->framesAngleestimated()[name];
+            }
+        }
         emit dataObtained_fourth();
     }
     if (done == 5)
     {
-        mapDouble["FrangiX"] = Fifth[5]->framesFrangiXestimated();
-        mapDouble["FrangiY"] = Fifth[5]->framesFrangiYestimated();
-        mapDouble["FrangiEuklid"] = Fifth[5]->framesFrangiEuklidestimated();
-        mapDouble["POCX"] = Fifth[5]->framesPOCXestimated();
-        mapDouble["POCY"] = Fifth[5]->framesPOCYestimated();
-        mapDouble["angle"] = Fifth[5]->framesAngleestimated();
-        mapInt["evaluation"] = Fifth[5]->framesUpdateEvaluationComplete();
+        badVideos.clear();
+        foreach (QString name, videoNamesList){
+            if (badVideos.indexOf(name) == -1){
+                mapDouble["FrangiX"][name] = Fifth[5]->framesFrangiXestimated()[name];
+                mapDouble["FrangiY"][name] = Fifth[5]->framesFrangiYestimated()[name];
+                mapDouble["FrangiEuklid"][name] = Fifth[5]->framesFrangiEuklidestimated()[name];
+                mapDouble["POCX"][name] = Fifth[5]->framesPOCXestimated()[name];
+                mapDouble["POCY"][name] = Fifth[5]->framesPOCYestimated()[name];
+                mapDouble["angle"][name] = Fifth[5]->framesAngleestimated()[name];
+                mapInt["evaluation"][name] = Fifth[5]->framesUpdateEvaluationComplete()[name];
+            }
+        }
         emit dataObtained_fifth();
     }
+}
+
+void ETanalysisParent::saveVideoAnalysisResults() {
+    foreach (QString name, videoNamesList){
+        if (badVideos.indexOf(name) == -1){
+            QJsonDocument document;
+            QJsonObject object;
+            QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+name+".dat";
+            mapInt["evaluation"][name][framesReferencial[name]] = 2;
+            /*for (int parameter = 0; parameter < videoParameters.count(); parameter++){
+                qDebug()<<videoParameters.at(parameter);
+                if (parameter <= 8){
+                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][name];
+                    QJsonArray pomArray = vector2array(pomDouble);
+                    object[videoParameters.at(parameter)] = pomArray;
+                }
+                else if (parameter > 8 && parameter <= 13){
+                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][name];
+                    if (videoParameters.at(parameter) == "evaluation")
+                        pomInt[framesReferencial[name]]=2;
+                    QJsonArray pomArray = vector2array(pomInt);
+                    object[videoParameters.at(parameter)] = pomArray;
+                }
+                else if (parameter > 13 && parameter <= 15) {
+                    QMap<QString,cv::Rect> _pom;
+                    cv::Rect _rect(0,0,0,0);
+                    _pom.insert(name,_rect);
+                    mapAnomalies.insert(videoParameters.at(parameter),_pom);
+                }
+            }*/
+            object = maps2Object(videoParameters,name,mapDouble,mapInt,mapAnomalies);
+
+            document.setObject(object);
+            QString documentString = document.toJson();
+            QFile writer;
+            writer.setFileName(path);
+            writer.open(QIODevice::WriteOnly);
+            writer.write(documentString.toLocal8Bit());
+            writer.close();
+        }
+    }
+}
+
+void ETanalysisParent::saveVideoAnalysisResultsFromGraphET(QString i_videoName, QJsonObject i_object) {
+    QJsonDocument document;
+    QJsonObject object;
+    //QString actualName = chosenVideoETSingle[1];
+    QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+i_videoName+".dat";
+    for (int parameter = 0; parameter < videoParameters.count(); parameter++){
+        if (parameter < 8){
+            QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][i_videoName];
+            QJsonArray pomArray = vector2array(pomDouble);
+            object[videoParameters.at(parameter)] = pomArray;
+        }
+        else if (parameter >= 8 && parameter <= 12){
+            QVector<int> pomInt = mapInt[videoParameters.at(parameter)][i_videoName];
+            if (videoParameters.at(parameter) == "evaluation")
+                pomInt[framesReferencial[i_videoName]]=2;
+
+            QJsonArray pomArray = vector2array(pomInt);
+            object[videoParameters.at(parameter)] = pomArray;
+        }
+    }
+    // it is possible that evaluation or thresholds could have been changed -> process i_object input
+    foreach (QString key, i_object.keys()) {
+        object[key] = i_object[key];
+    }
+
+    document.setObject(object);
+    QString documentString = document.toJson();
+    QFile writer;
+    writer.setFileName(path);
+    writer.open(QIODevice::WriteOnly);
+    writer.write(documentString.toLocal8Bit());
+    writer.close();
 }

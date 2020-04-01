@@ -5,35 +5,37 @@
 #include <QObject>
 #include <QStringList>
 #include <QVector>
+#include <QMap>
 
 class qThreadFourthPart : public QThread
 {
     Q_OBJECT
 public:
     explicit qThreadFourthPart(QStringList i_videos,
-                               QVector<int> i_badVideos,
-                               QVector<QVector<int>> i_framesFirstEvaluationDefinitive,
-                               QVector<QVector<int>> i_evalCompl,
-                               QVector<QVector<double>> i_CCproblematic,
-                               QVector<QVector<double>> i_FWHMproblematic,
-                               QVector<QVector<double>> i_POCX,
-                               QVector<QVector<double>> i_POCY,
-                               QVector<QVector<double>> i_Angles,
-                               QVector<QVector<double>> i_Fr_X,
-                               QVector<QVector<double>> i_Fr_Y,
-                               QVector<QVector<double>> i_Fr_Eu,
-                               QVector<double> i_averageCC,
-                               QVector<double> i_averageFWHM,
+                               QVector<QString> i_badVideos,
+                               QMap<QString,QVector<int>> i_framesFirstEvaluationDefinitive,
+                               QMap<QString,QVector<int>> i_evalCompl,
+                               QMap<QString,QVector<double>> i_CCproblematic,
+                               QMap<QString,QVector<double>> i_FWHMproblematic,
+                               QMap<QString,QVector<double>> i_POCX,
+                               QMap<QString,QVector<double>> i_POCY,
+                               QMap<QString,QVector<double>> i_Angles,
+                               QMap<QString,QVector<double>> i_Fr_X,
+                               QMap<QString,QVector<double>> i_Fr_Y,
+                               QMap<QString,QVector<double>> i_Fr_Eu,
+                               QMap<QString,double> i_averageCC,
+                               QMap<QString,double> i_averageFWHM,
                                QObject* parent=nullptr);
     void run() override;
-    QVector<QVector<int>> framesSecondEvaluation();
-    QVector<QVector<int>> framesUpdateEvaluationComplete();
-    QVector<QVector<double>> framesFrangiXestimated();
-    QVector<QVector<double>> framesFrangiYestimated();
-    QVector<QVector<double>> framesFrangiEuklidestimated();
-    QVector<QVector<double>> framesPOCXestimated();
-    QVector<QVector<double>> framesPOCYestimated();
-    QVector<QVector<double>> framesAngleestimated();
+    QMap<QString,QVector<int>> framesSecondEvaluation();
+    QMap<QString,QVector<int>> framesUpdateEvaluationComplete();
+    QMap<QString,QVector<double>> framesFrangiXestimated();
+    QMap<QString,QVector<double>> framesFrangiYestimated();
+    QMap<QString,QVector<double>> framesFrangiEuklidestimated();
+    QMap<QString,QVector<double>> framesPOCXestimated();
+    QMap<QString,QVector<double>> framesPOCYestimated();
+    QMap<QString,QVector<double>> framesAngleestimated();
+    QVector<QString> unprocessableVideos();
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
@@ -46,14 +48,14 @@ private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty(int i_frameCount);
+    void fillEmpty(QString i_videoName, int i_frameCount);
 
     QStringList videoList;
-    QVector<QVector<int>> framesFirstEvaluationComplete,framesSecondEvaluationComplete,framesCompleteEvaluation;
-    QVector<QVector<double>> computedCC,computedFWHM,POC_x,POC_y,angle,frangi_x,
+    QMap<QString,QVector<int>> framesFirstEvaluationComplete,framesSecondEvaluationComplete,framesCompleteEvaluation;
+    QMap<QString,QVector<double>> computedCC,computedFWHM,POC_x,POC_y,angle,frangi_x,
     frangi_y,frangi_euklid;
-    QVector<int> notProcessThese;
-    QVector<double> averageCCcomplete,averageFWHMcomplete;
+    QVector<QString> notProcessThese;
+    QMap<QString,double> averageCCcomplete,averageFWHMcomplete;
     double videoCount;
     double framesToAnalyse;
 };

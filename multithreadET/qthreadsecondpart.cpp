@@ -10,15 +10,16 @@
 #include "image_analysis/correlation_coefficient.h"
 #include "image_analysis/frangi_utilization.h"
 #include "registration/phase_correlation_function.h"
+#include "registration/multiPOC_Ai1.h"
 #include "util/vector_operations.h"
 #include "util/files_folders_operations.h"
 
 qThreadSecondPart::qThreadSecondPart(QStringList i_videosForAnalysis,
-                                     QVector<int> i_badVideos,
-                                     QVector<cv::Rect> i_cutoutStandard,
-                                     QVector<cv::Rect> i_cutoutExtra,
-                                     QVector<QVector<int> > i_badFramesCompleteList,
-                                     QVector<int> i_videoReferencialFramesList,
+                                     QVector<QString> i_badVideos,
+                                     QMap<QString, cv::Rect> i_cutoutStandard,
+                                     QMap<QString, cv::Rect> i_cutoutExtra,
+                                     QMap<QString, QVector<int> > i_badFramesCompleteList,
+                                     QMap<QString,int> i_videoReferencialFramesList,
                                      bool i_scaleChange,
                                      double i_areaMaximum)
 {
@@ -28,7 +29,7 @@ qThreadSecondPart::qThreadSecondPart(QStringList i_videosForAnalysis,
     badFramesComplete = i_badFramesCompleteList;
     scaleChanged = i_scaleChange;
     referencialFrames = i_videoReferencialFramesList;
-    notProcessThese = i_badVideos;
+    notProcessThis = i_badVideos;
     areaMaximum = i_areaMaximum;
 
     emit setTerminationEnabled(true);
@@ -36,44 +37,48 @@ qThreadSecondPart::qThreadSecondPart(QStringList i_videosForAnalysis,
 
 void qThreadSecondPart::run()
 {
-    /// Fifth part - average correlation coefficient and FWHM coefficient of the video are computed
-    /// for decision algorithms
+    // Fifth part - average correlation coefficient and FWHM coefficient of the video are computed
+    // for decision algorithms
     emit percentageCompleted(0);
     emit typeOfMethod(1);
     videoCount = double(videoList.count());
     for (int videoIndex = 0; videoIndex < videoList.count(); videoIndex++)
     {
-        if (notProcessThese.indexOf(videoIndex) == -1){
-            QString fullPath = videoList.at(videoIndex);
-            QString folder,filename,suffix;
-            processFilePath(fullPath,folder,filename,suffix);
+        QString fullPath = videoList.at(videoIndex);
+        QString folder,filename,suffix;
+        processFilePath(fullPath,folder,filename,suffix);
+        if (notProcessThis.indexOf(filename) == -1)
+        {
             emit actualVideo(videoIndex);
             cv::VideoCapture capture = cv::VideoCapture(fullPath.toLocal8Bit().constData());
             if (!capture.isOpened()){
                 emit unexpectedTermination(videoIndex,"hardError");
-                fillEmpty();
+                fillEmpty(filename);
                 continue;
             }
 
             int frameCount = int(capture.get(CV_CAP_PROP_FRAME_COUNT));
             QVector<double> pom(frameCount,0);
             QVector<double> framesForSigma;
-            QVector<int> spatne_snimky_videa = badFramesComplete[videoIndex];
-            framesForSigma = vectorForFWHM(spatne_snimky_videa,frameCount);
+            QVector<int> bad_frames_vector = badFramesComplete[filename];
+            framesForSigma = vectorForFWHM(bad_frames_vector,frameCount);
             if (!capture.isOpened())
             {
                 emit unexpectedTermination(videoIndex,"hardError");
-                fillEmpty();
+                fillEmpty(filename);
                 continue;
             }
             cv::Mat referencialImage_temp,referencialImage,referencialImage32f,referencni_vyrez;
-            capture.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[videoIndex]);
+            capture.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[filename]);
             capture.read(referencialImage_temp);
             int rows = 0;
             int cols = 0;
-            cv::Rect _tempStandard,_tempExtra;
-            _tempStandard = obtainedCutoffStandard[videoIndex];
-            _tempExtra = obtainedCutoffExtra[videoIndex];
+            cv::Rect _tempStandard,_tempExtra,_tempStandardAdjusted;
+            _tempStandard = obtainedCutoffStandard[filename];
+            _tempExtra = obtainedCutoffExtra[filename];
+            /*_tempStandardAdjusted = adjustStandardCutout(_tempExtra,_tempStandard,
+                                                         referencialImage_temp.rows,
+                                                         referencialImage_temp.cols);*/
             if (scaleChanged == true)
             {
                 referencialImage_temp(_tempExtra).copyTo(referencialImage);
@@ -103,7 +108,7 @@ void qThreadSecondPart::run()
                 {
                     QString errorMessage = QString("Frame number %1 could not be opened").arg(j);
                     unexpectedTermination(videoIndex,"hardError");
-                    fillEmpty();
+                    fillEmpty(filename);
                     continue;
                 }
                 else
@@ -154,28 +159,32 @@ void qThreadSecondPart::run()
             double FWHMcomputed = median_VectorDouble(computedFWHM);
             double Rcomputed = median_VectorDouble(computedCC);
             qDebug()<<"Medians: FWHM: "<<FWHMcomputed<<" and CC: "<<Rcomputed;
-            CC.push_back(Rcomputed);
-            FWHM.push_back(FWHMcomputed);
+            CC.insert(filename,Rcomputed);
+            FWHM.insert(filename,FWHMcomputed);
         }
         else{
-            fillEmpty();
+            fillEmpty(filename);
         }
     }
     emit percentageCompleted(100);
     emit done(2);
-
 }
 
-void qThreadSecondPart::fillEmpty(){
-    CC.push_back(0.0);
-    FWHM.push_back(0.0);
+void qThreadSecondPart::fillEmpty(QString i_videoName){
+    /*CC.insert(i_videoName,0.0);
+    FWHM.insert(i_videoName,0.0);*/
+    notProcessThis.push_back(i_videoName);
 }
 
-QVector<double> qThreadSecondPart::computedCC()
+QVector<QString> qThreadSecondPart::unprocessableVideos() {
+    return notProcessThis;
+}
+
+QMap<QString, double> qThreadSecondPart::computedCC()
 {
     return CC;
 }
-QVector<double> qThreadSecondPart::computedFWHM()
+QMap<QString,double> qThreadSecondPart::computedFWHM()
 {
     return  FWHM;
 }

@@ -11,45 +11,93 @@ class qThreadFirstPart : public QThread
     Q_OBJECT
 public:
    explicit qThreadFirstPart(QStringList i_videosForAnalysis,
-                             cv::Point2d i_verticalAnomalyCoords,
-                             cv::Point2d i_horizontalAnomalyCoords,
+                             bool i_scaleChanged,
                              QVector<double> i_FrangiParametersValues,
                              QMap<QString, int> i_margins,
                              QMap<QString, double> i_ratios,
+                             QMap<QString, QVector<double>> ETthresholds,
+                             QMap<QString, bool> ETthresholdsFound,
+                             bool i_previousThresholdsUsageAllowed,
                              QObject* parent=nullptr);
-    QVector<QVector<double>> computedEntropy();
-    QVector<QVector<double>> computedTennengrad();
-    QVector<QVector<int>> computedFirstEntropyEvaluation();
-    QVector<QVector<int>> computedFirstTennengradEvalueation();
-    QVector<QVector<int>> computedCompleteEvaluation();
-    QVector<QVector<int>> computedBadFrames();
-    QVector<cv::Rect> computedCOstandard();
-    QVector<cv::Rect> computedCOextra();
-    QVector<int> estimatedReferencialFrames();
+    /**
+     * @brief computedEntropy
+     * @return
+     */
+    QMap<QString, QVector<double> > computedEntropy();
+    /**
+     * @brief computedTennengrad
+     * @return
+     */
+    QMap<QString, QVector<double> > computedTennengrad();
+    /**
+     * @brief computedFirstEntropyEvaluation
+     * @return
+     */
+    QMap<QString, QVector<int> > computedFirstEntropyEvaluation();
+    /**
+     * @brief computedFirstTennengradEvalueation
+     * @return
+     */
+    QMap<QString, QVector<int> > computedFirstTennengradEvalueation();
+    /**
+     * @brief computedCompleteEvaluation
+     * @return
+     */
+    QMap<QString, QVector<int> > computedCompleteEvaluation();
+    /**
+     * @brief computedBadFrames
+     * @return
+     */
+    QMap<QString, QVector<int> > computedBadFrames();
+    /**
+     * @brief computedCOstandard
+     * @return
+     */
+    QMap<QString,cv::Rect> computedCOstandard();
+    /**
+     * @brief computedCOextra
+     * @return
+     */
+    QMap<QString, cv::Rect> computedCOextra();
+    /**
+     * @brief computedThresholds
+     * @return
+     */
+    QMap<QString,QVector<double>> computedThresholds();
+    /**
+     * @brief estimatedReferencialFrames
+     * @return
+     */
+    QMap<QString,int> estimatedReferencialFrames();
+
+    QVector<QString> unprocessableVideos();
+    /**
+     * @brief run
+     */
     void run() override;
 
 private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty(int i_frameCount);
+    void fillEmpty(QString i_videoName, int i_frameCount);
 
-    QVector<QVector<double>> entropyComplete;
-    QVector<QVector<double>> tennengradComplete;
-    QVector<QVector<int>> framesFirstFullCompleteEntropyEvaluation;
-    QVector<QVector<int>> framesFirstFullCompleteTennengradEvaluation;
-    QVector<QVector<int>> framesFullCompleteDecision;
-    QVector<QVector<int>> badFramesComplete;
-    QVector<int> referencialFrames;
+    QMap<QString,QVector<double>> entropyComplete,tennengradComplete, previousThresholds;
+    QMap<QString,QVector<int>> framesFirstFullCompleteEntropyEvaluation;
+    QMap<QString,QVector<int>> framesFirstFullCompleteTennengradEvaluation;
+    QMap<QString,QVector<int>> framesFullCompleteDecision;
+    QMap<QString,QVector<int>> badFramesComplete;
+    QMap<QString,int> referencialFrames;
+    QMap<QString, bool> videosWithThresholdsFound;
     QVector<double> FrangiParameters;
+    QVector<QString> doNotProcessThis;
     QStringList processVideos;
     int videoCount;
     double percent;
-    cv::Point2d horizontalAnomaly;
-    cv::Point2d verticalAnomaly;
-    QVector<cv::Rect> obtainedCutoffStandard;
-    QVector<cv::Rect> obtainedCutoffExtra;
-    bool anomalyPresence = false;
+    QMap<QString,cv::Rect> obtainedCutoffStandard;
+    QMap<QString,cv::Rect> obtainedCutoffExtra;
+    QMap<QString,QVector<double>> calculatedETthresholds;
+    bool scaleChanged = false, usePreviousThresholds = false;
 
     QMap<QString, int> margins;
     QMap<QString, double> ratios;

@@ -283,19 +283,26 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="horizontalAnomaly">
+      <widget class="QCheckBox" name="standardCutout">
        <property name="enabled">
         <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="verticalAnomaly">
+      <widget class="QCheckBox" name="extraCutout">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="checkable">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="previousThresholdsCB">
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>

@@ -18,19 +18,19 @@ using cv::Rect;
 using cv::Point3d;
 
 qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
-                                   QVector<int> i_badVideos,
-                                   QVector<cv::Rect> i_standardCutout,
-                                   QVector<cv::Rect> i_extraCutout,
-                                   QVector<QVector<double> > i_POCX,
-                                   QVector<QVector<double> > i_POCY,
-                                   QVector<QVector<double> > i_Angle,
-                                   QVector<QVector<double> > i_Fr_X,
-                                   QVector<QVector<double> > i_Fr_Y,
-                                   QVector<QVector<double> > i_Fr_E,
+                                   QVector<QString> i_badVideos,
+                                   QMap<QString, cv::Rect> i_standardCutout,
+                                   QMap<QString, cv::Rect> i_extraCutout,
+                                   QMap<QString, QVector<double>> i_POCX,
+                                   QMap<QString, QVector<double>> i_POCY,
+                                   QMap<QString, QVector<double>> i_Angle,
+                                   QMap<QString, QVector<double>> i_Fr_X,
+                                   QMap<QString, QVector<double>> i_Fr_Y,
+                                   QMap<QString, QVector<double>> i_Fr_E,
                                    bool i_scaleChanged,
-                                   QVector<QVector<int> > i_EvaluationComplete,
-                                   QVector<QVector<int> > i_frEvalSec,
-                                   QVector<int> i_referFrames,
+                                   QMap<QString, QVector<int>> i_EvaluationComplete,
+                                   QMap<QString, QVector<int>> i_frEvalSec,
+                                   QMap<QString, int> i_referFrames,
                                    QVector<double> i_FrangiParams,
                                    int i_iteration,
                                    double i_areaMaximum,
@@ -64,43 +64,46 @@ qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
 
 void qThreadFifthPart::run()
 {
-    /// The last part - the coordinates of Frangi Filter maximum pixel are calculated and compared with the coords
-    /// of referencial frame. The euclidean distance of these two pixels can show, if the Frangi filter is usable
-    /// for this frame.
+    // The last part - the coordinates of Frangi Filter maximum pixel are calculated and compared with the coords
+    // of referencial frame. The euclidean distance of these two pixels can show, if the Frangi filter is usable
+    // for this frame.
     emit typeOfMethod(4);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
     qDebug()<<videoCount<<" videos ready for the analysis.";
     for (int videoIndex = 0; videoIndex < videoList.count(); videoIndex++)
     {
-        if (notProcessThese.indexOf(videoIndex) == -1){
-            framesToAnalyse = double(framesSecondEval[videoIndex].length());
-            QString fullPath = videoList.at(videoIndex);
-            QString folder,filename,suffix;
-            processFilePath(fullPath,folder,filename,suffix);
+        QString fullPath = videoList.at(videoIndex);
+        QString folder,filename,suffix;
+        processFilePath(fullPath,folder,filename,suffix);
+        if (notProcessThese.indexOf(filename) == -1){
+            framesToAnalyse = double(framesSecondEval[filename].length());
+
             emit actualVideo(videoIndex);
             cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
             if (!cap.isOpened())
             {
                 emit unexpectedTermination(videoIndex,"hardError");
-                fillEmpty(260);
+                fillEmpty(filename,260);
                 continue;
             }
             cv::Mat referencialFrame_temp,referencialFrame,referencialFrame32f,referencialFrame_cutout;
-            cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[videoIndex]);
+            cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[filename]);
             if (!cap.read(referencialFrame_temp))
             {
                 emit unexpectedTermination(videoIndex,"hardError");
-                fillEmpty(260);
+                fillEmpty(filename,260);
                 continue;
             }
             int videoFrameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
             int rows;
             int cols;
-            cv::Rect _tempStandard,_tempExtra;
-            _tempStandard = obtainedCutoffStandard[videoIndex];
-            _tempExtra = obtainedCutoffExtra[videoIndex];
-
+            cv::Rect _tempStandard,_tempExtra,_tempStandardAdjusted;
+            _tempStandard = obtainedCutoffStandard[filename];
+            _tempExtra = obtainedCutoffExtra[filename];
+            /*_tempStandardAdjusted = adjustStandardCutout(_tempExtra,_tempStandard,
+                                                         referencialFrame_temp.rows,
+                                                         referencialFrame_temp.cols);*/
             if (scaleCh == true)
             {
                 referencialFrame_temp(_tempExtra).copyTo(referencialFrame);
@@ -122,7 +125,7 @@ void qThreadFifthPart::run()
             Point3d frame_FrangiReverse = frangi_analysis(referencialFrame,2,2,0,"",1,pt_temp,FrangiParameters,margins);
             referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
             qDebug()<<"Analysing "<<framesToAnalyse<<" of "<<filename;
-            for (int i = 0; i < framesSecondEval[videoIndex].length(); i++)
+            for (int i = 0; i < framesSecondEval[filename].length(); i++)
             {
                 emit percentageCompleted(qRound((videoIndex/videoCount)*100+((i/framesToAnalyse)*100.0)/videoCount));
                 Mat registrated = cv::Mat::zeros(referencialFrame.size(), CV_32FC3);
@@ -131,7 +134,7 @@ void qThreadFifthPart::run()
                 QVector<double> pocY;
                 QVector<double> fullAngle;
                 int registrartionDone = completeRegistration(cap,referencialFrame,
-                                                           framesSecondEval[videoIndex][i],
+                                                           framesSecondEval[filename][i],
                                                            iteration,
                                                            areaMaximum,
                                                            maximalAngle,
@@ -140,19 +143,19 @@ void qThreadFifthPart::run()
                                                            scaleCh,
                                                            registrated,
                                                            pocX,pocY,fullAngle);
-                qDebug() << framesSecondEval[videoIndex][i] <<" -> ";
+                qDebug() << framesSecondEval[filename][i] <<" -> ";
                 if (registrartionDone == 0)
                 {
 
                     emit unexpectedTermination(videoIndex,"hardError");
-                    framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 5.0;
-                    POC_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                    POC_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                    angle[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                    frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                    frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                    frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                    fillEmpty(videoFrameCount);
+                    framesCompleteEvaluation[filename][framesSecondEval[filename][i]] = 5.0;
+                    POC_x[filename][framesSecondEval[filename][i]] = 999.0;
+                    POC_y[filename][framesSecondEval[filename][i]] = 999.0;
+                    angle[filename][framesSecondEval[filename][i]] = 999.0;
+                    frangi_x[filename][framesSecondEval[filename][i]] = 999.0;
+                    frangi_y[filename][framesSecondEval[filename][i]] = 999.0;
+                    frangi_euklid[filename][framesSecondEval[filename][i]] = 999.0;
+                    fillEmpty(filename,videoFrameCount);
                     continue;
                 }
                 else
@@ -203,13 +206,13 @@ void qThreadFifthPart::run()
                     if (registratedFrangiReverse.z == 0.0)
                     {
                         emit unexpectedTermination(videoIndex,"hardError");
-                        framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 5.0;
-                        POC_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                        POC_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                        angle[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                        frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                        frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
-                        frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = 999.0;
+                        framesCompleteEvaluation[filename][framesSecondEval[filename][i]] = 5.0;
+                        POC_x[filename][framesSecondEval[filename][i]] = 999.0;
+                        POC_y[filename][framesSecondEval[filename][i]] = 999.0;
+                        angle[filename][framesSecondEval[filename][i]] = 999.0;
+                        frangi_x[filename][framesSecondEval[filename][i]] = 999.0;
+                        frangi_y[filename][framesSecondEval[filename][i]] = 999.0;
+                        frangi_euklid[filename][framesSecondEval[filename][i]] = 999.0;
                         continue;
                     }
                     else
@@ -220,24 +223,24 @@ void qThreadFifthPart::run()
                         double euklid = std::sqrt(differenceSum);
                         if (euklid <= 1.2)
                         {
-                            framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 0;
+                            framesCompleteEvaluation[filename][framesSecondEval[filename][i]] = 0;
                             qDebug()<< "euclidean "<<euklid<<"-> category: 0";
                         }
                         else if (euklid > 1.2 && euklid < 10)
                         {
-                            framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 1;
+                            framesCompleteEvaluation[filename][framesSecondEval[filename][i]] = 1;
                             qDebug()<< "euclidean "<<euklid<<", category: 1";
-                            frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.x;
-                            frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.y;
-                            frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = euklid;
+                            frangi_x[filename][framesSecondEval[filename][i]] = registratedFrangiReverse.x;
+                            frangi_y[filename][framesSecondEval[filename][i]] = registratedFrangiReverse.y;
+                            frangi_euklid[filename][framesSecondEval[filename][i]] = euklid;
                         }
                         else if (euklid >=10)
                         {
-                            framesCompleteEvaluation[videoIndex][framesSecondEval[videoIndex][i]] = 4;
+                            framesCompleteEvaluation[filename][framesSecondEval[filename][i]] = 4;
                             qDebug()<< "euclidean "<<euklid<<", category: 4";
-                            frangi_x[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.x;
-                            frangi_y[videoIndex][framesSecondEval[videoIndex][i]] = registratedFrangiReverse.y;
-                            frangi_euklid[videoIndex][framesSecondEval[videoIndex][i]] = euklid;
+                            frangi_x[filename][framesSecondEval[filename][i]] = registratedFrangiReverse.x;
+                            frangi_y[filename][framesSecondEval[filename][i]] = registratedFrangiReverse.y;
+                            frangi_euklid[filename][framesSecondEval[filename][i]] = euklid;
                         }
                         difference_x = 0;
                         difference_y = 0;
@@ -248,51 +251,56 @@ void qThreadFifthPart::run()
             }
         }
         else{
-            fillEmpty(260);
+            fillEmpty(filename,260);
         }
     }
     emit percentageCompleted(100);
     emit done(5);
 }
 
-void qThreadFifthPart::fillEmpty(int i_frameCount){
-    QVector<double> pomVecD(i_frameCount,0.0);
+void qThreadFifthPart::fillEmpty(QString i_videoName, int i_frameCount){
+    /*QVector<double> pomVecD(i_frameCount,0.0);
     QVector<int> pomVecI(i_frameCount,0);
 
-    framesCompleteEvaluation.push_back(pomVecI);
-    frangi_x.push_back(pomVecD);
-    frangi_y.push_back(pomVecD);
-    frangi_euklid.push_back(pomVecD);
-    POC_x.push_back(pomVecD);
-    POC_y.push_back(pomVecD);
-    angle.push_back(pomVecD);
+    framesCompleteEvaluation.insert(i_videoName,pomVecI);
+    frangi_x.insert(i_videoName,pomVecD);
+    frangi_y.insert(i_videoName,pomVecD);
+    frangi_euklid.insert(i_videoName,pomVecD);
+    POC_x.insert(i_videoName,pomVecD);
+    POC_y.insert(i_videoName,pomVecD);
+    angle.insert(i_videoName,pomVecD);*/
+    notProcessThese.push_back(i_videoName);
 }
 
-QVector<QVector<int>> qThreadFifthPart::framesUpdateEvaluationComplete()
+QVector<QString> qThreadFifthPart::unprocessableVideos() {
+    return notProcessThese;
+}
+
+QMap<QString, QVector<int>> qThreadFifthPart::framesUpdateEvaluationComplete()
 {
     return framesCompleteEvaluation;
 }
-QVector<QVector<double>> qThreadFifthPart::framesFrangiXestimated()
+QMap<QString,QVector<double>> qThreadFifthPart::framesFrangiXestimated()
 {
     return frangi_x;
 }
-QVector<QVector<double>> qThreadFifthPart::framesFrangiYestimated()
+QMap<QString,QVector<double>> qThreadFifthPart::framesFrangiYestimated()
 {
     return frangi_y;
 }
-QVector<QVector<double>> qThreadFifthPart::framesFrangiEuklidestimated()
+QMap<QString,QVector<double>> qThreadFifthPart::framesFrangiEuklidestimated()
 {
     return frangi_euklid;
 }
-QVector<QVector<double>> qThreadFifthPart::framesPOCXestimated()
+QMap<QString,QVector<double>> qThreadFifthPart::framesPOCXestimated()
 {
     return POC_x;
 }
-QVector<QVector<double>> qThreadFifthPart::framesPOCYestimated()
+QMap<QString,QVector<double>> qThreadFifthPart::framesPOCYestimated()
 {
     return POC_y;
 }
-QVector<QVector<double>> qThreadFifthPart::framesAngleestimated()
+QMap<QString,QVector<double>> qThreadFifthPart::framesAngleestimated()
 {
     return angle;
 }

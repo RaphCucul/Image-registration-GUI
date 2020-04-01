@@ -106,12 +106,12 @@ void MultiVideoRegistration::processVideoParameters(QJsonObject& videoData,
     for (int parameter = 0; parameter < videoParameters.count(); parameter++){
         if (parameter < 6){
             QJsonArray arrayDouble = videoData[videoParameters.at(parameter)].toArray();
-            QVector<double> pomDouble = arrayDouble2vector(arrayDouble);
+            QVector<double> pomDouble = array2vector<double>(arrayDouble);
             inputMMdouble[videoParameters.at(parameter)] = pomDouble;
         }
         if (parameter == 6){
             QJsonArray arrayInt = videoData[videoParameters.at(parameter)].toArray();
-            QVector<int> pomInt = arrayInt2vector(arrayInt);
+            QVector<int> pomInt = array2vector<int>(arrayInt);
             inputMMint[videoParameters.at(parameter)] = pomInt;
         }
         if (parameter > 6){
@@ -422,7 +422,7 @@ void MultiVideoRegistration::addStatus(int row, int column, QString status){
     internalCounter+=1;
 }
 void MultiVideoRegistration::errorHandler(int indexOfThread, QString errorMessage){
-    Q_UNUSED(indexOfThread);
+    Q_UNUSED(indexOfThread)
     localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",errorMessage);
     localErrorDialogHandling[ui->registratePB]->show(true);
 
@@ -597,7 +597,7 @@ void MultiVideoRegistration::on_saveResultsPB_clicked()
                 object[videoParameters.at(parameter)] = pomArray;
             }
             else{
-                if (videoParameters.at(parameter) == "VerticalAnomaly"){
+                /*if (videoParameters.at(parameter) == "VerticalAnomaly"){
                     double _pom = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().y);
                     if (_pom <= 0)
                         object[videoParameters.at(parameter)] = 0;
@@ -610,7 +610,7 @@ void MultiVideoRegistration::on_saveResultsPB_clicked()
                         object[videoParameters.at(parameter)] = 0;
                     else
                         object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x);
-                }
+                }*/
             }
         }
         document.setObject(object);

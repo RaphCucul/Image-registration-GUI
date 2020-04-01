@@ -24,8 +24,6 @@ public:
 private slots:
     void on_chooseVideoPB_clicked();
     void on_chosenVideoLE_textChanged(const QString &arg1);
-    void on_horizontalAnomalyCB_stateChanged(int arg1);
-    void on_verticalAnomalyCB_stateChanged(int arg1);
     void on_calculateET_clicked();
     void on_showGraphET_clicked();
 
@@ -55,9 +53,30 @@ private slots:
      */
     void onDone(int thread);
 
+    /**
+     * @brief on_savePB_clicked
+     */
     void on_savePB_clicked();
+
+    /**
+     * @brief onSaveFromGraphET
+     * @param i_videoName
+     */
+    void onSaveFromGraphET(QString i_videoName, QJsonObject i_object);
+
+    /**
+     * @brief on_areaMaximum_editingFinished
+     */
     void on_areaMaximum_editingFinished();
+
+    /**
+     * @brief on_rotationAngle_editingFinished
+     */
     void on_rotationAngle_editingFinished();
+
+    /**
+     * @brief on_iterationCount_editingFinished
+     */
     void on_iterationCount_editingFinished();
 
     /**
@@ -99,6 +118,7 @@ private:
     bool runStatus = true;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
     bool canProceed;
+    QMap<QString,bool> ETthresholdsFound;
 
 };
 

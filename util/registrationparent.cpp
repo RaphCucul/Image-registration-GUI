@@ -23,10 +23,6 @@ void RegistrationParent::onFinishThread(int threadIndex){
         threadPool[threadIndex]->deleteLater();
 }
 
-void RegistrationParent::onVideoWriterFinished(){
-
-}
-
 void RegistrationParent::cancelAllCalculations(){
     if (!threadPool.isEmpty()){
         for (int threadIndex = 1; threadIndex <= threadPool.count(); threadIndex++){

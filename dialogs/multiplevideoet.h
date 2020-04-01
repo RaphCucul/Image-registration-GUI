@@ -31,9 +31,24 @@ protected:
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
 private slots:
+    /**
+     * @brief on_afewVideosPB_clicked
+     */
     void on_afewVideosPB_clicked();
+
+    /**
+     * @brief on_wholeFolderPB_clicked
+     */
     void on_wholeFolderPB_clicked();
+
+    /**
+     * @brief on_analyzeVideosPB_clicked
+     */
     void on_analyzeVideosPB_clicked();
+
+    /**
+     * @brief on_showResultsPB_clicked
+     */
     void on_showResultsPB_clicked();
 
     /**
@@ -69,9 +84,24 @@ private slots:
      */
     void onUnexpectedTermination(int videoIndex, QString errorType);
 
+    /**
+     * @brief on_savePB_clicked
+     */
     void on_savePB_clicked();
+
+    /**
+     * @brief on_areaMaximum_editingFinished
+     */
     void on_areaMaximum_editingFinished();
+
+    /**
+     * @brief on_rotationAngle_editingFinished
+     */
     void on_rotationAngle_editingFinished();
+
+    /**
+     * @brief on_iterationCount_editingFinished
+     */
     void on_iterationCount_editingFinished();
 
     /**
@@ -95,6 +125,12 @@ private slots:
      * @brief Function re-enables specific widgets when the calculations stop.
      */
     void enableWidgets();
+
+    /**
+     * @brief onSaveFromGraphET
+     * @param i_videoName
+     */
+    void onSaveFromGraphET(QString i_videoName, QJsonObject i_object);
 signals:
     /**
      * @brief If the value is added and if it is correct, the signal is emitted and evaluateCorrectValues
@@ -115,10 +151,12 @@ private:
      */
     void keyPressEvent(QKeyEvent *event) override;
 
+    void checkFileAndLoadThresholds(QString i_videoName);
+
     Ui::MultipleVideoET *ui;
-    QStringList videoList;
     bool runStatus = true;
     bool canProceed = true;
+    QMap<QString,bool> ETthresholdsFound;
 
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };

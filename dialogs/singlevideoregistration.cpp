@@ -351,12 +351,12 @@ void SingleVideoRegistration::processVideoParameters(QJsonObject &videoData)
     for (int parameter = 0; parameter < videoParameters.count(); parameter++){
         if (parameter < 6){
             QJsonArray arrayDouble = videoData[videoParameters.at(parameter)].toArray();
-            QVector<double> pomDouble = arrayDouble2vector(arrayDouble);
+            QVector<double> pomDouble = array2vector<double>(arrayDouble);
             videoParametersDouble[videoParameters.at(parameter)] = pomDouble;
         }
         if (parameter == 6){
             QJsonArray arrayInt = videoData[videoParameters.at(parameter)].toArray();
-            QVector<int> pomInt = arrayInt2vector(arrayInt);
+            QVector<int> pomInt = array2vector<int>(arrayInt);
             videoParametersInt[videoParameters.at(parameter)] = pomInt;
         }
         if (parameter > 6){
@@ -487,7 +487,7 @@ void SingleVideoRegistration::on_savePB_clicked()
             object[videoParameters.at(parameter)] = pomArray;
         }
         else{
-            if (videoParameters.at(parameter) == "VerticalAnomaly"){
+            /*if (videoParameters.at(parameter) == "VerticalAnomaly"){
                 double _pom = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().y);
                 if (_pom <= 0)
                     object[videoParameters.at(parameter)] = 0;
@@ -500,7 +500,7 @@ void SingleVideoRegistration::on_savePB_clicked()
                     object[videoParameters.at(parameter)] = 0;
                 else
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x);
-            }
+            }*/
         }
     }
     document.setObject(object);

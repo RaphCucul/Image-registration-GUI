@@ -1,6 +1,5 @@
 #include "dialogs/multiplevideoet.h"
 #include "ui_multiplevideoet.h"
-//#include "image_analysis/entropy.h"
 #include "image_analysis/frangi_utilization.h"
 #include "image_analysis/image_processing.h"
 #include "main_program/frangi_detektor.h"
@@ -42,10 +41,10 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
     ui->showResultsPB->setText(tr("Show results"));
     ui->savePB->setEnabled(false);
     ui->savePB->setText(tr("Save computed parameters"));
-    ui->horizontalAnomaly->setEnabled(false);
-    ui->horizontalAnomaly->setText(tr("Top/bottom anomaly"));
-    ui->verticalAnomaly->setEnabled(false);
-    ui->verticalAnomaly->setText(tr("Left/right anomaly"));
+    ui->standardCutout->setEnabled(false);
+    ui->standardCutout->setText(tr("Modify standard cutout"));
+    ui->extraCutout->setEnabled(false);
+    ui->extraCutout->setText(tr("Modify extra cutout"));
     ui->areaMaximum->setPlaceholderText("0-20");
     ui->rotationAngle->setPlaceholderText("0 - 0.5");
     ui->iterationCount->setPlaceholderText("1-Inf; -1~auto");
@@ -56,12 +55,14 @@ MultipleVideoET::MultipleVideoET(QWidget *parent) :
     ui->wholeFolderPB->setText(tr("Choose whole folder"));
     ui->analyzeVideosPB->setText(tr("Analyse videos"));
     ui->analyzeVideosPB->setEnabled(false);
+    ui->previousThresholdsCB->setText(tr("Use previous thresholds"));
+    ui->previousThresholdsCB->setEnabled(false);
 
     localErrorDialogHandling[ui->analyzeVideosPB] = new ErrorDialog(ui->analyzeVideosPB);
 
     QObject::connect(this,SIGNAL(checkValuesPass()),this,SLOT(evaluateCorrectValues()));
-    QObject::connect(ui->verticalAnomaly,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
-    QObject::connect(ui->horizontalAnomaly,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    QObject::connect(ui->standardCutout,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
+    QObject::connect(ui->extraCutout,SIGNAL(stateChanged(int)),this,SLOT(showDialog()));
     QObject::connect(this,SIGNAL(calculationStarted()),this,SLOT(disableWidgets()));
     QObject::connect(this,SIGNAL(calculationStopped()),this,SLOT(enableWidgets()));
 }
@@ -81,12 +82,15 @@ void MultipleVideoET::dropEvent(QDropEvent *event)
        foreach (QUrl url,urls){
            QMimeType mime = QMimeDatabase().mimeTypeForUrl(url);
            if (mime.inherits("video/x-msvideo")) {
-                videoList.append(url.toLocalFile());
+                analysedVideos.append(url.toLocalFile());
+                QString folder,filename,suffix;
+                processFilePath(url.toLocalFile(),folder,filename,suffix);
+                videoNamesList.append(filename);
+                checkFileAndLoadThresholds(filename);
               }
        }
-       //videoList = seznamVidei;
-       qDebug()<<"Actual list of videos contains: "<<videoList;
-       ui->selectedVideos->addItems(videoList);
+       qDebug()<<"Actual list of videos contains: "<<analysedVideos;
+       ui->selectedVideos->addItems(analysedVideos);
 }
 
 void MultipleVideoET::dragEnterEvent(QDragEnterEvent *event)
@@ -105,7 +109,11 @@ void MultipleVideoET::on_afewVideosPB_clicked()
         for (int i =0;i<filenames.count();i++)
         {
             ui->selectedVideos->addItem(filenames.at(i));
-            videoList.append(filenames.at(i));
+            analysedVideos.append(filenames.at(i));
+            QString folder,filename,suffix;
+            processFilePath(filenames.at(i),folder,filename,suffix);
+            videoNamesList.append(filename);
+            checkFileAndLoadThresholds(filename);
         }
     }
 }
@@ -121,11 +129,28 @@ void MultipleVideoET::on_wholeFolderPB_clicked()
     {
         for (int a = 0; a < videosInDirectory.count();a++)
         {
-            videoList.append(videosInDirectory.at(a));
+            analysedVideos.append(videosInDirectory.at(a));
+            QString folder,filename,suffix;
+            processFilePath(videosInDirectory.at(a),folder,filename,suffix);
+            videoNamesList.append(filename);
+            checkFileAndLoadThresholds(filename);
         }
         ui->selectedVideos->addItems(videosInDirectory);
     }
-    qDebug()<<"videoList contains "<<videoList.count()<<" videos.";
+    qDebug()<<"analysedVideos contains "<<analysedVideos.count()<<" videos.";
+}
+
+void MultipleVideoET::checkFileAndLoadThresholds(QString i_videoName) {
+    QVector<double> videoETthresholds;
+    if (checkAndLoadData("thresholds",i_videoName,videoETthresholds)){
+        fillMap(i_videoName,videoETthresholds,mapDouble["thresholds"]);
+        //mapDouble["thresholds"][arg1] = videoETthresholds;
+        ui->previousThresholdsCB->setEnabled(true);
+        ETthresholdsFound.insert(i_videoName,true);
+    }
+    else{
+        ETthresholdsFound.insert(i_videoName,false);
+    }
 }
 
 void MultipleVideoET::on_analyzeVideosPB_clicked()
@@ -133,11 +158,13 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
     if (runStatus){
         if (checkVideos()){
             First[1] = new qThreadFirstPart(analysedVideos,
-                                            SharedVariables::getSharedVariables()->getVerticalAnomalyCoords(),
-                                            SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords(),
+                                            ui->extraCutout->isChecked(),
                                             SharedVariables::getSharedVariables()->getFrangiParameters(),
                                             SharedVariables::getSharedVariables()->getFrangiMargins(),
-                                            SharedVariables::getSharedVariables()->getFrangiRatios());
+                                            SharedVariables::getSharedVariables()->getFrangiRatios(),
+                                            mapDouble["thresholds"],
+                                            ETthresholdsFound,
+                                            ui->previousThresholdsCB->isChecked());
             QObject::connect(First[1],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
             QObject::connect(First[1],SIGNAL(done(int)),this,SLOT(onDone(int)));
             QObject::connect(First[1],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -147,7 +174,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
             QObject::connect(First[1],SIGNAL(readyForFinish()),First[1],SLOT(deleteLater()));
             First[1]->start();
 
-            initMaps();
+            initMaps(videoNamesList);
             canProceed = true;
             emit calculationStarted();
             ui->analyzeVideosPB->setText(tr("Cancel"));
@@ -155,7 +182,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
         }
     }
     else{
-        cancelAllCalculations();
+        cancelAllCalculations(videoNamesList);
         ui->analyzeVideosPB->setText(tr("Analyse videos"));
         ui->computationProgress->setValue(0);
         ui->actualMethod_label->setText("");
@@ -168,24 +195,29 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
 void MultipleVideoET::on_showResultsPB_clicked()
 {
     QStringList inputVector;
-    for (int a=0; a<videoList.count(); a++)
+    for (int a=0; a<analysedVideos.count(); a++)
     {
-        QString fullPath = videoList.at(a);
+        QString fullPath = analysedVideos.at(a);
         QString slozka,jmeno,koncovka;
         processFilePath(fullPath,slozka,jmeno,koncovka);
         inputVector.append(jmeno);
     }
-    GraphET_parent* graph = new GraphET_parent(inputVector,
+    GraphET_parent* graph = new GraphET_parent(analysedVideos,
                                                mapDouble["entropy"],
                                                mapDouble["tennengrad"],
+                                               mapDouble["thresholds"],
                                                mapInt["firstEvalEntropy"],
                                                mapInt["firstEvalTennengrad"],
                                                mapInt["firstEval"],
                                                mapInt["secondEval"],
-                                               mapInt["evaluation"],
-                                               this);
+                                               mapInt["evaluation"]);
+    connect(graph,SIGNAL(saveCalculatedData(QString)),this,SLOT(onSaveFromGraphET(QString)));
     graph->setModal(true);
     graph->show();
+}
+
+void MultipleVideoET::onSaveFromGraphET(QString i_videoName, QJsonObject i_object){
+    saveVideoAnalysisResultsFromGraphET(i_videoName, i_object);
 }
 
 void MultipleVideoET::keyPressEvent(QKeyEvent *event){
@@ -207,7 +239,7 @@ void MultipleVideoET::deleteSelectedFiles(){
         QString actuallyDeleted = item->text();
         if (actuallyDeleted == "")
             continue;
-        videoList.removeAt(index);
+        analysedVideos.removeAt(index);
         qDebug()<<"video "<<item->text()<<" deleted";
         delete ui->selectedVideos->takeItem(ui->selectedVideos->row(item));
     }
@@ -215,44 +247,45 @@ void MultipleVideoET::deleteSelectedFiles(){
 
 void MultipleVideoET::on_savePB_clicked()
 {    
-    for (int indexVideo=0; indexVideo<mapDouble["entropy"].length(); indexVideo++){
-        QJsonDocument document;
-        QJsonObject object;
-        QString folder,filename,suffix;
-        QString fullPath = videoList.at(indexVideo);
-        processFilePath(fullPath,folder,filename,suffix);
-        QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+filename+".dat";
+    /*foreach (QString name, videoNamesList){
+        if (badVideos.indexOf(name) == -1){
+            QJsonDocument document;
+            QJsonObject object;
+            QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+name+".dat";
 
-        for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-            qDebug()<<videoParameters.at(parameter);
-            if (parameter < 8){
-                QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][indexVideo];
-                QJsonArray pomArray = vector2array(pomDouble);
-                object[videoParameters.at(parameter)] = pomArray;
-            }
-            else if (parameter >= 8 && parameter <= 12){
-                QVector<int> pomInt = mapInt[videoParameters.at(parameter)][indexVideo];
-                if (videoParameters.at(parameter) == "evaluation")
-                    pomInt[framesReferencial[indexVideo]]=2;
+            for (int parameter = 0; parameter < videoParameters.count(); parameter++){
+                qDebug()<<videoParameters.at(parameter);
+                if (parameter < 8){
+                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][name];
+                    QJsonArray pomArray = vector2array(pomDouble);
+                    object[videoParameters.at(parameter)] = pomArray;
+                }
+                else if (parameter >= 8 && parameter <= 12){
+                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][name];
+                    if (videoParameters.at(parameter) == "evaluation")
+                        pomInt[framesReferencial[name]]=2;
 
-                QJsonArray pomArray = vector2array(pomInt);
-                object[videoParameters.at(parameter)] = pomArray;
-            }
-            else{
-                if (videoParameters.at(parameter) == "VerticalAnomaly")
+                    QJsonArray pomArray = vector2array(pomInt);
+                    object[videoParameters.at(parameter)] = pomArray;
+                }
+                else{*/
+                    /*if (videoParameters.at(parameter) == "VerticalAnomaly")
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y);
                 else
                     object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
+            */
+                /*}
             }
+            document.setObject(object);
+            QString documentString = document.toJson();
+            QFile writer;
+            writer.setFileName(path);
+            writer.open(QIODevice::WriteOnly);
+            writer.write(documentString.toLocal8Bit());
+            writer.close();
         }
-        document.setObject(object);
-        QString documentString = document.toJson();
-        QFile writer;
-        writer.setFileName(path);
-        writer.open(QIODevice::WriteOnly);
-        writer.write(documentString.toLocal8Bit());
-        writer.close();
-    }
+    }*/
+    saveVideoAnalysisResults();
 }
 
 void MultipleVideoET::onDone(int thread){
@@ -262,8 +295,8 @@ void MultipleVideoET::onDone(int thread){
 
         Second[2] = new qThreadSecondPart(analysedVideos,
                                           badVideos,
-                                          obtainedCutoffStandard,
-                                          obtainedCutoffExtra,
+                                          mapAnomalies["standard"],
+                                          mapAnomalies["extra"],
                                           badFramesComplete,
                                           framesReferencial,false,areaMaximum);
         QObject::connect(Second[2],SIGNAL(done(int)),this,SLOT(onDone(int)));
@@ -287,8 +320,8 @@ void MultipleVideoET::onDone(int thread){
                                         framesReferencial,
                                         averageCCcomplete,
                                         averageFWHMcomplete,
-                                        obtainedCutoffStandard,
-                                        obtainedCutoffExtra,false,areaMaximum);
+                                        mapAnomalies["standard"],
+                                        mapAnomalies["extra"],false,areaMaximum);
         QObject::connect(Third[3],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Third[3],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Third[3],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -332,8 +365,8 @@ void MultipleVideoET::onDone(int thread){
 
         Fifth[5] = new qThreadFifthPart(analysedVideos,
                                         badVideos,
-                                       obtainedCutoffStandard,
-                                       obtainedCutoffExtra,
+                                        mapAnomalies["standard"],
+                                        mapAnomalies["extra"],
                                        mapDouble["POCX"],
                                        mapDouble["POCY"],
                                        mapDouble["angle"],
@@ -377,18 +410,18 @@ void MultipleVideoET::onDone(int thread){
 }
 
 void MultipleVideoET::onUnexpectedTermination(int videoIndex, QString errorType){
-    Q_UNUSED(videoIndex);
+    Q_UNUSED(videoIndex)
     localErrorDialogHandling[ui->analyzeVideosPB]->evaluate("left",errorType,"Video could not be analysed.");
     localErrorDialogHandling[ui->analyzeVideosPB]->show(false);
     if (errorType == "hardError"){
-        cancelAllCalculations();
+        cancelAllCalculations(videoNamesList);
         emit calculationStopped();
     }
 }
 
 void MultipleVideoET::newVideoProcessed(int index)
 {
-    ui->actualVideo_label->setText("Analysing: "+videoList.at(index)+" ("+QString::number(index+1)+"/"+QString::number(videoList.size())+")");
+    ui->actualVideo_label->setText("Analysing: "+analysedVideos.at(index)+" ("+QString::number(index+1)+"/"+QString::number(analysedVideos.size())+")");
 }
 
 void MultipleVideoET::movedToMethod(int metoda)
@@ -446,18 +479,18 @@ void MultipleVideoET::on_iterationCount_editingFinished()
 bool MultipleVideoET::checkVideos(){
     QVector<int> _badVideos;
     QStringList _temp;
-    for (int var = 0; var < videoList.count(); var++) {
-        cv::VideoCapture cap = cv::VideoCapture(videoList.at(var).toLocal8Bit().constData());
+    for (int var = 0; var < analysedVideos.count(); var++) {
+        cv::VideoCapture cap = cv::VideoCapture(analysedVideos.at(var).toLocal8Bit().constData());
         if (!cap.isOpened()){
             _badVideos.push_back(var);
             ui->selectedVideos->item(var)->setBackgroundColor(Qt::red);
         }
         else{
-            _temp.append(videoList.at(var));
+            _temp.append(analysedVideos.at(var));
             ui->selectedVideos->item(var)->setBackgroundColor(Qt::blue);
         }
     }
-    if (_badVideos.length() == videoList.count()){
+    if (_badVideos.length() == analysedVideos.count()){
             localErrorDialogHandling[ui->analyzeVideosPB]->evaluate("center","softError",3);
             localErrorDialogHandling[ui->analyzeVideosPB]->show(false);
             return false;
@@ -469,17 +502,15 @@ bool MultipleVideoET::checkVideos(){
 }
 
 void MultipleVideoET::showDialog(){
-    if (ui->verticalAnomaly->isChecked())
+    if (ui->standardCutout->isChecked())
     {
-        QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,1);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::STANDARD);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
-    if (ui->horizontalAnomaly->isChecked())
+    if (ui->extraCutout->isChecked())
     {
-        QString fullPath = chosenVideoETSingle[0]+"/"+chosenVideoETSingle[1]+"."+chosenVideoETSingle[2];
-        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,2);
+        ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::EXTRA);
         markAnomaly->setModal(true);
         markAnomaly->show();
     }
@@ -488,8 +519,8 @@ void MultipleVideoET::showDialog(){
 void MultipleVideoET::disableWidgets(){
     ui->wholeFolderPB->setEnabled(false);
     ui->afewVideosPB->setEnabled(false);
-    ui->verticalAnomaly->setEnabled(false);
-    ui->horizontalAnomaly->setEnabled(false);
+    ui->standardCutout->setEnabled(false);
+    ui->extraCutout->setEnabled(false);
     ui->savePB->setEnabled(false);
     ui->showResultsPB->setEnabled(false);
 }
@@ -497,8 +528,8 @@ void MultipleVideoET::disableWidgets(){
 void MultipleVideoET::enableWidgets(){
     ui->wholeFolderPB->setEnabled(true);
     ui->afewVideosPB->setEnabled(true);
-    ui->verticalAnomaly->setEnabled(true);
-    ui->horizontalAnomaly->setEnabled(true);
+    ui->standardCutout->setEnabled(true);
+    ui->extraCutout->setEnabled(true);
     ui->savePB->setEnabled(true);
     ui->showResultsPB->setEnabled(true);
 }
