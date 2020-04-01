@@ -5,8 +5,8 @@
 #include <QGridLayout>
 #include <QVector>
 #include <QString>
-#include <opencv2/opencv.hpp>
 #include <QProgressBar>
+#include <QShowEvent>
 
 namespace Ui {
 class RegistrateVideo;
@@ -18,7 +18,7 @@ class RegistrateVideo : public QWidget
 
 public:
     explicit RegistrateVideo(QWidget *parent = nullptr);
-    ~RegistrateVideo();
+    ~RegistrateVideo() override;
 
     /**
      * @brief Function calls checkPath() functions for single ET analysis and single registration.
@@ -32,6 +32,7 @@ private slots:
     void enableTabs();
     void disableTabs();
 private:
+    void showEvent(QShowEvent* e) override;
     Ui::RegistrateVideo *ui;
 };
 

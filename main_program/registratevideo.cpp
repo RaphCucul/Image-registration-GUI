@@ -1,29 +1,9 @@
 #include "main_program/registratevideo.h"
-#include "dialogs/clickimageevent.h"
 #include "dialogs/singlevideoet.h"
 #include "dialogs/multiplevideoet.h"
 #include "dialogs/singlevideoregistration.h"
 #include "dialogs/multivideoregistration.h"
-#include "image_analysis/entropy.h"
-#include "dialogs/grafet.h"
 #include "ui_registratevideo.h"
-
-#include <opencv2/opencv.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
-#include <QDebug>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QSignalMapper>
-#include <QLabel>
-#include <QFileDialog>
-#include <QSpacerItem>
-#include <QFuture>
-#include <QtConcurrent/QtConcurrent>
-#include <QCoreApplication>
 
 RegistrateVideo::RegistrateVideo(QWidget *parent) :
     QWidget(parent),
@@ -85,4 +65,12 @@ void RegistrateVideo::disableTabs(){
 
 void RegistrateVideo::checkPathinitialization(){
     emit checkFilePaths();
+}
+
+void RegistrateVideo::showEvent(QShowEvent *e) {
+    Q_UNUSED(e)
+    int tabWidth = (ui->metody->width()/4)-24;
+    ui->metody->setStyleSheet( ui->metody->styleSheet() +
+                                        "QTabBar::tab {"
+                                        "width: " + QString::number(tabWidth) + "px; }" );
 }
