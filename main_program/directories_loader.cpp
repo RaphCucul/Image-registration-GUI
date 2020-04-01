@@ -1,5 +1,5 @@
-#include "main_program/t_b_ho.h"
-#include "ui_t_b_ho.h"
+#include "main_program/directories_loader.h"
+#include "ui_directories_loader.h"
 #include "util/files_folders_operations.h"
 #include "dialogs/errordialog.h"
 #include "mainwindow.h"
@@ -20,9 +20,9 @@
 #include <exception>
 #include <QCoreApplication>
 
-t_b_HO::t_b_HO(QWidget *parent) :
+DirectoriesLoader::DirectoriesLoader(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::t_b_HO)
+    ui(new Ui::DirectoriesLoader)
 {
     ui->setupUi(this);
     ui->pathToVideos->setText(tr("Load video from"));
@@ -47,11 +47,11 @@ t_b_HO::t_b_HO(QWidget *parent) :
     localErrorDialogHandling[ui->Combo_FrangiParams] = new ErrorDialog(ui->Combo_FrangiParams);
 }
 
-t_b_HO::~t_b_HO()
+DirectoriesLoader::~DirectoriesLoader()
 {
     delete ui;
 }
-QString t_b_HO::LoadSettings(){
+QString DirectoriesLoader::LoadSettings(){
     QString iniFileProcessingResult = "";
     QString pom = GlobalSettings::getSettings()->getFileFolderDirectoriesPath();
     if (pom == ""){
@@ -70,7 +70,7 @@ QString t_b_HO::LoadSettings(){
     return iniFileProcessingResult;
 }
 
-bool t_b_HO::processLoadedSettings(){
+bool DirectoriesLoader::processLoadedSettings(){
     if (pathToFileFolderDirectory == "")
         return false;
     else{
@@ -87,7 +87,7 @@ bool t_b_HO::processLoadedSettings(){
     }
 }
 
-bool t_b_HO::checkFileFolderExistence()
+bool DirectoriesLoader::checkFileFolderExistence()
 {
     QString checkIniPath = GlobalSettings::getSettings()->getIniPath();
     int numberOfIni=-1;
@@ -118,7 +118,7 @@ bool t_b_HO::checkFileFolderExistence()
     return fileExistence;
 }
 
-bool t_b_HO::loadJsonPaths()
+bool DirectoriesLoader::loadJsonPaths()
 {
     try {
         QFile file;
@@ -137,7 +137,7 @@ bool t_b_HO::loadJsonPaths()
     }
 }
 
-bool t_b_HO::getPathFromJson(QString i_type, QComboBox *i_box, bool i_onlyCheckEmpty)
+bool DirectoriesLoader::getPathFromJson(QString i_type, QComboBox *i_box, bool i_onlyCheckEmpty)
 {
     bool pathSet = false; /// false returned if empty string would be added
     int arraySize = typeArrays[i_type].size();
@@ -168,7 +168,7 @@ bool t_b_HO::getPathFromJson(QString i_type, QComboBox *i_box, bool i_onlyCheckE
     return pathSet;
 }
 
-bool t_b_HO::getPathsFromJson(bool i_onlyCheckEmpty)
+bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
 {
     bool allCategoriesSet = false;
 
@@ -243,7 +243,7 @@ bool t_b_HO::getPathsFromJson(bool i_onlyCheckEmpty)
     return allCategoriesSet;
 }
 
-void t_b_HO::chosenPath(int i_index)
+void DirectoriesLoader::chosenPath(int i_index)
  {
      if (QObject::sender() == ui->Combo_videoPath)
          SharedVariables::getSharedVariables()->setPath("videosPath",typeLists["videosPath"].at(i_index));
@@ -264,7 +264,7 @@ void t_b_HO::chosenPath(int i_index)
      }
  }
 
-void t_b_HO::on_ChooseFileFolderDirectory_clicked()
+void DirectoriesLoader::on_ChooseFileFolderDirectory_clicked()
 {
     if (search == "json" || search == ""){
         if (localErrorDialogHandling[ui->FileFolderDirectory]->isEvaluated())
@@ -321,7 +321,7 @@ void t_b_HO::on_ChooseFileFolderDirectory_clicked()
     }    
 }
 
-void t_b_HO::createIni(){
+void DirectoriesLoader::createIni(){
     qDebug()<<"Creating ini file";
     QFile _iniFile(QCoreApplication::applicationDirPath()+"/settings.ini");
     _iniFile.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -330,7 +330,7 @@ void t_b_HO::createIni(){
     _iniFile.close();
 }
 
-void t_b_HO::processPath(QString i_type, QString i_path){
+void DirectoriesLoader::processPath(QString i_type, QString i_path){
     QJsonValue pathJson = QJsonValue(i_path);
     typeArrays[i_type].append(pathJson);
     typeLists[i_type].append(i_path);
@@ -339,7 +339,7 @@ void t_b_HO::processPath(QString i_type, QString i_path){
     SharedVariables::getSharedVariables()->setPath(i_type,i_path);
 }
 
-void t_b_HO::on_pathToVideos_clicked()
+void DirectoriesLoader::on_pathToVideos_clicked()
 {
     QString pathToVideos = QFileDialog::getExistingDirectory(this,
                                                              tr("Choose folder where the videos will be loaded from"),
@@ -353,7 +353,7 @@ void t_b_HO::on_pathToVideos_clicked()
     }
 }
 
-void t_b_HO::on_SaveVideos_clicked()
+void DirectoriesLoader::on_SaveVideos_clicked()
 {
     QString pathToVideoSave = QFileDialog::getExistingDirectory(this,
                                                                 tr("Choose folder where registrated videos will be saved"),
@@ -367,7 +367,7 @@ void t_b_HO::on_SaveVideos_clicked()
     }
 }
 
-void t_b_HO::on_LoadingDataFolder_clicked()
+void DirectoriesLoader::on_LoadingDataFolder_clicked()
 {
     QString pathToVideoParameters = QFileDialog::getExistingDirectory(this,
                                                                       tr("Choose folder with video parametric files"),
@@ -381,7 +381,7 @@ void t_b_HO::on_LoadingDataFolder_clicked()
     }
 }
 
-void t_b_HO::on_SavingDataFolder_clicked()
+void DirectoriesLoader::on_SavingDataFolder_clicked()
 {
     QString pathToSaveVideoParameters = QFileDialog::getExistingDirectory(this,
                                                                           tr("Choose folder where video parametric files will be saved"),
@@ -395,7 +395,7 @@ void t_b_HO::on_SavingDataFolder_clicked()
     }
 }
 
-void t_b_HO::on_paramFrangPB_clicked()
+void DirectoriesLoader::on_paramFrangPB_clicked()
 {
     QString pathFF = QFileDialog::getExistingDirectory(this,tr("Choose folder with Frangi parameters file"),
                                                        QDir::currentPath());
@@ -419,7 +419,7 @@ void t_b_HO::on_paramFrangPB_clicked()
     }
 }
 
-bool t_b_HO::eventFilter(QObject *obj, QEvent *event){
+bool DirectoriesLoader::eventFilter(QObject *obj, QEvent *event){
     if (event->type() == QEvent::KeyPress)
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
@@ -436,7 +436,7 @@ bool t_b_HO::eventFilter(QObject *obj, QEvent *event){
     return QObject::eventFilter(obj, event);
 }
 
-void t_b_HO::on_FileFolderDirectory_textEdited(const QString &arg1)
+void DirectoriesLoader::on_FileFolderDirectory_textEdited(const QString &arg1)
 {
     QStringList foundJSONs;
     int JSONsCount;
@@ -451,7 +451,7 @@ void t_b_HO::on_FileFolderDirectory_textEdited(const QString &arg1)
     }
 }
 
-void t_b_HO::enableElements(){
+void DirectoriesLoader::enableElements(){
     ui->pathToVideos->setEnabled(true);
     ui->SaveVideos->setEnabled(true);
     ui->LoadingDataFolder->setEnabled(true);
@@ -459,7 +459,7 @@ void t_b_HO::enableElements(){
     ui->paramFrangPB->setEnabled(true);
 }
 
-void t_b_HO::disableElements(){
+void DirectoriesLoader::disableElements(){
     ui->pathToVideos->setEnabled(false);
     ui->SaveVideos->setEnabled(false);
     ui->LoadingDataFolder->setEnabled(false);

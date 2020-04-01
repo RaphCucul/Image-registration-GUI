@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>t_b_HO</class>
- <widget class="QWidget" name="t_b_HO">
+ <class>DirectoriesLoader</class>
+ <widget class="QWidget" name="DirectoriesLoader">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>

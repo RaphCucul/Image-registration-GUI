@@ -1,5 +1,5 @@
-#ifndef T_B_HO_H
-#define T_B_HO_H
+#ifndef DIRECTORIESLOADER_H
+#define DIRECTORIESLOADER_H
 
 #include <QWidget>
 #include <QDialog>
@@ -13,15 +13,15 @@
 #include "mainwindow.h"
 #include "dialogs/errordialog.h"
 namespace Ui {
-class t_b_HO;
+class DirectoriesLoader;
 }
 
-class t_b_HO : public QWidget
+class DirectoriesLoader : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit t_b_HO(QWidget *parent = nullptr);
+    explicit DirectoriesLoader(QWidget *parent = nullptr);
 
     /**
      * @brief Function controls, if the *.ini file contains path to the JSON file (fileFolderDirectory)
@@ -38,7 +38,7 @@ public:
      */
     QString LoadSettings();
 
-    ~t_b_HO();
+    ~DirectoriesLoader();
 private slots:
     /**
      * @brief Function stores the path user has selected in the corresponding combobox
@@ -65,7 +65,7 @@ signals:
      */
     void fileFolderDirectoryNotFound();
 private:
-    Ui::t_b_HO *ui;
+    Ui::DirectoriesLoader *ui;
 
     /**
      * @brief Function process path chosen by user by adding it into JSON array and string list
@@ -140,4 +140,4 @@ private:
     QString _tempSettignsFile = "";
 };
 
-#endif // T_B_HO_H
+#endif // DIRECTORIESLOADER_H
