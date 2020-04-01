@@ -58,6 +58,7 @@ QTabBar::tab {
    /*min-width: 4ex;*/
     padding: 2px;
     height: 32px;
+	border-radius: 2px;
         /*width: 32px;*/
 }
 QTabBar::tab:selected{
@@ -67,8 +68,8 @@ QTabBar::tab:selected{
 }
 QTabBar::tab:hover{
 		background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                stop: 0 #e5452f, stop: 0.4 #f14d36,
-                                stop: 0.5 #fc9081, stop: 1.0 #ca3a26);
+                                stop: 0 #f14d36, stop: 0.4 #FB644F,
+                                stop: 0.5 #FB644F, stop: 1.0 #f14d36);
 }</string>
      </property>
      <property name="tabPosition">
