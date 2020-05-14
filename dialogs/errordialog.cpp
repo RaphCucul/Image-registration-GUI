@@ -22,7 +22,7 @@ void ErrorDialog::initialiseErrorLabel()
 {
     errorLabel = new QLabel();
     errorLabel->setMargin(0);
-    errorLabel->setGeometry(0,0,16,16);
+    errorLabel->setGeometry(0,0,8,8);
     errorLabel->setAttribute(Qt::WA_Hover,true);
     errorLabel->installEventFilter(this);
 
@@ -109,13 +109,10 @@ void ErrorDialog::evaluatePosition(QString position)
     }
     if (position == "center"){
         int widgetWidth = widgetWithError->width();
-        //QPoint widgetWidth = widgetWithError->rect().topRight();
-        qDebug()<<widgetWidth;
         QPoint mappingCoordinates = widgetWithError->mapTo(parentOfTheWidget,QPoint(widgetWidth/2,0));
         errorLabelParent->move(mappingCoordinates + QPoint(0, -6));
         qDebug()<<"Map coords "<<mappingCoordinates;
     }
-
 }
 
 void ErrorDialog::fillErrorLabel(QPixmap& _pixmap){
@@ -213,7 +210,7 @@ void ErrorDialog::What_todo()
 
 bool ErrorDialog::eventFilter(QObject *obj, QEvent *event)
 {
-    Q_UNUSED(obj);
+    Q_UNUSED(obj)
     if (event->type() == QEvent::MouseButtonPress)
         {
             emit mouseClicked();
@@ -235,6 +232,8 @@ void ErrorDialog::show(bool timerStop)
     if (animation->state() != QAbstractAnimation::Running)
         animation->start();
     if (timerStop){
+        if (timer == nullptr)
+            timer = new QTimer;
         timer->setTimerType(Qt::PreciseTimer);
         connect(timer, SIGNAL(timeout()), this, SLOT(hideErrorIcon()));
         timer->start(20000);
@@ -243,6 +242,7 @@ void ErrorDialog::show(bool timerStop)
 
 void ErrorDialog::hideErrorIcon(){
     hide();
+    delete timer;
 }
 void ErrorDialog::hide()
 {
