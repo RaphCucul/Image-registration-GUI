@@ -22,17 +22,19 @@
  */
 bool completeRegistration(cv::VideoCapture& cap,
                           cv::Mat& i_referencial,
+                          cv::Mat& i_shifted,
                           int i_translatedNo,
                           double i_iteration,
                           double i_areaMaximum,
                           double i_angleLimit,
                           cv::Rect& i_cutoutExtra,
                           cv::Rect& i_cutoutStandard,
-                          bool i_scaleChanged,
+                          int i_scaleChanged,
                           cv::Mat& i_completelyRegistrated,
                           QVector<double> &i_pocX,
                           QVector<double> &i_pocY,
-                          QVector<double> &i_maxAngles);
+                          QVector<double> &i_maxAngles,
+                          bool video = true);
 
 /**
  * @brief Function does preprocessing before main registration function is called. It populates cv::Rect objects
@@ -54,7 +56,7 @@ bool completeRegistration(cv::VideoCapture& cap,
 bool preprocessingCompleteRegistration(cv::Mat &i_referencial,
                                        cv::Point3d& i_frangi_point,
                                        cv::Rect &i_standardCutout,
-                                       QVector<double> i_frangiParameters,
+                                       QMap<QString, double> i_frangiParameters,
                                        QMap<QString,double> frangiRatios,
                                        QMap<QString,int> frangiMargins);
 
