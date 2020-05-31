@@ -128,9 +128,11 @@ bool checkAndLoadData(QString i_parameter, QString i_videoName, QVector<T>& o_ve
         QJsonObject data = readJson(file);
         if (!data[i_parameter].isUndefined()) {
             QJsonArray dataArray = data[i_parameter].toArray();
-            o_vector = array2vector<T>(dataArray);
-            if (vectorSum(o_vector) > 0)
+            QVector<T> _v = array2vector<T>(dataArray);
+            if (vectorSum(_v) > 0) {
+                o_vector = _v;
                 return true;
+            }
             else
                 return false;
         }

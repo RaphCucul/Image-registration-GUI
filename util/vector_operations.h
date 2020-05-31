@@ -2,6 +2,7 @@
 #define VECTOR_OPERATIONS_H_INCLUDED
 #include <QVector>
 #include <QString>
+#include <QMap>
 #include <opencv2/opencv.hpp>
 
 /**
@@ -109,7 +110,7 @@ QVector<QVector<int>> divideIntoPeaces(int i_totalLength, int i_threadCount);
  * @param analysedFolder
  * @param whereToSave
  */
-void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString>& i_whereToSave);
+void analyseAndSaveFirst(QString i_analysedFolder, QMap<QString, QString> &i_whereToSave);
 
 template <typename T>
 T vectorSum(QVector<T> i_input) {

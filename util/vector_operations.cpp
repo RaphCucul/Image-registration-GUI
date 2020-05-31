@@ -362,7 +362,7 @@ QVector<QVector<int> > divideIntoPeaces(int i_totalLength, int i_threadCount)
     return output;
 }
 
-void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString> &i_whereToSave){
+void analyseAndSaveFirst(QString i_analysedFolder, QMap<QString,QString> &i_whereToSave){
     QString folder,filename,suffix;
     QStringList filesFound;
     int foundCount = 0;
@@ -370,7 +370,10 @@ void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString> &i_whereToSa
     if (foundCount != 0){
         QString fullName = i_analysedFolder+"/"+filesFound.at(0);
         processFilePath(fullName,folder,filename,suffix);
-        if (i_whereToSave.length() == 0){
+        i_whereToSave["folder"] = folder;
+        i_whereToSave["filename"] = filename;
+        i_whereToSave["suffix"] = suffix;
+        /*if (i_whereToSave.length() == 0){
             i_whereToSave.push_back(folder);
             i_whereToSave.push_back(filename);
             i_whereToSave.push_back(suffix);
@@ -380,7 +383,7 @@ void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString> &i_whereToSa
             i_whereToSave.push_back(folder);
             i_whereToSave.push_back(filename);
             i_whereToSave.push_back(suffix);
-        }
+        }*/
     }
 }
 
