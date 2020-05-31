@@ -6,6 +6,8 @@
 #include "image_analysis/image_processing.h"
 #include <QVector>
 #include <QJsonObject>
+#include <QObject>
+#include <QMap>
 
 /**
  * @brief Recursive and median filtration are applied on the image.
@@ -38,8 +40,7 @@ void zeroBorders(cv::Mat &i_inputImage,int i_imageType, int i_padding_top,int i_
                  int i_padding_left, int i_padding_right);
 
 /**
- * @brief
- * Function calculates frangi maximum coords. Frame type indicates, if the maximum is calculated from
+ * @brief Function calculates frangi maximum coords. Frame type indicates, if the maximum is calculated from
  * the translated image or from referencial image. Translated image is supposed to have black corners. The accuracy
  * of the calculation can be pixel or subpixel. If you choose to show the calculation and detection result,
  * the name of the window can be set. The processing mode says, if the frangi filter should be standard or reverse.
@@ -62,7 +63,7 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
                             QString i_windowName,
                             int i_frameType,
                             cv::Point3d i_translation,
-                            QVector<double> i_FrangiParameters,
+                            QMap<QString, double> i_FrangiParameters,
                             QMap<QString, int> i_margins);
 
 /**
