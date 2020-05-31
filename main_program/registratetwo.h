@@ -8,16 +8,19 @@
 #include <QPushButton>
 #include <QSpacerItem>
 #include <QGridLayout>
-#include <QSignalMapper>
 #include <QJsonObject>
 
 #include "dialogs/errordialog.h"
+#include "shared_staff/sharedvariables.h"
 
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core.hpp>
+
+using namespace frangiEnums;
+using namespace clickImageEnums;
 
 namespace Ui {
 class RegistrateTwo;
@@ -42,13 +45,13 @@ public:
      * found in the folder is placed into the line edit.
      */
     void checkPaths();
-
+protected:
 public slots:
     //void GetClickCoordinates(QPointF hranice_anomalie);
-    void chosenVideoPBWrapper();
-    void chosenVideoPB_clicked(QWidget *W);
-    void chosenReferenceImgPB_clicked(QWidget *W);
-    void chosenTranslatedImgPB_clicked(QWidget *W);
+    //void chosenVideoPBWrapper();
+    void chosenVideoPB_clicked();
+    void chosenReferenceImgPB_clicked();
+    void chosenTranslatedImgPB_clicked();
     void ReferenceImgLE_textChanged(const QString &arg1);
     void TranslatedImgLE_textChanged(const QString &arg1);
 
@@ -68,6 +71,7 @@ private slots:
     void showDialog();
     void evaluateCorrectValues();
     void on_comboBox_activated(int index);
+    //void onSaveImageCutouts(QRect _standardCutout,QRect _extraCutout);
 
 private:
     Ui::RegistrateTwo *ui;
@@ -100,7 +104,7 @@ private:
      * @param analysedFolder
      * @param whereToSave
      */
-    void analyseAndSave(QString i_analysedFolder, QVector<QString>& i_whereToSave);
+    void analyseAndSave(QString i_analysedFolder, QMap<QString, QString> &i_whereToSave);
 
     /**
      * @brief Function checks, if input video or images can be loaded for next processing step.
@@ -123,10 +127,14 @@ private:
     void checkInputNumber(double i_input,double i_lower,double i_upper,
                           QLineEdit* i_editWidget,double& i_finalValue,bool& i_evaluation);
 
-    QVector<QString> chosenVideoAnalysis;
-    QVector<QString> chosenReferencialImgAnalysis;
-    QVector<QString> chosenTranslatedImgAnalysis;
+    //QString getChosenVideoPath();
+
+    QMap<QString,QString> chosenVideoAnalysis;
+    QMap<QString,QString> chosenReferencialImgAnalysis;
+    QMap<QString,QString> chosenTranslatedImgAnalysis;
     cv::VideoCapture cap;
+    cv::Mat referencialImg,translatedImg;
+
     int referencialNumber = -1;
     int translatedNumber = -1;
     double iteration = -99.0;
@@ -144,9 +152,11 @@ private:
     bool iterationCorrect = false;
     bool anomalyPresent = false;
     bool scaleChanged = false;
+    bool firstChoiceInitialised = false;
+    bool secondChoiceInitialised = false;
 
-    cv::Point3d frangiMaximumCoords;
-    int formerIndex = 0;
+    //cv::Point3d frangiMaximumCoords;
+    //int formerIndex = 0;
     QLineEdit* chosenVideoLE;
     QPushButton* chosenVideoPB;
     QLineEdit* referenceNoLE;
@@ -161,6 +171,8 @@ private:
     QLineEdit* translatedImgLE;
 
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
+    frangiType typeOfFrangi = frangiType::GLOBAL;
+    chosenSource whatIsAnalysed = chosenSource::VIDEO;
 };
 
 #endif // REGISTRATETWO_H
