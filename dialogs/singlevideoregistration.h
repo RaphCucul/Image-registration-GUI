@@ -101,7 +101,7 @@ private:
                              int upperLimit);
     Ui::SingleVideoRegistration *ui;
     QString fullVideoPath;
-    QVector<QString> chosenVideo;
+    QMap<QString,QString> chosenVideo;
     QVector<QString> chosenJson;
     QJsonObject videoParametersJson;
     cv::Rect correl_standard;

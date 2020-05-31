@@ -374,19 +374,19 @@ void MultiVideoRegistration::createAndRunThreads(int indexThread, cv::VideoCaptu
         qWarning()<<"Frame "+QString::number(referencialFrameNo)+" cannot be opened.";
     QString _tempVideoName = videoListNames.at(videoCounter);
     QString _tempVideoPath = videoListFull.at(videoCounter);
-    QVector<double> _tempFrangi = SharedVariables::getSharedVariables()->getFrangiParameters();
     QVector<int> _evalFrames = videoPropertiesInt[videoListNames.at(videoCounter)]["evaluation"];
     int _iter = -1;
     double _arMax = 10.0;
     double _angle = 0.1;
     int _vertAnom = videoPropertiesAnomaly[videoListNames.at(videoCounter)]["VerticalAnomaly"][0];
     int _horizAnom = videoPropertiesAnomaly[videoListNames.at(videoCounter)]["HorizontalAnomaly"][0];
-    threadPool[indexThread] = new RegistrationThread(indexThread,_tempVideoPath,_tempVideoName,_tempFrangi,
+    threadPool[indexThread] = new RegistrationThread(indexThread,_tempVideoPath,_tempVideoName,
+                                                     SharedVariables::getSharedVariables()->getFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,videoListNames.at(videoCounter)),
                                                      _evalFrames,
                                                      referencialFrame,lowerLimit,upperLimit,_iter,_arMax,_angle,
                                                      _vertAnom,_horizAnom,false,
-                                                     SharedVariables::getSharedVariables()->getFrangiMargins(),
-                                                     SharedVariables::getSharedVariables()->getFrangiRatios());
+                                                     SharedVariables::getSharedVariables()->getFrangiMarginsWrapper(frangiType::VIDEO_SPECIFIC,videoListNames.at(videoCounter)),
+                                                     SharedVariables::getSharedVariables()->getFrangiRatiosWrapper(frangiType::VIDEO_SPECIFIC,videoListNames.at(videoCounter)));
 
     QObject::connect(threadPool[indexThread],SIGNAL(x_coordInfo(int,int,QString)),  this,SLOT(addItem(int,int,QString)));
     QObject::connect(threadPool[indexThread],SIGNAL(y_coordInfo(int,int,QString)),  this,SLOT(addItem(int,int,QString)));
@@ -627,7 +627,7 @@ void MultiVideoRegistration::on_saveResultsPB_clicked()
 void MultiVideoRegistration::on_listOfVideos_cellClicked(int row, int column)
 {
     qDebug()<<"Video "<<row<<" clicked.";
-    Q_UNUSED(column);
+    Q_UNUSED(column)
     if (row <= ui->registrationResults->count()){
         ui->registrationResults->setCurrentIndex(row);
     }
