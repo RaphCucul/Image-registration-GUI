@@ -15,6 +15,9 @@
 #include "multithreadET/qthreadfifthpart.h"
 #include "dialogs/errordialog.h"
 #include "util/etanalysisparent.h"
+#include "shared_staff/sharedvariables.h"
+
+using namespace clickImageEnums;
 
 namespace Ui {
 class MultipleVideoET;
@@ -157,6 +160,7 @@ private:
     bool runStatus = true;
     bool canProceed = true;
     QMap<QString,bool> ETthresholdsFound;
+    cutoutType selectedCutout = cutoutType::NO_CUTOUT;
 
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };

@@ -270,6 +270,9 @@
      </item>
      <item>
       <widget class="QCheckBox" name="previousThresholdsCB">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string/>
        </property>

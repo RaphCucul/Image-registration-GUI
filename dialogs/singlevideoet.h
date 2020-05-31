@@ -3,12 +3,15 @@
 
 #include "util/etanalysisparent.h"
 #include "dialogs/errordialog.h"
+#include "shared_staff/sharedvariables.h"
 
 #include <QWidget>
 #include <opencv2/opencv.hpp>
 #include <QVector>
 #include <QJsonObject>
 #include <QMap>
+
+using namespace clickImageEnums;
 
 namespace Ui {
 class SingleVideoET;
@@ -119,7 +122,7 @@ private:
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
     bool canProceed;
     QMap<QString,bool> ETthresholdsFound;
-
+    cutoutType selectedCutout = cutoutType::NO_CUTOUT;
 };
 
 #endif // SINGLEVIDEOET_H

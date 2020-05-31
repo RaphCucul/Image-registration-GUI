@@ -6,7 +6,6 @@
 #include "dialogs/graphet_parent.h"
 #include "dialogs/clickimageevent.h"
 #include "util/files_folders_operations.h"
-#include "multithreadET/qThreadFirstPart.h"
 #include "util/vector_operations.h"
 #include "registration/multiPOC_Ai1.h"
 #include "shared_staff/sharedvariables.h"
@@ -158,10 +157,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
     if (runStatus){
         if (checkVideos()){
             First[1] = new qThreadFirstPart(analysedVideos,
-                                            ui->extraCutout->isChecked(),
-                                            SharedVariables::getSharedVariables()->getFrangiParameters(),
-                                            SharedVariables::getSharedVariables()->getFrangiMargins(),
-                                            SharedVariables::getSharedVariables()->getFrangiRatios(),
+                                            selectedCutout,
                                             mapDouble["thresholds"],
                                             ETthresholdsFound,
                                             ui->previousThresholdsCB->isChecked());
@@ -211,7 +207,7 @@ void MultipleVideoET::on_showResultsPB_clicked()
                                                mapInt["firstEval"],
                                                mapInt["secondEval"],
                                                mapInt["evaluation"]);
-    connect(graph,SIGNAL(saveCalculatedData(QString)),this,SLOT(onSaveFromGraphET(QString)));
+    connect(graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SLOT(onSaveFromGraphET(QString,QJsonObject)));
     graph->setModal(true);
     graph->show();
 }
@@ -298,7 +294,9 @@ void MultipleVideoET::onDone(int thread){
                                           mapAnomalies["standard"],
                                           mapAnomalies["extra"],
                                           badFramesComplete,
-                                          framesReferencial,false,areaMaximum);
+                                          framesReferencial,
+                                          selectedCutout,
+                                          areaMaximum);
         QObject::connect(Second[2],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Second[2],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Second[2],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -321,7 +319,9 @@ void MultipleVideoET::onDone(int thread){
                                         averageCCcomplete,
                                         averageFWHMcomplete,
                                         mapAnomalies["standard"],
-                                        mapAnomalies["extra"],false,areaMaximum);
+                                        mapAnomalies["extra"],
+                                        selectedCutout,
+                                        areaMaximum);
         QObject::connect(Third[3],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Third[3],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Third[3],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -367,21 +367,19 @@ void MultipleVideoET::onDone(int thread){
                                         badVideos,
                                         mapAnomalies["standard"],
                                         mapAnomalies["extra"],
-                                       mapDouble["POCX"],
-                                       mapDouble["POCY"],
-                                       mapDouble["angle"],
-                                       mapDouble["FrangiX"],
-                                       mapDouble["FrangiY"],
-                                       mapDouble["FrangiEuklid"],
-                                       false,
-                                       mapInt["evaluation"],
-                                       mapInt["secondEval"],
-                                       framesReferencial,
-                                       SharedVariables::getSharedVariables()->getFrangiParameters(),
+                                        mapDouble["POCX"],
+                                        mapDouble["POCY"],
+                                        mapDouble["angle"],
+                                        mapDouble["FrangiX"],
+                                        mapDouble["FrangiY"],
+                                        mapDouble["FrangiEuklid"],
+                                        selectedCutout,
+                                        mapInt["evaluation"],
+                                        mapInt["secondEval"],
+                                        framesReferencial,
                                         int(iterationCount),
                                         areaMaximum,
-                                        rotationAngle,
-                                        SharedVariables::getSharedVariables()->getFrangiMargins());
+                                        rotationAngle);
         QObject::connect(Fifth[5],SIGNAL(done(int)),this,SLOT(onDone(int)));
         QObject::connect(Fifth[5],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
         QObject::connect(Fifth[5],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
@@ -441,9 +439,14 @@ void MultipleVideoET::movedToMethod(int metoda)
 void MultipleVideoET::evaluateCorrectValues(){
     if (areaMaximumCorrect && rotationAngleCorrect && iterationCountCorrect){
         ui->analyzeVideosPB->setEnabled(true);
+        ui->standardCutout->setEnabled(true);
+        ui->extraCutout->setEnabled(true);
     }
-    else
+    else {
         ui->analyzeVideosPB->setEnabled(false);
+        ui->standardCutout->setEnabled(false);
+        ui->extraCutout->setEnabled(false);
+    }
 }
 
 void MultipleVideoET::on_areaMaximum_editingFinished()
@@ -452,7 +455,7 @@ void MultipleVideoET::on_areaMaximum_editingFinished()
     double input = ui->areaMaximum->text().toDouble(&ok);
     if (ok){
         checkInputNumber(input,0.0,20.0,ui->areaMaximum,areaMaximum,areaMaximumCorrect);
-        checkValuesPass();
+        emit checkValuesPass();
     }
 }
 
@@ -462,7 +465,7 @@ void MultipleVideoET::on_rotationAngle_editingFinished()
     double input = ui->rotationAngle->text().toDouble(&ok);
     if (ok){
         checkInputNumber(input,0.0,0.5,ui->rotationAngle,rotationAngle,rotationAngleCorrect);
-        checkValuesPass();
+        emit checkValuesPass();
     }
 }
 
@@ -472,7 +475,7 @@ void MultipleVideoET::on_iterationCount_editingFinished()
     double input = ui->iterationCount->text().toDouble(&ok);
     if (ok){
         checkInputNumber(input,-1.0,0.0,ui->iterationCount,iterationCount,iterationCountCorrect);
-        checkValuesPass();
+        emit checkValuesPass();
     }
 }
 
@@ -501,19 +504,33 @@ bool MultipleVideoET::checkVideos(){
     }
 }
 
+
+
 void MultipleVideoET::showDialog(){
-    if (ui->standardCutout->isChecked())
-    {
-        ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::STANDARD);
-        markAnomaly->setModal(true);
-        markAnomaly->show();
+    if (QObject::sender() == ui->standardCutout) {
+        if (ui->standardCutout->isChecked())
+        {
+            ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::STANDARD);
+            markAnomaly->setModal(true);
+            markAnomaly->show();
+        }
     }
-    if (ui->extraCutout->isChecked())
-    {
-        ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::EXTRA);
-        markAnomaly->setModal(true);
-        markAnomaly->show();
+    if (QObject::sender() == ui->extraCutout) {
+        if (ui->extraCutout->isChecked())
+        {
+            ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::EXTRA);
+            markAnomaly->setModal(true);
+            markAnomaly->show();
+        }
     }
+    if (ui->extraCutout->isChecked() && ui->standardCutout->isChecked())
+        selectedCutout = cutoutType::EXTRA;
+    else if (ui->extraCutout->isChecked() && !ui->standardCutout->isChecked())
+        selectedCutout = cutoutType::EXTRA;
+    else if (!ui->extraCutout->isChecked() && ui->standardCutout->isChecked())
+        selectedCutout = cutoutType::STANDARD;
+    else
+        selectedCutout = cutoutType::NO_CUTOUT;
 }
 
 void MultipleVideoET::disableWidgets(){
