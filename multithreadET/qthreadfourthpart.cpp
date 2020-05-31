@@ -118,14 +118,14 @@ void qThreadFourthPart::run()
             framesSecondEvaluationComplete.insert(filename,snimky_k_provereni_druhy);
         }
         else{
-            fillEmpty(filename,260);
+            fillEmpty(filename);
         }
     }
     emit percentageCompleted(100);
     emit done(4);
 }
 
-void qThreadFourthPart::fillEmpty(QString i_videoName, int i_frameCount){
+void qThreadFourthPart::fillEmpty(QString i_videoName){
     /*QVector<double> pomVecD(i_frameCount,0.0);
     QVector<int> pomVecI(i_frameCount,0);
 

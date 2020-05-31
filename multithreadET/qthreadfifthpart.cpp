@@ -4,6 +4,7 @@
 #include "util/files_folders_operations.h"
 #include "image_analysis/frangi_utilization.h"
 #include "image_analysis/correlation_coefficient.h"
+#include "shared_staff/sharedvariables.h"
 
 #include <QThread>
 #include <QStringList>
@@ -27,15 +28,13 @@ qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
                                    QMap<QString, QVector<double>> i_Fr_X,
                                    QMap<QString, QVector<double>> i_Fr_Y,
                                    QMap<QString, QVector<double>> i_Fr_E,
-                                   bool i_scaleChanged,
+                                   cutoutType i_cutoutType,
                                    QMap<QString, QVector<int>> i_EvaluationComplete,
                                    QMap<QString, QVector<int>> i_frEvalSec,
                                    QMap<QString, int> i_referFrames,
-                                   QVector<double> i_FrangiParams,
                                    int i_iteration,
                                    double i_areaMaximum,
                                    double i_maximalAngle,
-                                   QMap<QString, int> i_margins,
                                    QObject *parent):QThread(parent)
 {
     videoList = i_videos;
@@ -48,16 +47,16 @@ qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
     frangi_x = i_Fr_X;
     frangi_y = i_Fr_Y;
     frangi_euklid = i_Fr_E;
-    scaleCh = i_scaleChanged;
+    selectedCutout = i_cutoutType;
     framesCompleteEvaluation = i_EvaluationComplete;
     framesSecondEval = i_frEvalSec;
-    FrangiParameters = i_FrangiParams;
+    //FrangiParameters = i_FrangiParams;
     referencialFrames = i_referFrames;
     iteration = i_iteration;
     areaMaximum = i_areaMaximum;
     maximalAngle = i_maximalAngle;
 
-    margins = i_margins;
+    //margins = i_margins;
 
     emit setTerminationEnabled(true);
 }
@@ -79,23 +78,25 @@ void qThreadFifthPart::run()
         if (notProcessThese.indexOf(filename) == -1){
             framesToAnalyse = double(framesSecondEval[filename].length());
 
+            QMap<QString,double> FrangiParameters = SharedVariables::getSharedVariables()->getFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,filename);
+            QMap<QString, int> margins;
+
             emit actualVideo(videoIndex);
             cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
             if (!cap.isOpened())
             {
                 emit unexpectedTermination(videoIndex,"hardError");
-                fillEmpty(filename,260);
+                fillEmpty(filename);
                 continue;
             }
-            cv::Mat referencialFrame_temp,referencialFrame,referencialFrame32f,referencialFrame_cutout;
+            cv::Mat referencialFrame_temp,referencialFrame,translatedFrame,referencialFrame32f,referencialFrame_cutout;
             cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[filename]);
             if (!cap.read(referencialFrame_temp))
             {
                 emit unexpectedTermination(videoIndex,"hardError");
-                fillEmpty(filename,260);
+                fillEmpty(filename);
                 continue;
             }
-            int videoFrameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
             int rows;
             int cols;
             cv::Rect _tempStandard,_tempExtra,_tempStandardAdjusted;
@@ -104,7 +105,7 @@ void qThreadFifthPart::run()
             /*_tempStandardAdjusted = adjustStandardCutout(_tempExtra,_tempStandard,
                                                          referencialFrame_temp.rows,
                                                          referencialFrame_temp.cols);*/
-            if (scaleCh == true)
+            if (selectedCutout == cutoutType::EXTRA)
             {
                 referencialFrame_temp(_tempExtra).copyTo(referencialFrame);
                 rows = referencialFrame.rows;
@@ -133,17 +134,18 @@ void qThreadFifthPart::run()
                 QVector<double> pocX;
                 QVector<double> pocY;
                 QVector<double> fullAngle;
-                int registrartionDone = completeRegistration(cap,referencialFrame,
+                int registrartionDone = completeRegistration(cap,referencialFrame,translatedFrame,
                                                            framesSecondEval[filename][i],
                                                            iteration,
                                                            areaMaximum,
                                                            maximalAngle,
                                                            _tempExtra,
                                                            _tempStandard,
-                                                           scaleCh,
+                                                           selectedCutout,
                                                            registrated,
                                                            pocX,pocY,fullAngle);
                 qDebug() << framesSecondEval[filename][i] <<" -> ";
+                translatedFrame.release();
                 if (registrartionDone == 0)
                 {
 
@@ -155,7 +157,7 @@ void qThreadFifthPart::run()
                     frangi_x[filename][framesSecondEval[filename][i]] = 999.0;
                     frangi_y[filename][framesSecondEval[filename][i]] = 999.0;
                     frangi_euklid[filename][framesSecondEval[filename][i]] = 999.0;
-                    fillEmpty(filename,videoFrameCount);
+                    fillEmpty(filename);
                     continue;
                 }
                 else
@@ -168,7 +170,7 @@ void qThreadFifthPart::run()
                     interresult32f.release();
                     interresult32f_cutout.release();
                     Point3d registrationCorrection(0,0,0);
-                    if (scaleCh == true)
+                    if (selectedCutout != cutoutType::NO_CUTOUT)
                     {
                         registrationCorrection = pc_translation(referencialFrame,registrated,areaMaximum);
                         if (std::abs(registrationCorrection.x)>=290.0 || std::abs(registrationCorrection.y)>=290.0)
@@ -251,14 +253,14 @@ void qThreadFifthPart::run()
             }
         }
         else{
-            fillEmpty(filename,260);
+            fillEmpty(filename);
         }
     }
     emit percentageCompleted(100);
     emit done(5);
 }
 
-void qThreadFifthPart::fillEmpty(QString i_videoName, int i_frameCount){
+void qThreadFifthPart::fillEmpty(QString i_videoName){
     /*QVector<double> pomVecD(i_frameCount,0.0);
     QVector<int> pomVecI(i_frameCount,0);
 

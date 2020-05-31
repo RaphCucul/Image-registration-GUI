@@ -48,7 +48,7 @@ private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty(QString i_videoName, int i_frameCount);
+    void fillEmpty(QString i_videoName);
 
     QStringList videoList;
     QMap<QString,QVector<int>> framesFirstEvaluationComplete,framesSecondEvaluationComplete,framesCompleteEvaluation;

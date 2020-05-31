@@ -8,6 +8,8 @@
 #include <QStringList>
 #include <QMap>
 
+#include "shared_staff/sharedvariables.h"
+using namespace clickImageEnums;
 class qThreadFifthPart : public QThread
 {
     Q_OBJECT
@@ -22,16 +24,16 @@ public:
                               QMap<QString,QVector<double>> i_Fr_X,
                               QMap<QString,QVector<double>> i_Fr_Y,
                               QMap<QString,QVector<double>> i_Fr_E,
-                              bool i_scaleChanged,
+                              cutoutType i_cutoutType,
                               QMap<QString,QVector<int>> i_EvaluationComplete,
                               QMap<QString,QVector<int>> i_frEvalSec,
-                              QMap<QString,int> i_referFrames,
-                              QVector<double> i_FrangiParams,
+                              QMap<QString,int> i_referFrames,                              
                               int i_iteration,
                               double i_areaMaximum,
-                              double i_maximalAngle,
-                              QMap<QString, int> i_margins,
+                              double i_maximalAngle,                              
                               QObject* parent = nullptr);
+    /*QVector<double> i_FrangiParams,
+    QMap<QString, int> i_margins,*/
     void run() override;
     QMap<QString,QVector<int>> framesUpdateEvaluationComplete();
     QMap<QString,QVector<double>> framesFrangiXestimated();
@@ -54,20 +56,20 @@ private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty(QString i_videoName, int i_frameCount);
+    void fillEmpty(QString i_videoName);
 
     double videoCount, framesToAnalyse, maximalAngle, areaMaximum;
     int iteration;
     QStringList videoList;
     QMap<QString,QVector<int>> framesSecondEval,framesCompleteEvaluation;
     QMap<QString,QVector<double>> POC_x,POC_y,angle,frangi_x,frangi_y,frangi_euklid;
-    QVector<double> average_CC,average_FWHM,FrangiParameters;
+    QVector<double> average_CC,average_FWHM;//,FrangiParameters;
     QMap<QString,int> referencialFrames;
     QVector<QString> notProcessThese;
     QMap<QString,cv::Rect> obtainedCutoffStandard, obtainedCutoffExtra;
-    bool scaleCh;
+    cutoutType selectedCutout = cutoutType::STANDARD;
 
-    QMap<QString, int> margins;
+    //QMap<QString, int> margins;
 };
 
 #endif // QTHREADFIFTHPART_H

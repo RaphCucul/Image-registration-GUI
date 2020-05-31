@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QVector>
 #include <QStringList>
+#include <random>
 
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -20,14 +21,14 @@ qThreadSecondPart::qThreadSecondPart(QStringList i_videosForAnalysis,
                                      QMap<QString, cv::Rect> i_cutoutExtra,
                                      QMap<QString, QVector<int> > i_badFramesCompleteList,
                                      QMap<QString,int> i_videoReferencialFramesList,
-                                     bool i_scaleChange,
+                                     cutoutType i_cutoutType,
                                      double i_areaMaximum)
 {
     videoList = i_videosForAnalysis;
     obtainedCutoffStandard = i_cutoutStandard;
     obtainedCutoffExtra = i_cutoutExtra;
     badFramesComplete = i_badFramesCompleteList;
-    scaleChanged = i_scaleChange;
+    selectedCutout = i_cutoutType;
     referencialFrames = i_videoReferencialFramesList;
     notProcessThis = i_badVideos;
     areaMaximum = i_areaMaximum;
@@ -76,10 +77,8 @@ void qThreadSecondPart::run()
             cv::Rect _tempStandard,_tempExtra,_tempStandardAdjusted;
             _tempStandard = obtainedCutoffStandard[filename];
             _tempExtra = obtainedCutoffExtra[filename];
-            /*_tempStandardAdjusted = adjustStandardCutout(_tempExtra,_tempStandard,
-                                                         referencialImage_temp.rows,
-                                                         referencialImage_temp.cols);*/
-            if (scaleChanged == true)
+
+            if (selectedCutout == cutoutType::EXTRA)
             {
                 referencialImage_temp(_tempExtra).copyTo(referencialImage);
                 rows = referencialImage.rows;
@@ -113,21 +112,24 @@ void qThreadSecondPart::run()
                 }
                 else
                 {
-                    if (scaleChanged == true)
+                    if (selectedCutout == cutoutType::EXTRA)
                     {
                         translated_temp(_tempExtra).copyTo(translated);
-                        translated(_tempStandard).copyTo(translated_vyrez);
-                        translated_temp.release();
+                        /*translated(_tempStandard).copyTo(translated_vyrez);
+                        translated_temp.release();*/
                     }
                     else
                     {
                         translated_temp.copyTo(translated);
-                        translated(_tempStandard).copyTo(translated_vyrez);
-                        translated_temp.release();
+                        /*translated(_tempStandard).copyTo(translated_vyrez);
+                        translated_temp.release();*/
                     }
+                    translated(_tempStandard).copyTo(translated_vyrez);
+                    translated_temp.release();
                     cv::Point3d pt;
                     pt.x = 0.0;pt.y = 0.0;pt.z = 0.0;
-                    if (scaleChanged == true)
+
+                    if (selectedCutout != cutoutType::NO_CUTOUT)
                     {
                         pt = pc_translation_hann(referencialImage,translated,areaMaximum);
                         if (std::abs(pt.x)>=55 || std::abs(pt.y)>=55)
@@ -136,7 +138,7 @@ void qThreadSecondPart::run()
                             pt = pc_translation(referencialImage,translated,areaMaximum);
                         }
                     }
-                    if (scaleChanged == false)
+                    else
                     {
                         pt = pc_translation_hann(referencialImage,translated,areaMaximum);
                     }

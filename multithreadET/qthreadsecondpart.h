@@ -8,6 +8,8 @@
 #include <QStringList>
 #include <QMap>
 
+#include "shared_staff/sharedvariables.h"
+using namespace clickImageEnums;
 class qThreadSecondPart : public QThread
 {
     Q_OBJECT
@@ -18,7 +20,7 @@ public:
                                QMap<QString,cv::Rect> i_cutoutExtra,
                                QMap<QString,QVector<int>> i_badFramesCompleteList,
                                QMap<QString, int> i_videoReferencialFramesList,
-                               bool i_scaleChange,
+                               cutoutType i_cutoutType,
                                double i_areaMaximum);
     void run() override;
     QVector<double> vectorForFWHM(QVector<int> &badFrames, int frameCount);
@@ -45,7 +47,7 @@ private:
     QMap<QString,cv::Rect> obtainedCutoffStandard;
     QMap<QString,cv::Rect> obtainedCutoffExtra;
     QMap<QString,QVector<int>> badFramesComplete;
-    bool scaleChanged;
+    cutoutType selectedCutout = cutoutType::STANDARD;
     QMap<QString,double> CC;
     QMap<QString,double> FWHM;
     QMap<QString,int> referencialFrames;

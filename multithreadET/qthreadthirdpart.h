@@ -6,9 +6,10 @@
 #include <QStringList>
 #include <QVector>
 #include <QMap>
-
 #include <opencv2/opencv.hpp>
 
+#include "shared_staff/sharedvariables.h"
+using namespace clickImageEnums;
 class qThreadThirdPart : public QThread
 {
     Q_OBJECT
@@ -22,7 +23,7 @@ public:
                               QMap<QString,double> i_averageFWHM,
                               QMap<QString,cv::Rect> i_standardCutout,
                               QMap<QString,cv::Rect> i_extraCutout,
-                              bool i_scaleChange,
+                              cutoutType i_cutoutType,
                               double i_areaMaximum,
                               QObject *parent=nullptr);
     void run() override;
@@ -50,7 +51,7 @@ private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty(QString i_videoName, int i_frameCount);
+    void fillEmpty(QString i_videoName);
 
     QStringList videoList;
     QMap<QString,double> averageCCcomplete, averageFWHMcomplete;
@@ -59,7 +60,7 @@ private:
     QMap<QString,int> referencialFrames;
     QVector<QString> notProcessThese;
     QMap<QString,cv::Rect> obtainedCutoffStandard, obtainedCutoffExtra;
-    bool scaleChanged;
+    cutoutType selectedCutout = cutoutType::STANDARD;
     QMap<QString,QVector<double>> framesFrangiX;
     QMap<QString,QVector<double>> framesFrangiY;
     QMap<QString,QVector<double>> framesFrangiEuklid;

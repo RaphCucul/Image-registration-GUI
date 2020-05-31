@@ -6,19 +6,21 @@
 #include <QStringList>
 #include <QMap>
 
+#include "shared_staff/sharedvariables.h"
+using namespace clickImageEnums;
 class qThreadFirstPart : public QThread
 {
     Q_OBJECT
 public:
    explicit qThreadFirstPart(QStringList i_videosForAnalysis,
-                             bool i_scaleChanged,
-                             QVector<double> i_FrangiParametersValues,
-                             QMap<QString, int> i_margins,
-                             QMap<QString, double> i_ratios,
+                             cutoutType i_cutoutType,
                              QMap<QString, QVector<double>> ETthresholds,
                              QMap<QString, bool> ETthresholdsFound,
                              bool i_previousThresholdsUsageAllowed,
                              QObject* parent=nullptr);
+    /*QVector<double> i_FrangiParametersValues,
+    QMap<QString, int> i_margins,
+    QMap<QString, double> i_ratios,*/
     /**
      * @brief computedEntropy
      * @return
@@ -80,7 +82,7 @@ private:
     /**
      * @brief If error, fill the vectors with zeros.
      */
-    void fillEmpty(QString i_videoName, int i_frameCount);
+    void fillEmpty(QString i_videoName);
 
     QMap<QString,QVector<double>> entropyComplete,tennengradComplete, previousThresholds;
     QMap<QString,QVector<int>> framesFirstFullCompleteEntropyEvaluation;
@@ -89,7 +91,7 @@ private:
     QMap<QString,QVector<int>> badFramesComplete;
     QMap<QString,int> referencialFrames;
     QMap<QString, bool> videosWithThresholdsFound;
-    QVector<double> FrangiParameters;
+    //QVector<double> FrangiParameters;
     QVector<QString> doNotProcessThis;
     QStringList processVideos;
     int videoCount;
@@ -97,10 +99,11 @@ private:
     QMap<QString,cv::Rect> obtainedCutoffStandard;
     QMap<QString,cv::Rect> obtainedCutoffExtra;
     QMap<QString,QVector<double>> calculatedETthresholds;
-    bool scaleChanged = false, usePreviousThresholds = false;
+    bool usePreviousThresholds = false;
+    cutoutType selectedCutout = cutoutType::STANDARD;
 
-    QMap<QString, int> margins;
-    QMap<QString, double> ratios;
+    //QMap<QString, int> margins;
+    //QMap<QString, double> ratios;
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);

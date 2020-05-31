@@ -8,7 +8,6 @@
 #include "image_analysis/frangi_utilization.h"
 #include "registration/phase_correlation_function.h"
 #include "registration/multiPOC_Ai1.h"
-#include "shared_staff/sharedvariables.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -22,10 +21,7 @@
 using cv::Mat;
 using cv::Point3d;
 qThreadFirstPart::qThreadFirstPart(QStringList i_videosForAnalysis,
-                                   bool i_scaleChanged,
-                                   QVector<double> i_FrangiParametersValues,
-                                   QMap<QString, int> i_margins,
-                                   QMap<QString, double> i_ratios,
+                                   cutoutType i_cutoutType,
                                    QMap<QString, QVector<double> > ETthresholds,
                                    QMap<QString, bool> ETthresholdsFound,
                                    bool i_previousThresholdsUsageAllowed,
@@ -33,10 +29,10 @@ qThreadFirstPart::qThreadFirstPart(QStringList i_videosForAnalysis,
 {
     processVideos = i_videosForAnalysis;
     videoCount = i_videosForAnalysis.count();
-    FrangiParameters = i_FrangiParametersValues;
-    margins = i_margins;
-    ratios = i_ratios;
-    scaleChanged = i_scaleChanged;
+    //FrangiParameters = i_FrangiParametersValues;
+    //margins = i_margins;
+    //ratios = i_ratios;
+    selectedCutout = i_cutoutType;
     previousThresholds = ETthresholds;
     usePreviousThresholds = i_previousThresholdsUsageAllowed;
     videosWithThresholdsFound = ETthresholdsFound;
@@ -60,7 +56,7 @@ void qThreadFirstPart::run()
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         if (!cap.isOpened()){
             emit unexpectedTermination(videoIndex,"hardError");
-            fillEmpty(filename, 260);
+            fillEmpty(filename);
             continue;
         }
 
@@ -68,10 +64,15 @@ void qThreadFirstPart::run()
         cv::Rect cutoutExtra(0,0,0,0);
         int rowsFullFrame=0,columnsFullFrame=0;
         bool cutoutExtraFound = false;
-        if (scaleChanged && SharedVariables::getSharedVariables()->checkVideoInformationPresence(filename)) {
-            QRect _extraCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"extra").toRect();
+        if (selectedCutout != cutoutType::NO_CUTOUT && SharedVariables::getSharedVariables()->checkVideoInformationPresence(filename)) {
+            /*QRect _extraCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"extra").toRect();
             cutoutExtra = transform_QRect_to_CV_RECT(_extraCutout);
-            cutoutExtraFound = true;
+            cutoutExtraFound = true;*/
+            if (selectedCutout == cutoutType::EXTRA) {
+                QRect _extraCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"extra").toRect();
+                cutoutExtra = transform_QRect_to_CV_RECT(_extraCutout);
+                cutoutExtraFound = true;
+            }
         }
 
         int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
@@ -94,7 +95,7 @@ void qThreadFirstPart::run()
             if (!cap.read(frame_original)){
                 QString errorMessage = QString("Frame number %1 could not be opened").arg(a);
                 unexpectedTermination(videoIndex,"hardError");
-                fillEmpty(filename, frameCount);
+                fillEmpty(filename);
                 continue;
             }
             else
@@ -166,7 +167,7 @@ void qThreadFirstPart::run()
                                (usePreviousThresholds && videosWithThresholdsFound[filename]));
         if (!analysisOfValuesResult){
             emit unexpectedTermination(videoIndex,"hardError");
-            fillEmpty(filename, frameCount);
+            fillEmpty(filename);
             continue;
         }
 
@@ -182,7 +183,7 @@ void qThreadFirstPart::run()
                                (usePreviousThresholds && videosWithThresholdsFound[filename]));
         if (!analysisOfValuesResult){
             emit unexpectedTermination(videoIndex,"hardError");
-            fillEmpty(filename, frameCount);
+            fillEmpty(filename);
             continue;
         }
 
@@ -208,6 +209,7 @@ void qThreadFirstPart::run()
         cv::Rect cutoutStandard(0,0,0,0);
         cv::Point3d frangi_bod(0,0,0);
         if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(filename)){
+            qDebug()<<"Shared videoInformation variable contains data for "<<filename;
             QPoint _frangiCoordinates = SharedVariables::getSharedVariables()->getVideoInformation(filename,"frangi").toPoint();
             frangi_bod = transform_QPoint_to_CV_Point3d(_frangiCoordinates);
             if (cutoutExtraFound){
@@ -223,18 +225,19 @@ void qThreadFirstPart::run()
         else{
             // the referential frame was not preprocessed -> no anomaly is present in the frame
             // video was not analysed in the past -> no data about referential frame and frangi coordinates
-            // ->
+            // =>
             // extraCutout is not expected, only standard cutout must be calculated from the newly calculated
             // frangi coordinates -> preprocessing complete registration
+            qDebug()<<"Shared videoInformation variable does not contain data for "<<filename;
             if (!preprocessingCompleteRegistration(referencialMat,
                                                    maximum_frangi_reverse,
                                                    cutoutStandard,
-                                                   SharedVariables::getSharedVariables()->getFrangiParameters(),
-                                                   SharedVariables::getSharedVariables()->getFrangiRatios(),
-                                                   SharedVariables::getSharedVariables()->getFrangiMargins()
+                                                   SharedVariables::getSharedVariables()->getFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,filename),
+                                                   SharedVariables::getSharedVariables()->getFrangiRatiosWrapper(frangiType::VIDEO_SPECIFIC,filename),
+                                                   SharedVariables::getSharedVariables()->getFrangiMarginsWrapper(frangiType::VIDEO_SPECIFIC,filename)
                                                    )){
                 emit unexpectedTermination(videoIndex,"hardError");
-                fillEmpty(filename, frameCount);
+                fillEmpty(filename);
                 continue;
             }
         }
@@ -275,7 +278,7 @@ void qThreadFirstPart::run()
     emit done(1);
 }
 
-void qThreadFirstPart::fillEmpty(QString i_videoName, int i_frameCount){
+void qThreadFirstPart::fillEmpty(QString i_videoName){
     /*QVector<double> pomVecD(i_frameCount,0.0);
     QVector<int> pomVecI(i_frameCount,0);
 
