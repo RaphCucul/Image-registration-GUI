@@ -15,7 +15,7 @@ public:
     explicit RegistrationThread(int& i_indexOfThread,
                                 QString &i_fullVideoPath,
                                 QString& i_nameOfVideo,
-                                QVector<double>& i_frangiParameters,
+                                QMap<QString,double> i_frangiParameters,
                                 QVector<int>& i_frameEvaluation,
                                 cv::Mat& i_referencialFrame,
                                 int& startFrame,
@@ -50,7 +50,7 @@ private:
 
     cv::VideoCapture capture;
     cv::Mat referencialImage;
-    QVector<double> frangiParameters;
+    QMap<QString,double> frangiParameters;
     QVector<double> frangiX,frangiY,frangiEuklidean,finalPOCx,finalPOCy,maximalAngles;
     QMap<QString,QVector<double>> vectors;
     QVector<int> framesEvaluation;
