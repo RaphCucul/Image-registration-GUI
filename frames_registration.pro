@@ -50,7 +50,7 @@ SOURCES += \
     main_program/frangi_detektor.cpp \
     main_program/registratetwo.cpp \
     main_program/registratevideo.cpp \
-    main_program/t_b_ho.cpp \
+    main_program/directories_loader.cpp \
     main_program/registrationresult.cpp \
     main_program/chartinit.cpp \
     main_program/tabs.cpp \
@@ -112,7 +112,7 @@ HEADERS += \
     main_program/registratetwo.h \
     main_program/registratevideo.h \
     main_program/registrationresult.h \
-    main_program/t_b_ho.h \
+    main_program/directories_loader.h \
     main_program/chartinit.h \
     main_program/tabs.h \
 ################################################
@@ -154,7 +154,7 @@ FORMS += \
     ui/registratetwo.ui \
     ui/registratevideo.ui \
     ui/registrationresult.ui \
-    ui/t_b_ho.ui \
+    ui/directories_loader.ui \
     ui/frangi_detektor.ui \
     ui/mainwindow.ui \
     dialogs/grafet.ui \
@@ -167,17 +167,17 @@ FORMS += \
 
 QMAKE_RESOURCE_FLAGS += -no-compress
 
-INCLUDEPATH += C:\opencv_installed\build\include
-
 LIBS += C:\Windows\System32\pdh.dll
 
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_core320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_highgui320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgcodecs320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgproc320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_photo320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_videoio320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_video320.dll
+INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\include
+#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_core320.dll
+#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_highgui320.dll
+#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgcodecs320.dll
+#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgproc320.dll
+#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_photo320.dll
+#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_videoio320.dll
+#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_video320.dll
+LIBS += D:\Programy\OpenCV\opencv\release\install\x86\mingw\bin\libopencv_world320.dll
 
 RESOURCES += images/icons.qrc \
     translations.qrc
