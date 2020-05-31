@@ -10,6 +10,9 @@
 #include <QJsonObject>
 #include <opencv2/opencv.hpp>
 #include "dialogs/errordialog.h"
+#include "shared_staff/sharedvariables.h"
+
+using namespace frangiEnums;
 
 namespace Ui {
 class Frangi_detektor;
@@ -29,7 +32,12 @@ public:
      */
     void checkPaths();
 
+    /**
+     * @brief setParametersToUI
+     */
     void setParametersToUI();
+
+protected:
 
 private slots:   
     void on_sigma_start_sliderMoved(int value);
@@ -47,10 +55,10 @@ private slots:
     void on_fileToAnalyse_clicked();
     void on_frameNumber_textChanged(const QString &arg1);
     void on_chosenFile_textChanged(const QString &arg1);
-    void on_saveParameters_clicked();
-
+    void onSaveFrangiData();
     void processMargins(int i_margin);
     void processRatio(double i_ratio);
+    void onFrangiSourceChosen();
 
 signals:
     void calculationStarted();
@@ -59,13 +67,28 @@ private:
     /**
      * @brief Function loads frangi parameters data into the corresponding double spin box.
      */
-    void setDSBInput(QDoubleSpinBox*_spinbox, QString parameter);
+    void setParameter(QString i_doubleSpinboxName, QString parameter);
+
+    /**
+     * @brief setParameter
+     * @param _spinbox
+     * @param i_value
+     */
+    void setParameter(QString i_doubleSpinboxName, double i_value);
 
     /**
      * @brief Functions save the actual value of the double spin box during the saving process.
      * @param parameter
      */
-    void getDSBInput(QString parameter);
+    void getParameter(frangiType i_type, QString i_parameterName);
+
+    void setMargin(QString i_marginName, int i_value);
+
+    void getMargin(frangiType i_type, QString i_marginName);
+
+    void setRatio(QString i_ratioName, double i_value);
+
+    void getRatio(frangiType i_type, QString i_ratioName);
 
     /**
      * @brief Function loads frangi parameters data into the corresponding slider.
@@ -79,7 +102,7 @@ private:
      * @param _spinbox
      * @param _slider
      */
-    void setSliderValue(QDoubleSpinBox* _spinbox, QSlider *_slider);
+    void setSliderValue(QString i_parameter);
 
     /**
      * @brief Function fills the private QHash variables with corresponding widgets
@@ -92,25 +115,34 @@ private:
      */
     void showStandardCutout(cv::Mat& i_chosenFrame);
 
+    /**
+     * @brief checkStartEndValues
+     */
     void checkStartEndValues();
+
+    bool loadFrangiParametersForVideo(frangiType i_type);
+
+    //void fillWidgetsWithData();
+    void enableWidgets();
+    void disableWidgets();
 
     int analyseFrame = -1;
     Ui::Frangi_detektor *ui;
     int minimum = 0;
     int maximum = 30;
-    QVector<QString> analyseChosenFile;
+    QMap<QString,QString> analyseChosenFile;
     cv::VideoCapture actualVideo;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
     QHash<QString,QDoubleSpinBox*> spinBoxes;
     QHash<QString,QSlider*> sliders;
     QHash<QString,QSpinBox*> marginSpinBoxes;
     QHash<QString,QDoubleSpinBox*> ratioSpinBoxes;
-    QStringList frangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    QStringList frangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two"};
     QStringList MarginsRatiosList = {"left_m","right_m","top_m","bottom_m","left_r","right_r","top_r","bottom_r"};
     QMap<QString,int> frangiMargins;
     QMap<QString,double> cutoutRatios;
     bool loading = true;
-    bool readyToCalculate = false;
+    frangiType chosenFrangiType = frangiType::GLOBAL;
 };
 
 #endif // FRANGI_DETEKTOR_H
