@@ -115,6 +115,7 @@ QJsonObject maps2Object(QStringList i_parameters,
             _returnObject[i_parameters.at(parameter)] = pomArray;
         }
     }
+    return _returnObject;
 }
 
 QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input){
@@ -194,10 +195,14 @@ bool findReferentialFrameData(QString i_name, int &i_referentialFrame, QPoint& i
             QJsonArray _frangiX = data["FrangiX"].toArray();
             QJsonArray _frangiY = data["FrangiY"].toArray();
             // the frangi coordinates still can be (0,0)
-            if (_frangiX.at(i_referentialFrame).toDouble() != 0.0 && _frangiY.at(i_referentialFrame).toDouble() != 0.0){
-                i_point.setX(_frangiX.at(i_referentialFrame).toInt());
-                i_point.setY(_frangiY.at(i_referentialFrame).toInt());
-                return true;
+            if (_frangiX.contains(i_referentialFrame) && _frangiY.contains(i_referentialFrame)) {
+                if (_frangiX.at(i_referentialFrame).toDouble() != 0.0 && _frangiY.at(i_referentialFrame).toDouble() != 0.0){
+                    i_point.setX(_frangiX.at(i_referentialFrame).toInt());
+                    i_point.setY(_frangiY.at(i_referentialFrame).toInt());
+                    return true;
+                }
+                else
+                    return false;
             }
             else
                 return false;
