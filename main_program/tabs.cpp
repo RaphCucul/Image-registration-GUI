@@ -31,7 +31,7 @@ tabs::tabs(QWidget *parent) :
     QIcon icon_RegistrateVideo = iconRotation(icon_RegistrateVideo_png);
     QIcon icon_Graph = iconRotation(icon_Graph_png);
 
-    chooseFolders = new t_b_HO;
+    chooseFolders = new DirectoriesLoader;
     frangiDetector = new Frangi_detektor;
     registrateTwo = new RegistrateTwo;
     registrateVideo = new RegistrateVideo;
@@ -61,7 +61,7 @@ tabs::tabs(QWidget *parent) :
     connect(registrateVideo,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
     connect(registrateVideo,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
 
-    default_disabled();
+    //default_disabled();
 }
 
 QIcon tabs::iconRotation(QIcon i_icon)

@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QIcon>
-#include "main_program/t_b_ho.h"
+#include "main_program/directories_loader.h"
 #include "main_program/frangi_detektor.h"
 #include "main_program/registratetwo.h"
 #include "main_program/registratevideo.h"
@@ -47,7 +47,7 @@ private:
 
     Ui::tabs *ui;
 
-    t_b_HO* chooseFolders;
+    DirectoriesLoader* chooseFolders;
     Frangi_detektor* frangiDetector;
     RegistrateTwo* registrateTwo;
     RegistrateVideo* registrateVideo;
