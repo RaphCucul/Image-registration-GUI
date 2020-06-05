@@ -81,7 +81,7 @@ bool DirectoriesLoader::processLoadedSettings(){
             return true;
         }
         else{
-            disableElements();
+            //disableElements();
             return false;
         }
     }
@@ -174,58 +174,80 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
 
     bool VFA = getPathFromJson(pathTypes.at(0),ui->Combo_videoPath,i_onlyCheckEmpty);
     if (!VFA){
-        localErrorDialogHandling[ui->Combo_videoPath]->evaluate("left","hardError",2);
-        localErrorDialogHandling[ui->Combo_videoPath]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_videoPath]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_videoPath]->evaluate("center","hardError",2);
+            localErrorDialogHandling[ui->Combo_videoPath]->show(false);
+        }
     }
     else{
+    //if (VFA) {
         if (localErrorDialogHandling[ui->Combo_videoPath]->isEvaluated())
             localErrorDialogHandling[ui->Combo_videoPath]->hide();
+    //}
     }
 
     bool SV = getPathFromJson(pathTypes.at(1),ui->Combo_savingVideo,i_onlyCheckEmpty);
     if (!SV){
-        localErrorDialogHandling[ui->Combo_savingVideo]->evaluate("left","hardError",2);
-        localErrorDialogHandling[ui->Combo_savingVideo]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_savingVideo]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_savingVideo]->evaluate("center","hardError",2);
+            localErrorDialogHandling[ui->Combo_savingVideo]->show(false);
+        }
     }
     else{
+    //if (SV) {
         if (localErrorDialogHandling[ui->Combo_savingVideo]->isEvaluated())
             localErrorDialogHandling[ui->Combo_savingVideo]->hide();
+    //}
     }
 
     bool VDL = getPathFromJson(pathTypes.at(2),ui->Combo_VideoDataLoad,i_onlyCheckEmpty);
     if (!VDL)
     {
-        localErrorDialogHandling[ui->Combo_VideoDataLoad]->evaluate("left","hardError",2);
-        localErrorDialogHandling[ui->Combo_VideoDataLoad]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_VideoDataLoad]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_VideoDataLoad]->evaluate("center","hardError",2);
+            localErrorDialogHandling[ui->Combo_VideoDataLoad]->show(false);
+        }
     }
     else{
+    //if (VDL) {
         if (localErrorDialogHandling[ui->Combo_VideoDataLoad]->isEvaluated())
             localErrorDialogHandling[ui->Combo_VideoDataLoad]->hide();
+    //}
     }
 
     bool VDS = getPathFromJson(pathTypes.at(3),ui->Combo_VideoDataSave,i_onlyCheckEmpty);
     if (!VDS){
-        localErrorDialogHandling[ui->Combo_VideoDataSave]->evaluate("left","hardError",2);
-        localErrorDialogHandling[ui->Combo_VideoDataSave]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_VideoDataSave]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_VideoDataSave]->evaluate("center","hardError",2);
+            localErrorDialogHandling[ui->Combo_VideoDataSave]->show(false);
+        }
     }
     else{
+    //if (VDS) {
         if (localErrorDialogHandling[ui->Combo_VideoDataSave]->isEvaluated())
             localErrorDialogHandling[ui->Combo_VideoDataSave]->hide();
+    //}
     }
 
     bool FP = getPathFromJson(pathTypes.at(4),ui->Combo_FrangiParams,i_onlyCheckEmpty);
     if (FP && !SharedVariables::getSharedVariables()->processFrangiParameters(typeLists["parametersFrangiFiltr"].at(0))){
-        localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("left","softError",2);
-        localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("center","softError",2);
+            localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
+        }
         FP = false;
     }
     else if (!FP){
-        localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("left","hardError",2);
-        localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("center","hardError",2);
+            localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
+        }
     }
     else{
+    //if (FP) {
         if (localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated())
             localErrorDialogHandling[ui->Combo_FrangiParams]->hide();
+    //}
     }
 
     if (VFA && SV && VDL && VDS && FP){
@@ -274,10 +296,11 @@ void DirectoriesLoader::on_ChooseFileFolderDirectory_clicked()
         if (jsonPath != ""){
             GlobalSettings::getSettings()->setFileFolderDirectoriesPath(jsonPath);
             pathToFileFolderDirectory = jsonPath;
-            if (loadJsonPaths()){
-                ui->FileFolderDirectory->setText(pathToFileFolderDirectory);
+            ui->FileFolderDirectory->setText(pathToFileFolderDirectory);
+            if (loadJsonPaths()){                
                 emit fileFolderDirectoryFound();
             }
+            enableElements();
         }       
     }
     else if (search == "ini"){
@@ -350,6 +373,8 @@ void DirectoriesLoader::on_pathToVideos_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["videosPath"];
+        //if (localErrorDialogHandling[ui->Combo_videoPath]->isEvaluated())
+            //localErrorDialogHandling[ui->Combo_videoPath]->hide();
     }
 }
 
@@ -364,6 +389,8 @@ void DirectoriesLoader::on_SaveVideos_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["saveVideosPath"];
+        //if (localErrorDialogHandling[ui->Combo_savingVideo]->isEvaluated())
+            //localErrorDialogHandling[ui->Combo_savingVideo]->hide();
     }
 }
 
@@ -378,6 +405,8 @@ void DirectoriesLoader::on_LoadingDataFolder_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["loadDatFilesPath"];
+        //if (localErrorDialogHandling[ui->Combo_VideoDataLoad]->isEvaluated())
+            //localErrorDialogHandling[ui->Combo_VideoDataLoad]->hide();
     }
 }
 
@@ -392,6 +421,8 @@ void DirectoriesLoader::on_SavingDataFolder_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["saveDatFilesPath"];
+        //if (localErrorDialogHandling[ui->Combo_VideoDataSave]->isEvaluated())
+            //localErrorDialogHandling[ui->Combo_VideoDataSave]->hide();
     }
 }
 
@@ -404,18 +435,23 @@ void DirectoriesLoader::on_paramFrangPB_clicked()
     if (check_file.exists() && check_file.isFile()){
         processPath("parametersFrangiFiltr",pathFF);
         ui->Combo_FrangiParams->addItem(pathFF);
-        if (!SharedVariables::getSharedVariables()->processFrangiParameters(pathFF)){
+        /*if (!SharedVariables::getSharedVariables()->processFrangiParameters(pathFF)){
             localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("left","softError",2);
             localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
         }
-        else{
-            if (getPathsFromJson(true))
+        else{*/
+            if (getPathsFromJson(true)) {
+                //if (localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated())
+                    //localErrorDialogHandling[ui->Combo_FrangiParams]->hide();
                 emit fileFolderDirectoryFound();
-        }
+            }
+       // }
     }
     else{
-        localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("left","hardError",7);
-        localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("left","hardError",7);
+            localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
+        }
     }
 }
 
