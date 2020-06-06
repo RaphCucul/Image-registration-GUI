@@ -4,7 +4,7 @@ QPushButton {
         border-width: 1px;
         border-radius: 2px;
         border-color: grey;
-        font: 10px;
+        font: 11px;
 	padding: 2px;
 }
 QPushButton:pressed {
