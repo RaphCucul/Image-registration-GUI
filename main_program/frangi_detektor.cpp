@@ -19,10 +19,8 @@
 #include <QIODevice>
 #include <QTextStream>
 #include <QString>
-#include <QSlider>
 #include <QVector>
 #include <QLineEdit>
-#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QDebug>
 #include <QJsonDocument>
@@ -62,16 +60,6 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
         localErrorDialogHandling[spinBoxes[frangiParametersList.at(index)]] = new ErrorDialog(spinBoxes[frangiParametersList.at(index)]);
     }
 
-    connect(ui->sigma_start_DSB, SIGNAL(editingFinished()),this,
-            SLOT(changeValue_slider_start()));
-    connect(ui->sigma_end_DSB, SIGNAL(editingFinished()),this,
-            SLOT(changeValue_slider_end()));
-    connect(ui->sigma_step_DSB, SIGNAL(editingFinished()),this,
-            SLOT(changeValue_slider_step()));
-    connect(ui->beta_one_DSB, SIGNAL(editingFinished()),this,
-            SLOT(changeValue_slider_one()));
-    connect(ui->beta_two_DSB, SIGNAL(editingFinished()),this,
-            SLOT(changeValue_slider_two()));
     QObject::connect(ui->leftMargin,SIGNAL(valueChanged(int)),this,SLOT(processMargins(int)));
     QObject::connect(ui->rightMargin,SIGNAL(valueChanged(int)),this,SLOT(processMargins(int)));
     QObject::connect(ui->topMargin,SIGNAL(valueChanged(int)),this,SLOT(processMargins(int)));
@@ -94,10 +82,6 @@ Frangi_detektor::~Frangi_detektor()
     delete ui;
 }
 
-void Frangi_detektor::analyseSliderInput(QSlider *_slider, QString parameter){
-    _slider->setValue(int(spinBoxes[parameter]->value()/10*50));
-}
-
 void Frangi_detektor::setParametersToUI(){
     foreach (QString parameter,frangiParametersList) {
         setParameter(parameter,parameter);
@@ -111,9 +95,6 @@ void Frangi_detektor::setParametersToUI(){
     else{
         ui->RB_standard->setChecked(0);
         ui->RB_reverz->setChecked(1);
-    }
-    foreach (QString parameter,frangiParametersList) {
-        analyseSliderInput(sliders[parameter],parameter);
     }
 
     frangiMargins = SharedVariables::getSharedVariables()->getFrangiMarginsWrapper(chosenFrangiType,
@@ -163,73 +144,14 @@ void Frangi_detektor::checkPaths()
     connect(ui->videoParams,SIGNAL(toggled(bool)),this,SLOT(onFrangiSourceChosen()));
 }
 
-void Frangi_detektor::on_sigma_start_sliderMoved(int value)
-{
-    double valueD = (value/50.0)*10.0;
-    ui->sigma_start_DSB->setValue(valueD);
-    checkStartEndValues();
-}
-
-void Frangi_detektor::on_sigma_end_sliderMoved(int value)
-{
-    double valueD = (value/50.0)*10.0;
-    ui->sigma_end_DSB->setValue(valueD);
-    checkStartEndValues();
-}
-
-void Frangi_detektor::on_sigma_step_sliderMoved(int value)
-{
-    double valueD = (value/50.0)*10.0;
-    ui->sigma_step_DSB->setValue(valueD);
-}
-
-void Frangi_detektor::on_beta_one_sliderMoved(int value)
-{
-    double valueD = (value/50.0)*10.0;
-    ui->beta_one_DSB->setValue(valueD);
-}
-
-void Frangi_detektor::on_beta_two_sliderMoved(int value)
-{
-    double valueD = (value/50.0)*10.0;
-    ui->beta_two_DSB->setValue(valueD);
-}
-
-void Frangi_detektor::setSliderValue(QString i_parameter){
-    double value = spinBoxes[i_parameter]->value();
-    int recalculated = int((value/10)*50);
-    sliders[i_parameter]->setValue(recalculated);
-}
-
-void Frangi_detektor::changeValue_slider_start(){
-    setSliderValue("sigma_start");
-    checkStartEndValues();
-}
-void Frangi_detektor::changeValue_slider_end(){
-    setSliderValue("sigma_end");
-    checkStartEndValues();
-}
-void Frangi_detektor::changeValue_slider_step(){
-    setSliderValue("sigma_step");
-}
-void Frangi_detektor::changeValue_slider_one(){
-    setSliderValue("beta_one");
-}
-void Frangi_detektor::changeValue_slider_two(){
-    setSliderValue("beta_two");
-}
-
 void Frangi_detektor::checkStartEndValues(){
     if (ui->sigma_start_DSB->value() >= ui->sigma_end_DSB->value()){
         if ((ui->sigma_start_DSB->value()+1) <= ui->sigma_end_DSB->maximum()){
             ui->sigma_end_DSB->setValue(ui->sigma_start_DSB->value()+1);
-            setSliderValue("sigma_end");
         }
         else{
             ui->sigma_end_DSB->setValue(ui->sigma_end_DSB->maximum()-1);
             ui->sigma_end_DSB->setValue(ui->sigma_end_DSB->maximum());
-            setSliderValue("sigma_end");
-            setSliderValue("sigma_start");
         }
     }
 }
@@ -530,12 +452,6 @@ void Frangi_detektor::initWidgetHashes(){
     spinBoxes["sigma_step"] = ui->sigma_step_DSB;
     spinBoxes["beta_one"] = ui->beta_one_DSB;
     spinBoxes["beta_two"] = ui->beta_two_DSB;
-
-    sliders["sigma_start"] = ui->sigma_start;
-    sliders["sigma_end"] = ui->sigma_end;
-    sliders["sigma_step"] = ui->sigma_step;
-    sliders["beta_one"] = ui->beta_one;
-    sliders["beta_two"] = ui->beta_two;
 
     marginSpinBoxes["top_m"] = ui->topMargin;
     marginSpinBoxes["bottom_m"] = ui->bottomMargin;

@@ -6,7 +6,6 @@
 #include <QVector>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
-#include <QSlider>
 #include <QJsonObject>
 #include <opencv2/opencv.hpp>
 #include "dialogs/errordialog.h"
@@ -39,18 +38,7 @@ public:
 
 protected:
 
-private slots:   
-    void on_sigma_start_sliderMoved(int value);
-    void on_sigma_end_sliderMoved(int value);
-    void on_sigma_step_sliderMoved(int value);
-    void on_beta_one_sliderMoved(int value);
-    void on_beta_two_sliderMoved(int value);
-    void changeValue_slider_start();
-    void changeValue_slider_end();
-    void changeValue_slider_step();
-    void changeValue_slider_one();
-    void changeValue_slider_two();
-
+private slots:
     void on_Frangi_filtr_clicked();
     void on_fileToAnalyse_clicked();
     void on_frameNumber_textChanged(const QString &arg1);
@@ -91,20 +79,6 @@ private:
     void getRatio(frangiType i_type, QString i_ratioName);
 
     /**
-     * @brief Function loads frangi parameters data into the corresponding slider.
-     * @param _slider
-     * @param parameter
-     */
-    void analyseSliderInput(QSlider* _slider, QString parameter);
-
-    /**
-     * @brief Function sets the given value to Slider and double spin boxes for synchronized changes.
-     * @param _spinbox
-     * @param _slider
-     */
-    void setSliderValue(QString i_parameter);
-
-    /**
      * @brief Function fills the private QHash variables with corresponding widgets
      */
     void initWidgetHashes();
@@ -120,10 +94,21 @@ private:
      */
     void checkStartEndValues();
 
+    /**
+     * @brief loadFrangiParametersForVideo
+     * @param i_type
+     * @return
+     */
     bool loadFrangiParametersForVideo(frangiType i_type);
 
-    //void fillWidgetsWithData();
+    /**
+     * @brief enableWidgets
+     */
     void enableWidgets();
+
+    /**
+     * @brief disableWidgets
+     */
     void disableWidgets();
 
     int analyseFrame = -1;
@@ -134,7 +119,6 @@ private:
     cv::VideoCapture actualVideo;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
     QHash<QString,QDoubleSpinBox*> spinBoxes;
-    QHash<QString,QSlider*> sliders;
     QHash<QString,QSpinBox*> marginSpinBoxes;
     QHash<QString,QDoubleSpinBox*> ratioSpinBoxes;
     QStringList frangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two"};
