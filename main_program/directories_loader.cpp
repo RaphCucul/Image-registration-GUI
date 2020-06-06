@@ -41,6 +41,10 @@ DirectoriesLoader::DirectoriesLoader(QWidget *parent) :
     localErrorDialogHandling[ui->FileFolderDirectory] = new ErrorDialog(ui->FileFolderDirectory);
     localErrorDialogHandling[ui->Combo_videoPath] = new ErrorDialog(ui->Combo_videoPath);
     ui->Combo_videoPath->installEventFilter(this);
+    ui->Combo_savingVideo->installEventFilter(this);
+    ui->Combo_VideoDataSave->installEventFilter(this);
+    ui->Combo_VideoDataLoad->installEventFilter(this);
+    ui->Combo_FrangiParams->installEventFilter(this);
     localErrorDialogHandling[ui->Combo_savingVideo] = new ErrorDialog(ui->Combo_savingVideo);
     localErrorDialogHandling[ui->Combo_VideoDataLoad] = new ErrorDialog(ui->Combo_VideoDataLoad);
     localErrorDialogHandling[ui->Combo_VideoDataSave] = new ErrorDialog(ui->Combo_VideoDataSave);
@@ -180,10 +184,8 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
         }
     }
     else{
-    //if (VFA) {
         if (localErrorDialogHandling[ui->Combo_videoPath]->isEvaluated())
             localErrorDialogHandling[ui->Combo_videoPath]->hide();
-    //}
     }
 
     bool SV = getPathFromJson(pathTypes.at(1),ui->Combo_savingVideo,i_onlyCheckEmpty);
@@ -194,10 +196,8 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
         }
     }
     else{
-    //if (SV) {
         if (localErrorDialogHandling[ui->Combo_savingVideo]->isEvaluated())
             localErrorDialogHandling[ui->Combo_savingVideo]->hide();
-    //}
     }
 
     bool VDL = getPathFromJson(pathTypes.at(2),ui->Combo_VideoDataLoad,i_onlyCheckEmpty);
@@ -209,10 +209,8 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
         }
     }
     else{
-    //if (VDL) {
         if (localErrorDialogHandling[ui->Combo_VideoDataLoad]->isEvaluated())
             localErrorDialogHandling[ui->Combo_VideoDataLoad]->hide();
-    //}
     }
 
     bool VDS = getPathFromJson(pathTypes.at(3),ui->Combo_VideoDataSave,i_onlyCheckEmpty);
@@ -223,10 +221,8 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
         }
     }
     else{
-    //if (VDS) {
         if (localErrorDialogHandling[ui->Combo_VideoDataSave]->isEvaluated())
             localErrorDialogHandling[ui->Combo_VideoDataSave]->hide();
-    //}
     }
 
     bool FP = getPathFromJson(pathTypes.at(4),ui->Combo_FrangiParams,i_onlyCheckEmpty);
@@ -244,10 +240,8 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
         }
     }
     else{
-    //if (FP) {
         if (localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated())
             localErrorDialogHandling[ui->Combo_FrangiParams]->hide();
-    //}
     }
 
     if (VFA && SV && VDL && VDS && FP){
@@ -373,8 +367,6 @@ void DirectoriesLoader::on_pathToVideos_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["videosPath"];
-        //if (localErrorDialogHandling[ui->Combo_videoPath]->isEvaluated())
-            //localErrorDialogHandling[ui->Combo_videoPath]->hide();
     }
 }
 
@@ -389,8 +381,6 @@ void DirectoriesLoader::on_SaveVideos_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["saveVideosPath"];
-        //if (localErrorDialogHandling[ui->Combo_savingVideo]->isEvaluated())
-            //localErrorDialogHandling[ui->Combo_savingVideo]->hide();
     }
 }
 
@@ -405,8 +395,6 @@ void DirectoriesLoader::on_LoadingDataFolder_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["loadDatFilesPath"];
-        //if (localErrorDialogHandling[ui->Combo_VideoDataLoad]->isEvaluated())
-            //localErrorDialogHandling[ui->Combo_VideoDataLoad]->hide();
     }
 }
 
@@ -421,8 +409,6 @@ void DirectoriesLoader::on_SavingDataFolder_clicked()
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
         qDebug()<<typeArrays["saveDatFilesPath"];
-        //if (localErrorDialogHandling[ui->Combo_VideoDataSave]->isEvaluated())
-            //localErrorDialogHandling[ui->Combo_VideoDataSave]->hide();
     }
 }
 
@@ -435,17 +421,9 @@ void DirectoriesLoader::on_paramFrangPB_clicked()
     if (check_file.exists() && check_file.isFile()){
         processPath("parametersFrangiFiltr",pathFF);
         ui->Combo_FrangiParams->addItem(pathFF);
-        /*if (!SharedVariables::getSharedVariables()->processFrangiParameters(pathFF)){
-            localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("left","softError",2);
-            localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
+        if (getPathsFromJson(true)) {
+            emit fileFolderDirectoryFound();
         }
-        else{*/
-            if (getPathsFromJson(true)) {
-                //if (localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated())
-                    //localErrorDialogHandling[ui->Combo_FrangiParams]->hide();
-                emit fileFolderDirectoryFound();
-            }
-       // }
     }
     else{
         if (!localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated()) {
@@ -462,7 +440,7 @@ bool DirectoriesLoader::eventFilter(QObject *obj, QEvent *event){
         if (keyEvent->key() == Qt::Key::Key_Delete)
         {
             auto combobox = dynamic_cast<QComboBox *>(obj);
-            if (combobox){
+            if (combobox && combobox->count() > 1){
                 combobox->removeItem(combobox->currentIndex());
                 return true;
             }
