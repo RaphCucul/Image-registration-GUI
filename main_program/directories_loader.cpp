@@ -450,7 +450,7 @@ bool DirectoriesLoader::eventFilter(QObject *obj, QEvent *event){
     return QObject::eventFilter(obj, event);
 }
 
-void DirectoriesLoader::on_FileFolderDirectory_textEdited(const QString &arg1)
+/*void DirectoriesLoader::on_FileFolderDirectory_textEdited(const QString &arg1)
 {
     QStringList foundJSONs;
     int JSONsCount;
@@ -463,7 +463,7 @@ void DirectoriesLoader::on_FileFolderDirectory_textEdited(const QString &arg1)
         enableElements();
         emit fileFolderDirectoryFound();
     }
-}
+}*/
 
 void DirectoriesLoader::enableElements(){
     ui->pathToVideos->setEnabled(true);

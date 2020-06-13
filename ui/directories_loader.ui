@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>458</width>
-    <height>323</height>
+    <width>771</width>
+    <height>331</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -30,26 +30,40 @@
     <number>15</number>
    </property>
    <property name="leftMargin">
-    <number>60</number>
+    <number>30</number>
    </property>
    <property name="topMargin">
     <number>60</number>
    </property>
    <property name="rightMargin">
-    <number>60</number>
+    <number>30</number>
    </property>
    <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
-    <widget class="QLineEdit" name="iniPath">
-     <property name="enabled">
-      <bool>false</bool>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,10">
+     <property name="spacing">
+      <number>3</number>
      </property>
-     <property name="frame">
-      <bool>false</bool>
-     </property>
-    </widget>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Ini file path</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="iniPath">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="frame">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,1">
@@ -70,6 +84,9 @@
      </property>
      <item>
       <widget class="QLineEdit" name="FileFolderDirectory">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -81,6 +98,12 @@
          <width>400</width>
          <height>20</height>
         </size>
+       </property>
+       <property name="acceptDrops">
+        <bool>false</bool>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -121,6 +144,9 @@
          <height>20</height>
         </size>
        </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="3" column="0">
@@ -130,6 +156,9 @@
          <width>400</width>
          <height>20</height>
         </size>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -141,10 +170,16 @@
          <height>20</height>
         </size>
        </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="0" column="0">
       <widget class="QComboBox" name="Combo_videoPath">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -300,7 +335,7 @@
         </size>
        </property>
        <property name="editable">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="currentIndex">
         <number>-1</number>
