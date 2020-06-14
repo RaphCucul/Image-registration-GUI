@@ -13,6 +13,11 @@
 #include "util/files_folders_operations.h"
 using std::wstring;
 
+/**
+ * @brief The function processes the content of the file defined by its complete path.
+ * @param[in] i_fullFilePath
+ * @return Returns a QStringList with two strings - parameter and counter name
+ */
 QStringList readAndConvert(std::string i_fullFilePath){
     QStringList results;
     string line = "";
@@ -22,7 +27,7 @@ QStringList readAndConvert(std::string i_fullFilePath){
     pbuf->pubseekpos (0,myfile.in);
     char* buffer=new char[size];
     pbuf->sgetn (buffer,size);
-    //std::cout.write (buffer,size);
+
     char * pch,*pch2;
     pch=strchr(buffer,'[')+1;
     unsigned int start = pch-buffer;
