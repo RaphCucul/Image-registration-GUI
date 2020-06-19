@@ -28,7 +28,6 @@ VersionCheckerParent::~VersionCheckerParent(){
 }
 
 void VersionCheckerParent::noData(){
-    //qDebug()<<"processing noData()";
     QMessageBox msgBox;
     msgBox.setIcon(QMessageBox::Warning);
     msgBox.setText("An error occured when connecting to internet. Program version not checked.");

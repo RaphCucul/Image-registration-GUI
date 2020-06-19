@@ -22,7 +22,6 @@ void VersionChecker::fileDownloaded(QNetworkReply* pReply) {
         emit downloaded();
     }
     else{
-        //qDebug()<<"no data recieved";
         pReply->deleteLater();
         emit notDownloaded();
     }
