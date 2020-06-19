@@ -57,7 +57,7 @@ void HddUsagePlot::addData(double data)
     replot();
 }
 
-QPixmap HddUsagePlot::convertToPixmap(int width, int height, double scale)
+/*QPixmap HddUsagePlot::convertToPixmap(int width, int height, double scale)
 {
     blockRedraw = true;
 
@@ -71,7 +71,7 @@ QPixmap HddUsagePlot::convertToPixmap(int width, int height, double scale)
 
     blockRedraw = false;
     return pixmap;
-}
+}*/
 
 void HddUsagePlot::redraw()
 {

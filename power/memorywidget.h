@@ -5,19 +5,23 @@
 #include "shared_staff/systemmonitorwidget.h"
 #include <QtCharts/QPieSeries>
 
+/**
+ * @class MemoryWidget
+ * @brief The MemoryWidget class is derived class from the SystemMonitorWidget class. The MemoryWidget overrides the updateSeries
+ * function and together with SystemoMonitor signleton updates the graph of the RAM usage.
+ */
 class MemoryWidget : public SystemMonitorWidget
 {
     Q_OBJECT
 public:
     MemoryWidget(QWidget *parent = nullptr);
 protected slots:
+    /**
+     * @brief Overridden function updates the mSeries graph with actual RAM load value.
+     */
     void updateSeries() override;
 private:
     QtCharts::QPieSeries* mSeries;
-    qint64 mPointPositionX;
-   /* The  mPointPositionX  is
-   an  unsigned long long  (using the Qt notation  qint64 ) variable that will track the last X
-   position of our data set. This huge value is used to make sure that  mPointPositionX  never overflows*/
 };
 
 #endif // MEMORYWIDGET_H

@@ -2,10 +2,8 @@
 #include "shared_staff/globalsettings.h"
 #include <windows.h>
 #include <pdh.h>
-#include <QDebug>
 #include <conio.h>
 #include <pdhmsg.h>
-#include <stdio.h>
 
 #include <QString>
 CONST ULONG SAMPLE_INTERVAL_MS    = 10;
@@ -14,6 +12,18 @@ WindowsImpl::WindowsImpl() : SystemMonitor(), mCpuLoadLastValues()
 {
     _name = GlobalSettings::getSettings()->getHDDCounterName();
     _parameter = GlobalSettings::getSettings()->getHDDCounterParameter();
+
+    TCHAR szBuffer[MAX_COMPUTERNAME_LENGTH +1];
+    DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
+    GetComputerName(szBuffer, &dwSize); //Get the computer name
+
+    std::wstring s(L"\\\\");
+    s+= std::wstring(szBuffer);
+    s+= std::wstring(L"\\");
+    s+= std::wstring(_name.toStdWString().c_str());
+    s+= std::wstring(L"(_total)\\");
+    s+= std::wstring(_parameter.toStdWString().c_str());
+    fullString = s;
 }
 double WindowsImpl::memoryUsed(){
     MEMORYSTATUSEX memoryStatus;
@@ -35,56 +45,42 @@ double WindowsImpl::hddUsed(){
     WCHAR CounterPathBuffer[PDH_MAX_COUNTER_PATH];
     Status = PdhOpenQuery(NULL, NULL, &Query);
 
-    TCHAR szBuffer[MAX_COMPUTERNAME_LENGTH +1];
-    DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
-    GetComputerName(szBuffer, &dwSize); //Get the computer name
-    //"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
-
-    std::wstring s(L"\\\\");
-    s+= std::wstring(szBuffer);
-    s+= std::wstring(L"\\");
-    s+= std::wstring(_name.toStdWString().c_str());
-    s+= std::wstring(L"(_total)\\");
-    s+= std::wstring(_parameter.toStdWString().c_str());
-    //wchar_t* cesta = L"\\\\HONZA-TOSHIBA\\Fyzický disk(_total)\\% času disku";
-
-    wcscpy_s(CounterPathBuffer,sizeof(CounterPathBuffer),s.c_str());
+    wcscpy_s(CounterPathBuffer,sizeof(CounterPathBuffer),fullString.c_str());
     Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);
     if (Status != ERROR_SUCCESS)
-        {
-            goto Cleanup;
-        }
+    {
+        goto Cleanup;
+    }
 
     //wprintf("\n Counter %s",CounterPathBuffer);
     Status = PdhCollectQueryData(Query);
     if (Status != ERROR_SUCCESS)
+    {
+        goto Cleanup;
+    }
+    while (!_kbhit())
+    {
+        Sleep(SAMPLE_INTERVAL_MS);
+        GetLocalTime(&SampleTime);
+        Status = PdhCollectQueryData(Query);
+        Status = PdhGetFormattedCounterValue(Counter,
+                                             PDH_FMT_DOUBLE,
+                                             &CounterType,
+                                             &DisplayValue);
+        if (Status != ERROR_SUCCESS)
         {
             goto Cleanup;
         }
-    while (!_kbhit())
-       {
-           Sleep(SAMPLE_INTERVAL_MS);
-           GetLocalTime(&SampleTime);
-           Status = PdhCollectQueryData(Query);
-           Status = PdhGetFormattedCounterValue(Counter,
-                                                PDH_FMT_DOUBLE,
-                                                &CounterType,
-                                                &DisplayValue);
-           if (Status != ERROR_SUCCESS)
-                   {                       
-                       goto Cleanup;
-                   }
-           //qDebug()<<DisplayValue.doubleValue;
-           double counterValue = DisplayValue.doubleValue;
-           PdhRemoveCounter(Counter);
-           return counterValue;
-       }
-   Cleanup:
-   if (Query)
-   {
-      PdhCloseQuery(Query);
-      return -999.0;
-   }
+        double counterValue = DisplayValue.doubleValue;
+        PdhRemoveCounter(Counter);
+        return counterValue;
+    }
+Cleanup:
+    if (Query)
+    {
+        PdhCloseQuery(Query);
+        return -999.0;
+    }
 
 }
 void WindowsImpl::init()
@@ -106,7 +102,7 @@ QVector<qulonglong> WindowsImpl::cpuRawData()
 }
 
 qulonglong WindowsImpl::convertFileTime(const FILETIME& filetime)
-const
+    const
 {
     ULARGE_INTEGER largeInteger;
     largeInteger.LowPart = filetime.dwLowDateTime;

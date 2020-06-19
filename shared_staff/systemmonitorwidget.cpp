@@ -14,14 +14,7 @@ SystemMonitorWidget::SystemMonitorWidget(QWidget *parent) : QWidget(parent),mCha
     layout->addWidget(&mChartView);
     setLayout(layout);
 }
-// All tasks in the SystemMonitorWidget constructor are common tasks required by the child
-// widgets,  CpuWidget , MemoryWidget and HddWidget. The first step is the  mRefreshTimer
-// initialization to define the timer interval and the slot to call whenever a timeout signal is
-// triggered. Then the static function  QTimer::singleShot()  will start the real timer after a
-// delay defined by  startDelayMs . Here again, Qt combined with lambda functions will give
-// us a powerful code in just a few lines. The next part enables the antialiasing to smooth the
-// chart drawing. We hide the chart's legend to get a minimalist display. The last part handles
-// the layout to display the  QChartView  widget in our  SysInfoWidget  class.
+
 QChartView& SystemMonitorWidget::chartView()
 {
     return mChartView;
