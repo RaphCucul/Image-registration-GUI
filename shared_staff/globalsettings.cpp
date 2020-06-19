@@ -14,7 +14,7 @@
 using std::wstring;
 
 /**
- * @brief The function processes the content of the file defined by its complete path.
+ * @brief Processes the content of the file defined by its complete path.
  * @param[in] i_fullFilePath
  * @return Returns a QStringList with two strings - parameter and counter name
  */
