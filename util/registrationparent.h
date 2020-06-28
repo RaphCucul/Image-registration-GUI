@@ -13,6 +13,10 @@
 #include <QPointer>
 #include <QThread>
 
+/**
+ * @class VideoWriter
+ * @brief The VideoWriter class provides functions to write frames into a new video in a separate QThread class object.
+ */
 class VideoWriter : public QObject
 {
     Q_OBJECT
@@ -22,16 +26,23 @@ public:
 
     friend class RegistrationParent;
 public slots:
+    /**
+     * @brief Slot function starts to write frames into a new video when a QThread class object is ready for use.
+     */
     void writeVideo();
 signals:
-    void errorOccured(int errorIndex);
-    void errorOccured(QString errorMessage);
-    void finishedSuccessfully();
+    void errorOccured(int errorIndex); /**< Emits index of the error text which should be raised */
+    void errorOccured(QString errorMessage); /**< Emits error message which should appear in the error label */
+    void finishedSuccessfully(); /**< Emitted when the operation is finished */
 private:
     QString videoReadPath,videoWritePath;
     QMap<QString,QVector<double>> obtainedData;
 };
 
+/**
+ * @class RegistrationParent
+ * @brief The RegistrationParent class is a parent class for the registration classes.
+ */
 class RegistrationParent : public QWidget
 {
     Q_OBJECT
@@ -51,18 +62,18 @@ signals:
     void calculationStopped();
 public slots:
     /**
-     * @brief When the thread emits the finish of all calculations, the thread is terminated
+     * @brief When the thread emits all calculations are done, the thread is terminated
      * in this function.
      */
     void onFinishThread(int);
 protected:
     /**
-     * @brief Function initialise QMaps with vectors of vectors, filled by values during analysis.
+     * @brief It initialises QMaps with vectors of vectors, filled by values during analysis.
      */
     void initMaps();
 
     /**
-     * @brief Function clears the content of all thread QMaps.
+     * @brief Clears the content of all thread QMaps.
      */
     void cancelAllCalculations();
 

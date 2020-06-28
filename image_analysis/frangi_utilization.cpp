@@ -237,7 +237,7 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     int r = int(i_translation.y);
     int s = int(i_translation.x);
 
-    Mat imageFiltered,imageFrangi,obraz_scale, imageAngles;
+    Mat imageFiltered,imageFrangi,image_scale, imageAngles;
     imageFiltered = imageFiltrationPreprocessing(i_inputFrame,60.0f,0.4f);
     qDebug()<<"filtration processed";
     if (i_frameType == 1) {borderProcessing(imageFiltered,1,
@@ -253,10 +253,10 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     transformMatTypeTo8C3(_pom);
     //cv::imshow("forFrangi",_pom);
 
-    frangi2d(imageFiltered, imageFrangi, obraz_scale, imageAngles, opts);
+    frangi2d(imageFiltered, imageFrangi, image_scale, imageAngles, opts);
     qDebug()<<"Frangi done";
     //imwrite("frangi",imageFrangi);
-    obraz_scale.release();
+    image_scale.release();
     imageAngles.release();
     imageFiltered.release();
     if (i_frameType == 1) {zeroBorders(imageFrangi,1,i_margins["top_m"],i_margins["bottom_m"],
@@ -286,9 +286,9 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
         else if (i_accuracy == 2)
         {
             qDebug()<<"Setting subpixel resolution";
-            cv::Point2d teziste = FrangiSubpixel(imageFrangi,maximum_imageFrangi,max_loc_frangi);
-            definitiveCoords.x = teziste.x;
-            definitiveCoords.y = teziste.y;
+            cv::Point2d centerOfWeight = FrangiSubpixel(imageFrangi,maximum_imageFrangi,max_loc_frangi);
+            definitiveCoords.x = centerOfWeight.x;
+            definitiveCoords.y = centerOfWeight.y;
             definitiveCoords.z = 1.0;
         }
 

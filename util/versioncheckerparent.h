@@ -24,7 +24,7 @@ signals:
     void versionChecked(bool status);
 public slots:
     /**
-     * @brief Processes downloaded data. Information must have the same structure. When downloaded information is processed,
+     * @brief It processes downloaded data. Information must have the same structure. When downloaded information is processed,
      * the progam version is compared to the downloaded data. If a new version is available, a dialog with information about this
      * new version is created.
      * Downloaded data is supposed to have a brief information about new version - fixes, bugs etc.
@@ -37,7 +37,7 @@ public slots:
      */
     void noData();
     /**
-     * @brief Creates an instance of the VersionChecker class and starts the data download. According to the
+     * @brief It creates an instance of the VersionChecker class and starts the data download. According to the
      * download operation result, corresponding slot functions are called.
      * @sa checkVersion()
      * @sa noData()

@@ -19,28 +19,28 @@ class HddUsagePlot : public QCustomPlot
 public:
     HddUsagePlot(QWidget *parent = nullptr);
     /**
-     * @brief Sets the scale of the x axis. Actual setting is 60.
+     * @brief It sets the scale of the x axis. Actual setting is 60.
      * @param[in] max
      */
     void setMaximumTime(unsigned int max);
     /**
-     * @brief Sets the scale of the y axis. Actual setting is 110.
+     * @brief It sets the scale of the y axis. Actual setting is 110.
      * @param[in] max
      */
     void setMaximumUsage(double max);
     /**
-     * @brief The most important function - adds data to the graph. Also updates the variable storing data
+     * @brief It adds data to the graph. Also updates the variable storing data
      * from the past.
      * @param data
      */
     void addData(double data);
 
     /**
-     * @brief Calls replot() function to re-initialise the graph completely (if some changes were made).
+     * @brief It calls replot() function to re-initialise the graph completely (if some changes were made).
      */
     void redraw();
     /**
-     * @brief Enables to define how the graph will look like.
+     * @brief It enables to define how the graph will look like.
      * @param themeColor
      * @param scale
      */

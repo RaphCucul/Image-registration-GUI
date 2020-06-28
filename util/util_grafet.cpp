@@ -196,42 +196,42 @@ void util_GraphET::initGraphObject(QCustomPlot* i_QCustomPlot,
     */
 }
 
-QVector<double> util_GraphET::chooseFrames(QVector<int> i_problematicIndexes,
+QVector<double> util_GraphET::chooseFrames(QVector<int> i_indexes,
                                            QVector<double> i_values, int i_chooseType)
 {
     QVector<double> outputVector;
     if (i_chooseType == 0){ // standard choice of values
-        for (int var = 0; var < i_problematicIndexes.length(); var++) {
-            if (var > i_values.length() || i_problematicIndexes[var] > i_values.length())
+        for (int var = 0; var < i_indexes.length(); var++) {
+            if (var > i_values.length() || i_indexes[var] > i_values.length())
                 break;
             else
-                outputVector.push_back(i_values[i_problematicIndexes[var]]);
+                outputVector.push_back(i_values[i_indexes[var]]);
         }
     }
     if (i_chooseType == 1){ // only all problematic frames
-        for (int var = 0; var < i_problematicIndexes.length(); var++) {
-            if (i_problematicIndexes[var] == 1 || i_problematicIndexes[var] == 4 || i_problematicIndexes[var] == 5){
+        for (int var = 0; var < i_indexes.length(); var++) {
+            if (i_indexes[var] == 1 || i_indexes[var] == 4 || i_indexes[var] == 5){
                 outputVector.push_back(i_values[var]);
             }
         }
     }
     if (i_chooseType == 2){ // index of ... 1
-        for (int var = 0; var < i_problematicIndexes.length(); var++) {
-            if (i_problematicIndexes[var] == 1){
+        for (int var = 0; var < i_indexes.length(); var++) {
+            if (i_indexes[var] == 1){
                 outputVector.push_back(i_values[var]);
             }
         }
     }
     if (i_chooseType == 3){ // index of ... 4
-        for (int var = 0; var < i_problematicIndexes.length(); var++) {
-            if (i_problematicIndexes[var] == 4){
+        for (int var = 0; var < i_indexes.length(); var++) {
+            if (i_indexes[var] == 4){
                 outputVector.push_back(i_values[var]);
             }
         }
     }
     if (i_chooseType == 4){ // index of ... 5
-        for (int var = 0; var < i_problematicIndexes.length(); var++) {
-            if (i_problematicIndexes[var] == 5){
+        for (int var = 0; var < i_indexes.length(); var++) {
+            if (i_indexes[var] == 5){
                 outputVector.push_back(i_values[var]);
             }
         }

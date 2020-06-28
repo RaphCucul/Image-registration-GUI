@@ -20,27 +20,27 @@ public:
     ~SystemMonitor();
 
     /**
-     * @brief Allows to perform any initialization
+     * @brief It allows to perform any initialization
      * process depending on the OS platform
      */
     virtual void init() = 0;
 
     /**
-     * @brief Calls some OS-specific code to retrieve the
+     * @brief It calls some OS-specific code to retrieve the
      * average CPU load and returns it as a percentage value.
      * @return Actual value of CPU usage
      */
     virtual double cpuLoadAverage() = 0;
 
     /**
-     * @brief Calls some OS-specific code to retrieve the memory
+     * @brief It calls some OS-specific code to retrieve the memory
      * used and returns it as a percentage value
      * @return Actual value of RAM usage
      */
     virtual double memoryUsed() = 0;
 
     /**
-     * @brief Calls some OS-specific code to retrieve HDD usage. Keep in mind that the HDD usage
+     * @brief It calls some OS-specific code to retrieve HDD usage. Keep in mind that the HDD usage
      * requires specific information about the current PC on which the program is running. This
      * information can be obtained by calling Powershell script (available in the repository).
      * @return Actual value of HDD usage

@@ -3,36 +3,42 @@
 #include <opencv2/opencv.hpp>
 
 /**
- * @brief Function calculates the shift between referencial and shifted frame.
+ * @file phase_correlation_function.h
+ * The file contains vital phase correlation function wrappers. These function wrappers are calling the cv::PhaseCorrelate
+ * function directly and process the results automatically for another use, if necessary.
+ */
+
+/**
+ * @brief It calculates the shift between referencial and shifted frame.
  * Hann window is used in this calculation.
  * @param i_referencialFrame
  * @param i_shiftedFrame
- * @return
+ * @return The coordinates of the shift in x and y axis. z-value represents the value of the phase correlation peak.
  */
 cv::Point3d pc_translation_hann(const cv::Mat& i_referencialFrame,
-                              const cv::Mat& i_shiftedFrame,
-                              double i_calcAreaSize);
+                                const cv::Mat& i_shiftedFrame,
+                                double i_calcAreaSize);
 
 /**
- * @brief Function calculates the shift between referencial and shifted frame.
+ * @brief It calculates the shift between referencial and shifted frame.
  * Hann window is not used.
  * @param i_referencialFrame
  * @param i_shiftedFrame
- * @return
+ * @return The coordinates of the shift in x and y axis. z-value represents the value of the phase correlation peak.
  */
 cv::Point3d pc_translation(const cv::Mat& i_referencialFrame,
-                         const cv::Mat& i_shiftedFrame,
-                         double i_calcAreaSize);
+                           const cv::Mat& i_shiftedFrame,
+                           double i_calcAreaSize);
 
 /**
- * @brief Function calculates the angle the shifted frame must be rotated for the best translation
+ * @brief It calculates the angle the shifted frame must be rotated to get best translation
  * results.
  * @param i_referencialFrame
  * @param i_shiftedFrame
  * @param i_maximalAngle
  * @param i_fkTranslation_maximumValue
  * @param i_translation
- * @return
+ * @return y-value contains calculated angle.
  */
 cv::Point3d pc_rotation(const cv::Mat& i_referencialFrame,
                       const cv::Mat& i_shiftedFrame,

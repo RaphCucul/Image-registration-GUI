@@ -211,18 +211,3 @@ bool findReferentialFrameData(QString i_name, int &i_referentialFrame, QPoint& i
     else
         return false;
 }
-
-/*bool checkAndLoadData(QString i_parameter, QString i_videoName, QString i_type) {
-    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
-    // get *.dat file
-    QFile file;
-    file.setFileName(actualDatFilePath+"/"+i_videoName+".dat");
-    if (file.exists()) {
-        // if the file exists, try to find referential frame info
-        QJsonObject data = readJson(file);
-        QJsonArray dataArray = data[i_parameter].toArray();
-        if (i_type == "int"){
-            QVector<int>
-        }
-    }
-}*/

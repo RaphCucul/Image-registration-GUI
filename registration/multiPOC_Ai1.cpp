@@ -42,7 +42,7 @@ bool completeRegistration(cv::VideoCapture& cap,
 
         //transformMatTypeTo8C3(i_referencial);
         //transformMatTypeTo8C3(shifted_temp);
-        Mat referencialFrame_32f,referencialFrame_vyrez;
+        Mat referencialFrame_32f,referencialFrame_cutout;
         i_referencial.copyTo(referencialFrame_32f);
         transformMatTypeTo32C1(referencialFrame_32f);
 
@@ -50,12 +50,12 @@ bool completeRegistration(cv::VideoCapture& cap,
             referencialFrame_32f(i_cutoutExtra).copyTo(referencialFrame_32f);
             adjustedStandardCutout = adjustStandardCutout(i_cutoutExtra,i_cutoutStandard,
                                                           i_referencial.rows,i_referencial.cols);
-            referencialFrame_32f(adjustedStandardCutout).copyTo(referencialFrame_vyrez);
+            referencialFrame_32f(adjustedStandardCutout).copyTo(referencialFrame_cutout);
         }
         else
-            referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_vyrez);
+            referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_cutout);
 
-        qDebug()<<referencialFrame_vyrez.rows<<" "<<referencialFrame_vyrez.cols;
+        qDebug()<<referencialFrame_cutout.rows<<" "<<referencialFrame_cutout.cols;
         int rows = referencialFrame_32f.rows;
         int cols = referencialFrame_32f.cols;
         qDebug()<<rows<<" "<<cols;
@@ -63,7 +63,7 @@ bool completeRegistration(cv::VideoCapture& cap,
         Mat hann;
         createHanningWindow(hann, referencialFrame_32f.size(), CV_32FC1);
 
-        Mat shifted_temp,shifted_32f,shifted_vyrez;
+        Mat shifted_temp,shifted_32f,shifted_cutout;
         if (video) {
             cap.set(CV_CAP_PROP_POS_FRAMES,i_translatedNo);
             if(!cap.read(shifted_temp))
@@ -80,13 +80,13 @@ bool completeRegistration(cv::VideoCapture& cap,
         {
             shifted_32f(i_cutoutExtra).copyTo(shifted_32f);
             qDebug()<<"Extra shifted done";
-            shifted_32f(adjustedStandardCutout).copyTo(shifted_vyrez);
+            shifted_32f(adjustedStandardCutout).copyTo(shifted_cutout);
         }
         else
-            shifted_32f(i_cutoutStandard).copyTo(shifted_vyrez);
+            shifted_32f(i_cutoutStandard).copyTo(shifted_cutout);
 
         qDebug()<<shifted_32f.rows<<" "<<shifted_32f.cols;
-        qDebug()<<shifted_vyrez.rows<<" "<<shifted_vyrez.cols;
+        qDebug()<<shifted_cutout.rows<<" "<<shifted_cutout.cols;
 
         Point3d pt1(0.0,0.0,0.0);
         if (i_scaleChanged != 3)
@@ -96,7 +96,7 @@ bool completeRegistration(cv::VideoCapture& cap,
                 pt1 = pc_translation(referencialFrame_32f,shifted_32f,i_areaMaximum);
 
             if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
-                pt1 = pc_translation(referencialFrame_vyrez,shifted_vyrez,i_areaMaximum);
+                pt1 = pc_translation(referencialFrame_cutout,shifted_cutout,i_areaMaximum);
         }
         else
         {
@@ -121,7 +121,7 @@ bool completeRegistration(cv::VideoCapture& cap,
             Mat registrated1;
             registrated1 = frameTranslation(shifted_32f,pt1,rows,cols);
             qDebug()<<"registrated1 done";
-            cv::Mat registrated1_32f_rotace,registrated1_32f,registrated1_vyrez;
+            cv::Mat registrated1_32f_rotace,registrated1_32f,registrated1_cutout;
             registrated1.copyTo(registrated1_32f);
             transformMatTypeTo32C1(registrated1_32f);
             Point3d rotation_result = pc_rotation(referencialFrame_32f,registrated1_32f,i_angleLimit,pt1.z,pt1);
@@ -133,13 +133,13 @@ bool completeRegistration(cv::VideoCapture& cap,
             registrated1_32f_rotace = frameRotation(registrated1_32f,rotation_result.y);
 
             if (i_scaleChanged != 2)
-                registrated1_32f_rotace(i_cutoutStandard).copyTo(registrated1_vyrez);
+                registrated1_32f_rotace(i_cutoutStandard).copyTo(registrated1_cutout);
             else
-                registrated1_32f_rotace(adjustedStandardCutout).copyTo(registrated1_vyrez);
+                registrated1_32f_rotace(adjustedStandardCutout).copyTo(registrated1_cutout);
             qDebug()<<"rotated";
 
             Point3d pt2(0.0,0.0,0.0);
-            pt2 = pc_translation(referencialFrame_vyrez,registrated1_vyrez,i_areaMaximum);
+            pt2 = pc_translation(referencialFrame_cutout,registrated1_cutout,i_areaMaximum);
             if (pt2.x >= 55 || pt2.y >= 55)
             {
                 i_pocX[0] = 999.0;
@@ -156,7 +156,7 @@ bool completeRegistration(cv::VideoCapture& cap,
                 qDebug()<<"FWHM for "<<i_translatedNo<<" = "<<FWHM;
                 registrated1.release();
                 registrated1_32f.release();
-                registrated1_vyrez.release();
+                registrated1_cutout.release();
                 //if (i_translatedNo == 0)
                     qDebug()<<"PT2: "<<pt2.x<<" "<<pt2.y;
 
@@ -167,22 +167,22 @@ bool completeRegistration(cv::VideoCapture& cap,
                 i_pocX[0] = pt3.x;
                 i_pocY[0] = pt3.y;
                 Mat registrated2 = frameTranslation(shifted_32f,pt3,rows,cols);
-                Mat registrated2_32f,registrated2_vyrez;
+                Mat registrated2_32f,registrated2_cutout;
                 registrated2.copyTo(registrated2_32f);
                 transformMatTypeTo32C1(registrated2_32f);
                 Mat registrated2_rotace = frameRotation(registrated2_32f,rotation_result.y);
                 qDebug()<<"translation2 done";
 
                 if (i_scaleChanged != 2)
-                    registrated2_rotace(i_cutoutStandard).copyTo(registrated2_vyrez);
+                    registrated2_rotace(i_cutoutStandard).copyTo(registrated2_cutout);
                 else
-                    registrated2_rotace(adjustedStandardCutout).copyTo(registrated2_vyrez);
+                    registrated2_rotace(adjustedStandardCutout).copyTo(registrated2_cutout);
 
-                Mat interresult_vyrez,interresult;
+                Mat interresult_cutout,interresult;
                 registrated2_rotace.copyTo(interresult);
-                registrated2_vyrez.copyTo(interresult_vyrez);
+                registrated2_cutout.copyTo(interresult_cutout);
                 //registrated2.release();
-                registrated2_vyrez.release();
+                registrated2_cutout.release();
                 registrated2_32f.release();
                 registrated2_rotace.release();
                 totalAngle+=rotation_result.y;
@@ -222,19 +222,19 @@ bool completeRegistration(cv::VideoCapture& cap,
                     qDebug()<<"rotated";
 
                     rotace_ForLoop.y = 0.0;
-                    Mat rotated_vyrez;
+                    Mat rotated_cutout;
 
                     if (i_scaleChanged != 2)
-                        rotated(i_cutoutStandard).copyTo(rotated_vyrez);
+                        rotated(i_cutoutStandard).copyTo(rotated_cutout);
                     else
-                        rotated(adjustedStandardCutout).copyTo(rotated_vyrez);
+                        rotated(adjustedStandardCutout).copyTo(rotated_cutout);
 
                     rotated.release();
                     Point3d pt4(0.0,0.0,0.0);
-                    qDebug()<<referencialFrame_vyrez.cols<<" "<<referencialFrame_vyrez.rows;
-                    qDebug()<<rotated_vyrez.cols<<" "<<rotated_vyrez.rows;
-                    pt4 = pc_translation(referencialFrame_vyrez,rotated_vyrez,i_areaMaximum);
-                    rotated_vyrez.release();
+                    qDebug()<<referencialFrame_cutout.cols<<" "<<referencialFrame_cutout.rows;
+                    qDebug()<<rotated_cutout.cols<<" "<<rotated_cutout.rows;
+                    pt4 = pc_translation(referencialFrame_cutout,rotated_cutout,i_areaMaximum);
+                    rotated_cutout.release();
                     if (pt4.x >= 55 || pt4.y >= 55)
                     {
                         registrated2.copyTo(i_completelyRegistrated);

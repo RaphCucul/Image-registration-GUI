@@ -16,9 +16,6 @@ cv::Point3d pc_translation_hann(const Mat &i_referencialFrame,
     i_shiftedFrame.copyTo(shiftedFrame32f);
     transformMatTypeTo32C1(referencialFrame32f);
     transformMatTypeTo32C1(shiftedFrame32f);
-    //int typ_reference = referencialFrame32f.type();
-    //int typ_posunuty = shiftedFrame32f.type();
-    //double response = 0;
     cv::Mat hann;
     cv::createHanningWindow(hann, referencialFrame32f.size(), CV_32FC1);
     transformMatTypeTo32C1(hann);
@@ -40,8 +37,7 @@ cv::Point3d pc_translation(const Mat &referencni_snimek,
     i_shiftedFrame.copyTo(shiftedFrame32f);
     transformMatTypeTo32C1(referencialFrame32f);
     transformMatTypeTo32C1(shiftedFrame32f);
-    //int typ_reference = referencialFrame32f.type();
-    //int typ_posunuty = shiftedFrame32f.type();
+
     translation_result = cv::phaseCorrelate(referencialFrame32f,shiftedFrame32f,i_calcAreaSize);
 
     referencialFrame32f.release();

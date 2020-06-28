@@ -16,6 +16,11 @@
 #include <QWidget>
 #include <QLineEdit>
 
+/**
+ * @class ETanalysisParent
+ * @brief The ETanalysisParent class is a parent class for entropy and tennegrad analysis classes. Signal functions
+ * are emitted when the corresponding thread is finished and calculated parameters are obtained.
+ */
 class ETanalysisParent : public QWidget
 {
     Q_OBJECT
@@ -32,36 +37,41 @@ signals:
     void dataObtained_fifth();
 protected:
     /**
-     * @brief Function checks, if the numerical input is in the set range. If the input is out of range,
-     * font color is red, otherwise green.
-     * @param input
-     * @param lower
-     * @param upper
-     * @param editWidget
-     * @param finalValue
-     * @param evaluation
+     * @brief It checks if the numerical input is in the given range. If the input is out of range,
+     * font color is set red, otherwise green.
+     * @param input - user input
+     * @param lower - minimum
+     * @param upper - maximum
+     * @param editWidget - affected QLineEdit
+     * @param finalValue - -99 returned if a problem is discovered
+     * @param evaluation - true if input in the range, otherwise false
      */
     void checkInputNumber(double i_input,double i_lower,double i_upper,
                           QLineEdit* i_editWidget,double& i_finalValue,bool& i_evaluation);
 
     /**
-     * @brief Function clears the content of all thread QMaps.
+     * @brief It terminates all running threads and clears the content of QMap objects.
      */
-    void cancelAllCalculations(QStringList i_videoNames);
+    void cancelAllCalculations();
 
     /**
-     * @brief Function initialise QMaps with vectors of vectors, filled by values during analysis.
+     * @brief Initialises QMaps with empty QMaps prepared for analysed video(s).
      */
-    void initMaps(QStringList i_videoNames);
+    void initMaps();
 
     /**
-     * @brief Template function initMap initialises one specific map variable (mapDouble, mapInt)
+     * @brief Template function initialises QMap object for given video(s).
+     * @tparam T - type of the vector in the QMap pair (double, int)
+     * @tparam parameters - a list of parameters of analysed video(s)
+     * @tparam i_videoList - a list of video names
+     * @tparam start_pos - index of the parameter in the list
+     * @tparam end_pos - index of the parameter in the list
      */
     template <typename T>
     QMap<QString,QMap<QString,QVector<T>>> initMap(QStringList parameters,
-                                                          QStringList i_videoList,
-                                                          int start_pos,
-                                                          int end_pos) {
+                                                   QStringList i_videoList,
+                                                   int start_pos,
+                                                   int end_pos) {
         QMap<QString,QMap<QString,QVector<T>>> outputMap;
         QVector<T> _v;
         for (int parameterIndex = start_pos; parameterIndex <= end_pos; parameterIndex++){
@@ -76,22 +86,26 @@ protected:
     }
 
     /**
-     * @brief initAnomaly
-     * @param parameters
-     * @param i_videoList
-     * @param start_pos
-     * @param end_pos
-     * @return
+     * @brief It separates initialisation function for anomalies QMap object (standard and extra cutout defined by a user).
+     * Because a QMap is storing cv::Rect object not a vector, it is easier to do the necessary things in a separate
+     * function.
+     * @param parameters - a list of parameters of analysed video(s)
+     * @param i_videoList - a list of video names
+     * @param start_pos - index of the parameter in the list
+     * @param end_pos - index of the parameter in the list
      */
     QMap<QString,QMap<QString,cv::Rect>> initAnomaly(QStringList parameters,
-                                                            QStringList i_videoList,
-                                                            int start_pos,
-                                                            int end_pos);
+                                                     QStringList i_videoList,
+                                                     int start_pos,
+                                                     int end_pos);
 
     /**
-     * @brief Template function fillMap fills given map variable with key and corresponding value. If key
+     * @brief Template function fills input map variable with a key and a value. If the key
      * already exists in the map variable, the value is just changed. If it does not exist, then new pair
      * key-value is inserted into the map variable.
+     * @tparam i_key - a QMap key of type T
+     * @tparam i_value - a QMap value of type S
+     * @tparam i_map - a QMap with keys of type T and values of type S
      */
     template<class T, class S>
     void fillMap(T i_key, S i_value, QMap<T,S>& i_map){
@@ -102,18 +116,22 @@ protected:
     }
 
     /**
-     * @brief Function where output values of individual threads are processed.
+     * @brief It processes calculated parameters from a thread and initialises its termination.
      * @param done
      */
     void done(int done);
 
     /**
-     * @brief saveVideoAnalysisResults
+     * @brief Saves complete information of all analysed videos into corresponding *.dat file.
      */
     void saveVideoAnalysisResults();
 
     /**
-     * @brief saveVideoAnalysisResultsFromGraphET
+     * @brief Saves all available information about a video to its *.dat file together with probably updated parameters
+     * from GrafET class object. These parameters are updated or added if missing to the file. If the file already exists,
+     * its content is just updated and original data is preserved.
+     * @param i_videoName - name of the video
+     * @param i_object
      */
     void saveVideoAnalysisResultsFromGraphET(QString i_videoName, QJsonObject i_object);
 
@@ -129,7 +147,7 @@ protected:
     double frameCountActualVideo;
     int analysisCompleted = 0;
     QStringList analysedVideos, videoNamesList;
-    QVector<QString> chosenVideoETSingle;
+    QMap<QString,QString> chosenVideoETSingle;
     bool videoETScorrect = false;
     bool horizontalAnomalySelected = false;
     bool verticalAnomalySelected = false;

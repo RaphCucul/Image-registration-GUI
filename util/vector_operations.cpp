@@ -373,34 +373,5 @@ void analyseAndSaveFirst(QString i_analysedFolder, QMap<QString,QString> &i_wher
         i_whereToSave["folder"] = folder;
         i_whereToSave["filename"] = filename;
         i_whereToSave["suffix"] = suffix;
-        /*if (i_whereToSave.length() == 0){
-            i_whereToSave.push_back(folder);
-            i_whereToSave.push_back(filename);
-            i_whereToSave.push_back(suffix);
-        }
-        else{
-            i_whereToSave.clear();
-            i_whereToSave.push_back(folder);
-            i_whereToSave.push_back(filename);
-            i_whereToSave.push_back(suffix);
-        }*/
     }
 }
-
-/*int vectorSum(QVector<int> i_input)
-{
-    int output=0;
-    for (int vectorElement = 0; vectorElement < i_input.length(); vectorElement++)
-        output += i_input[vectorElement];
-
-    return output;
-}
-
-double vectorSum(QVector<double> i_input)
-{
-    int output=0;
-    for (int vectorElement = 0; vectorElement < i_input.length(); vectorElement++)
-        output += i_input[vectorElement];
-
-    return output;
-}*/

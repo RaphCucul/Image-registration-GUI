@@ -98,21 +98,21 @@ void transformMatTypeTo8C1(cv::Mat& i_MatToCheck)
 
 cv::Mat transformMatTypeTo64C1(cv::Mat& i_MatToCheck)
 {
-    Mat upraveny;
+    Mat modified;
     if (i_MatToCheck.type() != 6)
     {
         if (i_MatToCheck.channels() == 3)
         {
-            cvtColor(i_MatToCheck,upraveny,CV_BGR2GRAY);
-            upraveny.convertTo(upraveny,CV_64FC1);
+            cvtColor(i_MatToCheck,modified,CV_BGR2GRAY);
+            modified.convertTo(modified,CV_64FC1);
         }
         else
         {
-            i_MatToCheck.copyTo(upraveny);
-            upraveny.convertTo(upraveny,CV_64FC1);
+            i_MatToCheck.copyTo(modified);
+            modified.convertTo(modified,CV_64FC1);
         }
     }
-    return upraveny;
+    return modified;
 }
 
 void transformMatTypeTo8C3(cv::Mat& i_MatToCheck)
@@ -133,12 +133,6 @@ void transformMatTypeTo8C3(cv::Mat& i_MatToCheck)
 
 QRect transform_CV_RECT_to_QRect(cv::Rect i_rect){
     return QRect(i_rect.x,i_rect.y,i_rect.width,i_rect.height);
-    /*QRect result;
-    result.setX(i_rect.x);
-    result.setY(i_rect.y);
-    result.setWidth(i_rect.width);
-    result.setHeight(i_rect.height);
-    return result;*/
 }
 
 cv::Rect transform_QRect_to_CV_RECT(QRect i_rect){

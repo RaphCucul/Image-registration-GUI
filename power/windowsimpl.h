@@ -12,7 +12,8 @@ in the CPP file.*/
 
 /**
  * @class WindowsImpl
- * @brief The WindowsImpl class
+ * @brief The WindowsImpl class is derived from the SystemMonitor class. It contains functions calculating the usage
+ * of CPU, RAM and HDD. All these functions are using Windows API or Windows functions in some way.
  */
 class WindowsImpl : public SystemMonitor
 {
@@ -20,13 +21,14 @@ public:
     explicit WindowsImpl();
 
     /**
-     * @brief Overridden init function to call cpuRawData().
-     * @sa cpuRawData
+     * @brief Overridden init function calling cpuRawData function.
+     * @sa cpuRawData()
      */
     void init() override;
     /**
      * @brief Overridden function calculates true CPU usage from the FILETIME struct variables.
-     * @return True value of CPU usage in percentage
+     * @return CPU usage in percentage
+     * @sa cpuRawData()
      */
     double cpuLoadAverage() override;
     /**
@@ -36,26 +38,26 @@ public:
     double memoryUsed() override;
     /**
      * @brief Overridden function calculates total HDD usage. Requires translated names of the counter and specific
-     * parameter (the translation is done automatically when ps1 script runs). These two parameters are put together
-     * with PC name.
+     * parameter (the translation is done automatically when ps1 script runs). These two parameters are combined
+     * with the name of PC.
      * @return
      */
     double hddUsed() override;
 
 private:
     /**
-     * @brief Performs the Windows API call to retrieve system timing information and return values in a generic format.
+     * @brief It performs the Windows API call to retrieve system timing information and returns values in a generic format.
      * @return Three values - time in idle, Kernel and User mode
      */
     QVector<qulonglong> cpuRawData();
 
     /**
-     * @brief Converts a Windows  FILETIME struct  syntax to a  qulonglong  type. The  qulonglong
-     * type is a Qt  unsigned long long int . This type is guaranteed by Qt to be 64-
+     * @brief It converts a Windows  FILETIME struct syntax to a qulonglong type. The qulonglong
+     * type is a Qt unsigned long long int. This type is guaranteed by Qt to be 64-
      * bit on all platforms. You can also use the typedef  quint64 .
      * @param filetime
      * @return Converted FILETIME variable
-     * @sa cpuRawData
+     * @sa cpuRawData()
      */
     qulonglong convertFileTime(const FILETIME& filetime) const;
 

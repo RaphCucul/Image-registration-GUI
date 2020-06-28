@@ -101,8 +101,7 @@ QVector<qulonglong> WindowsImpl::cpuRawData()
     return rawData;
 }
 
-qulonglong WindowsImpl::convertFileTime(const FILETIME& filetime)
-    const
+qulonglong WindowsImpl::convertFileTime(const FILETIME& filetime) const
 {
     ULARGE_INTEGER largeInteger;
     largeInteger.LowPart = filetime.dwLowDateTime;

@@ -16,7 +16,7 @@ public:
      explicit CPUWidget(QWidget* parent = nullptr);
 protected slots:
     /**
-     * @brief Overriden function updating the mSeries chart with the actual CPU load and free values.
+     * @brief Overriden function updates the mSeries chart with the actual CPU load and free values.
      */
     void updateSeries() override;
 private:

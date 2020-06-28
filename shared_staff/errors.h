@@ -4,6 +4,11 @@
 #include <QString>
 #include <QObject>
 
+/**
+ * @file errors.h
+ * The file contains all error, warning, info and whatToDo messages. These messages are used by errorDialog functions.
+ */
+
 static QJsonArray hardErrorList = {
     QObject::tr("No *.ini file found. Can't load program settings."), //0
     QObject::tr("No *.json file with folders found. Can't load paths."), //1
