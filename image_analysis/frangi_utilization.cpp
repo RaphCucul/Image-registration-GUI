@@ -1,10 +1,9 @@
 #include "image_analysis/frangi_utilization.h"
-#include <opencv2/core.hpp>
-#include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
 #include "image_analysis/image_processing.h"
+#include "dialogs/matviewer.h"
+
+#include <opencv2/opencv.hpp>
+
 #include <vector>
 #include <math.h>
 #include <string>
@@ -295,9 +294,12 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
         if (i_showResult == 1)
         {
             qDebug()<<"Setting showResolution";
-            namedWindow(i_windowName.toLocal8Bit().constData());
+            /*namedWindow(i_windowName.toLocal8Bit().constData());
             drawMarker(imageFrangi,max_loc_frangi,(0));
-            cv::imshow(i_windowName.toLocal8Bit().constData(),imageFrangi);
+            cv::imshow(i_windowName.toLocal8Bit().constData(),imageFrangi);*/
+            drawMarker(imageFrangi,max_loc_frangi,cv::Scalar(0));
+            MatViewer *viewer = new MatViewer(imageFrangi,i_windowName);
+            viewer->open();
         }
     }
     qDebug()<<"Returning results: "<<definitiveCoords.x<<" "<<definitiveCoords.y;

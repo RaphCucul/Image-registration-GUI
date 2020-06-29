@@ -25,7 +25,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-    dialogs/newversiondialog.cpp \
     image_analysis/entropy.cpp \
     image_analysis/frangi.cpp \
     image_analysis/correlation_coefficient.cpp \
@@ -41,6 +40,8 @@ SOURCES += \
     dialogs/singlevideoet.cpp \
     dialogs/multivideoregistration.cpp \
     dialogs/singlevideoregistration.cpp \
+    dialogs/matviewer.cpp \
+    dialogs/newversiondialog.cpp \
 ###############################################            
     shared_staff/qcustomplot.cpp \
     shared_staff/systemmonitorwidget.cpp \
@@ -69,7 +70,6 @@ SOURCES += \
 ################################################
     power/cpuwidget.cpp \
     power/hddusageplot.cpp \
-    power/hddwidget.cpp \
     power/memorywidget.cpp \
     power/windowsimpl.cpp \
 ################################################
@@ -85,7 +85,6 @@ SOURCES += \
     util/versioncheckerparent.cpp
 
 HEADERS += \
-    dialogs/newversiondialog.h \
     image_analysis/entropy.h \
     image_analysis/frangi.h \
     image_analysis/correlation_coefficient.h \
@@ -101,6 +100,8 @@ HEADERS += \
     dialogs/singlevideoet.h \
     dialogs/multivideoregistration.h\
     dialogs/singlevideoregistration.h \
+    dialogs/newversiondialog.h \
+    dialogs/matviewer.h \
 ################################################
     shared_staff/qcustomplot.h \
     shared_staff/systemmonitorwidget.h \
@@ -128,10 +129,11 @@ HEADERS += \
     util/registrationparent.h \
     util/vector_operations.h \
     util/etanalysisparent.h \
+    util/versionchecker.h \
+    util/versioncheckerparent.h \
 ################################################
     power/cpuwidget.h \
     power/hddusageplot.h \
-    power/hddwidget.h \
     power/memorywidget.h \
     power/windowsimpl.h \
 #################################################
@@ -141,9 +143,7 @@ HEADERS += \
     multithreadET/qthreadsecondpart.h \
     multithreadET/qthreadthirdpart.h \
     multithreadET/qthreadfourthpart.h \
-    multithreadET/qthreadfifthpart.h \
-    util/versionchecker.h \
-    util/versioncheckerparent.h
+    multithreadET/qthreadfifthpart.h
 
 FORMS += \
     dialogs/hdd_settings.ui \
@@ -170,6 +170,7 @@ QMAKE_RESOURCE_FLAGS += -no-compress
 LIBS += C:\Windows\System32\pdh.dll
 
 INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\include
+INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\x86\mingw
 #LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_core320.dll
 #LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_highgui320.dll
 #LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgcodecs320.dll

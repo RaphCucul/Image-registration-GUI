@@ -5,6 +5,7 @@
 #include <vector>
 #include <QPoint>
 #include <QRect>
+#include <QString>
 
 /**
  * @file image_processing.h
@@ -44,6 +45,12 @@ void showMat(std::string i_windowName, cv::Mat i_frameToShow);
 void transformMatTypeTo32C1(cv::Mat& i_MatToCheck);
 
 /**
+ * @brief It transforms given cv::Mat frame to 32C3 format.
+ * @param i_MatToCheck
+ */
+cv::Mat convertMatFrom32FTo8U(cv::Mat& i_MatToCheck);
+
+/**
  * @brief It transforms given cv::Mat frame to 8C1 format.
  * @param i_MatToCheck
  */
@@ -60,6 +67,13 @@ void transformMatTypeTo8C3(cv::Mat& i_MatToCheck);
  * @param i_MatToCheck
  */
 cv::Mat transformMatTypeTo64C1(cv::Mat& i_MatToCheck);
+
+/**
+ * @brief MatType2String
+ * @param type
+ * @return
+ */
+QString MatType2String(int type);
 
 /**
  * @brief It transforms given cv::Rect object to QRect object.

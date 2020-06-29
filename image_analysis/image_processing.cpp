@@ -1,9 +1,5 @@
 #include "image_analysis/image_processing.h"
-#include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
 
 #include <vector>
 #include <math.h>
@@ -80,6 +76,13 @@ void transformMatTypeTo32C1(cv::Mat& i_MatToCheck)
     }
 }
 
+cv::Mat convertMatFrom32FTo8U(cv::Mat& i_MatToCheck)
+{
+    cv::Mat _returnMat;
+    i_MatToCheck.convertTo(_returnMat,CV_8UC1,255,0);
+    return _returnMat;
+}
+
 void transformMatTypeTo8C1(cv::Mat& i_MatToCheck)
 {
     if (i_MatToCheck.type() != 0)
@@ -129,6 +132,29 @@ void transformMatTypeTo8C3(cv::Mat& i_MatToCheck)
             i_MatToCheck.convertTo(i_MatToCheck,CV_8UC3);
         }
     }
+}
+
+QString MatType2String(int type) {
+    QString r;
+
+    uchar depth = type & CV_MAT_DEPTH_MASK;
+    uchar chans = 1 + (type >> CV_CN_SHIFT);
+
+    switch ( depth ) {
+    case CV_8U:  r = "8U"; break;
+    case CV_8S:  r = "8S"; break;
+    case CV_16U: r = "16U"; break;
+    case CV_16S: r = "16S"; break;
+    case CV_32S: r = "32S"; break;
+    case CV_32F: r = "32F"; break;
+    case CV_64F: r = "64F"; break;
+    default:     r = "User"; break;
+    }
+
+    r += "C";
+    r += (chans+'0');
+
+    return r;
 }
 
 QRect transform_CV_RECT_to_QRect(cv::Rect i_rect){

@@ -5,6 +5,7 @@
 #include "util/files_folders_operations.h"
 #include "util/vector_operations.h"
 #include "dialogs/errordialog.h"
+#include "dialogs/matviewer.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -196,9 +197,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
                                                      SharedVariables::getSharedVariables()->getFrangiMarginsWrapper(chosenFrangiType,
                                                                                                                     analyseChosenFile["filename"]));
         qDebug()<<"Frangi maximum detected "<<detectedFrangi.x<<" "<<detectedFrangi.y;
-        SharedVariables::getSharedVariables()->setFrangiMaximumWrapper(chosenFrangiType,
-                                                                       analyseChosenFile["filename"],
-                detectedFrangi);
+        SharedVariables::getSharedVariables()->setFrangiMaximumWrapper(chosenFrangiType,analyseChosenFile["filename"],detectedFrangi);
         showStandardCutout(chosenFrame);
         emit calculationStopped();
     }
@@ -218,8 +217,10 @@ void Frangi_detektor::showStandardCutout(Mat &i_chosenFrame){
     cutoutStandard.height = rowTo - cutoutStandard.y;
 
     cv::rectangle(i_chosenFrame, cutoutStandard, Scalar(255), 1, 8, 0);
-    cv::namedWindow("Chosen frame with standard cutout area");
-    cv::imshow("Chosen frame with standard cutout area",i_chosenFrame);
+    //cv::namedWindow("Chosen frame with standard cutout area");
+    //cv::imshow("Chosen frame with standard cutout area",i_chosenFrame);
+    MatViewer *viewer = new MatViewer(i_chosenFrame,"Chosen frame with standard cutout area");
+    viewer->open();
 }
 
 void Frangi_detektor::on_fileToAnalyse_clicked()
