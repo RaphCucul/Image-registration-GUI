@@ -45,6 +45,10 @@ public:
      * @param scale
      */
     void setThemeColor(const QColor & themeColor, unsigned int scale = 1);
+public slots:
+        void customMenuRequested(const QPoint &pos);
+signals:
+    void hddUsagePlotClicked(bool newStatus);
 private:
     bool blockRedraw;
     QVector<double> time, usage;

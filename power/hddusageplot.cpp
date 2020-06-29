@@ -1,5 +1,6 @@
 #include "power/hddusageplot.h"
 #include "shared_staff/qcustomplot.h"
+#include "shared_staff/globalsettings.h"
 
 HddUsagePlot::HddUsagePlot(QWidget *parent) : QCustomPlot (parent),
     time(30),usage(30)
@@ -23,6 +24,9 @@ HddUsagePlot::HddUsagePlot(QWidget *parent) : QCustomPlot (parent),
     //yAxis2->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
     addGraph();
     graph(0)->addData(time,usage);
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+        this, SLOT(customMenuRequested(const QPoint &)));
 }
 
 void HddUsagePlot::setMaximumTime(unsigned int max)
@@ -107,4 +111,20 @@ void HddUsagePlot::setThemeColor(const QColor & themeColor, unsigned int scale)
     graph(0)->setBrush(QBrush(QColor(0,0,100,100)));
 
     redraw();
+}
+
+void HddUsagePlot::customMenuRequested(const QPoint &pos) {
+    bool actualStatus = GlobalSettings::getSettings()->isHDDMonitorEnabled();
+    QMenu contextMenu(tr("HDDUsagePlot context menu"), this);
+    contextMenu.setStyleSheet("QMenu::item:selected{"
+                              "background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #109910, stop: 1 #00ff00);"
+                              "color: rgb(255, 255, 255);"
+                              "}");
+    QAction action1(actualStatus ? tr("Disable HDD monitoring") : tr("Enable HDD monitoring."), this);
+    connect(&action1, &QAction::triggered,[=](){
+        emit hddUsagePlotClicked(!actualStatus);
+    });
+    contextMenu.addAction(&action1);
+
+    contextMenu.exec(mapToGlobal(pos));
 }

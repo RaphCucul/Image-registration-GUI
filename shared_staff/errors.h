@@ -43,7 +43,8 @@ static QJsonArray infoList = {
 };
 
 static QJsonArray whatToDoList = {
-    QObject::tr("Problem with HDD counter occured. Please use the Settings option \"Add counter name\" to enable HDD usage plot"), //0
+    QObject::tr("Problem with HDD counter occured. Please use the Settings option \"Add counter name\" to enable HDD usage plot.\n"
+                "HDD monitoring can be turned off completely."), //0
     QObject::tr("Please write a referential frame number here."), //1
     QObject::tr("Choose video and type referential frame number"), //2
 };

@@ -4,6 +4,11 @@
 #include <QSettings>
 #include <QObject>
 
+/**
+ * @class GlobalSettings
+ * @brief The GlobalSettings class object (singleton) contains getters and setters to get/set important pathes. The singleton
+ * also allows to customize each parameter of the *.ini file.
+ */
 class GlobalSettings
 {
 public:
@@ -103,6 +108,18 @@ public:
      * @sa getAutoUpdateSetting()
      */
     void setAutoUpdateSetting(bool i_status);
+
+    /**
+     * @brief Returns info if the HDD monitor is enabled (widget will appear in the program and data will be collected) or not
+     * @return True if enabled, otherwise false.
+     */
+    bool isHDDMonitorEnabled();
+
+    /**
+     * @brief Sets a HDD monitor status - true if it should be enabled.
+     * @param status
+     */
+    void setHDDMonitorStatus(bool status);
 private:
     GlobalSettings();
     static GlobalSettings * m_Settings;

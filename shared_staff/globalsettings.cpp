@@ -169,3 +169,13 @@ void GlobalSettings::setAutoUpdateSetting(bool i_status){
     settings->setValue("updatesAutocheck",i_status);
     settings->sync();
 }
+
+bool GlobalSettings::isHDDMonitorEnabled() {
+    bool status = settings->value("hddMonitor",false).toBool();
+    return status;
+}
+
+void GlobalSettings::setHDDMonitorStatus(bool status) {
+    settings->setValue("hddMonitor",status);
+    settings->sync();
+}
