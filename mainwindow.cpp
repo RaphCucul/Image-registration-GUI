@@ -14,7 +14,7 @@
 
 #include "power/cpuwidget.h"
 #include "power/memorywidget.h"
-#include "power/hddwidget.h"
+//#include "power/hddwidget.h"
 #include "main_program/tabs.h"
 #include "shared_staff/globalsettings.h"
 #include "dialogs/hdd_settings.h"
@@ -28,7 +28,11 @@ MainWindow::MainWindow(QWidget *parent) :
     SystemMonitor::instance().init();
 
     setupUsagePlots();
-    QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
+    if (GlobalSettings::getSettings()->isHDDMonitorEnabled()) {
+        QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
+    }
+    connect(ui->hddWidget,SIGNAL(hddUsagePlotClicked(bool)),this,SLOT(onHddUsagePlotClicked(bool)));
+
     this->setStyleSheet("background-color: white");
 
     versionInfoStatus = new QLabel(this);
@@ -41,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settingsGroup->setExclusive(true);
     connect(ui->menuLanguage,SIGNAL(triggered(QAction*)),this,SLOT(slotLanguageChanged(QAction*)));
     connect(ui->menuSettings,SIGNAL(triggered(QAction*)),this,SLOT(slotSettingsChanged(QAction*)));
+
     localErrorDialogHandler[ui->hddWidget] = new ErrorDialog(ui->hddWidget);
     bool status = GlobalSettings::getSettings()->getAutoUpdateSetting();
     ui->menuSettings->actions().at(2)->setChecked(status);
@@ -94,6 +99,11 @@ void MainWindow::updateWidget()
         localErrorDialogHandler[ui->hddWidget]->show(false);
         alreadyEvaluated = true;
     }
+}
+
+void MainWindow::onStopUpdatingWidget()
+{
+    emit stopUpdatingPowerWidget();
 }
 
 void MainWindow::switchTranslator(QString language)
@@ -161,4 +171,22 @@ void MainWindow::slotSettingsChanged(QAction* action){
             action->setChecked(action->isChecked());
         }
     }
+}
+
+void MainWindow::onHddUsagePlotClicked(bool newStatus) {
+    qDebug()<<"hdd usage plot has sent new status for HDD monitor "<<newStatus;
+    GlobalSettings::getSettings()->setHDDMonitorStatus(newStatus);
+
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText("The change will be applied after the application restart");
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+}
+
+void MainWindow::closeEvent(QCloseEvent *e){
+    //QMessageBox::information(this, "", "Close event received.");
+    emit stopUpdatingPowerWidget();
+    QMainWindow::closeEvent(e);
+    QApplication::quit();
 }

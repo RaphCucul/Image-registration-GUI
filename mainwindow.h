@@ -8,6 +8,7 @@
 #include <QTranslator>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QMessageBox>
 
 //#include <QEvent>
 #include "util/systemmonitor.h"
@@ -26,11 +27,16 @@ public:
     void setupUsagePlots();
 private slots:
     void updateWidget();
+    void onStopUpdatingWidget();
     void slotLanguageChanged(QAction* action);
     void slotSettingsChanged(QAction* action);
     void versionChecked(bool status);
     void timerTimeOut();
-
+    void onHddUsagePlotClicked(bool newStatus);
+signals:
+    void stopUpdatingPowerWidget();
+protected:
+    void closeEvent(QCloseEvent* e) override;
 private:
     Ui::MainWindow *ui;
     void loadLanguage(const QString& rLanguage);
