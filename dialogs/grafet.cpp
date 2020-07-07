@@ -46,16 +46,8 @@ GrafET::GrafET(QVector<double> i_entropy,
     //resize(sizeHint());
 
     // saving all provided informations into internal private variables
-    /*entropy = i_entropy;
-    tennengrad = i_tennengrad;
-    framesEntropyFirstEvalComplete = i_FirstEvalEntropy;
-    framesTennengradFirstEvalComplete = i_FirstEvalTennengrad;
-    framesFirstEvalComplete = i_FirstDecisionResults;
-    framesSecondEvalComplete = i_SecondDecisionResults;
-    framesEvalComplete = i_CompleteEvaluation;*/
     initDataMaps(i_entropy,i_tennengrad,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
                  i_SecondDecisionResults,i_CompleteEvaluation);
-    //reactionOnFrameVisibility();
 
     // standard GUI elements initialization
     ui->E_HPzobraz->setEnabled(false);
@@ -86,21 +78,6 @@ GrafET::GrafET(QVector<double> i_entropy,
     QWidget *WSCustomPlot = new QWidget();
     ActualGraphicalObject = new QCustomPlot(WSCustomPlot);
     ui->graphLayout->addWidget(ActualGraphicalObject);
-    // exhausting signal->slot connections to capture all possible requests and provide corresponding responses
-    /*QObject::connect(ui->zobrazGrafE,SIGNAL(stateChanged(int)),this,SLOT(showEntropy()));
-    QObject::connect(ui->zobrazGrafT,SIGNAL(stateChanged(int)),this,SLOT(showTennengrad()));
-    QObject::connect(ui->E_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showEntropyUpperThreshold()));
-    QObject::connect(ui->E_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showEntropyLowerThreshold()));
-    QObject::connect(ui->T_HPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showTennengradUpperThreshold()));
-    QObject::connect(ui->T_DPzobraz,SIGNAL(stateChanged(int)),this,SLOT(showTennengradLowerThreshold()));
-    QObject::connect(ui->E_HP,SIGNAL(valueChanged(double)),this,SLOT(showEntropyUpperThreshold()));
-    QObject::connect(ui->E_DP,SIGNAL(valueChanged(double)),this,SLOT(showEntropyLowerThreshold()));
-    QObject::connect(ui->T_HP,SIGNAL(valueChanged(double)),this,SLOT(showTennengradUpperThreshold()));
-    QObject::connect(ui->T_DP,SIGNAL(valueChanged(double)),this,SLOT(showTennengradLowerThreshold()));
-    QObject::connect(ui->ohodnoceniEntropyCB,SIGNAL(stateChanged(int)),this,SLOT(firstEvaluationEntropy_f()));
-    QObject::connect(ui->ohodnoceniTennenCB,SIGNAL(stateChanged(int)),this,SLOT(firstEvaluationTennengrad_f()));
-    QObject::connect(ui->prvniRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(firstEvaluation_f()));
-    QObject::connect(ui->druheRozhodCB,SIGNAL(stateChanged(int)),this,SLOT(secondEvaluation_f()));*/
     //change of visible value type
     connect(ui->zobrazGrafE,SIGNAL(stateChanged(int)),this,SLOT(onReactOnDisplayedParameterChange()));
     connect(ui->zobrazGrafT,SIGNAL(stateChanged(int)),this,SLOT(onReactOnDisplayedParameterChange()));
@@ -156,8 +133,6 @@ GrafET::GrafET(QVector<double> i_entropy,
                                 ui->IV5->isChecked(),false,4);
     });
 
-
-
     // prepating vectors of thresholds for entropy and tennengrad
     ETparametersDoubleMap.insert("entropyUT",thresholdLine(thresholds[ValueType::ENTROPY+ThresholdType::UPPER],frameCount));
     ETparametersDoubleMap.insert("entropyLT",thresholdLine(thresholds[ValueType::ENTROPY+ThresholdType::LOWER],frameCount));
@@ -172,10 +147,6 @@ GrafET::GrafET(QVector<double> i_entropy,
     // initialization of the QCustomPlot object - most important part
     //************************************************************//
     utilGraph = new util_GraphET(ActualGraphicalObject,ETparametersDoubleMap,valueRange);
-    /*inicializujGrafickyObjekt(GraphicalObject,entropy,tennengrad,
-                              entropyStandard,tennengradStandard,
-                              UT_entropy,LT_entropy,HP_tennengrad,DP_tennengrad,valueRange);*/
-    //ActualGraphicalObject = GraphicalObject;
     initAffectedFramesConnections();
     // set values into QDoubleSpinBoxes
     ui->zobrazGrafE->setChecked(true);
@@ -292,7 +263,7 @@ void GrafET::showVals(QMouseEvent *event)
             // define cursor line
             cursor->start->setCoords(key, Start);
             cursor->end->setCoords(key, End);
-            //for my "cursor"########
+            //for my "cursor
             double mouseX = ActualGraphicalObject->xAxis->pixelToCoord(event->pos().x());
             //for the  graph values
             double frameIndex = getAxesValues(mouseX);
@@ -326,11 +297,7 @@ void GrafET::showVals(QMouseEvent *event)
                     framePreview->scene()->addItem(image);
                     delete imageObject;
                 }
-                //else
-                //cursor->SetVisibility(false);
             }
-            //else
-
             ActualGraphicalObject->replot();
         }
     }
@@ -340,7 +307,6 @@ double GrafET::getAxesValues(double i_mouseX_coordinates){
     if (_displayedGraphs == ValueType::ENTROPY || _displayedGraphs == ValueType::BOTH){
         int index = ActualGraphicalObject->graph(0)->findBegin(i_mouseX_coordinates);
         return ActualGraphicalObject->graph(0)->dataMainKey(index); //x
-        //double y = ActualGraphicalObject->graph(_graphIndexesInvolved[i])->dataMainValue(index);
     }
     else{
         int index = ActualGraphicalObject->graph(0)->findBegin(i_mouseX_coordinates);
@@ -406,9 +372,10 @@ int GrafET::findReferentialFrame(){
     bool found = false;
     int index;
     for (index = 0; index < ETparametersIntMap["evalComplete"].length(); index++){
-        if (ETparametersIntMap["evalComplete"][index] == 2)
+        if (ETparametersIntMap["evalComplete"][index] == 2) {
             found = true;
             break;
+        }
     }
     int output = found ? index : -1;
     return output;
@@ -424,15 +391,6 @@ void GrafET::on_showFrameOverview_stateChanged(int arg1)
         scene->clear();
     }
     emit resizeWindow();
-}
-
-/*void GrafET::reactionOnFrameVisibility(){
-    QTimer::singleShot(0, this, SLOT(fixSize()));
-}*/
-
-void GrafET::fixSize(){
-    QSize size = sizeHint();
-    this->resize(size);
 }
 
 void GrafET::findExtremesAndThresholds(QVector<double> i_calculatedThresholds)
@@ -539,7 +497,6 @@ void GrafET::saveData(SaveOption i_saveOption){
     else if (i_saveOption == SaveOption::EXTREMES) {
         prepareDataForSaving(thresholdsToVector(),_returnObject,"thresholds");
     }
-    //returnObject. = _returnObject;
     saveCalculatedData(videoName,_returnObject);
 }
 
@@ -1371,25 +1328,25 @@ void GrafET::populateGraph(int i_graphLine,
 }
 
 void GrafET::showAffectedFrames(QVector<double> i_affectedValues, double i_valueToCompareWith,
-                                QString i_criterium, int i_graphLine){
+                                QString i_criterion, int i_graphLine){
     QVector<double> selectedData,correspondingFrames;
     for (int index = 0; index < frameCount; index++) {
-        if (i_criterium == "greater"){
+        if (i_criterion == "greater"){
             if (i_affectedValues[index] > i_valueToCompareWith){
                 selectedData.push_back(i_affectedValues[index]);
                 correspondingFrames.push_back(double(index));
             }
         }
-        else if (i_criterium == "lesser"){
+        else if (i_criterion == "lesser"){
             if (i_affectedValues[index] < i_valueToCompareWith){
                 selectedData.push_back(i_affectedValues[index]);
                 correspondingFrames.push_back(double(index));
             }
         }
     }
-    if (affectedFrames.contains(i_criterium))
-        affectedFrames.remove(i_criterium);
-    affectedFrames.insert(i_criterium,correspondingFrames);
+    if (affectedFrames.contains(i_criterion))
+        affectedFrames.remove(i_criterion);
+    affectedFrames.insert(i_criterion,correspondingFrames);
     ActualGraphicalObject->graph(i_graphLine)->setData(correspondingFrames,selectedData);
     ActualGraphicalObject->graph(i_graphLine)->setVisible(true);
 }
@@ -1447,7 +1404,6 @@ SW_VerticalQCPItemLine::SW_VerticalQCPItemLine(QCustomPlot *parentPlot, ColorThe
 
 SW_VerticalQCPItemLine::~SW_VerticalQCPItemLine()
 {
-   // delete m_lineLabel;
 }
 
 void SW_VerticalQCPItemLine::UpdateLabel(double x, double y, QPixmap i_framePixmap)

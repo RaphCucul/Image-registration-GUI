@@ -55,11 +55,10 @@ DirectoriesLoader::~DirectoriesLoader()
 {
     delete ui;
 }
-QString DirectoriesLoader::LoadSettings(){
-    QString iniFileProcessingResult = "";
+bool DirectoriesLoader::LoadSettings(){
+    bool iniFileProcessingResult = false;
     QString pom = GlobalSettings::getSettings()->getFileFolderDirectoriesPath();
     if (pom == ""){
-        iniFileProcessingResult = "MissingPath";
         disableElements();
     }
     else{
@@ -67,7 +66,7 @@ QString DirectoriesLoader::LoadSettings(){
         ui->FileFolderDirectory->setText(pathToFileFolderDirectory);
         if (localErrorDialogHandling[ui->FileFolderDirectory]->isEvaluated())
             localErrorDialogHandling[ui->FileFolderDirectory]->hide();
-        iniFileProcessingResult = "OK";
+        iniFileProcessingResult = true;
         enableElements();
     }
     qDebug()<<"Path to file folder directory: "<<pathToFileFolderDirectory;
@@ -101,8 +100,7 @@ bool DirectoriesLoader::checkFileFolderExistence()
 
     if (numberOfIni == 1){
         ui->iniPath->setText(checkIniPath);
-        QString loadingResult = LoadSettings();
-        if (loadingResult == "MissingPath"){
+        if (! LoadSettings()){
             localErrorDialogHandling[ui->FileFolderDirectory]->evaluate("center","softError",0);
             localErrorDialogHandling[ui->FileFolderDirectory]->show(false);
             search = "json";

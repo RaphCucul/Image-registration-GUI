@@ -15,8 +15,6 @@ tabs::tabs(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->pages->setTabPosition(QTabWidget::West);
-    //ui->pages->setStyleSheet("QTabBar::tab {height: 32px;width: 32px;padding-top:0px;padding-bottom:,0px}");
-    //ui->pages->setStyleSheet("background-color: white");
 
     QIcon icon_Folder_png(":/images/adresar.png");
     QIcon icon_Frangi_png(":/images/frangi.png");
@@ -42,10 +40,8 @@ tabs::tabs(QWidget *parent) :
     ui->pages->addTab(registrateTwo,icon_RegistrateTwo,"");
     ui->pages->addTab(registrateVideo,icon_RegistrateVideo,"");
     ui->pages->addTab(initializeGraph,icon_Graph,"");
-    //localErrorDialogHandler[ui->pages->tabBar()->tabRect(1)] = new ErrorDialog(ui->pages->tabBar()->tabRect(1));
 
-    bool folderPresent = chooseFolders->checkFileFolderExistence();
-    if (!folderPresent){
+    if (!chooseFolders->checkFileFolderExistence()){
         disableTabs();
     }
 
@@ -60,8 +56,6 @@ tabs::tabs(QWidget *parent) :
 
     connect(registrateVideo,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
     connect(registrateVideo,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
-
-    //default_disabled();
 }
 
 QIcon tabs::iconRotation(QIcon i_icon)

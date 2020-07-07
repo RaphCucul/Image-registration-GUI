@@ -17,6 +17,12 @@ namespace Ui {
 class Frangi_detektor;
 }
 
+/**
+ * @class Frangi_detektor
+ * @brief The Frangi_detektor class enables a user to test different Frangi parameters settings. A user can choose
+ * a video and a frame for testing. There is also an option to set margins of a frame which will be processed to eliminate and
+ * existing artefact in this area.
+ */
 class Frangi_detektor : public QWidget
 {
     Q_OBJECT
@@ -26,13 +32,13 @@ public:
     ~Frangi_detektor();
 
     /**
-     * @brief The function checks, if the path to the video folder exists. If so, the first video from the list of files
+     * @brief Checks, if the path to the video folder exists. If so, the first video from the list of files
      * found in the folder is placed into the line edit.
      */
     void checkPaths();
 
     /**
-     * @brief setParametersToUI
+     * @brief Loads values of frangi parameters to appropriate widgets.
      */
     void setParametersToUI();
 
@@ -53,61 +59,87 @@ signals:
     void calculationStopped();
 private:
     /**
-     * @brief Function loads frangi parameters data into the corresponding double spin box.
+     * @brief Loads specific frangi parameter value into the corresponding double spin box.
+     * @param i_doubleSpinboxName
+     * @param parameter
      */
     void setParameter(QString i_doubleSpinboxName, QString parameter);
 
     /**
-     * @brief setParameter
-     * @param _spinbox
+     * @brief Sets value of a double spin box.
+     * @param i_doubleSpinboxName
      * @param i_value
      */
     void setParameter(QString i_doubleSpinboxName, double i_value);
 
     /**
-     * @brief Functions save the actual value of the double spin box during the saving process.
-     * @param parameter
+     * @brief Saves the actual value of the double spin box during the saving process.
+     * @param i_type
+     * @param i_parameterName
      */
     void getParameter(frangiType i_type, QString i_parameterName);
 
+    /**
+     * @brief Sets margins values.
+     * @param i_marginName
+     * @param i_value
+     */
     void setMargin(QString i_marginName, int i_value);
 
+    /**
+     * @brief Returns margins values.
+     * @param i_type
+     * @param i_marginName
+     */
     void getMargin(frangiType i_type, QString i_marginName);
 
+    /**
+     * @brief Sets ratios values.
+     * @param i_ratioName
+     * @param i_value
+     */
     void setRatio(QString i_ratioName, double i_value);
 
+    /**
+     * @brief Returns ratios values.
+     * @param i_type
+     * @param i_ratioName
+     */
     void getRatio(frangiType i_type, QString i_ratioName);
 
     /**
-     * @brief Function fills the private QHash variables with corresponding widgets
+     * @brief Fills private QHash variables with corresponding widgets
      */
     void initWidgetHashes();
 
     /**
-     * @brief Function plots the chosen frame with the Frangi filter maximum mark and with the standard
+     * @brief Shows the chosen frame with the Frangi filter maximum mark and with the standard.
      * cutout rectangular.
+     * @param i_chosenFrame
      */
     void showStandardCutout(cv::Mat& i_chosenFrame);
 
     /**
-     * @brief checkStartEndValues
+     * @brief Checks the start and stop frangi parameter value. It is not acceptable to allow a user to set stop value
+     * lower than start value.
      */
     void checkStartEndValues();
 
     /**
-     * @brief loadFrangiParametersForVideo
+     * @brief Loads frangi parameters - if the program is able to find video *.dat file and if the file has necessary information,
+     *  video-related frangi parameters are loaded to the program. Otherwise, global-related parameters are loaded.
      * @param i_type
-     * @return
+     * @return True if loading video-related parameters was successful.
      */
     bool loadFrangiParametersForVideo(frangiType i_type);
 
     /**
-     * @brief enableWidgets
+     * @brief Enables necessary widgets to start analysis and save parameters.
      */
     void enableWidgets();
 
     /**
-     * @brief disableWidgets
+     * @brief Disables necessary widgets if proper conditions to start analysis are not met.
      */
     void disableWidgets();
 

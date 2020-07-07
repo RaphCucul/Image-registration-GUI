@@ -79,6 +79,30 @@ QVector<int> RegistrationThread::threadFrameRange(){
     return output;
 }
 
+/**
+ * @brief The function is designed to registrate referential frame with a frame with evaluation index 0 (perfect for
+ * the registration, no problems are expected). The registration process itself is covered by the function "fullRegistration"
+ * followed by some postprocessing.
+ * @param i_cap
+ * @param i_referencialFrame
+ * @param i_coordsFrangiStandardReferencialReverse
+ * @param i_index_translated
+ * @param i_iteration
+ * @param i_areaMaximum
+ * @param i_angle
+ * @param i_cutoutExtra
+ * @param i_cutoutStandard
+ * @param i_scaleChanged
+ * @param parametry_frangi
+ * @param _pocX
+ * @param _pocY
+ * @param _frangiX
+ * @param _frangiY
+ * @param _frangiEucl
+ * @param _maxAngles
+ * @param i_margins
+ * @return
+ */
 bool registrateTheBest(cv::VideoCapture& i_cap,
                        cv::Mat& i_referencialFrame,
                        cv::Point3d i_coordsFrangiStandardReferencialReverse,
@@ -98,6 +122,25 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                        QVector<double> &_maxAngles,
                        QMap<QString, int> i_margins);
 
+/**
+ * @brief The main registration function of the class. It is called by the function "registrateTheBest" to registrate
+ * the referential frame with a frame with the evaluation index 0. If a frame has evaluation index 1 aor 4, problems are expected
+ * and there is no postprocessing when the frames are registrated.
+ * @param i_cap
+ * @param i_referencialFrame
+ * @param i_shiftedNo
+ * @param i_iteration
+ * @param i_areaMaximum
+ * @param i_angle
+ * @param i_cutoutExtra
+ * @param i_cutoutStandard
+ * @param i_scaleChange
+ * @param i_fullyRegistrated
+ * @param i_pocX
+ * @param i_pocY
+ * @param i_maxAngles
+ * @return
+ */
 bool fullRegistration(cv::VideoCapture& i_cap,
                       cv::Mat& i_referencialFrame,
                       int i_shiftedNo,
@@ -112,6 +155,22 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                       QVector<double> &i_pocY,
                       QVector<double> &i_maxAngles);
 
+/**
+ * @brief If a cutout was created, this function applies the cutout on a frame. If extra cutout was
+ * @param i_referencialFrame
+ * @param i_preprocessed
+ * @param i_frangiParameters
+ * @param i_verticalAnomaly
+ * @param i_horizontalAnomaly
+ * @param i_anomalyArea
+ * @param i_coutouExtra
+ * @param i_cutoutStandard
+ * @param i_cap
+ * @param i_scaleChange
+ * @param i_margins
+ * @param i_ratios
+ * @return
+ */
 bool imagePreprocessing(cv::Mat &i_referencialFrame,
                         cv::Mat &i_preprocessed,
                         QMap<QString, double> &i_frangiParameters,
@@ -125,6 +184,17 @@ bool imagePreprocessing(cv::Mat &i_referencialFrame,
                         QMap<QString, int> i_margins,
                         QMap<QString, double> i_ratios);
 
+/**
+ * @brief It tries to improve the registration result with one additional phase correlation. The correlation coefficient is
+ * used to determine, if the correction was senseless or not.
+ * @param i_registratedFrame
+ * @param i_frame
+ * @param i_corrected
+ * @param i_cutoutStandard
+ * @param i_correction
+ * @param i_areaMaximum
+ * @return
+ */
 bool registrationCorrection(cv::Mat& i_registratedFrame,
                             cv::Mat& i_frame,
                             cv::Mat& i_corrected,

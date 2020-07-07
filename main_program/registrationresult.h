@@ -12,6 +12,12 @@ namespace Ui {
 class RegistrationResult;
 }
 
+/**
+ * @class RegistrationResult
+ * @brief The RegistrationResult class is a simple dialog showing registration result - it can be a video or just two frames. It
+ * depends when the program is called. It is not stand-alone dialog, it is always called from the program by some algorithm.
+ * For example registrated videos can be viewed in the moment they are created. Not later.
+ */
 class RegistrationResult : public QDialog
 {
     Q_OBJECT
@@ -19,11 +25,41 @@ class RegistrationResult : public QDialog
 public:
     explicit RegistrationResult(cv::Mat &_referencial, cv::Mat &_translated, QDialog *parent = nullptr);
     ~RegistrationResult();
-    void setWindowsSize(int sirka, int vyska);
+    /**
+     * @brief Sets the size of the dialog.
+     * @param width
+     * @param height
+     */
+    void setWindowsSize(int width, int height);
+
+    /**
+     * @brief Initializes necessary variables with information about two frames which will be compared.
+     */
     void displayTwo();
+
+    /**
+     * @brief Initializes necessary variables with information about video and a frame.
+     * @param video
+     */
     void displayVideo(cv::VideoCapture video);
+
+    /**
+     * @brief Request the initialization of "two frames result" layout.
+     * @sa displayTwo()
+     */
     void callTwo();
+
+    /**
+     * @brief Request the initialization of "video result" layout.
+     * @sa displayVideo(cv::VideoCapture video)
+     */
     void callVideo();
+
+    /**
+     * @brief Initializes widgets to display the referential frame when comparing two or first frame when controling
+     * video registration.
+     * @param startMethod - frames (1) or video (2)
+     */
     void start(int startMethod);
 private slots:
     void changeDisplayed(int value);

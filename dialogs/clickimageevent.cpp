@@ -18,11 +18,7 @@
 #include <QMessageBox>
 #include <QTimer>
 
-#include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
-#include <opencv2/imgproc/imgproc_c.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2/imgcodecs/imgcodecs_c.h>
 #include "opencv2/imgproc/types_c.h"
@@ -758,21 +754,14 @@ void ClickImageEvent::onShowFrangiOptions() {
 }
 
 void ClickImageEvent::showFrangiOptions(){
-    //QRect leftPaneGeometry = _integratedFrangiOptionsObject->geometry();
 
     if (frangiOptionsShown) { // hide
         QPropertyAnimation *animation = new QPropertyAnimation(_integratedFrangiOptionsObject, "maximumHeight");
         animation->setDuration(300);
         animation->setEasingCurve(QEasingCurve::InCurve);
         animation->setStartValue(200);
-        /*QPoint upperLeft(this->height-_integratedFrangiOptionsObject->width()-_integratedFrangiOptionsObject->height(),
-                         this->width-_integratedFrangiOptionsObject->height());
-        QPoint lowerRight(this->height-_integratedFrangiOptionsObject->height(),
-                          this->width-_integratedFrangiOptionsObject->height());
-        QRect targetGeometry(upperLeft, lowerRight);*/
         animation->setEndValue(0);
         animation->start();
-        //_integratedFrangiOptionsObject->setGeometry(targetGeometry);
 
         QTimer *timer = new QTimer();
         connect(timer, SIGNAL(timeout()), this, SLOT(onHidden()));
@@ -787,11 +776,6 @@ void ClickImageEvent::showFrangiOptions(){
         animation->setEasingCurve(QEasingCurve::InCurve);
         qDebug()<<"Height: "<<this->height<<" Width: "<<this->width;
         qDebug()<<"Height: "<<_integratedFrangiOptionsObject->height()<<" Width: "<<_integratedFrangiOptionsObject->width();
-        /*QPoint upperLeft(this->height-_integratedFrangiOptionsObject->width()-_integratedFrangiOptionsObject->height(),
-                         this->width-_integratedFrangiOptionsObject->height());
-        QPoint lowerRight(this->height-_integratedFrangiOptionsObject->height(),
-                          this->width-_integratedFrangiOptionsObject->height());
-        QRect startingGeometry(upperLeft,lowerRight);*/
         animation->setStartValue(0);
         animation->setEndValue(200);
         animation->start();

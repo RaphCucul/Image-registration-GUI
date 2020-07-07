@@ -28,7 +28,12 @@
 #include <functional>
 using namespace clickImageEnums;
 
-
+/**
+ * @class IntegratedFrangiOptions
+ * @brief The IntegratedFrangiOptions class is an independent widget which can be displayed in a ClickImageEvent dialog.
+ * The widgets enables to change frangi parameters during the selection of a cutout. The widget also enables to temporally set or
+ * save selected parameters. When saving, parameters are always saved to video-related *.dat file.
+ */
 class IntegratedFrangiOptions : public QWidget
 {
     Q_OBJECT
@@ -36,9 +41,28 @@ class IntegratedFrangiOptions : public QWidget
 public:
     IntegratedFrangiOptions();
     ~IntegratedFrangiOptions();
+    /**
+     * @brief Returns or set values of each widget of the class.
+     * @param method - determines if parameters will be set or returned
+     * @param m - margins
+     * @param r - ratios
+     * @param p - parameters
+     */
     void GetSetValues(QString method, QMap<QString,int>& m, QMap<QString,double>& r, QMap<QString,double>& p);
+
+    /**
+     * @brief Returns actual margins values.
+     */
     QMap<QString,int> getIntegratedMargins() {return marginsInternal;}
+
+    /**
+     * @brief Returns actual parameters values.
+     */
     QMap<QString,double> getInternalParameters() {return parametersInternal;}
+
+    /**
+     * @brief Returns actual ratios values.
+     */
     QMap<QString,double> getInternalRatios() {return ratiosInternal;}
 public slots:
     void saveButtonClicked();
@@ -47,7 +71,17 @@ signals:
     void frangiParametersSelected(QMap<QString,int> _margins,QMap<QString,double> ratios,QMap<QString,double> _parameters);
     void applyFrangiParameters();
 private:
+    /**
+     * @brief Initializes the widget. All necessary elements are added to the empty widget's grid layout.
+     */
     void createWidget();
+
+    /**
+     * @brief Helper function adds a widget to grid layout of the class.
+     * @param widget - a widget to be added
+     * @param row
+     * @param col
+     */
     void addWidgetToGrid(QWidget* widget,int row,int col);
 
     QStringList FrangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
@@ -57,15 +91,6 @@ private:
                                tr("top ration"),tr("bottom ratio"),tr("left ration"),tr("right ration"),
                                tr("sigma start"),tr("sigma stop"),tr("sigma step"),tr("beta one"),tr("beta two"),tr("zpracovani")};
 
-    /*QSpinBox* leftMargin = nullptr;
-    QSpinBox* rightMargin = nullptr;
-    QSpinBox* topMargin = nullptr;
-    QSpinBox* bottomMargin = nullptr;
-    QDoubleSpinBox* sigmaStart = nullptr;
-    QDoubleSpinBox* sigmaEnd = nullptr;
-    QDoubleSpinBox* sigmaStep = nullptr;
-    QDoubleSpinBox* betaOne = nullptr;
-    QDoubleSpinBox* betaTwo = nullptr;*/
     QPushButton* setParameters = nullptr;
     QPushButton* saveParameters = nullptr;
     QRadioButton* reverse = nullptr;
@@ -87,7 +112,13 @@ class ClickImageEvent;
 }
 
 /**
- * @brief The ClickImageEvent class
+ * @class ClickImageEvent
+ * @brief The ClickImageEvent class enables to select standard or extra cutout of the frame. The part of the program from where
+ * ClickImageEvent is called affects the options what can be selected in the dialog.
+ * 1. If called from SVET tab when a video or image is analysed, it is not possible to change analysed video and frame.
+ * 2. If called from RegistrateTwo, it is also not possible to change analysed video and frame.
+ * 3. If called from MVET tab when a videos are analysed, it is possible to choose the video to be analysed and the specific
+ * frame. This settings can be changed anytime.
  */
 class ClickImageEvent : public QDialog
 {
@@ -107,9 +138,31 @@ public:
     ClickImageEvent(QStringList i_fullPaths, cutoutType i_type, QDialog *parent = nullptr);
     ~ClickImageEvent() override;    
 public slots:
+    /**
+     * @brief Saves selected parameters. If a frame of a video is analysed, parameters are marked as video-related. If an image
+     * is analysed, parameters are marked as global-related.
+     * @param _margins
+     * @param _ratios
+     * @param _parameters
+     */
     void saveSelectedParameters(QMap<QString,int> _margins,QMap<QString,double> _ratios, QMap<QString,double> _parameters);
+
+    /**
+     * @brief Initializes drawing of the graphics content.
+     * @param i_calculatedData
+     * @sa drawGraphicsScene(QPoint i_result)
+     */
     void obtainFrangiCoordinates(QPoint i_calculatedData);
+
+    /**
+     * @brief Provices a reaction on IntegratedFrangiOptions-related button click.
+     */
     void onShowFrangiOptions();
+
+    /**
+     * @brief Calls the function to start frangi analysis.
+     * @sa startFrangiAnalysis()
+     */
     void onApplyFrangiParameters();
 protected:
     void mousePressEvent(QMouseEvent *press) override;
@@ -117,128 +170,135 @@ protected:
     void mouseReleaseEvent(QMouseEvent *release) override;
     void closeEvent(QCloseEvent *e) override;
 signals:
-    //void saveImageCutout(QRect cutout);
     void saveVideoCutout();
     void dataExtracted();
 private slots:
     /**
-     * @brief Function process the input of referencial frame line edit and enables the QGraphicsView if
-     * the frame number is correct and frame can be loaded.
-     * @param arg1
+     * @brief Processes the input of the referential frame line edit and enables the QGraphicsView object if
+     * the frame number is correct and can be loaded.
      */
     void referencialFrameChosen();
 
     /**
-     * @brief Function process the chosen video, checks if it is loadable and enables other widgets.
-     * @param videoIndex
+     * @brief Processes the chosen video, checks if it is loadable and enables other widgets.
+     * @param videoIndex - index of the video in the combobox
      */
     void processChosenVideo(int videoIndex);
 
     /**
-     * @brief drawGraphicsScene
-     * @param i_result
+     * @brief Draws frangi maximum coordinates.
+     * @param i_result - calculated coordinates
      */
     void drawGraphicsScene(QPoint i_result);
 
     /**
-     * @brief showFrangiOptions
+     * @brief Shows or hides IntegratedFrangiOptions object.
      */
     void showFrangiOptions();
 
     /**
-     * @brief onDataExtracted
+     * @brief Terminates independent thread where frangi maximum was calculated.
      */
     void onDataExtracted();
 
     /**
-     * @brief onShown
+     * @brief Changes the icon of the button when IntegratedFrangiOptions object has status "shown".
      */
     void onShown();
 
     /**
-     * @brief onHidden
+     * @brief Changes the icon of the button when IntegratedFrangiOptions object has status "hidden".
      */
     void onHidden();
 
 private:
     /**
-     * @brief Function paint the cross using QPainterPath
+     * @brief Defines painted cross (using QPainterPath) parameters depending on received frangi maximum coordinates
      * @param path
-     * @param x
-     * @param y
+     * @param x - frangi x coordinate
+     * @param y - frangi y coordinate
      */
     void paintCross(QPainterPath &path,double x, double y);
 
     /**
-     * @brief Function loads detected coordinates of frangi filter maximum.
-     * @return
+     * @brief Returns detected coordinates of frangi maximum.
      */
     QPointF loadFrangiMaxCoordinates();
 
     /**
-     * @brief Function fills the graphic scene of graphics view with the proper frame at the dialog start up.
+     * @brief Fills the graphic scene object of graphics view object with proper frame defined at the dialog initialization.
+     * @param i_initCutouts - if true, all cutouts are initialized automatically. Frangi maximum coordinates are used together with
+     * default ratios.
      */
     void fillGraphicScene(bool i_initCutouts);
 
     /**
-     * @brief Function adds standard widgets to the optionalContent gridLayout.
+     * @brief Adds standard widgets to the optionalContent gridLayout when a video is analysed.
+     * @param i_count - one or multiple video
+     * @param i_cutout
+     * @param i_loadFrangiCoordinates - true if a referential frame was found because the analysis was
      */
     void initStandardVideoWidgets(videoCount i_count,cutoutType i_cutout,bool i_loadFrangiCoordinates);
 
+    /**
+     * @brief Adds standard widgets to the optionalContent gridLayout when an image is analysed.
+     * @param i_cutout
+     */
     void initStandardImageWidgets(cutoutType i_cutout);
 
     /**
-     * @brief Function is used for collecting QGraphicsView mouse events.
+     * @brief Collects QGraphicsView mouse events.
      * @param obj
      * @param event
-     * @return
      */
     bool eventFilter(QObject *obj, QEvent *event) override;
 
     /**
-     * @brief initCutouts
+     * @brief Initializes cutouts.
      * @param i_inputFrame
      */
     void initCutouts(cv::Mat i_inputFrame);
 
     /**
-     * @brief Function redraw standard cutout rectangle when mouse is hold and moved.
+     * @brief Redraws standard cutout rectangle when mouse is hold and moved.
      * @param i_C
      * @param i_anomalyType
      */
     void updateCutoutStandard();
 
     /**
-     * @brief Function redraw extra cutout rectangle when mouse is hold and moved.
+     * @brief Redraw extra cutout rectangle when mouse is hold and moved.
      * @param i_clickCoordinates
      * @param i_anomalyType
      */
     void updateCutoutExtra();
 
     /**
-     * @brief Function is called when extra cutout has been changed. Frangi point coordinates are used for
-     * this operation, so it is neccesary to include frangi point into the extra cutout.
+     * @brief The function is called when extra cutout has been changed. Frangi maximum coordinates are used for
+     * this operation.
      */
     void recalculateStandardCutout();
 
     /**
-     * @brief Function is check, if the frangi point is inside the given area.
+     * @brief Checks, if the frangi maximum coordinates are inside the given area.
      * @param i_area
      */
     bool checkFrangiMaximumPresenceInCutout();
 
     /**
-     * @brief startFrangiAnalysis
+     * @brief Starts frangi analysis.
      */
     void startFrangiAnalysis();
 
     /**
-     * @brief revertCutoutChange
+     * @brief If cutout estimation fails or the result is not acceptable, the cutout parameters are discared and previous
+     * correct parameters are loaded.
      */
     void revertCutoutChange();
 
     /**
-     * @brief saveCutouts
+     * @brief Saves selected cutouts.
+     * @param saveNew - if true, saves newly selected cutout(s). If false, saves previously automatically calculated cutout(s).
      */
     void saveCutouts(bool saveNew);
 

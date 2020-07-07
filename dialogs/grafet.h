@@ -8,10 +8,6 @@
 #include "util/util_grafet.h"
 
 #include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core.hpp>
 
 namespace Ui {
 class GrafET;
@@ -24,13 +20,29 @@ enum class ColorTheme
     TOS
 };
 
+/**
+ * @class SW_VerticalQCPItemLine
+ * @brief The SW_VerticalQCPItemLine class is derived from the QCPItemLine and it is used to display vertical line under mouse
+ * cursor. This helps a user to work with the graph.
+ */
 class SW_VerticalQCPItemLine : public QCPItemLine
 {
 public:
     SW_VerticalQCPItemLine(QCustomPlot *parentPlot, ColorTheme color);
     virtual ~SW_VerticalQCPItemLine();
 
+    /**
+     * @brief Unused function - could be used to show label of the line. Label can show for example image.
+     * @param x
+     * @param y
+     * @param i_framePixmap
+     */
     void UpdateLabel(double x, double y, QPixmap i_framePixmap);
+
+    /**
+     * @brief Sets the visibility of the cursor.
+     * @param i_status
+     */
     void SetVisibility(bool i_status);
 
     QCPItemText* m_lineLabel;
@@ -40,26 +52,47 @@ public:
     QLabel* evalIndex = nullptr;
 };
 
+/**
+ * @brief The GrafET class visualizes calculated entropy and tennengrad data. It is also possible to highlight frames
+ * according to their evaluation indexes.
+ */
 class GrafET : public QDialog
 {
     Q_OBJECT
 
 public:
+    /**
+     * @enum ThresholdType
+     * @brief The ThresholdType enum represents type of a threshold.
+     */
     enum ThresholdType{
         UPPER=5, LOWER=6
     };
+    /**
+     * @enum ValueType
+     * @brief The ValueType enum represents plotted graphs.
+     */
     enum ValueType{
         ENTROPY=10, ENTROPY_STANDARD=20, TENNENGRAD=30, TENNENGRAD_STANDARD=40, BOTH=50
     };
-
+    /**
+     * @enum ExtremeType
+     * @brief The ExtremeType enum represents maximum and minimum of values.
+     */
     enum ExtremeType{
         MAX=7,MIN=8
     };
-
+    /**
+     * @enum SaveOption
+     * @brief The SaveOption enum represents two possible save options - all values or just extremes can be saved.
+     */
     enum SaveOption{
         ALL,EXTREMES
     };
-
+    /**
+     * @enum EvaluationFrames
+     * @brief The EvaluationFrames enum represents all evaluation indexes and frame categories.
+     */
     enum EvaluationFrames{
         ENTROPY_FIRST=8,TENNENGRAD_FIRST,DECISION_FIRST,DECISION_SECOND,EVALUATION_COMPLETE,
         EVALUATION_1,EVALUATION_4,EVALUATION_5
@@ -77,12 +110,11 @@ public:
                     QWidget *parent = nullptr);
     ~GrafET() override;
     /**
-     * @brief getVideoName
-     * @return
+     * @brief Returns videoname of GrafET object
      */
     QString getVideoName() { return videoName; }
     /**
-     * @brief getReturnJSONObject
+     * @brief Returns JSON object with data prepared to be saved.
      * @return
      */
     QJsonObject getReturnJSONObject(){ return returnObject; }
@@ -90,33 +122,34 @@ signals:
     void saveCalculatedData(QString videoName, QJsonObject data);
     void resizeWindow();
 private slots:
-    /*void showEntropy();
-    void showTennengrad();
-    void showEntropyUpperThreshold();
-    void showEntropyLowerThreshold();
-    void showTennengradUpperThreshold();
-    void showTennengradLowerThreshold();
-    void firstEvaluationEntropy_f();
-    void firstEvaluationTennengrad_f();
-    void firstEvaluation_f();
-    void secondEvaluation_f();
-    void on_ohodnocKomplet_stateChanged(int arg1);
-    void on_IV1_stateChanged(int arg1);
-    void on_IV4_stateChanged(int arg1);
-    void on_IV5_stateChanged(int arg1);*/
+    /**
+     * @brief Shows values of entropy/tennengrad/both (depends what graph is activated) of the frame under the cursor.
+     * @param event
+     */
     void showVals(QMouseEvent* event);
+    /**
+     * @brief Shows/hides an overview of the frame under the cursor.
+     * @param arg1
+     */
     void on_showFrameOverview_stateChanged(int arg1);
-    void fixSize();
     void on_saveResults_clicked();
     void on_saveThresholds_clicked();
+    /**
+     * @brief Invokes context menu - it is possible to change evaluation index of a frame or it is possible to change
+     * referential frame.
+     * @param i_point - mouse click coordinates - helps to determine a frame
+     */
     void showContextMenu(QMouseEvent* i_point);
+    /**
+     * @brief Changes a graph visibility. Shows/hides graphs of entropy, tennengrad and corresponding thresholds.
+     * @sa reactOnDisplayedParameterChange(ValueType i_valueType, bool standardizationRequested)
+     */
     void onReactOnDisplayedParameterChange();
 
 private:
     /**
-     * @brief Function adds bad frame markers (evalType) into the graph.
-     * @param i_graphLine
-     * @param i_tabIndex
+     * @brief Adds bad frame markers (evalType) into the graph.
+     * @param i_graphLine - numeric representation of a graph line
      * @param i_y_coords
      * @param i_x_coords
      * @param i_evalType
@@ -125,120 +158,121 @@ private:
                        QVector<double>& i_x_coords,int i_evalType);
 
     /**
-     * @brief Function hides all elements if neither entropy nor tennegrad are visible.
+     * @brief Hides all elements if neither entropy nor tennegrad are visible.
      */
     void hideAll();
 
     /**
-     * @brief hideSpecificGraph
+     * @brief Hides a specific graph of a thresholds and sets new value of the threshold.
+     * @param i_identificatorValueType - entropy/tennengrad
+     * @param i_identificator - upper/lower
+     * @param newThresholdValue - new value
      */
     void hideSpecificGraph(int i_identificatorValueType, int i_identificator, double newThresholdValue);
 
     /**
-     * @brief Function return the maximum or the minimum of the input vector.
-     * @param i_analysedVector
-     * @param typExtremu
-     * @return
+     * @brief Returns the maximum or minimum of the input vector.
+     * @param i_calculatedThresholds
      */
     void findExtremesAndThresholds(QVector<double> i_calculatedThresholds);
 
     /**
-     * @brief findExtreme
+     * @brief Returns the value of an extreme of the input vector.
      * @param i_vectorForSearch
      * @param extreme
-     * @return
      */
     double findExtreme(QVector<double> i_vectorForSearch, ExtremeType extreme);
 
     /**
-     * @brief Function creates the threshold of entropy or tennengrad for the graphical purpose.
+     * @brief Creates the threshold of entropy or tennengrad for the graphical purpose.
      * @param i_extrem
      * @param threshold
      * @param type
-     * @return
+     * @return Value of the threshold.
      */
     double createThreshold(double i_extrem, ThresholdType threshold, ValueType type);
 
     /**
-     * @brief Function calculates standardized value of the input value.
-     * @param i_inputVector
-     * @param i_standardizedVector
+     * @brief Calculates standardized value of the input value.
+     * @param type - type of the graph
      * @param i_max
      * @param i_min
      */
     void valueStandardization(ValueType type, double i_max, double i_min);
 
     /**
-     * @brief Function calculates standardized value of the input value.
+     * @brief Calculates standardized value of the input value.
      * @param i_originalValue
      * @param i_max
      * @param i_min
-     * @return
+     * @return Standardized value.
      */
     double valueStandardization(double i_originalValue, double i_max, double i_min);
 
     /**
-     * @brief Function creates the vector for the graph.
+     * @brief Creates a vector for the graph. The vector length corresponds with the number of frames of a video
+     * and all vector elements have the same value.
      * @param i_originalValueForVector
      * @param i_frameCount
-     * @return
+     * @return Created vector.
      */
     QVector<double> thresholdLine(double i_originalValueForVector, int i_frameCount);
 
     /**
-     * @brief findReferentialFrame
-     * @return
+     * @brief Looks for the referential frame of the video.
+     * @return Referential frame index.
      */
     int findReferentialFrame();
 
     /**
-     * @brief reactionOnFrameVisibility
-     */
-    //void reactionOnFrameVisibility();
-
-    /**
-     * @brief getAxesValues
+     * @brief Identifies the frame under the mouse cursor.
      * @param i_mouseX_coordinates
-     * @return
+     * @return Index of the chosen frame - it can be used to find entropy and tennengrad value of this frame.
      */
     double getAxesValues(double i_mouseX_coordinates);
 
     /**
-     * @brief showAffectedFrames
-     * @param i_affectedValues
-     * @param i_valueToCompareWith
-     * @param i_criterium
-     * @param i_graphLine
+     * @brief Shows frame with entropy value greater or lesser than the given criterion.
+     * @param i_affectedValues - entropy/tennengrad dvalues of frames
+     * @param i_valueToCompareWith - criterion
+     * @param i_criterion - define if greater or lesser values should be highlighted
+     * @param i_graphLine - index representation of the graph
      */
     void showAffectedFrames(QVector<double> i_affectedValues, double i_valueToCompareWith,
-                            QString i_criterium, int i_graphLine);
+                            QString i_criterion, int i_graphLine);
 
     /**
-     * @brief makeReferential
+     * @brief Marks the given frame as referential.
      * @param i_frameIndex
      */
     void makeReferential(int i_frameIndex);
 
     /**
-     * @brief changeEvalIndex
+     * @brief Changes the evaluation index of the given frame. The new EI value is defined by a user in a
+     * invoked dialog.
      * @param i_frameIndex
      */
     void changeEvalIndex(int i_frameIndex);
 
     /**
-     * @brief closeEvent
+     * @brief Overridden close events checks if any value was changed - if so, saving dialog appears to give a user a choice
+     * to save data.
      * @param event
      */
     void closeEvent(QCloseEvent *event) override;
 
     /**
-     * @brief saveData
+     * @brief Saves available data. It can save all data or just thresholds values.
      * @param i_saveOption
      */
     void saveData(SaveOption i_saveOption);
 
     /**
-     * @brief test
+     * @brief Template function prepares data for savings. Vector with values is converted to JSON array. The array is then
+     * appended to final JSON object.
+     * @tparam i_vector - input vector of type T
+     * @tparam i_objectToFill - final JSON object with all values
+     * @tparam i_parameterName - key in JSON object which will represent added array
      */
     template <typename T>
     void prepareDataForSaving(QVector<T> i_vector,QJsonObject& i_objectToFill, QString i_parameterName) {
@@ -247,82 +281,89 @@ private:
     }
 
     /**
-     * @brief thresholdsToVector
+     * @brief Converts a threshold value into a vector.
      * @return
      */
     QVector<double> thresholdsToVector();
 
     /**
-     * @brief prepareDataForUtilGraphET
-     * @return
-     */
-    QMap<QString,QVector<double>> prepareDataForUtilGraphET();
-
-    /**
-     * @brief reactOnDisplayedParameterChange
+     * @brief Updates the appearance of all shown threshold graphs and highlights frames out of threshold range.
      * @param i_valueType
+     * @param standardizationRequested
      */
     void reactOnDisplayedParameterChange(ValueType i_valueType, bool standardizationRequested);
 
     /**
-     * @brief onReactOnThresholdParameterChange
-     * @param thresholdType
-     * @param thresholdValue
-     * @param isChecked
+     * @brief Takes a threshold value and modifies a threshold graph if visible. The function is called when a threshold value
+     * is changed or when a threshold graph visibility is changed.
+     * @param i_type - entropy/tennengrad
+     * @param i_thresholdType - upper/lower
+     * @param isCheckbox - visibility checkbox or double spin box
      */
     void onReactOnThresholdParameterChange(ValueType i_type,
                                            ThresholdType i_thresholdType,
                                            bool isCheckbox);
 
     /**
-     * @brief reactOnThresholdParameterChange
-     * @param i_valueType
-     * @param standardizationRequested
+     * @brief Updates a threshold graph.
+     * @param i_affectedType - entropy/tennengrad
+     * @param i_actuallyDisplayed - upper/lower
+     * @param i_thresholdValue - actual value
+     * @param i_showAffectedFrames - highlight frames out of the threshold range
+     * @param i_standardizationRequested - if it is necessary to standardize threshold vectors.
      */
     void reactOnThresholdParameterChange(ValueType i_affectedType,
                                          ThresholdType i_actuallyDisplayed, double i_thresholdValue,
                                          bool i_showAffectedFrames, bool i_standardizationRequested);
 
     /**
-     * @brief adjustThresholdVectors
-     * @param i_graphIdentifier
-     * @param i_mapIdentifier
-     * @param i_thresholdIdentifier
+     * @brief When a threshold value is changed, it is necessary to change the graph and save the value.
+     * @param i_mapIdentifier - numeric representation of type and threshold
+     * @param i_thresholdIdentifier - numeric representation of type and threshold which considers possible standardization
+     * @param i_setVisible
      */
     void adjustThresholdVectors(int i_mapIdentifier, int i_thresholdIdentifier,
                                 bool i_setVisible=false);
 
     /**
-     * @brief initDataMaps
+     * @brief Converts given vectors into a QMap objects. Internal connections between data and widgets are created for
+     * much faster and cleaner processing of commands.
+     * @param i_entropy
+     * @param i_tennengrad
+     * @param i_firstEvalEntropy
+     * @param i_firstEvalTennengrad
+     * @param i_firstDecisionResults
+     * @param i_secondDecisionResults
+     * @param i_completeEvaluation
      */
     void initDataMaps(QVector<double> i_entropy,QVector<double> i_tennengrad, QVector<int> i_firstEvalEntropy,
                       QVector<int> i_firstEvalTennengrad, QVector<int> i_firstDecisionResults,
                       QVector<int> i_secondDecisionResults, QVector<int> i_completeEvaluation);
 
     /**
-     * @brief initAffectedFramesConnections
+     * @brief Creates inner connections between thresholds and their graphs.
      */
     void initAffectedFramesConnections();
 
     /**
-     * @brief entropyRelatedWidgetsController
+     * @brief Enables/disables entropy-related widgets.
      * @param status
      */
     void entropyRelatedWidgetsController(bool status);
 
     /**
-     * @brief tennengradRelatedWidgetsController
+     * @brief Enables/disables tennengrad-related widgets.
      * @param status
      */
     void tennengradRelatedWidgetsController(bool status);
 
     /**
-     * @brief showCorrespondingFrames
-     * @param i_valueType
-     * @param i_evaluationType
-     * @param showFramesInGraph
-     * @param ETdependency
-     * @param evaluationType
+     * @brief Shows/hides a graph. This function reacts on user interaction with the dialog.
+     * @param i_valueType - entropy/tennengrad
+     * @param i_evaluationType - evaluation index of affected frames
+     * @param showFramesInGraph - the graph is meant to be shown (true) or hidden (false)
+     * @param ETdependency - if graph is dependent on entropy or tennengrad graph
+     * @param evaluationType - numeric representation of evaluation index
      */
     void showCorrespondingFrames(int i_valueType, int i_evaluationType,
                                  bool showFramesInGraph, bool ETdependency, int i_evaluatioTypeIndex);

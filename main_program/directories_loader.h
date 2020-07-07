@@ -16,6 +16,11 @@ namespace Ui {
 class DirectoriesLoader;
 }
 
+/**
+ * @class DirectoriesLoader
+ * @brief The DirectoriesLoader class provides functions allowing a user to load *.ini file and json file with directories pathes and
+ * save chosen pathes.
+ */
 class DirectoriesLoader : public QWidget
 {
     Q_OBJECT
@@ -35,9 +40,9 @@ public:
     /**
      * @brief The function loads the JSON path stored in the *.ini file, processed by GlobalSettings class
      * @sa processLoadedSettings();
-     * @return path to JSON
+     * @return The result of the loading process.
      */
-    QString LoadSettings();
+    bool LoadSettings();
 
     ~DirectoriesLoader();
 private slots:
@@ -145,8 +150,8 @@ private:
 
     /**
      * @brief Function implements the posibility to delete the highlighted item from a combobox list.
-     * @param obj
-     * @param event
+     * @param[in] obj
+     * @param[in] event
      * @return
      */
     bool eventFilter(QObject *obj, QEvent *event);

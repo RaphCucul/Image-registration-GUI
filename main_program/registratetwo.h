@@ -26,6 +26,11 @@ namespace Ui {
 class RegistrateTwo;
 }
 
+/**
+ * @class RegistrateTwo
+ * @brief The RegistrateTwo class provides widgets and functions to registrate two frames of the video or two images (with
+ * format bmt, jpg and png). A user can choose what should be registrated - frames or images.
+ */
 class RegistrateTwo : public QWidget
 {
     Q_OBJECT
@@ -35,20 +40,19 @@ public:
     ~RegistrateTwo();
 
     /**
-     * @brief The function clears options from Box layout connected with the combobox
+     * @brief Clears options from Box layout connected to the combobox. When a different option in combobox is selected, this
+     * function is called to clear the content of the box layout to enable loading of new widgets.
      * @param layout.
      */
     void clearLayout(QGridLayout *layout);
 
     /**
-     * @brief The function checks, if the path to the video folder exists. If so, the first video from the list of files
+     * @brief Checks, if the path to the video folder exists. If so, the first video from the list of files
      * found in the folder is placed into the line edit.
      */
     void checkPaths();
 protected:
 public slots:
-    //void GetClickCoordinates(QPointF hranice_anomalie);
-    //void chosenVideoPBWrapper();
     void chosenVideoPB_clicked();
     void chosenReferenceImgPB_clicked();
     void chosenTranslatedImgPB_clicked();
@@ -71,50 +75,49 @@ private slots:
     void showDialog();
     void evaluateCorrectValues();
     void on_comboBox_activated(int index);
-    //void onSaveImageCutouts(QRect _standardCutout,QRect _extraCutout);
 
 private:
     Ui::RegistrateTwo *ui;
 
     /**
-     * @brief Functions initalize all widgets from "choice one" option
+     * @brief Initalizes all widgets from "choice one" option
      *  which may appear in the horizontal box layout.
      */
     void initChoiceOneInnerWidgets();
 
     /**
-     * @brief Functions initalize all widgets from "choice two" option
+     * @brief Initalizes all widgets from "choice two" option
      *  which may appear in the horizontal box layout.
      */
     void initChoiceTwoInnerWidgets();
 
     /**
-     * @brief Function populates the layout box with widgets used for frames registration.
+     * @brief Populates the layout box with widgets used for frames registration.
      */
     void placeChoiceOneWidgets();
 
     /**
-     * @brief Function populates the layout box with widgets used for image registration.
+     * @brief Populates the layout box with widgets used for image registration.
      */
     void placeChoiceTwoWidgets();
 
     /**
-     * @brief Similar to analyseAndSaveFirst, this function loads images and save the name of the first one on the
-     * list of found images
-     * @param analysedFolder
-     * @param whereToSave
+     * @brief Checks the content of the folder to discover images (specific formats) and places the name of the first discovered
+     * image to appropriate widget.
+     * @param i_analysedFolder
+     * @param i_whereToSave
      */
     void analyseAndSave(QString i_analysedFolder, QMap<QString, QString> &i_whereToSave);
 
     /**
-     * @brief Function checks, if input video or images can be loaded for next processing step.
-     * @param path
-     * @param method
+     * @brief Checks, if input video or images can be loaded for next processing step.
+     * @param i_path
+     * @param i_method
      */
     bool evaluateVideoImageInput(QString i_path,QString i_method);
 
     /**
-     * @brief Function check if the input values of area maximum, rotation angle and iteration count
+     * @brief Checks if the input values of area maximum, rotation angle and iteration count
      * are correct and if so, it calls the signal to check if all inputs are correct and the button of the main
      * computation algorithm can be then enabled.
      * @param input
@@ -126,8 +129,6 @@ private:
      */
     void checkInputNumber(double i_input,double i_lower,double i_upper,
                           QLineEdit* i_editWidget,double& i_finalValue,bool& i_evaluation);
-
-    //QString getChosenVideoPath();
 
     QMap<QString,QString> chosenVideoAnalysis;
     QMap<QString,QString> chosenReferencialImgAnalysis;
@@ -155,8 +156,6 @@ private:
     bool firstChoiceInitialised = false;
     bool secondChoiceInitialised = false;
 
-    //cv::Point3d frangiMaximumCoords;
-    //int formerIndex = 0;
     QLineEdit* chosenVideoLE;
     QPushButton* chosenVideoPB;
     QLineEdit* referenceNoLE;

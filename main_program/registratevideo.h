@@ -12,6 +12,10 @@ namespace Ui {
 class RegistrateVideo;
 }
 
+/**
+ * @brief The RegistrateVideo class is included in tabs widget maintained by tabs class.
+ * It provides a space for entropy+tennengrad video registration dialogs.
+ */
 class RegistrateVideo : public QWidget
 {
     Q_OBJECT
@@ -21,7 +25,7 @@ public:
     ~RegistrateVideo() override;
 
     /**
-     * @brief Function calls checkPath() functions for single ET analysis and single registration.
+     * @brief Calls checkPath() functions for single ET analysis and single registration.
      */
     void checkPathinitialization();
 signals:

@@ -8,6 +8,13 @@
 
 #include <opencv2/opencv.hpp>
 
+/**
+ * @class RegistrationThread
+ * @brief The RegistrationThread class is derived from QThread class. The object of RregistrationThread class is used to perform frames registration
+ * in an independent thread. The object receives information about the range of frames which should be registrated because the registration
+ * process enables to register more frames at one time. It is then possible divide a video into segments and registrate frames in each segment
+ * independently on other segments.
+ */
 class RegistrationThread : public QThread
 {
     Q_OBJECT
@@ -29,13 +36,26 @@ public:
                                 QMap<QString,int> i_margins,
                                 QMap<QString,double> i_ratios,
                                 QObject *parent = nullptr);
+    /**
+     * @brief It returns calculated data. Maximum frangi coordinates and POC shift is calculated for each frame from the
+     * range, if possible.
+     */
     QMap<QString,QVector<double>> provideResults();
+
+    /**
+     * @brief It returns start and stop frame of the analysis.
+     */
     QVector<int> threadFrameRange();
+
+    /**
+     * @brief It emits a signal to indicate the class object can be destroyed.
+     */
     void dataObtained();
 
 signals:
-    void allWorkDone(int);
-    void errorDetected(int,QString);
+    void allWorkDone(int); /**< the algorithm has finished, data can be downloaded */
+    void errorDetected(int,QString); /**< an error occured in the critical part of the algorithm - calculations stopped */
+    // "Info" signals are providing basic info about the progress of the algorithm
     void x_coordInfo(int,int,QString);
     void y_coordInfo(int,int,QString);
     void angleInfo(int,int,QString);
@@ -44,9 +64,10 @@ signals:
 private slots:
 
 private:
+    /**
+     * @brief Main registration function. Calls helper functions to get expected results.
+     */
     void run();
-
-
 
     cv::VideoCapture capture;
     cv::Mat referencialImage;

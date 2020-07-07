@@ -14,6 +14,10 @@ namespace Ui {
 class tabs;
 }
 
+/**
+ * @class tabs
+ * @brief The tabs class contains QTabWidget with all important program parts placed in independent tabs.
+ */
 class tabs : public QWidget
 {
     Q_OBJECT
@@ -30,12 +34,12 @@ private slots:
     void enableTabs_slot();
 private:
     /**
-     * @brief Function enables the program tabs when a calculation is finished.
+     * @brief Enables the program tabs when a calculation is finished.
      */
     void enableTabs();
 
     /**
-     * @brief Function disables the program tabs when a calculation starts.
+     * @brief Disables the program tabs when a calculation starts.
      */
     void disableTabs();
 
@@ -52,7 +56,6 @@ private:
     RegistrateTwo* registrateTwo;
     RegistrateVideo* registrateVideo;
     ChartInit* initializeGraph;
-    //QHash<QRect,ErrorDialog*> localErrorDialogHandler;
 };
 
 #endif // TABS_H

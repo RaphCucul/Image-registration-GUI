@@ -10,11 +10,20 @@ namespace Ui {
 class GraphET_parent;
 }
 
+/**
+ * @class GraphET_parent
+ * @brief The GraphET_parent class creates GrafET objects for each video from the list. GrafET objects are represented
+ * by individual tabs.
+ */
 class GraphET_parent : public QDialog
 {
     Q_OBJECT
 
 public:
+    /**
+     * @enum namesFlag
+     * @brief The namesFlag enum helps to identify, what should be the name of the tab.
+     */
     enum class namesFlag {
         Fullname,FilenameOnly
     };
@@ -35,33 +44,35 @@ signals:
     void saveCalculatedData(QString videoName, QJsonObject object);
 public slots:
     /**
-     * @brief saveDataForGivenVideo
+     * @brief Saves all parameters which can be changed by a user.
      * @param i_videoName
+     * @param i_newData - JSON object with complete information
      */
     void saveDataForGivenVideo(QString i_videoName,QJsonObject i_newData);
 private:
     /**
-     * @brief Function analyses the length of all given video names.
+     * @brief Analyses the length of all given video names to calculate proper width of tabs.
+     * May extract the name of videos.
+     * @param parameter
      */
     void analyseNames(namesFlag parameter);
 
     /**
-     * @brief Function loads data from chosen *.dat files, creates GraphET class object and adds a new tab
+     * @brief Loads data from chosen *.dat files, creates GraphET object and adds a new tab
      * to the tabWidget.
      */
     void loadAndShow();
 
     /**
-     * @brief prepareData
+     * @brief Loads data from the file of the given video and merges original data (if found) with actual data.
      * @param i_videoName
      * @param loadedData
-     * @return
+     * @return True if loading was successful.
      */
     bool prepareData(QString i_videoName, QJsonObject &loadedData);
 
     /**
-     * @brief Function corresponds to loadAndShow() function but it does not load data from the *.dat file,
-     * it creates the grap directly from given data. Used for SingleVideoET and MultipleVideoET classes.
+     * @brief Creates the grap directly from given data. Used for SingleVideoET and MultipleVideoET classes.
      */
     void processAndShow(QMap<QString,QVector<double>> i_entropy,
                         QMap<QString,QVector<double>> i_tennengrad,

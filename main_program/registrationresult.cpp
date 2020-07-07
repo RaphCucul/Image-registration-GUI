@@ -33,8 +33,6 @@ RegistrationResult::~RegistrationResult()
 
 void RegistrationResult::displayTwo()
 {
-    //reference.copyTo(referencialFrame);
-    //moved.copyTo(registratedFrame);
     setWindowsSize(referencialFrame.cols,referencialFrame.rows);
 
     imageReference = new QImage(referencialFrame.data,
@@ -70,13 +68,13 @@ void RegistrationResult::changeDisplayed(int value)
         //qDebug()<<value;
         if (value == 0)
         {
-            qDebug()<<value;
+            //qDebug()<<value;
             QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageReference));
             scene->addItem(image);
         }
         if (value == 1)
         {
-            qDebug()<<value;
+            //qDebug()<<value;
             QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageSlicovany));
             scene->addItem(image);
         }
@@ -101,9 +99,9 @@ void RegistrationResult::changeDisplayed(int value)
 
 }
 
-void RegistrationResult::setWindowsSize(int sirka,int vyska)
+void RegistrationResult::setWindowsSize(int width, int height)
 {
-    this->setFixedSize(sirka,vyska);
+    this->setFixedSize(width,height);
 }
 
 void RegistrationResult::callTwo()
