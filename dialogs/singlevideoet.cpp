@@ -167,7 +167,7 @@ void SingleVideoET::on_calculateET_clicked()
             analysedVideos.clear();
             analysedVideos.append(fullPath);
             videoNamesList.append(chosenVideoETSingle["filename"]);
-            initMaps(videoNamesList);
+            initMaps();
             canProceed = true;
             if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(chosenVideoETSingle["filename"])){
                 qDebug()<<"Success";
@@ -204,7 +204,7 @@ void SingleVideoET::on_calculateET_clicked()
         }
     }
     else {
-        cancelAllCalculations(videoNamesList);
+        cancelAllCalculations();
         runStatus = true;
         canProceed = false;
         ui->calculateET->setText(tr("Analyze video"));
@@ -481,7 +481,7 @@ void SingleVideoET::onUnexpectedTermination(int videoIndex, QString errorType){
     localErrorDialogHandling[ui->calculateET]->evaluate("left",errorType,"Video could not be analysed.");
     localErrorDialogHandling[ui->calculateET]->show(false);
     if (errorType == "hardError"){
-        cancelAllCalculations(videoNamesList);
+        cancelAllCalculations();
         emit calculationStopped();
     }
 }

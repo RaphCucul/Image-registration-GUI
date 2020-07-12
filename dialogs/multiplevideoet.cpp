@@ -170,7 +170,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
             QObject::connect(First[1],SIGNAL(readyForFinish()),First[1],SLOT(deleteLater()));
             First[1]->start();
 
-            initMaps(videoNamesList);
+            initMaps();
             canProceed = true;
             emit calculationStarted();
             ui->analyzeVideosPB->setText(tr("Cancel"));
@@ -178,7 +178,7 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
         }
     }
     else{
-        cancelAllCalculations(videoNamesList);
+        cancelAllCalculations();
         ui->analyzeVideosPB->setText(tr("Analyse videos"));
         ui->computationProgress->setValue(0);
         ui->actualMethod_label->setText("");
@@ -412,7 +412,7 @@ void MultipleVideoET::onUnexpectedTermination(int videoIndex, QString errorType)
     localErrorDialogHandling[ui->analyzeVideosPB]->evaluate("left",errorType,"Video could not be analysed.");
     localErrorDialogHandling[ui->analyzeVideosPB]->show(false);
     if (errorType == "hardError"){
-        cancelAllCalculations(videoNamesList);
+        cancelAllCalculations();
         emit calculationStopped();
     }
 }
@@ -486,11 +486,11 @@ bool MultipleVideoET::checkVideos(){
         cv::VideoCapture cap = cv::VideoCapture(analysedVideos.at(var).toLocal8Bit().constData());
         if (!cap.isOpened()){
             _badVideos.push_back(var);
-            ui->selectedVideos->item(var)->setBackgroundColor(Qt::red);
+            ui->selectedVideos->item(var)->setBackground(Qt::red);
         }
         else{
             _temp.append(analysedVideos.at(var));
-            ui->selectedVideos->item(var)->setBackgroundColor(Qt::blue);
+            ui->selectedVideos->item(var)->setBackground(Qt::blue);
         }
     }
     if (_badVideos.length() == analysedVideos.count()){
