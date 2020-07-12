@@ -6,6 +6,8 @@
 #include <QJsonObject>
 #include <QMap>
 
+#include <opencv2/opencv.hpp>
+
 namespace Ui {
 class GraphET_parent;
 }
@@ -83,6 +85,10 @@ private:
                         QMap<QString,QVector<int>> i_SecondDecisionResults,
                         QMap<QString,QVector<int>> i_CompleteEvaluation);
 
+    /**
+     * @brief Sets size of the dialogue.
+     */
+    void sizeSettings();
     Ui::GraphET_parent *ui;
     QStringList fileList,filenameList;
     QStringList neededParameters = {"entropy","tennengrad","thresholds","evaluation","firstEvalEntropy",
@@ -91,6 +97,7 @@ private:
                                  "angle","thresholds","evaluation","firstEvalEntropy","firstEvalTennengrad",
                                  "firstEval","secondEval","standard","extra"};
     QMap<QString,QString> videoReferences;
+    QMap<QString,QMap<QString,cv::Rect>> videosAnomalies;
 };
 
 #endif // GRAPHET_PARENT_H

@@ -13,6 +13,7 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,QWidget *parent) :
     analyseNames(namesFlag::FilenameOnly);
     loadAndShow();
     this->setStyleSheet("background-color: white");
+    sizeSettings();
 }
 
 GraphET_parent::GraphET_parent(QStringList i_chosenList,
@@ -32,11 +33,17 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,
     processAndShow(i_entropy,i_tennengrad,i_thresholds,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
                    i_SecondDecisionResults,i_CompleteEvaluation);
     this->setStyleSheet("background-color: white");
+    sizeSettings();
 }
 
 GraphET_parent::~GraphET_parent()
 {
     delete ui;
+}
+
+void GraphET_parent::sizeSettings() {
+    this->setMinimumSize(1045,521);
+    this->setMaximumSize(1100,540);
 }
 
 void GraphET_parent::analyseNames(namesFlag parameter){
@@ -63,7 +70,7 @@ void GraphET_parent::analyseNames(namesFlag parameter){
                 continue;
         }
     }
-    maxLength*=7;
+    maxLength*=9;
     ui->tabWidget->setStyleSheet("QTabBar::tab { height:20px; width:"+QString::number(maxLength)+"px; }");
 }
 
@@ -104,9 +111,22 @@ void GraphET_parent::loadAndShow(){
                 else{
                     mapInt.insert(neededParameters.at(parameterIndex),_pomI);
                 }
+
+                if (parameterIndex+1 == neededParameters.count()) {
+                    // last parameter is supposed to be processed
+                    QJsonArray loadedStandardAnomaly = loadedJSON["standard"].toArray();
+                    QJsonArray loadedExtraAnomaly = loadedJSON["extra"].toArray();
+                    QMap<QString,cv::Rect> __p;
+                    __p.insert(video,convertVector2Rect(array2vector<int>(loadedStandardAnomaly)));
+                    videosAnomalies.insert("standard",__p);
+                    __p.clear();
+                    __p.insert(video,convertVector2Rect(array2vector<int>(loadedExtraAnomaly)));
+                    videosAnomalies.insert("extra",__p);
+                }
             }
         }
     }
+
 
     int index = 0;
     foreach (QString video, filenameList){
@@ -121,10 +141,6 @@ void GraphET_parent::loadAndShow(){
                                     video,"avi");
         ui->tabWidget->addTab(_graph,filenameList.at(index));
         index++;
-        /*connect(_graph,&GrafET::saveCalculatedData,[=](){
-            qDebug()<<"Saving data from GrafET class object for video "<<_graph->getVideoName()<<"\n"<<"passing the signal";
-            emit saveCalculatedData(_graph->getVideoName(), _graph->getReturnJSONObject());
-        });*/
         connect(_graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SLOT(saveDataForGivenVideo(QString,QJsonObject)));
         connect(_graph,&GrafET::resizeWindow,[=](){
             resize(sizeHint());
@@ -152,10 +168,6 @@ void GraphET_parent::processAndShow(QMap<QString,QVector<double>> i_entropy,
                                     i_CompleteEvaluation[file],
                                     file,"avi");
         ui->tabWidget->addTab(_graph,file);
-        /*connect(_graph,&GrafET::saveCalculatedData,[=](){
-            qDebug()<<"Saving data from GrafET class object for video "<<_graph->getVideoName()<<"\n"<<"passing the signal";
-            emit saveCalculatedData(_graph->getVideoName(), _graph->getReturnJSONObject());
-        });*/
         connect(_graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SIGNAL(saveCalculatedData(QString,QJsonObject)));
         connect(_graph,&GrafET::resizeWindow,[=](){
             resize(sizeHint());
@@ -170,14 +182,19 @@ void GraphET_parent::saveDataForGivenVideo(QString i_videoName,QJsonObject i_new
         foreach (QString key, i_newData.keys()) {
             loadedData[key] = i_newData[key];
         }
-        document.setObject(loadedData);
-        QString documentString = document.toJson();
-        QFile writer;
-        writer.setFileName(videoReferences.key(i_videoName));
-        writer.open(QIODevice::WriteOnly);
-        writer.write(documentString.toLocal8Bit());
-        writer.close();
     }
-    else
-        qDebug()<<"Saving for "<<i_videoName<<" failed";
+    else {
+        loadedData = i_newData;
+    }
+
+    loadedData["standard"] = vector2array<int>(convertRect2Vector(videosAnomalies["standard"][i_videoName]));
+    loadedData["extra"] = vector2array<int>(convertRect2Vector(videosAnomalies["extra"][i_videoName]));
+
+    document.setObject(loadedData);
+    QString documentString = document.toJson();
+    QFile writer;
+    writer.setFileName(videoReferences.key(i_videoName));
+    writer.open(QIODevice::WriteOnly);
+    writer.write(documentString.toLocal8Bit());
+    writer.close();
 }
