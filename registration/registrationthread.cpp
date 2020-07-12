@@ -4,11 +4,8 @@
 #include "image_analysis/correlation_coefficient.h"
 #include "image_analysis/frangi_utilization.h"
 #include "registration/phase_correlation_function.h"
-#include <opencv2/core.hpp>
+
 #include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
 
 #include <QDebug>
 #include <QTableWidgetItem>
@@ -30,8 +27,8 @@ RegistrationThread::RegistrationThread(int& i_indexOfThread,
                                        int& i_iteration,
                                        double& i_areaMaximum,
                                        double& i_angle,
-                                       int &i_horizAnomaly,
-                                       int &i_vertAnomaly,
+                                       cv::Rect &i_cutoutExtra,
+                                       cv::Rect &i_cutoutStandard,
                                        bool i_scaleChange,
                                        QMap<QString,int> i_margins,
                                        QMap<QString,double> i_ratios,
@@ -44,8 +41,8 @@ RegistrationThread::RegistrationThread(int& i_indexOfThread,
     stoppingFrame(stopFrame),
     maximalArea(i_areaMaximum),
     angle(i_angle),
-    horizontalAnomaly(i_horizAnomaly),
-    verticalAnomaly(i_vertAnomaly),
+    standardCutout(i_cutoutStandard),
+    extraCutout(i_cutoutExtra),
     scaling(i_scaleChange),
     threadIndex(i_indexOfThread),
     videoName(i_nameOfVideo),
@@ -205,71 +202,42 @@ bool registrationCorrection(cv::Mat& i_registratedFrame,
 void RegistrationThread::run()
 {
     /// define helpers for frame preprocessing
-    //bool lightAnomalyPresent = false;
-    //bool timeStampPresent = false;
     bool scaling=false;
     /// frame and video properties
     double width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
     double height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
 
-    if (verticalAnomaly >0.0f && verticalAnomaly < float(width))
-    {
-        obtainedVerticalAnomalyCoords.x = verticalAnomaly;
-        obtainedVerticalAnomalyCoords.y = 0;
-        //lightAnomalyPresent=true;
+    if (extraCutout.width!=0 && extraCutout.height!=0) {
+        adjustedStandardCutout = adjustStandardCutout(extraCutout,
+                                                      standardCutout,
+                                                      height,width);
         scaling = true;
     }
-    else
-    {
-        obtainedVerticalAnomalyCoords.x = 0.0f;
-        obtainedVerticalAnomalyCoords.y = 0.0f;
-    }
-    if (horizontalAnomaly > 0.0f && horizontalAnomaly < float(height))
-    {
-        obtainedHorizontalAnomalyCoords.y = horizontalAnomaly;
-        obtainedHorizontalAnomalyCoords.x = 0;
-        //timeStampPresent=true;
-        scaling=true;
-    }
-    else
-    {
-        obtainedHorizontalAnomalyCoords.y = 0.0f;
-        obtainedHorizontalAnomalyCoords.x = 0.0f;
-    }
-    Rect pom(0,0,0,0);
-    correl_standard = pom;
-    correl_extra = pom;
-    anomalyCutoff = pom;
+
     Point3d pt_temp(0.0,0.0,0.0);
-    Mat preprocessed,preprocessed_vyrez;
-    if(!imagePreprocessing(referencialImage,
-                           preprocessed,
-                           frangiParameters,
-                           obtainedVerticalAnomalyCoords,
-                           obtainedHorizontalAnomalyCoords,
-                           anomalyCutoff,
-                           correl_extra,
-                           correl_standard,
-                           capture,
-                           scaling,
-                           margins,
-                           ratios)){
-        emit errorDetected(threadIndex,QString(tr("Frame preprocessing failed for %1.")).arg(videoName));
-        return;
+    Mat preprocessed,preprocessed_cutout;
+    if (scaling) {
+        referencialImage(extraCutout).copyTo(preprocessed);
+        preprocessed(adjustedStandardCutout).copyTo(preprocessed_cutout);
     }
-    preprocessed(correl_standard).copyTo(preprocessed_vyrez);
+    else {
+        referencialImage.copyTo(preprocessed);
+        preprocessed(standardCutout).copyTo(preprocessed_cutout);
+    }
     Point3d frangiMaxReversal = frangi_analysis(preprocessed,2,2,0,"",1,pt_temp,frangiParameters,margins);
     if (frangiMaxReversal.z == 0.0){
         emit errorDetected(threadIndex,QString(tr("Frangi filter for referencial image failed for %1.")).arg(videoName));
         return;
     }
-    //qDebug()<<"Frangi reversal: "<<frangiMaxReversal.x<<" "<<frangiMaxReversal.y;
+
     for (int indexFrame = startingFrame; indexFrame <= stoppingFrame; indexFrame++)
     {
         bool errorOccured = false;
         if (framesEvaluation[indexFrame] == 0){
-            if (!registrateTheBest(capture,referencialImage,frangiMaxReversal,indexFrame,iteration,maximalArea,
-                                   totalAngle,correl_extra,correl_standard,scaling,frangiParameters,
+            if (!registrateTheBest(capture,preprocessed,frangiMaxReversal,indexFrame,iteration,maximalArea,
+                                   totalAngle,extraCutout,
+                                   scaling ? adjustedStandardCutout : standardCutout,
+                                   scaling,frangiParameters,
                                    finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles,margins)){
                 errorOccured = true;
                 continue;
@@ -290,7 +258,7 @@ void RegistrationThread::run()
                 if (scaling == true)
                 {
                     Mat shifted;
-                    shifted_temp(correl_extra).copyTo(shifted);
+                    shifted_temp(extraCutout).copyTo(shifted);
                     Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted,2,2,0,"",1,pt_temp,
                                                                                 frangiParameters,margins);
                     if (frangiCoords_preprocessed_reverse.z == 0.0){
@@ -349,13 +317,13 @@ void RegistrationThread::run()
         {
             Mat registratedFrame;
             if (!fullRegistration(capture,
-                                  referencialImage,
+                                  preprocessed,
                                   indexFrame,
                                   iteration,
                                   maximalArea,
                                   angle,
-                                  correl_extra,
-                                  correl_standard,
+                                  extraCutout,
+                                  scaling ? adjustedStandardCutout : standardCutout,
                                   scaling,
                                   registratedFrame,
                                   finalPOCx,
@@ -376,7 +344,7 @@ void RegistrationThread::run()
                 Point3d translationCorrection(0.0,0.0,0.0);
                 cv::Mat fully_registratedFrame;
                 if (!registrationCorrection(registratedFrame,preprocessed,fully_registratedFrame,
-                                            correl_standard,
+                                            scaling ? adjustedStandardCutout : standardCutout,
                                             translationCorrection,
                                             maximalArea)){
                     errorOccured = true;
@@ -446,8 +414,9 @@ void RegistrationThread::run()
     if (framesEvaluation[startingFrame] == 0 || framesEvaluation[startingFrame] == 1 ||
             framesEvaluation[startingFrame] == 4){
         //qDebug()<<"Recalculating starting frame "<<startingFrame;
-        if (registrateTheBest(capture,referencialImage,frangiMaxReversal,startingFrame,iteration,maximalArea,
-                               totalAngle,correl_extra,correl_standard,scaling,frangiParameters,
+        if (registrateTheBest(capture,preprocessed,frangiMaxReversal,startingFrame,iteration,maximalArea,
+                               totalAngle,extraCutout,
+                              scaling ? adjustedStandardCutout : standardCutout,scaling,frangiParameters,
                                finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles,margins)){
             emit x_coordInfo(startingFrame,0,QString::number(finalPOCx[startingFrame]));
             emit y_coordInfo(startingFrame,1,QString::number(finalPOCy[startingFrame]));
@@ -505,8 +474,8 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
     else
     {
         //qDebug()<<"Full registration correct.";
-        Mat refSnimek_vyrez;
-        i_referencialFrame(i_cutoutStandard).copyTo(refSnimek_vyrez);
+        Mat refSnimek_cutout;
+        i_referencialFrame(i_cutoutStandard).copyTo(refSnimek_cutout);
         int rows = i_referencialFrame.rows;
         int cols = i_referencialFrame.cols;
         if (std::abs(_pocX[i_index_translated]) == 999.0)
@@ -526,7 +495,7 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
             {
                 qWarning()<<"Frame "<<i_index_translated<<" could not be read!";
             }
-            Mat interresult32f,interresult32f_vyrez,shifted;
+            Mat interresult32f,interresult32f_cutout,shifted;
             if (i_scaleChanged == true)
             {
                 shifted_temp(i_cutoutExtra).copyTo(shifted);
@@ -561,7 +530,7 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
 
                 registratedCorrectedFrame.copyTo(interresult32f);
                 transformMatTypeTo32C1(interresult32f);
-                interresult32f(i_cutoutStandard).copyTo(interresult32f_vyrez);
+                interresult32f(i_cutoutStandard).copyTo(interresult32f_cutout);
                 double R1 = calculateCorrCoef(i_referencialFrame,registratedCorrectedFrame,i_cutoutStandard);
                 Point3d _tempTranslation = Point3d(_pocX[i_index_translated],_pocY[i_index_translated],0.0);
 
@@ -587,14 +556,14 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
 
                 Mat shifted2 = frameTranslation(shifted,finalTranslation,rows,cols);
                 Mat finalFrame = frameRotation(shifted2,_maxAngles[i_index_translated]);
-                //Mat finalFrame_32f,finalFrame_32f_vyrez;
+                //Mat finalFrame_32f,finalFrame_32f_cutout;
                 /*finalFrame.copyTo(finalFrame_32f);
                 transformMatTypeTo32C1(finalFrame_32f);
-                finalFrame_32f(i_cutoutStandard).copyTo(finalFrame_32f_vyrez);
+                finalFrame_32f(i_cutoutStandard).copyTo(finalFrame_32f_cutout);
                 finalFrame_32f.release();*/
                 shifted2.release();
                 double R2 = calculateCorrCoef(i_referencialFrame,finalFrame,i_cutoutStandard);
-                // finalFrame_32f_vyrez.release();
+                // finalFrame_32f_cutout.release();
                 if (R1 >= R2)
                 {
                     //qDebug()<< "Frame "<<i_index_translated<<" written after standard registration.";
@@ -645,7 +614,7 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                     _pocY[i_index_translated] = finalTranslation.y;
                 }
                 interresult32f.release();
-                interresult32f_vyrez.release();
+                interresult32f_cutout.release();
                 return true;
             }
         }
@@ -679,21 +648,21 @@ bool fullRegistration(cv::VideoCapture& i_cap,
         int cols = i_referencialFrame.cols;
         Mat hann;
         createHanningWindow(hann, i_referencialFrame.size(), CV_32FC1);
-        Mat referencialFrame_32f,referencialFrame_vyrez;
+        Mat referencialFrame_32f,referencialFrame_cutout;
         i_referencialFrame.copyTo(referencialFrame_32f);
         transformMatTypeTo32C1(referencialFrame_32f);
-        referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_vyrez);
-        Mat shifted, shifted_vyrez;
+        referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_cutout);
+        Mat shifted, shifted_cutout;
         if (i_scaleChange == true)
         {
             shifted_temp(i_cutoutExtra).copyTo(shifted);
-            shifted(i_cutoutStandard).copyTo(shifted_vyrez);
+            shifted(i_cutoutStandard).copyTo(shifted_cutout);
             shifted_temp.release();
         }
         else
         {
             shifted_temp.copyTo(shifted);
-            shifted(i_cutoutStandard).copyTo(shifted_vyrez);
+            shifted(i_cutoutStandard).copyTo(shifted_cutout);
             shifted_temp.release();
         }
         Mat shifted_32f;
@@ -709,7 +678,7 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                 pt1 = pc_translation(referencialFrame_32f,shifted_32f,i_areaMaximum);
 
             if (std::abs(pt1.x)>=290 || std::abs(pt1.y)>=290)
-                pt1 = pc_translation(referencialFrame_vyrez,shifted_vyrez,i_areaMaximum);
+                pt1 = pc_translation(referencialFrame_cutout,shifted_cutout,i_areaMaximum);
         }
         if (i_scaleChange == false)
         {
@@ -732,7 +701,7 @@ bool fullRegistration(cv::VideoCapture& i_cap,
             //if (cislo_shifted == 0)
                 //qDebug()<<"PT1: "<<pt1.x<<" "<<pt1.y;
             registrated1 = frameTranslation(shifted,pt1,rows,cols);
-            cv::Mat registrated1_32f_rotace,registrated1_32f,registrated1_vyrez;
+            cv::Mat registrated1_32f_rotace,registrated1_32f,registrated1_cutout;
             registrated1.copyTo(registrated1_32f);
             transformMatTypeTo32C1(registrated1_32f);
             Point3d rotation_result = pc_rotation(referencialFrame_32f,registrated1_32f,i_angle,pt1.z,pt1);
@@ -741,10 +710,10 @@ bool fullRegistration(cv::VideoCapture& i_cap,
 
             i_maxAngles[i_shiftedNo] = rotation_result.y;
             registrated1_32f_rotace = frameRotation(registrated1_32f,rotation_result.y);
-            registrated1_32f_rotace(i_cutoutStandard).copyTo(registrated1_vyrez);
+            registrated1_32f_rotace(i_cutoutStandard).copyTo(registrated1_cutout);
 
             Point3d pt2(0.0,0.0,0.0);
-            pt2 = pc_translation(referencialFrame_vyrez,registrated1_vyrez,i_areaMaximum);
+            pt2 = pc_translation(referencialFrame_cutout,registrated1_cutout,i_areaMaximum);
             if (pt2.x >= 55 || pt2.y >= 55)
             {
                 i_pocX[i_shiftedNo] = 999.0;
@@ -761,7 +730,7 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                 //qDebug()<<"FWHM for "<<cislo_shifted<<" = "<<FWHM;
                 registrated1.release();
                 registrated1_32f.release();
-                registrated1_vyrez.release();
+                registrated1_cutout.release();
                 //if (cislo_shifted == 0)
                     //qDebug()<<"PT2: "<<pt2.x<<" "<<pt2.y;
 
@@ -772,16 +741,16 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                 i_pocX[i_shiftedNo] = pt3.x;
                 i_pocY[i_shiftedNo] = pt3.y;
                 Mat registrated2 = frameTranslation(shifted,pt3,rows,cols);
-                Mat registrated2_32f,registrated2_vyrez;
+                Mat registrated2_32f,registrated2_cutout;
                 registrated2.copyTo(registrated2_32f);
                 transformMatTypeTo32C1(registrated2_32f);
                 Mat registrated2_rotace = frameRotation(registrated2_32f,rotation_result.y);
-                registrated2_rotace(i_cutoutStandard).copyTo(registrated2_vyrez);
-                Mat interresult_vyrez,interresult;
+                registrated2_rotace(i_cutoutStandard).copyTo(registrated2_cutout);
+                Mat interresult_cutout,interresult;
                 registrated2_rotace.copyTo(interresult);
-                registrated2_vyrez.copyTo(interresult_vyrez);
+                registrated2_cutout.copyTo(interresult_cutout);
                 //registrated2.release();
-                registrated2_vyrez.release();
+                registrated2_cutout.release();
                 registrated2_32f.release();
                 registrated2_rotace.release();
                 totalAngle+=rotation_result.y;
@@ -818,12 +787,12 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                         rotatedFrame = interresult;
 
                     rotace_ForLoop.y = 0.0;
-                    Mat rotatedFrame_vyrez;
-                    rotatedFrame(i_cutoutStandard).copyTo(rotatedFrame_vyrez);
+                    Mat rotatedFrame_cutout;
+                    rotatedFrame(i_cutoutStandard).copyTo(rotatedFrame_cutout);
                     rotatedFrame.release();
                     Point3d pt4(0.0,0.0,0.0);
-                    pt4 = pc_translation(referencialFrame_vyrez,rotatedFrame_vyrez,i_areaMaximum);
-                    rotatedFrame_vyrez.release();
+                    pt4 = pc_translation(referencialFrame_cutout,rotatedFrame_cutout,i_areaMaximum);
+                    rotatedFrame_cutout.release();
                     if (pt4.x >= 55 || pt4.y >= 55)
                     {
                         registrated2.copyTo(i_fullyRegistrated);
@@ -861,140 +830,6 @@ bool fullRegistration(cv::VideoCapture& i_cap,
     }
 };
 
-bool imagePreprocessing(cv::Mat &i_referencialFrame,
-                        cv::Mat &i_preprocessed,
-                        QMap<QString,double> &i_frangiParameters,
-                        cv::Point2f &i_verticalAnomaly,
-                        cv::Point2f &i_horizontalAnomaly,
-                        cv::Rect &i_anomalyArea,
-                        cv::Rect &i_coutouExtra,
-                        cv::Rect &i_cutoutStandard,
-                        cv::VideoCapture &i_cap,
-                        bool &i_scaleChange,
-                        QMap<QString,int> i_margins,
-                        QMap<QString,double> i_ratios)
-{
-    try {
-        cv::Point3d pt_temp(0.0,0.0,0.0);
-        cv::Point3d frangiCoords(0.0,0.0,0.0);
-        double width = i_cap.get(CV_CAP_PROP_FRAME_WIDTH);
-        double height = i_cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-        bool verticalAnomalyPresence = false;
-        bool horizontalAnomalyPresence = false;
-        if (i_verticalAnomaly.y != 0.0f)
-        {
-            if (i_verticalAnomaly.y < float(width/2))
-            {
-                i_anomalyArea.y = int(i_verticalAnomaly.y);
-                i_anomalyArea.height = int(height-int(i_verticalAnomaly.y));
-                i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
-            }
-            if (i_verticalAnomaly.y > float(width/2))
-            {
-                i_anomalyArea.height = int(i_verticalAnomaly.y);
-                i_anomalyArea.width = int(i_cap.get(CV_CAP_PROP_FRAME_WIDTH));
-            }
-            verticalAnomalyPresence = true;
-        }
-        if (i_horizontalAnomaly.x != 0.0f)
-        {
-            if (i_horizontalAnomaly.x < float(height/2))
-            {
-                i_anomalyArea.x = int(i_horizontalAnomaly.x);
-                if (!verticalAnomalyPresence)
-                    i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-                i_anomalyArea.width = int(width-int(i_horizontalAnomaly.x));
-            }
-            if (i_horizontalAnomaly.x > float(width/2))
-            {
-                if (!verticalAnomalyPresence)
-                    i_anomalyArea.height = int(i_cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-                i_anomalyArea.width = int(i_horizontalAnomaly.x);
-            }
-            horizontalAnomalyPresence = true;
-        }
-        if (verticalAnomalyPresence == true || horizontalAnomalyPresence == true)
-            frangiCoords = frangi_analysis(i_referencialFrame(i_anomalyArea),1,1,0,"",3,pt_temp,
-                                           i_frangiParameters,i_margins);
-        else
-            frangiCoords = frangi_analysis(i_referencialFrame,1,1,0,"",1,pt_temp,i_frangiParameters,i_margins);
-
-        if (frangiCoords.z == 0.0)
-        {
-            return false;
-        }
-        else
-        {
-            bool needToChangeScale = false;
-            int rows = i_referencialFrame.rows;
-            int cols = i_referencialFrame.cols;
-            int rowFrom = int(round(frangiCoords.y-i_ratios["top_r"]*frangiCoords.y));
-            int rowTo = int(round(frangiCoords.y+i_ratios["bottom_r"]*(rows - frangiCoords.y)));
-            int columnFrom = 0;
-            int columnTo = 0;
-
-            if (verticalAnomalyPresence == true && i_verticalAnomaly.y != 0.0f && int(i_verticalAnomaly.y)<(cols/2))
-            {
-                columnFrom = int(i_verticalAnomaly.y);
-                needToChangeScale = true;
-            }
-            else
-                columnFrom = int(round(frangiCoords.x-i_ratios["left_r"]*(frangiCoords.x)));
-
-            if (verticalAnomalyPresence == true && i_verticalAnomaly.y != 0.0f &&  int(i_verticalAnomaly.y)>(cols/2))
-            {
-                columnTo = int(i_verticalAnomaly.y);
-                needToChangeScale = true;
-            }
-            else
-                columnTo = int(round(frangiCoords.x+i_ratios["right_r"]*(cols - frangiCoords.x)));
-
-            int cutout_width = columnTo-columnFrom;
-            int cutout_height = rowTo - rowFrom;
-
-            if (needToChangeScale)
-            {
-                i_coutouExtra.x = columnFrom;
-                i_coutouExtra.y = rowFrom;
-                i_coutouExtra.width = cutout_width;
-                i_coutouExtra.height = cutout_height;
-
-                i_referencialFrame(i_coutouExtra).copyTo(i_preprocessed);
-
-                frangiCoords = frangi_analysis(i_preprocessed,1,1,0,"",1,pt_temp,i_frangiParameters,i_margins);
-                rows = i_preprocessed.rows;
-                cols = i_preprocessed.cols;
-                rowFrom = int(round(frangiCoords.y-0.9*frangiCoords.y));
-                rowTo = int(round(frangiCoords.y+0.9*(rows - frangiCoords.y)));
-                columnFrom = int(round(frangiCoords.x-0.9*(frangiCoords.x)));
-                columnTo = int(round(frangiCoords.x+0.9*(cols - frangiCoords.x)));
-                cutout_width = columnTo-columnFrom;
-                cutout_height = rowTo - rowFrom;
-                i_cutoutStandard.x = columnFrom;
-                i_cutoutStandard.y = rowFrom;
-                i_cutoutStandard.width = cutout_width;
-                i_cutoutStandard.height = cutout_height;
-                i_scaleChange = true;
-            }
-            else
-            {
-                i_cutoutStandard.x = int(round(frangiCoords.x-i_ratios["left_r"]*(frangiCoords.x)));
-                i_cutoutStandard.y = int(round(frangiCoords.y-i_ratios["top_r"]*frangiCoords.y));
-                rowTo = int(round(frangiCoords.y+i_ratios["bottom_r"]*(rows - frangiCoords.y)));
-                columnTo = int(round(frangiCoords.x+i_ratios["right_r"]*(cols - frangiCoords.x)));
-                i_cutoutStandard.width = columnTo-i_cutoutStandard.x;
-                i_cutoutStandard.height = rowTo - i_cutoutStandard.y;
-
-                i_referencialFrame.copyTo(i_preprocessed);
-            }
-            return true;
-        }
-    } catch (std::exception &e) {
-        qWarning()<<"Image preprocessing error: "<<e.what();
-        return false;
-    }
-};
-
 bool registrationCorrection(cv::Mat& i_registratedFrame,
                             cv::Mat& i_frame,
                             cv::Mat &i_corrected,
@@ -1003,19 +838,19 @@ bool registrationCorrection(cv::Mat& i_registratedFrame,
                             double i_areaMaximum)
 {
     try {
-        Mat interresult,interresult32f,interresult32f_vyrez,obraz_vyrez;
+        Mat interresult,interresult32f,interresult32f_cutout,obraz_cutout;
         i_registratedFrame.copyTo(interresult);
         int rows = i_registratedFrame.rows;
         int cols = i_registratedFrame.cols;
         //interresult.copyTo(interresult32f);
         //transformMatTypeTo32C1(interresult32f);
-        //interresult32f(vyrez_korelace_standard).copyTo(interresult32f_vyrez);
-        i_frame(i_cutoutStandard).copyTo(obraz_vyrez);
+        //interresult32f(vyrez_korelace_standard).copyTo(interresult32f_cutout);
+        i_frame(i_cutoutStandard).copyTo(obraz_cutout);
 
         double R1 = calculateCorrCoef(i_frame,interresult,i_cutoutStandard);
 
         //interresult32f.release();
-        //interresult32f_vyrez.release();
+        //interresult32f_cutout.release();
 
         Point3d shiftCorrection(0.0,0.0,0.0);
         shiftCorrection = pc_translation_hann(i_frame,interresult,i_areaMaximum);
@@ -1025,7 +860,7 @@ bool registrationCorrection(cv::Mat& i_registratedFrame,
         }
         if (std::abs(shiftCorrection.x) > 290 || std::abs(shiftCorrection.y) > 290)
         {
-            shiftCorrection = pc_translation(obraz_vyrez,interresult32f_vyrez,i_areaMaximum);
+            shiftCorrection = pc_translation(obraz_cutout,interresult32f_cutout,i_areaMaximum);
         }
         i_corrected = frameTranslation(interresult,shiftCorrection,rows,cols);
         double R2 = calculateCorrCoef(i_frame,i_corrected,i_cutoutStandard);

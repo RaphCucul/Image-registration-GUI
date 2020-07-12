@@ -30,8 +30,8 @@ public:
                                 int& i_iteration,
                                 double& i_areaMaximum,
                                 double& i_angle,
-                                int &i_horizAnomaly,
-                                int &i_vertAnomaly,
+                                cv::Rect& i_cutoutExtra,
+                                cv::Rect& i_cutoutStandard,
                                 bool i_scaleChange,
                                 QMap<QString,int> i_margins,
                                 QMap<QString,double> i_ratios,
@@ -82,17 +82,13 @@ private:
     int pomCounter=0;
     double maximalArea;
     double angle;
-    float horizontalAnomaly;
-    float verticalAnomaly;
+    cv::Rect standardCutout;
+    cv::Rect adjustedStandardCutout;
+    cv::Rect extraCutout;
     double frameCount;
-    cv::Rect correl_standard;
-    cv::Rect correl_extra;
-    cv::Rect anomalyCutoff;
     bool scaling=false;
     double totalAngle=0.0;
     cv::Point3d totalTranslation;
-    cv::Point2f obtainedVerticalAnomalyCoords;
-    cv::Point2f obtainedHorizontalAnomalyCoords;
     int threadIndex = -1;
     QString videoName;
     QString videoPath;
