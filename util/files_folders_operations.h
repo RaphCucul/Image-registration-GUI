@@ -139,10 +139,16 @@ bool checkAndLoadData(QString i_parameter, QString i_videoName, QVector<T>& o_ve
 QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input);
 
 /**
- * @brief Converrs cv::Rect object into a vector.
+ * @brief Converts cv::Rect object into a vector.
  * @param[in] i_rectangular
  */
 QVector<int> convertRect2Vector(cv::Rect i_rectangular);
+
+/**
+ * @brief Converts vector into a cv::Rect object.
+ * @param i_vector
+ */
+cv::Rect convertVector2Rect(QVector<int> i_vector);
 
 /**
  * @brief It checks the existence of the referential frame in the *.dat file of the given video.

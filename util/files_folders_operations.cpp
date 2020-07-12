@@ -144,6 +144,15 @@ QVector<int> convertRect2Vector(cv::Rect i_rectangular) {
     return _returnVector;
 }
 
+cv::Rect convertVector2Rect(QVector<int> i_vector) {
+    cv::Rect _returnRect;
+    _returnRect.x = i_vector[0];
+    _returnRect.y = i_vector[1];
+    _returnRect.width = i_vector[2];
+    _returnRect.height = i_vector[3];
+    return _returnRect;
+}
+
 bool checkReferentialFrameExistence(QString i_folder, QString i_videoName, int i_referentialFrame){
     QFile file;
     file.setFileName(i_folder+"/"+i_videoName+".dat");
