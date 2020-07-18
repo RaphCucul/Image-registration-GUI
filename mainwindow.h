@@ -13,6 +13,7 @@
 //#include <QEvent>
 #include "util/systemmonitor.h"
 #include "dialogs/errordialog.h"
+#include "util/versioncheckerparent.h"
 
 namespace Ui {
 class MainWindow;
@@ -30,6 +31,7 @@ private slots:
     void onStopUpdatingWidget();
     void slotLanguageChanged(QAction* action);
     void slotSettingsChanged(QAction* action);
+    void slotHelpChanged(QAction* action);
     void versionChecked(bool status);
     void timerTimeOut();
     void onHddUsagePlotClicked(bool newStatus);
@@ -43,11 +45,14 @@ private:
     void switchTranslator(QString language);
     QActionGroup* languageGroup = nullptr;
     QActionGroup* settingsGroup = nullptr;
+    QActionGroup* helpGroup = nullptr;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandler;
     bool alreadyEvaluated = false;
-    QLabel* versionInfoStatus = nullptr;
+    QLabel* CPUusedLabel = nullptr;
+    QLabel* versionActual = nullptr;
 
     int timerCounter = 0;
     QTimer* timer = nullptr;
+    VersionCheckerParent* vcp = nullptr;
 };
 #endif // MAINWINDOW_H

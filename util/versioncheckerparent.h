@@ -18,7 +18,7 @@ class VersionCheckerParent : public QObject
 public:
     explicit VersionCheckerParent(QObject *parent = nullptr);
     virtual ~VersionCheckerParent();
-
+    std::string getActualVersion();
 signals:
     void analysed();
     void versionChecked(bool status);
