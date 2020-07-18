@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QThread>
 
 #include <iostream>
 #include <fstream>
@@ -76,6 +77,13 @@ GlobalSettings *GlobalSettings::getSettings()
         m_Settings =  new GlobalSettings();
     }
     return m_Settings;
+}
+
+bool GlobalSettings::checkPresenceOfSetting(QString i_settingToCheck) {
+    if (settings->allKeys().indexOf(i_settingToCheck) != -1)
+        return true;
+    else
+        return false;
 }
 
 QString GlobalSettings::getFileFolderDirectoriesPath() const
@@ -178,4 +186,13 @@ bool GlobalSettings::isHDDMonitorEnabled() {
 void GlobalSettings::setHDDMonitorStatus(bool status) {
     settings->setValue("hddMonitor",status);
     settings->sync();
+}
+
+void GlobalSettings::setUsedCores(int i_cores) {
+    settings->setValue("UsedCores",i_cores);
+    settings->sync();
+}
+
+int GlobalSettings::getUsedCores() {
+    return settings->value("UsedCores",1).toInt();
 }

@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
 
     if (_storedAppDirPath == "" || _storedAppDirPath != _applicationDirectoryPath)
         GlobalSettings::getSettings()->setAppPath(_applicationDirectoryPath);
+    if (!GlobalSettings::getSettings()->checkPresenceOfSetting("UsedCores"))
+        GlobalSettings::getSettings()->setUsedCores(1);
 
     QTranslator translator;
     QString savedLanguage = GlobalSettings::getSettings()->getLanguage();

@@ -21,6 +21,13 @@ public:
     static GlobalSettings *getSettings();
 
     /**
+     * @brief Checks if a specific setting is present in the settings ini file.
+     * @param i_settingToCheck
+     * @return True if setting is present.
+     */
+    bool checkPresenceOfSetting(QString i_settingToCheck);
+
+    /**
      * @brief Saves a given path to the JSON file with the list of directories.
      * @sa getFileFolderDirectoriesPath()
      * @param[in] input
@@ -120,9 +127,22 @@ public:
      * @param status
      */
     void setHDDMonitorStatus(bool status);
+
+    /**
+     * @brief Saves maximum number of utilizable CPU cores.
+     * @param i_cores
+     */
+    void setUsedCores(int i_cores);
+
+    /**
+     * @brief Returns the number of utilizable CPU cores.
+     */
+    int getUsedCores();
+
 private:
     GlobalSettings();
     static GlobalSettings * m_Settings;
+
     QSettings * settings;
     QString iniPath;
     QString iniFileName = "settings.ini"; /**<The name of the application file with settings is strict and should not be changed */
