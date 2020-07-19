@@ -20,7 +20,7 @@ tabs::tabs(QWidget *parent) :
     QIcon icon_Frangi_png(":/images/frangi.png");
     QIcon icon_RegistrateTwo_png(":/images/licovaniDvou.png");
     QIcon icon_RegistrateVideo_png(":/images/video-camera-icon.png");
-    QIcon icon_Graph_png(":/images/Piechart.png");
+    QIcon icon_Graph_png(":/images/upload.png");
 
     ui->pages->setIconSize(QSize(32,32));
     QIcon icon_Folder = iconRotation(icon_Folder_png);

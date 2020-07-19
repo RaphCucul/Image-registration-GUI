@@ -21,5 +21,6 @@
         <file>greyDiode.png</file>
         <file>orangeDiode.png</file>
         <file>redDiode.png</file>
+        <file>upload.png</file>
     </qresource>
 </RCC>

@@ -24,6 +24,7 @@ class RegistrationResult : public QDialog
 
 public:
     explicit RegistrationResult(cv::Mat &_referencial, cv::Mat &_translated, QDialog *parent = nullptr);
+    explicit RegistrationResult(QString i_videoPath, QDialog *parent = nullptr);
     ~RegistrationResult();
     /**
      * @brief Sets the size of the dialog.
@@ -39,9 +40,8 @@ public:
 
     /**
      * @brief Initializes necessary variables with information about video and a frame.
-     * @param video
      */
-    void displayVideo(cv::VideoCapture video);
+    void displayVideo();
 
     /**
      * @brief Request the initialization of "two frames result" layout.
@@ -55,16 +55,15 @@ public:
      */
     void callVideo();
 
+private slots:
+    void changeDisplayed(int value);
+private:
     /**
      * @brief Initializes widgets to display the referential frame when comparing two or first frame when controling
      * video registration.
      * @param startMethod - frames (1) or video (2)
      */
     void start(int startMethod);
-private slots:
-    void changeDisplayed(int value);
-private:
-
 
     Ui::RegistrationResult *ui;
     int wantToDisplay = 0;
