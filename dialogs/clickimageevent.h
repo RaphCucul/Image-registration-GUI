@@ -77,7 +77,7 @@ private:
     void createWidget();
 
     /**
-     * @brief Helper function adds a widget to grid layout of the class.
+     * @brief Helper function, adds a widget to grid layout of the class.
      * @param widget - a widget to be added
      * @param row
      * @param col
@@ -322,7 +322,7 @@ private:
     cutoutType cutout = EXTRA;
     double frameCount = 0.0;
     QMap<QString,int> referencialFrameNo;
-    bool disabled = false, mousePressed = false, modified = false, frangiOptionsShown = false;
+    bool disabled = true, mousePressed = false, modified = false, frangiOptionsShown = false;
     QPointF selectionOrigin,lastDragPosition,selectionEnd;
     QMap<QString,QPoint> frangiCoordinates;
     QPoint lastSelectionPosition;
