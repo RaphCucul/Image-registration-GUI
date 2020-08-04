@@ -157,12 +157,14 @@ protected:
     QMap<QString,QMap<QString,QVector<double>>> mapDouble;
     QMap<QString,QMap<QString,QVector<int>>> mapInt;
     QMap<QString,QMap<QString,cv::Rect>> mapAnomalies;
+    QMap<QString,QVector<double>> temporalySavedThresholds;
     //QMap<QString,QMap<QString,QVector<double>>> mapThresholds;
     QMap<QString, QVector<double>> CC_problematicFrames,FWHM_problematicFrames;
     QStringList videoParameters = {"entropy","tennengrad","FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
                                  "angle","thresholds","evaluation","firstEvalEntropy","firstEvalTennengrad",
                                  "firstEval","secondEval","standard","extra"};
     QMap<QString,int> framesReferencial;
+    QMap<QString,cv::Point3d> framesReferentialFrangiCoordinates;
     QMap<QString,double> averageCCcomplete;
     QMap<QString,double> averageFWHMcomplete;
     QMap<QString,QVector<int>> badFramesComplete;
