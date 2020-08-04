@@ -7,6 +7,7 @@
 #include <QDragEnterEvent>
 #include <QJsonObject>
 #include <opencv2/opencv.hpp>
+#include <QTableWidgetItem>
 
 #include "multithreadET/qThreadFirstPart.h"
 #include "multithreadET/qthreadsecondpart.h"
@@ -142,10 +143,10 @@ signals:
     void checkValuesPass();
 private:
     /**
-     * @brief checkVideos
+     * @brief checkVideo
      * @return
      */
-    bool checkVideos();
+    bool checkVideo(QString i_video);
 
     /**
      * @brief Function is overridden QWidget keyPressEvent function. The reaction on Delete key press
@@ -154,7 +155,24 @@ private:
      */
     void keyPressEvent(QKeyEvent *event) override;
 
-    void checkFileAndLoadThresholds(QString i_videoName);
+    /**
+     * @brief checkFileAndLoadThresholds
+     * @param i_videoName
+     */
+    bool checkFileAndLoadThresholds(QString i_videoName);
+
+    /**
+     * @brief fillTable
+     * @param i_listOfVideos
+     */
+    void fillTable(QStringList i_listOfVideos, bool fillInternalVariables);
+
+    /**
+     * @brief createIconTableItem
+     * @param i_icon
+     * @return
+     */
+    QLabel *createIconTableItem(QString i_icon);
 
     Ui::MultipleVideoET *ui;
     bool runStatus = true;

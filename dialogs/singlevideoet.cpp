@@ -141,19 +141,22 @@ void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
         cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
         ui->chosenVideoLE->setStyleSheet("color: #339900");
         videoETScorrect = true;
-        ui->standardCutout->setEnabled(false);
-        ui->extraCutout->setEnabled(false);
         chosenVideoETSingle["filename"] = arg1;
         QVector<double> videoETthresholds;
         if (checkAndLoadData("thresholds",arg1,videoETthresholds)){
-            fillMap(arg1,videoETthresholds,mapDouble["thresholds"]);
-            //mapDouble["thresholds"][arg1] = videoETthresholds;
+            temporalySavedThresholds.insert(arg1,videoETthresholds);
             ui->previousThresholdsCB->setEnabled(true);
             ETthresholdsFound.insert(arg1,true);
         }
         else{
             ETthresholdsFound.insert(arg1,false);
             ui->previousThresholdsCB->setEnabled(false);
+        }
+        if (ui->standardCutout->isChecked()) {
+            ui->standardCutout->setCheckState(Qt::Unchecked);
+        }
+        if (ui->extraCutout->isChecked()) {
+            ui->extraCutout->setCheckState(Qt::Unchecked);
         }
     }
 }
@@ -174,7 +177,7 @@ void SingleVideoET::on_calculateET_clicked()
             }
             First[1] = new qThreadFirstPart(analysedVideos,
                                             selectedCutout,
-                                            mapDouble["thresholds"],
+                                            temporalySavedThresholds,
                                             ETthresholdsFound,
                                             ui->previousThresholdsCB->isChecked());
             QObject::connect(First[1],SIGNAL(percentageCompleted(int)),ui->computationProgress,SLOT(setValue(int)));
