@@ -2,6 +2,7 @@
 #include "image_analysis/image_processing.h"
 
 #include <opencv2/opencv.hpp>
+#include <QDebug>
 
 RegistrationParent::RegistrationParent(QWidget *parent) : QWidget(parent)
 {
@@ -49,11 +50,13 @@ void RegistrationParent::initMaps(){
     }
 }
 
-
-VideoWriter::VideoWriter(QString i_videoFullPath,QMap<QString,QVector<double>> i_data, QString i_writePath){
+VideoWriter::VideoWriter(QString i_videoFullPath,QMap<QString,QVector<double>> i_data,
+                         QVector<int> i_evaluationInformation, QString i_writePath, bool onlyBest){
     videoReadPath = i_videoFullPath;
     obtainedData = i_data;
     videoWritePath = i_writePath;
+    onlyBestFrames = onlyBest;
+    evaluation = i_evaluationInformation;
 }
 
 VideoWriter::~VideoWriter(){
@@ -84,9 +87,13 @@ void VideoWriter::writeVideo(){
             QString errorMessage = QString(tr("Frame %1 could not be loaded from the video for registration. Process interrupted")).arg(indexImage);
             errorOccured(errorMessage);
         }
-        else if (obtainedData["POCX"][indexImage] == 999.0){
+        else if (obtainedData["POCX"][indexImage] == 999.0 && !onlyBestFrames){
             writer.write(shiftedOrig);
             shiftedOrig.release();
+        }
+        else if (onlyBestFrames && (obtainedData["POCX"][indexImage] == 999.0 || evaluation[indexImage] !=0 || evaluation[indexImage] !=2)) {
+            qDebug()<<"Frame "<<indexImage<<" skipped because "<<evaluation[indexImage]<<" "<<evaluation[indexImage];
+            continue;
         }
         else{
             cv::Point3d finalTranslation(0.0,0.0,0.0);

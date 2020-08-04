@@ -21,7 +21,8 @@ class VideoWriter : public QObject
 {
     Q_OBJECT
 public:
-    VideoWriter(QString i_videoFullPath,QMap<QString,QVector<double>> i_data, QString i_writePath);
+    VideoWriter(QString i_videoFullPath,QMap<QString,QVector<double>> i_data,
+                QVector<int> i_evaluationInformation, QString i_writePath, bool onlyBest);
     ~VideoWriter();
 
     friend class RegistrationParent;
@@ -37,6 +38,8 @@ signals:
 private:
     QString videoReadPath,videoWritePath;
     QMap<QString,QVector<double>> obtainedData;
+    QVector<int> evaluation;
+    bool onlyBestFrames = false;
 };
 
 /**
@@ -84,7 +87,7 @@ protected:
     bool runStatus = true;
     bool canProceed = true;
     int processedVideoNo = 0;
-    int numberOfThreads = QThread::idealThreadCount()-1;
+    int numberOfThreads = 1;
     QHash<int,RegistrationThread*> threadPool;
 
     QStringList videoParameters = {"FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
