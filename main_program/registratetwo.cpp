@@ -775,7 +775,7 @@ void RegistrateTwo::on_registrateTwo_clicked()
         qDebug()<<referencialImage.rows<<" "<<referencialImage.cols;
         qDebug()<<registratedFrame.rows<<" "<<registratedFrame.cols;
         RegistrationResult *showResults = new RegistrationResult(referencialImage,registratedFrame);
-        showResults->start(1);
+        showResults->callTwo();
         showResults->setModal(true);
         showResults->show();
     }
