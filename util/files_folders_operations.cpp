@@ -204,7 +204,7 @@ bool findReferentialFrameData(QString i_name, int &i_referentialFrame, QPoint& i
             QJsonArray _frangiX = data["FrangiX"].toArray();
             QJsonArray _frangiY = data["FrangiY"].toArray();
             // the frangi coordinates still can be (0,0)
-            if (_frangiX.contains(i_referentialFrame) && _frangiY.contains(i_referentialFrame)) {
+            if (!_frangiX.at(i_referentialFrame).isUndefined() && !_frangiY.at(i_referentialFrame).isUndefined()) {
                 if (_frangiX.at(i_referentialFrame).toDouble() != 0.0 && _frangiY.at(i_referentialFrame).toDouble() != 0.0){
                     i_point.setX(_frangiX.at(i_referentialFrame).toInt());
                     i_point.setY(_frangiY.at(i_referentialFrame).toInt());
