@@ -14,7 +14,6 @@
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
-#include <QDebug>
 #include <QVector>
 #include <QThread>
 
@@ -60,7 +59,7 @@ void qThreadFirstPart::run()
             continue;
         }
 
-        cv::Point3d maximum_frangi_reverse(0.0,0.0,0.0);
+        maximum_frangi_reverse.insert(filename,cv::Point3d(0.0,0.0,0.0));
         cv::Rect cutoutExtra(0,0,0,0);
         int rowsFullFrame=0,columnsFullFrame=0;
         bool cutoutExtraFound = false;
@@ -84,7 +83,6 @@ void qThreadFirstPart::run()
         tennengradActual.fill(0.0,frameCount);
 
         double frameCountD = (cap.get(CV_CAP_PROP_FRAME_COUNT));
-        qDebug()<< "Video analysis: "<<videoIndex;
         for (double a = 0; a < frameCountD; a++)
         {
             emit percentageCompleted(qRound((double(videoIndex)/double(videoCount))*100.0+1.0+((double(a)/frameCountD)*100.0)/double(videoCount)));
@@ -121,10 +119,6 @@ void qThreadFirstPart::run()
         }
         entropyComplete.insert(filename,entropyActual);
         tennengradComplete.insert(filename,tennengradActual);
-        qDebug()<<entropyComplete[filename].size()<<tennengradComplete[filename].size();
-        qDebug()<<entropyComplete[filename];
-        qDebug()<<"//*****//";
-        qDebug()<<tennengradComplete[filename];
 
         // Secondly, it is necessary to select proper maximal value for later selection of bad images
         // after this procedure, windows for detail analysis of entropy and tennengrad vectors are computed
@@ -196,7 +190,6 @@ void qThreadFirstPart::run()
         // only entropy is used to determine referential frame, because tennengrad was not reliable
         int referencialImageNo = findReferencialNumber(correctEntropyMax,nextAnalysisEntropy,
                                                              entropyComplete[filename]);
-        qDebug()<<"Referential frame for video "<<filename<<" is "<<referencialImageNo;
         referencialFrames.insert(filename,referencialImageNo);
 
         // Fourth part - frangi filter is applied on the frame marked as the reference
@@ -205,13 +198,13 @@ void qThreadFirstPart::run()
         cap.read(referencialMat);
 
         // here the analysis can be speed up, of the frangi filter was applied on the video before
-        // this thread was started - not operating with extraCutout obviously
+        // this thread was started
         cv::Rect cutoutStandard(0,0,0,0);
         cv::Point3d frangi_bod(0,0,0);
         if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(filename)){
-            qDebug()<<"Shared videoInformation variable contains data for "<<filename;
             QPoint _frangiCoordinates = SharedVariables::getSharedVariables()->getVideoInformation(filename,"frangi").toPoint();
             frangi_bod = transform_QPoint_to_CV_Point3d(_frangiCoordinates);
+
             if (cutoutExtraFound){
                 QRect _standardCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"standard").toRect();
                 cv::Rect _cutoutStandard = transform_QRect_to_CV_RECT(_standardCutout);
@@ -222,15 +215,15 @@ void qThreadFirstPart::run()
                 cutoutStandard = transform_QRect_to_CV_RECT(_standardCutout);
             }
         }
-        else{
+
+        if (frangi_bod.x <=0 || frangi_bod.y <=0) {
             // the referential frame was not preprocessed -> no anomaly is present in the frame
             // video was not analysed in the past -> no data about referential frame and frangi coordinates
             // =>
             // extraCutout is not expected, only standard cutout must be calculated from the newly calculated
-            // frangi coordinates -> preprocessing complete registration
-            qDebug()<<"Shared videoInformation variable does not contain data for "<<filename;
+            // frangi coordinates -> preprocessing before complete registration
             if (!preprocessingCompleteRegistration(referencialMat,
-                                                   maximum_frangi_reverse,
+                                                   maximum_frangi_reverse[filename],
                                                    cutoutStandard,
                                                    SharedVariables::getSharedVariables()->getFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,filename),
                                                    SharedVariables::getSharedVariables()->getFrangiRatiosWrapper(frangiType::VIDEO_SPECIFIC,filename),
@@ -242,8 +235,6 @@ void qThreadFirstPart::run()
             }
         }
 
-        qDebug()<<"Standard "<<cutoutStandard.height<<" "<<cutoutStandard.width;
-        qDebug()<<"Extra "<<cutoutExtra.height<<" "<<cutoutExtra.width;
         obtainedCutoffStandard.insert(filename,cutoutStandard);
         obtainedCutoffExtra.insert(filename,cutoutExtra);
         QVector<int> badFrame_completeList = mergeVectors(badFramesEntropy,badFramesTennengrad);

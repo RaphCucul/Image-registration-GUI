@@ -18,9 +18,6 @@ public:
                              QMap<QString, bool> ETthresholdsFound,
                              bool i_previousThresholdsUsageAllowed,
                              QObject* parent=nullptr);
-    /*QVector<double> i_FrangiParametersValues,
-    QMap<QString, int> i_margins,
-    QMap<QString, double> i_ratios,*/
     /**
      * @brief computedEntropy
      * @return
@@ -72,7 +69,18 @@ public:
      */
     QMap<QString,int> estimatedReferencialFrames();
 
+    /**
+     * @brief estimatedReferentialFrangiCoordinates
+     * @return
+     */
+    QMap<QString,cv::Point3d> estimatedReferentialFrangiCoordinates() { return maximum_frangi_reverse; };
+
+    /**
+     * @brief unprocessableVideos
+     * @return
+     */
     QVector<QString> unprocessableVideos();
+
     /**
      * @brief run
      */
@@ -102,8 +110,7 @@ private:
     bool usePreviousThresholds = false;
     cutoutType selectedCutout = cutoutType::STANDARD;
 
-    //QMap<QString, int> margins;
-    //QMap<QString, double> ratios;
+    QMap<QString,cv::Point3d> maximum_frangi_reverse;
 signals:
     void percentageCompleted(int);
     void typeOfMethod(int);
