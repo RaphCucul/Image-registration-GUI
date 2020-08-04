@@ -22,18 +22,45 @@ class SingleVideoRegistration : public RegistrationParent
 public:
     explicit SingleVideoRegistration(QWidget *parent = nullptr);
     ~SingleVideoRegistration();
+
+    /**
+     * @brief processVideoParameters
+     * @param videoData
+     */
     void processVideoParameters(QJsonObject& videoData);
+
+    /**
+     * @brief writeToVideo
+     * @return
+     */
     bool writeToVideo();
 signals:
     void terminateWriter();
 private slots:
+    /**
+     * @brief on_chooseVideoLE_textChanged
+     * @param arg1
+     */
     void on_chooseVideoLE_textChanged(const QString &arg1);
+
+    /**
+     * @brief on_chooseVideoPB_clicked
+     */
     void on_chooseVideoPB_clicked();
+
+    /**
+     * @brief registrateVideoframes
+     */
     void registrateVideoframes();
+
+    /**
+     * @brief totalFramesCompleted
+     * @param frameCounter
+     */
     void totalFramesCompleted(int frameCounter);
 
     /**
-     * @brief Function adds given string into the corresponding table.
+     * @brief Adds given string into the corresponding table.
      * @param row
      * @param column
      * @param parameter
@@ -41,7 +68,7 @@ private slots:
     void addItem(int row,int column,QString parameter);
 
     /**
-     * @brief Function adds frame processing status to the table.
+     * @brief Adds frame processing status to the table.
      * @param row
      * @param column
      * @param status
@@ -49,22 +76,34 @@ private slots:
     void addStatus(int row, int column, QString status);
 
     /**
-     * @brief Function handes the error signals from the RegistrationThread.
+     * @brief Handes the error signals from the RegistrationThread.
      * @param indexOfThread
      * @param errorMessage
      */
     void errorHandler(int indexOfThread,QString errorMessage);
 
     /**
-     * @brief Function starts processing another video if available. All imported function are invoked in this
+     * @brief Starts processing of another video if available. All imported function are invoked in this
      * function before moving to another video.
      * @param indexOfThread
      */
     void processAnother(int indexOfThread);
 
+    /**
+     * @brief VideoWriterErrorHandler
+     * @param errorIndex
+     */
     void VideoWriterErrorHandler(int errorIndex);
+
+    /**
+     * @brief VideoWriterErrorHandler
+     * @param errorMessage
+     */
     void VideoWriterErrorHandler(QString errorMessage);
 
+    /**
+     * @brief on_savePB_clicked
+     */
     void on_savePB_clicked();
 
     /**
@@ -83,20 +122,53 @@ private slots:
      */
     void checkPaths();
 
+    /**
+     * @brief continueAlgorithm
+     */
     void continueAlgorithm();
+
+    /**
+     * @brief processWriterError
+     * @param errorNumber
+     */
     void processWriterError(int errorNumber);
+
+    /**
+     * @brief processWriterError
+     * @param errorMessage
+     */
     void processWriterError(QString errorMessage);
+
+    /**
+     * @brief processSuccess
+     */
     void processSuccess();
+
+    /**
+     * @brief showRegistrationResult
+     */
+    void showRegistrationResult();
 private:
     /**
      * @brief Function process computed translations of frames in specific range the thread was
      * initialized for.
      * @param analysedThread
      */
-    void processResuluts(int analysedThread);
+    void processResults(int analysedThread);
 
+    /**
+     * @brief populateLists
+     * @param _file
+     */
     void populateLists(QVector<QString> _file);
 
+    /**
+     * @brief createAndRunThreads
+     * @param indexThread
+     * @param cap
+     * @param lowerLimit
+     * @param upperLimit
+     */
     void createAndRunThreads(int indexThread, cv::VideoCapture& cap, int lowerLimit,
                              int upperLimit);
     Ui::SingleVideoRegistration *ui;
