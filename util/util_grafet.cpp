@@ -49,6 +49,7 @@ void util_GraphET::initGraphObject(QCustomPlot* i_QCustomPlot,
                                                                                     i_data[graphElement],
                                                                                     true);
             i_QCustomPlot->graph(graphPlotNumbersReferences[graphElement])->setPen(QPen(linesColors[_innerCounter]));
+            i_QCustomPlot->graph(graphPlotNumbersReferences[graphElement])->setScatterStyle(QCPScatterStyle::ssPlus);
         }
         else {
             if (_innerCounter < 12)
