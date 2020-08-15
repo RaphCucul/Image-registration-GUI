@@ -1,12 +1,13 @@
 #include "util/registrationparent.h"
 #include "image_analysis/image_processing.h"
+#include "shared_staff/globalsettings.h"
 
 #include <opencv2/opencv.hpp>
 #include <QDebug>
 
 RegistrationParent::RegistrationParent(QWidget *parent) : QWidget(parent)
 {
-
+    numberOfThreads = GlobalSettings::getSettings()->getUsedCores();
 }
 
 void RegistrationParent::onFinishThread(int threadIndex){
@@ -38,13 +39,13 @@ void RegistrationParent::initMaps(){
     QVector<double> pomD;
     QVector<int> pomI;
     for (int index = 0; index < videoParameters.count(); index++){
-        if (index < 8){
+        if (index < 6){
             videoParametersDouble[videoParameters.at(index)] = pomD;
         }
-        else if (index >= 8 && index < 13){
+        else if (index == 6){
             videoParametersInt[videoParameters.at(index)] = pomI;
         }
-        else if (index >= 13 && index <= 14){
+        else if (index > 6){
             videoAnomalies[videoParameters.at(index)] = pomI;
         }
     }
@@ -91,7 +92,7 @@ void VideoWriter::writeVideo(){
             writer.write(shiftedOrig);
             shiftedOrig.release();
         }
-        else if (onlyBestFrames && (obtainedData["POCX"][indexImage] == 999.0 || evaluation[indexImage] !=0 || evaluation[indexImage] !=2)) {
+        else if (onlyBestFrames && (obtainedData["POCX"][indexImage] == 999.0 && evaluation[indexImage] !=0 && evaluation[indexImage] !=2)) {
             qDebug()<<"Frame "<<indexImage<<" skipped because "<<evaluation[indexImage]<<" "<<evaluation[indexImage];
             continue;
         }
@@ -102,7 +103,7 @@ void VideoWriter::writeVideo(){
             finalTranslation.x = obtainedData["POCX"][indexImage];
             finalTranslation.y = obtainedData["POCY"][indexImage];
             finalTranslation.z = 0.0;
-            //qDebug()<<"For frame "<<indexImage<<" the translation is: "<<finalTranslation.x<<" "<<finalTranslation.y;
+            qDebug()<<"For frame "<<indexImage<<" the translation is: "<<finalTranslation.x<<" "<<finalTranslation.y;
             _fullyRegistrated = frameTranslation(shiftedOrig,finalTranslation,shiftedOrig.rows,shiftedOrig.cols);
             _fullyRegistrated = frameRotation(_fullyRegistrated,obtainedData["angle"][indexImage]);
             writer.write(_fullyRegistrated);
@@ -110,5 +111,6 @@ void VideoWriter::writeVideo(){
             _fullyRegistrated.release();
        }
     }
+    qDebug()<<"Finished emitted";
     emit finishedSuccessfully();
 }
