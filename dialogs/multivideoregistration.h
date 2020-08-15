@@ -86,6 +86,13 @@ private slots:
      */
     void on_listOfVideos_cellClicked(int row, int column);
 
+    /**
+     * @brief clickedToPlay
+     * @param row
+     * @param column
+     */
+    void clickedToPlay(int row,int column);
+
     void continueAlgorithm();
     void processWriterError(int errorNumber);
     void processWriterError(QString errorMessage);
@@ -126,9 +133,27 @@ private:
      * @return
      */
     void writeToVideo();
+
+    /**
+     * @brief saveTheResults
+     * @param input
+     * @param from
+     * @param to
+     */
     void saveTheResults(QMap<QString,QVector<double>> input,int from, int to);
 
+    /**
+     * @brief checkPath
+     * @param filenameToAnalyse
+     * @return
+     */
     bool checkPath(QString filenameToAnalyse);
+
+    /**
+     * @brief checkVideo
+     * @param capture
+     * @return
+     */
     bool checkVideo(cv::VideoCapture& capture);
 
     /**
@@ -150,9 +175,36 @@ private:
      */
     void deleteSelectedFiles();
 
+    /**
+     * @brief displayStatus
+     * @param status
+     */
     void displayStatus(QString status);
 
+    /**
+     * @brief startCalculations
+     * @param capture
+     */
     void startCalculations(cv::VideoCapture& capture);
+
+    /**
+     * @brief checkVideo
+     * @return
+     */
+    bool checkVideo(QString i_video);
+
+    /**
+     * @brief fillTable
+     * @param i_listOfVideos
+     */
+    void fillTable(bool fillInternalVariables);
+
+    /**
+     * @brief createIconTableItem
+     * @param i_icon
+     * @return
+     */
+    QWidget *createIconTableItem(bool icon, QString information);
 
     Ui::MultiVideoRegistration *ui;
     RegistrationThread *regThread;
@@ -178,6 +230,7 @@ private:
     QHash<QString,QString> videoStatus;
     QJsonObject videoParametersJson;
     QStringList columnHeaders = {"X","Y",tr("Angle"),"Status"};
+    QMap<QString,bool> readyToProcess;
 };
 
 #endif // MULTIVIDEOREGISTRATION_H
