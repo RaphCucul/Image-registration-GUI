@@ -22,5 +22,11 @@
         <file>orangeDiode.png</file>
         <file>redDiode.png</file>
         <file>upload.png</file>
+        <file>dataExists.png</file>
+        <file>dataMissing.png</file>
+        <file>play.png</file>
+        <file>processing.gif</file>
+        <file>UP.png</file>
+        <file>play_inactive.png</file>
     </qresource>
 </RCC>
