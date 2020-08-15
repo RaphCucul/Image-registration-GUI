@@ -165,7 +165,7 @@ private:
      * @brief fillTable
      * @param i_listOfVideos
      */
-    void fillTable(QStringList i_listOfVideos, bool fillInternalVariables);
+    void fillTable(bool fillInternalVariables);
 
     /**
      * @brief createIconTableItem
@@ -174,12 +174,14 @@ private:
      */
     QLabel *createIconTableItem(QString i_icon);
 
+    void inputWidgetsEnabledStatus(bool status);
+
     Ui::MultipleVideoET *ui;
     bool runStatus = true;
     bool canProceed = true;
     QMap<QString,bool> ETthresholdsFound;
     cutoutType selectedCutout = cutoutType::NO_CUTOUT;
-
+    QMap<QString,bool> readyToProcess;
     QHash<QWidget*,ErrorDialog*> localErrorDialogHandling;
 };
 

@@ -88,12 +88,16 @@ void MultipleVideoET::dropEvent(QDropEvent *event)
            QMimeType mime = QMimeDatabase().mimeTypeForUrl(url);
            if (mime.inherits("video/x-msvideo")) {
                QString _video = url.toLocalFile();
-               _list.append(_video);
+                _list.append(_video);
            }
        }
-       if (!_list.isEmpty())
-           fillTable(_list,true);
-
+       if (!_list.isEmpty()) {
+           foreach(QString video,_list) {
+               analysedVideos.append(video);
+           }
+           analysedVideos.removeDuplicates();
+           fillTable(true);
+       }
        qDebug()<<"Actual list of videos contains: "<<analysedVideos;
 }
 
@@ -105,10 +109,16 @@ void MultipleVideoET::dragEnterEvent(QDragEnterEvent *event)
 
 void MultipleVideoET::on_afewVideosPB_clicked()
 {
-    QStringList filenames = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),
+    QStringList _list = QFileDialog::getOpenFileNames(this,tr("Choose avi files"),
                             SharedVariables::getSharedVariables()->getPath("videosPath"),
                             tr("Video files (*.avi);;;") );
-    fillTable(filenames,true);
+    if (!_list.isEmpty()) {
+        foreach(QString video,_list) {
+            analysedVideos.append(video);
+        }
+        analysedVideos.removeDuplicates();
+        fillTable(true);
+    }
 }
 
 void MultipleVideoET::on_wholeFolderPB_clicked()
@@ -117,9 +127,14 @@ void MultipleVideoET::on_wholeFolderPB_clicked()
                   SharedVariables::getSharedVariables()->getPath("videosPath"),
                   QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     QDir chosenDirectory(dir);
-    QStringList videosInDirectory = chosenDirectory.entryList(QStringList() << "*.avi" << "*.AVI",QDir::Files);
-    fillTable(videosInDirectory,true);
-    qDebug()<<"analysedVideos contains "<<analysedVideos.count()<<" videos.";
+    QStringList _list = chosenDirectory.entryList(QStringList() << "*.avi" << "*.AVI",QDir::Files);
+    if (!_list.isEmpty()) {
+        foreach(QString video,_list) {
+            analysedVideos.append(video);
+        }
+        analysedVideos.removeDuplicates();
+        fillTable(true);
+    }
 }
 
 bool MultipleVideoET::checkFileAndLoadThresholds(QString i_videoName) {
@@ -148,34 +163,34 @@ bool MultipleVideoET::checkVideo(QString i_video){
 }
 
 QLabel* MultipleVideoET::createIconTableItem(QString i_icon) {
-    //QIcon _icon(":/images/"+i_icon);
     QLabel *lbl_item = new QLabel();
     lbl_item->setPixmap(QPixmap(":/images/"+i_icon));
     lbl_item ->setAlignment(Qt::AlignHCenter);
-
-    /*QTableWidgetItem *icon_item = new QTableWidgetItem;
-    icon_item->setData(1,)
-    icon_item->setTextAlignment(Qt::AlignVCenter);*/
     return lbl_item;
 }
 
-void MultipleVideoET::fillTable(QStringList i_listOfVideos, bool fillInternalVariables) {
+void MultipleVideoET::fillTable(bool fillInternalVariables) {
     int _helperCounter = 0;
-    if (!i_listOfVideos.isEmpty()) {
-        ui->selectedVideos->setRowCount(i_listOfVideos.count());
-        for (int indexList = 0; indexList < i_listOfVideos.count();indexList++)
+    bool _controlCheckToEnableElements = false;
+    if (!analysedVideos.isEmpty()) {
+        ui->selectedVideos->setRowCount(analysedVideos.count());
+        for (int indexList = 0; indexList < analysedVideos.count();indexList++)
         {
-            if (checkVideo(i_listOfVideos.at(indexList))) {
+            readyToProcess[analysedVideos.at(indexList)] = false;
+            if (checkVideo(analysedVideos.at(indexList))) {
+                _controlCheckToEnableElements = true;
+                readyToProcess[analysedVideos.at(indexList)] = true;
+
                 QString folder,filename,suffix;
                 if (fillInternalVariables) {
-                    analysedVideos.append(i_listOfVideos.at(indexList));
-                    processFilePath(i_listOfVideos.at(indexList),folder,filename,suffix);
-                    videoNamesList.append(filename);
-                }
-                if (fillInternalVariables)
+                    processFilePath(analysedVideos.at(indexList),folder,filename,suffix);
+                    if (!videoNamesList.contains(filename))
+                        videoNamesList.append(filename);
                     ui->selectedVideos->setItem(_helperCounter,0,new QTableWidgetItem(filename));
+                }
                 else
                     ui->selectedVideos->setItem(_helperCounter,0,new QTableWidgetItem(videoNamesList.at(indexList)));
+
                 ui->selectedVideos->setCellWidget(_helperCounter,1,createIconTableItem("everythingOK.png"));
                 if (checkFileAndLoadThresholds(fillInternalVariables ? filename : videoNamesList.at(indexList))) {
                     ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataExists.png"));
@@ -183,22 +198,24 @@ void MultipleVideoET::fillTable(QStringList i_listOfVideos, bool fillInternalVar
                 else {
                     ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataMissing.png"));
                 }
-
+                _helperCounter++;
             }
             else {
-                ui->selectedVideos->setItem(_helperCounter,0,new QTableWidgetItem(i_listOfVideos.at(indexList)));
+                ui->selectedVideos->setItem(_helperCounter,0,new QTableWidgetItem(analysedVideos.at(indexList)));
                 ui->selectedVideos->setCellWidget(_helperCounter,1,createIconTableItem("everythingBad.png"));
             }
-            _helperCounter++;
         }
-        if (fillInternalVariables) {
-            qDebug()<<(ui->selectedVideos->width()/6)*4;
-            ui->selectedVideos->setColumnWidth(0,(ui->selectedVideos->width()/5)*3);
-            ui->selectedVideos->setColumnWidth(1,(ui->selectedVideos->width()/5));
-            ui->selectedVideos->setColumnWidth(2,(ui->selectedVideos->width()/5));
+        ui->selectedVideos->setColumnWidth(0,(ui->selectedVideos->width()/5)*3);
+        ui->selectedVideos->setColumnWidth(1,(ui->selectedVideos->width()/5));
+        ui->selectedVideos->setColumnWidth(2,(ui->selectedVideos->width()/5));
+        if (_controlCheckToEnableElements) {
+            inputWidgetsEnabledStatus(true);
+        }
+        else {
+            inputWidgetsEnabledStatus(false);
         }
     }
-    if (analysedVideos.isEmpty()) {
+    else {
         localErrorDialogHandling[ui->analyzeVideosPB]->evaluate("center","softError",3);
         localErrorDialogHandling[ui->analyzeVideosPB]->show(false);
     }
@@ -289,9 +306,10 @@ void MultipleVideoET::deleteSelectedFiles(){
             QStringList selectedVideoFull = analysedVideos.filter(selectedVideo);
             indexOfVideo = analysedVideos.indexOf(selectedVideoFull.at(0));
             analysedVideos.removeAt(indexOfVideo);
+            readyToProcess.remove(selectedVideoFull.at(0));
         }
         ui->selectedVideos->clearContents();
-        fillTable(analysedVideos,false);
+        fillTable(false);
     }
     qDebug()<<videoNamesList;
     qDebug()<<analysedVideos;
@@ -503,6 +521,12 @@ void MultipleVideoET::evaluateCorrectValues(){
         ui->standardCutout->setEnabled(false);
         ui->extraCutout->setEnabled(false);
     }
+}
+
+void MultipleVideoET::inputWidgetsEnabledStatus(bool status) {
+    ui->areaMaximum->setEnabled(status);
+    ui->iterationCount->setEnabled(status);
+    ui->rotationAngle->setEnabled(status);
 }
 
 void MultipleVideoET::on_areaMaximum_editingFinished()
