@@ -188,7 +188,7 @@ void MainWindow::slotSettingsChanged(QAction* action){
                                               1,1,QThread::idealThreadCount(),1,&ok);
             if (ok) {
                 GlobalSettings::getSettings()->setUsedCores(number);
-                CPUusedLabel->setText(tr("Number of used cores: ")+QString::number(number,10));
+                CPUusedLabel->setText(tr("Used cores: ")+QString::number(number,10));
             }
         }
     }
