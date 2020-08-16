@@ -316,45 +316,7 @@ void MultipleVideoET::deleteSelectedFiles(){
 }
 
 void MultipleVideoET::on_savePB_clicked()
-{    
-    /*foreach (QString name, videoNamesList){
-        if (badVideos.indexOf(name) == -1){
-            QJsonDocument document;
-            QJsonObject object;
-            QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+name+".dat";
-
-            for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-                qDebug()<<videoParameters.at(parameter);
-                if (parameter < 8){
-                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][name];
-                    QJsonArray pomArray = vector2array(pomDouble);
-                    object[videoParameters.at(parameter)] = pomArray;
-                }
-                else if (parameter >= 8 && parameter <= 12){
-                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][name];
-                    if (videoParameters.at(parameter) == "evaluation")
-                        pomInt[framesReferencial[name]]=2;
-
-                    QJsonArray pomArray = vector2array(pomInt);
-                    object[videoParameters.at(parameter)] = pomArray;
-                }
-                else{*/
-                    /*if (videoParameters.at(parameter) == "VerticalAnomaly")
-                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().y);
-                else
-                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().x);
-            */
-                /*}
-            }
-            document.setObject(object);
-            QString documentString = document.toJson();
-            QFile writer;
-            writer.setFileName(path);
-            writer.open(QIODevice::WriteOnly);
-            writer.write(documentString.toLocal8Bit());
-            writer.close();
-        }
-    }*/
+{
     saveVideoAnalysisResults();
 }
 

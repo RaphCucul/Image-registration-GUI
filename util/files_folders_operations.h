@@ -110,7 +110,7 @@ QJsonObject maps2Object(QStringList i_parameters, QString i_videoName,
  */
 template <class T>
 bool checkAndLoadData(QString i_parameter, QString i_videoName, QVector<T>& o_vector) {
-    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
+    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("datFilesPath");
     QFile file;
     file.setFileName(actualDatFilePath+"/"+i_videoName+".dat");
     if (file.exists()) {

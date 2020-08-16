@@ -17,8 +17,7 @@ SharedVariables::SharedVariables()
 {
     chosenActualPathes["videosPath"] = "";
     chosenActualPathes["saveVideosPath"] = "";
-    chosenActualPathes["loadDatFilesPath"] = "";
-    chosenActualPathes["saveDatFilesPath"] = "";
+    chosenActualPathes["datFilesPath"] = "";
     chosenActualPathes["parametersFrangiFiltr"] = "";
 
     detectedFrangiMaximum = cv::Point3d(0.0,0.0,0.0);
@@ -74,7 +73,7 @@ bool SharedVariables::processVideoFrangiParameters(QString videoName, QMap<QStri
     qDebug()<<"Processing frangi parameters for video "<<videoName;
     bool processingResult = false;
     QFile file;
-    QString path = chosenActualPathes["saveDatFilesPath"];
+    QString path = chosenActualPathes["datFilesPath"];
     file.setFileName(path+"/"+videoName+".dat");
     if (file.exists()) {
         QJsonObject VideoParametersObject = readJson(file);
@@ -249,7 +248,7 @@ void SharedVariables::saveVideoFrangiParameters(QString i_videoName) {
     QJsonDocument document;
     QJsonObject object;
      QJsonObject FrangiInformation;
-    QString whereToSaveFrangi = chosenActualPathes["saveDatFilesPath"];
+    QString whereToSaveFrangi = chosenActualPathes["datFilesPath"];
     // first check if video file already exists
     QFile file(whereToSaveFrangi+"/"+i_videoName+".dat");
     if (file.exists()) {

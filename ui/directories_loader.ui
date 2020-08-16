@@ -136,45 +136,6 @@
      <property name="verticalSpacing">
       <number>10</number>
      </property>
-     <item row="1" column="0">
-      <widget class="QComboBox" name="Combo_savingVideo">
-       <property name="maximumSize">
-        <size>
-         <width>400</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QComboBox" name="Combo_VideoDataSave">
-       <property name="maximumSize">
-        <size>
-         <width>400</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QComboBox" name="Combo_FrangiParams">
-       <property name="maximumSize">
-        <size>
-         <width>400</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QComboBox" name="Combo_videoPath">
        <property name="enabled">
@@ -209,20 +170,8 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="pathToVideos">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
+     <item row="2" column="2">
+      <widget class="QPushButton" name="DataFolder">
        <property name="maximumSize">
         <size>
          <width>125</width>
@@ -242,7 +191,33 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="2">
+     <item row="2" column="0">
+      <widget class="QComboBox" name="Combo_VideoData">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QComboBox" name="Combo_FrangiParams">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
       <widget class="QPushButton" name="paramFrangPB">
        <property name="maximumSize">
         <size>
@@ -263,29 +238,20 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QPushButton" name="LoadingDataFolder">
-       <property name="maximumSize">
+     <item row="0" column="2">
+      <widget class="QPushButton" name="pathToVideos">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
         <size>
-         <width>125</width>
-         <height>25</height>
+         <width>0</width>
+         <height>0</height>
         </size>
        </property>
-       <property name="styleSheet">
-        <string notr="true">QPushButton:pressed {
-    border-style: inset;
-    border-color: blue;
-    border-width: 1px;
-    color: white;
-}</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
-      <widget class="QPushButton" name="SavingDataFolder">
        <property name="maximumSize">
         <size>
          <width>125</width>
@@ -326,8 +292,8 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QComboBox" name="Combo_VideoDataLoad">
+     <item row="1" column="0">
+      <widget class="QComboBox" name="Combo_savingVideo">
        <property name="maximumSize">
         <size>
          <width>400</width>
@@ -336,9 +302,6 @@
        </property>
        <property name="editable">
         <bool>true</bool>
-       </property>
-       <property name="currentIndex">
-        <number>-1</number>
        </property>
       </widget>
      </item>

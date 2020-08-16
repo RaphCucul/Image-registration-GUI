@@ -144,7 +144,7 @@ void SingleVideoRegistration::registrateVideoframes()
             return;
         }
         else{
-            QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+chosenVideo["filename"]+".dat");
+            QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+chosenVideo["filename"]+".dat");
             if (videoParametersFile.exists()){
                 videoParametersJson = readJson(videoParametersFile);
                 processVideoParameters(videoParametersJson);
@@ -422,9 +422,8 @@ void SingleVideoRegistration::on_savePB_clicked()
 {
     QJsonDocument document;
     QString actualName = chosenVideo["filename"];
-    QString loadingPath = SharedVariables::getSharedVariables()->getPath("loadDatFilesPath")+"/"+actualName+".dat";
-    QString savingPath = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+actualName+".dat";
-    QFile file(loadingPath);
+    QString datPath = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+actualName+".dat";
+    QFile file(datPath);
     QJsonObject actualData = readJson(file);
     for (int parameter = 0; parameter < videoParameters.count(); parameter++){
         if (parameter < 6){
@@ -444,7 +443,7 @@ void SingleVideoRegistration::on_savePB_clicked()
     document.setObject(actualData);
     QString documentString = document.toJson();
     QFile writer;
-    writer.setFileName(savingPath);
+    writer.setFileName(datPath);
     writer.open(QIODevice::WriteOnly);
     writer.write(documentString.toLocal8Bit());
     writer.close();

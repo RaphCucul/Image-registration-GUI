@@ -84,7 +84,7 @@ void MultiVideoRegistration::displayStatus(QString status){
 void MultiVideoRegistration::populateProperties(QStringList chosenVideos)
 {    
     for (int videoIndex = 0; videoIndex < chosenVideos.count(); videoIndex++) {
-        QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("loadDatFilesPath")+"/"+chosenVideos.at(videoIndex)+".dat");
+        QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+chosenVideos.at(videoIndex)+".dat");
         QJsonObject videoParametersJson = readJson(videoParametersFile);
         videoPropertiesDouble[chosenVideos.at(videoIndex)] = videoParametersDouble;
         videoPropertiesInt[chosenVideos.at(videoIndex)] = videoParametersInt;
@@ -242,7 +242,7 @@ bool MultiVideoRegistration::checkVideo(QString i_video){
 }
 
 bool MultiVideoRegistration::checkPath(QString filenameToAnalyse){
-    QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("loadDatFilesPath")+"/"+filenameToAnalyse+".dat");
+    QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+filenameToAnalyse+".dat");
     if (!videoParametersFile.exists()){
         localErrorDialogHandling[ui->registratePB]->evaluate("center","info",0);
         localErrorDialogHandling[ui->registratePB]->show(true);
@@ -656,7 +656,7 @@ void MultiVideoRegistration::on_saveResultsPB_clicked()
         QJsonDocument document;
         QJsonObject object;
         QString actualName = videoListNames.at(videoIndex);
-        QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+actualName+".dat";
+        QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+actualName+".dat";
         for (int parameter = 0; parameter < videoParameters.count(); parameter++){
             if (parameter < 8){
                 QVector<double> pomDouble = videoPropertiesDouble[actualName][videoParameters.at(parameter)];

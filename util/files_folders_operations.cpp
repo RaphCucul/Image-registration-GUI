@@ -176,7 +176,7 @@ bool checkReferentialFrameExistence(QString i_folder, QString i_videoName, int i
 }
 
 bool findReferentialFrameData(QString i_name, int &i_referentialFrame, QPoint& i_point){
-    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath");
+    QString actualDatFilePath = SharedVariables::getSharedVariables()->getPath("datFilesPath");
     // get *.dat file
     QFile file;
     file.setFileName(actualDatFilePath+"/"+i_name+".dat");

@@ -27,8 +27,7 @@ DirectoriesLoader::DirectoriesLoader(QWidget *parent) :
     ui->setupUi(this);
     ui->pathToVideos->setText(tr("Load video from"));
     ui->SaveVideos->setText(tr("Save video to"));
-    ui->LoadingDataFolder->setText(tr("Load video parameters"));
-    ui->SavingDataFolder->setText(tr("Save video parameters"));
+    ui->DataFolder->setText(tr("Video parameters"));
     ui->paramFrangPB->setText(tr("Load frangi parameters"));
     ui->ChooseFileFolderDirectory->setText(tr("Choose file folder directories"));
     ui->FileFolderDirectory->setPlaceholderText(tr("Folder with paths"));
@@ -42,12 +41,10 @@ DirectoriesLoader::DirectoriesLoader(QWidget *parent) :
     localErrorDialogHandling[ui->Combo_videoPath] = new ErrorDialog(ui->Combo_videoPath);
     ui->Combo_videoPath->installEventFilter(this);
     ui->Combo_savingVideo->installEventFilter(this);
-    ui->Combo_VideoDataSave->installEventFilter(this);
-    ui->Combo_VideoDataLoad->installEventFilter(this);
+    ui->Combo_VideoData->installEventFilter(this);
     ui->Combo_FrangiParams->installEventFilter(this);
     localErrorDialogHandling[ui->Combo_savingVideo] = new ErrorDialog(ui->Combo_savingVideo);
-    localErrorDialogHandling[ui->Combo_VideoDataLoad] = new ErrorDialog(ui->Combo_VideoDataLoad);
-    localErrorDialogHandling[ui->Combo_VideoDataSave] = new ErrorDialog(ui->Combo_VideoDataSave);
+    localErrorDialogHandling[ui->Combo_VideoData] = new ErrorDialog(ui->Combo_VideoData);
     localErrorDialogHandling[ui->Combo_FrangiParams] = new ErrorDialog(ui->Combo_FrangiParams);
 }
 
@@ -198,32 +195,20 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
             localErrorDialogHandling[ui->Combo_savingVideo]->hide();
     }
 
-    bool VDL = getPathFromJson(pathTypes.at(2),ui->Combo_VideoDataLoad,i_onlyCheckEmpty);
-    if (!VDL)
+    bool VD = getPathFromJson(pathTypes.at(2),ui->Combo_VideoData,i_onlyCheckEmpty);
+    if (!VD)
     {
-        if (!localErrorDialogHandling[ui->Combo_VideoDataLoad]->isEvaluated()) {
-            localErrorDialogHandling[ui->Combo_VideoDataLoad]->evaluate("center","hardError",2);
-            localErrorDialogHandling[ui->Combo_VideoDataLoad]->show(false);
+        if (!localErrorDialogHandling[ui->Combo_VideoData]->isEvaluated()) {
+            localErrorDialogHandling[ui->Combo_VideoData]->evaluate("center","hardError",2);
+            localErrorDialogHandling[ui->Combo_VideoData]->show(false);
         }
     }
     else{
-        if (localErrorDialogHandling[ui->Combo_VideoDataLoad]->isEvaluated())
-            localErrorDialogHandling[ui->Combo_VideoDataLoad]->hide();
+        if (localErrorDialogHandling[ui->Combo_VideoData]->isEvaluated())
+            localErrorDialogHandling[ui->Combo_VideoData]->hide();
     }
 
-    bool VDS = getPathFromJson(pathTypes.at(3),ui->Combo_VideoDataSave,i_onlyCheckEmpty);
-    if (!VDS){
-        if (!localErrorDialogHandling[ui->Combo_VideoDataSave]->isEvaluated()) {
-            localErrorDialogHandling[ui->Combo_VideoDataSave]->evaluate("center","hardError",2);
-            localErrorDialogHandling[ui->Combo_VideoDataSave]->show(false);
-        }
-    }
-    else{
-        if (localErrorDialogHandling[ui->Combo_VideoDataSave]->isEvaluated())
-            localErrorDialogHandling[ui->Combo_VideoDataSave]->hide();
-    }
-
-    bool FP = getPathFromJson(pathTypes.at(4),ui->Combo_FrangiParams,i_onlyCheckEmpty);
+    bool FP = getPathFromJson(pathTypes.at(3),ui->Combo_FrangiParams,i_onlyCheckEmpty);
     if (FP && !SharedVariables::getSharedVariables()->processFrangiParameters(typeLists["parametersFrangiFiltr"].at(0))){
         if (!localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated()) {
             localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("center","softError",2);
@@ -242,15 +227,14 @@ bool DirectoriesLoader::getPathsFromJson(bool i_onlyCheckEmpty)
             localErrorDialogHandling[ui->Combo_FrangiParams]->hide();
     }
 
-    if (VFA && SV && VDL && VDS && FP){
+    if (VFA && SV && VD && FP){
         qDebug()<<"Loading successfull. Filling comboboxes.";
         for (int typeIndex = 0; typeIndex < pathTypes.count(); typeIndex++)
             SharedVariables::getSharedVariables()->setPath(pathTypes.at(typeIndex),typeLists[pathTypes.at(typeIndex)].at(0));
 
         connect(ui->Combo_videoPath,SIGNAL(currentIndexChanged(int)),this,SLOT(chosenPath(int)));
         connect(ui->Combo_savingVideo,SIGNAL(currentIndexChanged(int)),this,SLOT(chosenPath(int)));
-        connect(ui->Combo_VideoDataLoad,SIGNAL(currentIndexChanged(int)),this,SLOT(chosenPath(int)));
-        connect(ui->Combo_VideoDataSave,SIGNAL(currentIndexChanged(int)),this,SLOT(chosenPath(int)));
+        connect(ui->Combo_VideoData,SIGNAL(currentIndexChanged(int)),this,SLOT(chosenPath(int)));
         connect(ui->Combo_FrangiParams,SIGNAL(currentIndexChanged(int)),this,SLOT(chosenPath(int)));
         allCategoriesSet = true;
     }
@@ -263,10 +247,8 @@ void DirectoriesLoader::chosenPath(int i_index)
          SharedVariables::getSharedVariables()->setPath("videosPath",typeLists["videosPath"].at(i_index));
      if (QObject::sender() == ui->Combo_savingVideo)
          SharedVariables::getSharedVariables()->setPath("saveVideosPath",typeLists["saveVideosPath"].at(i_index));
-     if (QObject::sender() == ui->Combo_VideoDataLoad)
-         SharedVariables::getSharedVariables()->setPath("loadDatFilesPath",typeLists["loadDatFilesPath"].at(i_index));
-     if (QObject::sender() == ui->Combo_FrangiParams)
-         SharedVariables::getSharedVariables()->setPath("saveDatFilesPath",typeLists["saveDatFilesPath"].at(i_index));
+     if (QObject::sender() == ui->Combo_VideoData)
+         SharedVariables::getSharedVariables()->setPath("datFilesPath",typeLists["datFilesPath"].at(i_index));
      if (QObject::sender() == ui->Combo_FrangiParams){
          SharedVariables::getSharedVariables()->setPath("parametersFrangiFiltr",typeLists["parametersFrangiFiltr"].at(i_index));
          if (!SharedVariables::getSharedVariables()->processFrangiParameters(typeLists["parametersFrangiFiltr"].at(i_index))){
@@ -382,31 +364,17 @@ void DirectoriesLoader::on_SaveVideos_clicked()
     }
 }
 
-void DirectoriesLoader::on_LoadingDataFolder_clicked()
+void DirectoriesLoader::on_DataFolder_clicked()
 {
     QString pathToVideoParameters = QFileDialog::getExistingDirectory(this,
                                                                       tr("Choose folder with video parametric files"),
                                                                       QDir::currentPath());
     if (pathToVideoParameters != ""){
-        processPath("loadDatFilesPath",pathToVideoParameters);
-        ui->Combo_VideoDataLoad->addItem(pathToVideoParameters);
+        processPath("datFilesPath",pathToVideoParameters);
+        ui->Combo_VideoData->addItem(pathToVideoParameters);
         if (getPathsFromJson(true))
             emit fileFolderDirectoryFound();
-        qDebug()<<typeArrays["loadDatFilesPath"];
-    }
-}
-
-void DirectoriesLoader::on_SavingDataFolder_clicked()
-{
-    QString pathToSaveVideoParameters = QFileDialog::getExistingDirectory(this,
-                                                                          tr("Choose folder where video parametric files will be saved"),
-                                                                          QDir::currentPath());
-    if (pathToSaveVideoParameters != ""){
-        processPath("saveDatFilesPath",pathToSaveVideoParameters);
-        ui->Combo_VideoDataSave->addItem(pathToSaveVideoParameters);
-        if (getPathsFromJson(true))
-            emit fileFolderDirectoryFound();
-        qDebug()<<typeArrays["saveDatFilesPath"];
+        qDebug()<<typeArrays["datFilesPath"];
     }
 }
 
@@ -466,15 +434,13 @@ bool DirectoriesLoader::eventFilter(QObject *obj, QEvent *event){
 void DirectoriesLoader::enableElements(){
     ui->pathToVideos->setEnabled(true);
     ui->SaveVideos->setEnabled(true);
-    ui->LoadingDataFolder->setEnabled(true);
-    ui->SavingDataFolder->setEnabled(true);
+    ui->DataFolder->setEnabled(true);
     ui->paramFrangPB->setEnabled(true);
 }
 
 void DirectoriesLoader::disableElements(){
     ui->pathToVideos->setEnabled(false);
     ui->SaveVideos->setEnabled(false);
-    ui->LoadingDataFolder->setEnabled(false);
-    ui->SavingDataFolder->setEnabled(false);
+    ui->DataFolder->setEnabled(false);
     ui->paramFrangPB->setEnabled(false);
 }

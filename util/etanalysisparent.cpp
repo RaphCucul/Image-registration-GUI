@@ -235,31 +235,11 @@ void ETanalysisParent::saveVideoAnalysisResults() {
         if (badVideos.indexOf(name) == -1){
             QJsonDocument document;
             QJsonObject object;
-            QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+name+".dat";
+            QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+name+".dat";
             mapInt["evaluation"][name][framesReferencial[name]] = 2;
             mapDouble["FrangiX"][name][framesReferencial[name]] = framesReferentialFrangiCoordinates[name].x;
             mapDouble["FrangiY"][name][framesReferencial[name]] = framesReferentialFrangiCoordinates[name].y;
-            /*for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-                qDebug()<<videoParameters.at(parameter);
-                if (parameter <= 8){
-                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][name];
-                    QJsonArray pomArray = vector2array(pomDouble);
-                    object[videoParameters.at(parameter)] = pomArray;
-                }
-                else if (parameter > 8 && parameter <= 13){
-                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][name];
-                    if (videoParameters.at(parameter) == "evaluation")
-                        pomInt[framesReferencial[name]]=2;
-                    QJsonArray pomArray = vector2array(pomInt);
-                    object[videoParameters.at(parameter)] = pomArray;
-                }
-                else if (parameter > 13 && parameter <= 15) {
-                    QMap<QString,cv::Rect> _pom;
-                    cv::Rect _rect(0,0,0,0);
-                    _pom.insert(name,_rect);
-                    mapAnomalies.insert(videoParameters.at(parameter),_pom);
-                }
-            }*/
+
             object = maps2Object(videoParameters,name,mapDouble,mapInt,mapAnomalies);
 
             document.setObject(object);
@@ -276,8 +256,7 @@ void ETanalysisParent::saveVideoAnalysisResults() {
 void ETanalysisParent::saveVideoAnalysisResultsFromGraphET(QString i_videoName, QJsonObject i_object) {
     QJsonDocument document;
     QJsonObject object;
-    //QString actualName = chosenVideoETSingle[1];
-    QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+i_videoName+".dat";
+    QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+i_videoName+".dat";
     for (int parameter = 0; parameter < videoParameters.count(); parameter++){
         if (parameter < 9){
             QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][i_videoName];

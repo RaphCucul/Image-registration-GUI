@@ -70,11 +70,7 @@ private slots:
     /**
      * @brief Slot function which enables a user to to add a new directory path with created *.dat files.
      */
-    void on_LoadingDataFolder_clicked();
-    /**
-     * @brief Slot function which enables a user to to add a new directory path where *.dat files should be saved
-     */
-    void on_SavingDataFolder_clicked();
+    void on_DataFolder_clicked();
 
     //void on_FileFolderDirectory_textEdited(const QString &arg1);
 signals:
@@ -157,7 +153,7 @@ private:
     bool eventFilter(QObject *obj, QEvent *event);
 
     QJsonObject fileWithPaths; /**<JsonObject storing loaded information from the JSON file with directories. */
-    QStringList pathTypes = {"videosPath","saveVideosPath","loadDatFilesPath","saveDatFilesPath","parametersFrangiFiltr"};
+    QStringList pathTypes = {"videosPath","saveVideosPath","datFilesPath","parametersFrangiFiltr"};
     QHash<QString,QJsonArray> typeArrays;
     QHash<QString,QStringList> typeLists;
     QString pathToFileFolderDirectory,fileFolderDirectoryName;

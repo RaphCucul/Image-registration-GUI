@@ -234,76 +234,11 @@ void SingleVideoET::on_showGraphET_clicked()
 }
 
 void SingleVideoET::on_savePB_clicked()
-{   
-    /*QJsonDocument document;
-    QJsonObject object;
-    QString actualName = chosenVideoETSingle[1];
-    QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+actualName+".dat";
-    //for (int indexVideo=0; indexVideo<mapDouble[actualName]["entropy"].length(); indexVideo++){
-    foreach (QString name,videoNamesList){
-        if (badVideos.indexOf(name) == -1){
-            for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-                if (parameter < 8){
-                    QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][name];
-                    QJsonArray pomArray = vector2array(pomDouble);
-                    object[videoParameters.at(parameter)] = pomArray;
-                }
-                else if (parameter >= 8 && parameter <= 12){
-                    QVector<int> pomInt = mapInt[videoParameters.at(parameter)][name];
-                    if (videoParameters.at(parameter) == "evaluation"){
-                        pomInt[framesReferencial[name]]=2;
-                    }
-                    else{
-                        QJsonArray pomArray = vector2array(pomInt);
-                        object[videoParameters.at(parameter)] = pomArray;
-                    }
-                }
-                else{*/
-                    /*if (videoParameters.at(parameter) == "VerticalAnomaly")
-                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getVerticalAnomalyCoords().y);
-                else
-                    object[videoParameters.at(parameter)] = double(SharedVariables::getSharedVariables()->getHorizontalAnomalyCoords().x);*/
-                /*}
-            }
-            document.setObject(object);
-            QString documentString = document.toJson();
-            QFile writer;
-            writer.setFileName(path);
-            writer.open(QIODevice::WriteOnly);
-            writer.write(documentString.toLocal8Bit());
-            writer.close();
-        }
-    }*/
+{
     saveVideoAnalysisResults();
 }
 
 void SingleVideoET::onSaveFromGraphET(QString i_videoName, QJsonObject i_object){
-    /*QJsonDocument document;
-    QJsonObject object;
-    //QString actualName = chosenVideoETSingle[1];
-    QString path = SharedVariables::getSharedVariables()->getPath("saveDatFilesPath")+"/"+i_videoName+".dat";
-    for (int parameter = 0; parameter < videoParameters.count(); parameter++){
-        if (parameter < 8){
-            QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][i_videoName];
-            QJsonArray pomArray = vector2array(pomDouble);
-            object[videoParameters.at(parameter)] = pomArray;
-        }
-        else if (parameter >= 8 && parameter <= 12){
-            QVector<int> pomInt = mapInt[videoParameters.at(parameter)][i_videoName];
-            if (videoParameters.at(parameter) == "evaluation")
-                pomInt[framesReferencial[i_videoName]]=2;
-
-            QJsonArray pomArray = vector2array(pomInt);
-            object[videoParameters.at(parameter)] = pomArray;
-        }
-    }
-    document.setObject(object);
-    QString documentString = document.toJson();
-    QFile writer;
-    writer.setFileName(path);
-    writer.open(QIODevice::WriteOnly);
-    writer.write(documentString.toLocal8Bit());
-    writer.close();*/
     saveVideoAnalysisResultsFromGraphET(i_videoName, i_object);
 }
 

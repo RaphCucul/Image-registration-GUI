@@ -508,7 +508,7 @@ void RegistrateTwo::ReferenceLE_textChanged(const QString &arg1)
             ui->rotationAngle->setEnabled(true);
             ui->iterationCount->setEnabled(true);
         }
-        if (!checkReferentialFrameExistence(SharedVariables::getSharedVariables()->getPath("saveDatFilesPath"),
+        if (!checkReferentialFrameExistence(SharedVariables::getSharedVariables()->getPath("datFilesPath"),
                                              chosenVideoAnalysis["filename"],referencialNumber)){
             if (!localErrorDialogHandling[referenceNoLE]->isEvaluated()){
                 localErrorDialogHandling[referenceNoLE]->evaluate("left","info",4);
