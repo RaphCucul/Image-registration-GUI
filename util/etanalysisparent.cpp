@@ -87,39 +87,46 @@ QMap<QString,QMap<QString,cv::Rect>> ETanalysisParent::initAnomaly(QStringList p
 }
 
 void ETanalysisParent::cancelAllCalculations(){
-    if (First[1]->isRunning()){
-        First[1]->terminate();
-        First[1]->wait(100);
+    if (!First.isEmpty()) {
+        if (First[1]->isRunning()){
+            First[1]->terminate();
+            First[1]->wait(100);
+        }
+        First[1]->deleteLater();
     }
-    First[1]->deleteLater();
+
     if (!Second.isEmpty()){
         if (Second[2]->isRunning()){
             Second[2]->terminate();
             Second[2]->wait(100);
         }
+        Second[2]->deleteLater();
     }
-    Second[2]->deleteLater();
+
     if (!Third.isEmpty()){
         if(Third[3]->isRunning()){
             Third[3]->terminate();
             Third[3]->wait(100);
         }
+        Third[3]->deleteLater();
     }
-    Third[3]->deleteLater();
+
     if (!Fourth.isEmpty()){
         if (Fourth[4]->isRunning()){
             Fourth[4]->terminate();
             Fourth[4]->wait(100);
         }
+        Fourth[4]->deleteLater();
     }
-    Fourth[4]->deleteLater();
+
     if (!Fifth.isEmpty()){
         if (Fifth[5]->isRunning()){
             Fifth[5]->terminate();
             Fifth[5]->wait(100);
         }
+        Fifth[5]->deleteLater();
     }
-    Fifth[5]->deleteLater();
+
     initMaps();
     emit calculationStopped();
 }
