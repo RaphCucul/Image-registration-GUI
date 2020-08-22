@@ -147,8 +147,12 @@ double SharedVariables::getSpecificFrangiParameter(QString parameter) {
 }
 
 double SharedVariables::getSpecificVideoFrangiParameter(QString i_videoName, QString parameter) {
-    if (videoFrangiParameters.contains(i_videoName) && videoFrangiParameters.contains(parameter))
-        return videoFrangiParameters[i_videoName][parameter];
+    if (videoFrangiParameters.contains(i_videoName)) {
+        if (videoFrangiParameters[i_videoName].contains(parameter))
+            return videoFrangiParameters[i_videoName][parameter];
+        else
+            return getSpecificFrangiParameter(parameter);
+    }
     else
         return getSpecificFrangiParameter(parameter);
 }
