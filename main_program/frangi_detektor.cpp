@@ -75,7 +75,6 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
 
     ui->globalParams->setEnabled(false);
     ui->videoParams->setEnabled(false);
-    chosenFrangiType = frangiType::GLOBAL;
 }
 
 Frangi_detektor::~Frangi_detektor()
@@ -88,7 +87,7 @@ void Frangi_detektor::setParametersToUI(){
         setParameter(parameter,parameter);
     }
 
-    if (SharedVariables::getSharedVariables()->getSpecificFrangiParameterWrapper(frangiType::GLOBAL,
+    if (SharedVariables::getSharedVariables()->getSpecificFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,
                                                                                  analyseChosenFile["filename"],
                                                                                  "zpracovani") == 1.0){
         ui->RB_standard->setChecked(1);
@@ -296,6 +295,7 @@ void Frangi_detektor::on_chosenFile_textChanged(const QString &arg1)
         else {
             ui->globalParams->setEnabled(true);
             ui->videoParams->setEnabled(true);
+            ui->videoParams->setChecked(true);
         }
     }
 }

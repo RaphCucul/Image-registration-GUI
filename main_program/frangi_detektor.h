@@ -158,7 +158,7 @@ private:
     QMap<QString,int> frangiMargins;
     QMap<QString,double> cutoutRatios;
     bool loading = true;
-    frangiType chosenFrangiType = frangiType::GLOBAL;
+    frangiType chosenFrangiType = frangiType::VIDEO_SPECIFIC;
 };
 
 #endif // FRANGI_DETEKTOR_H
