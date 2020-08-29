@@ -6,6 +6,7 @@
 #include "util/vector_operations.h"
 #include "dialogs/errordialog.h"
 #include "dialogs/matviewer.h"
+#include "dialogs/clickimageevent.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -69,12 +70,17 @@ Frangi_detektor::Frangi_detektor(QWidget *parent) :
     QObject::connect(ui->rightRatio,SIGNAL(valueChanged(double)),this,SLOT(processRatio(double)));
     QObject::connect(ui->topRatio,SIGNAL(valueChanged(double)),this,SLOT(processRatio(double)));
     QObject::connect(ui->bottomRatio,SIGNAL(valueChanged(double)),this,SLOT(processRatio(double)));
+    connect(ui->externalCutout,SIGNAL(stateChanged(int)),this,SLOT(openClickImageDialogue(int)));
 
     connect(ui->saveParamGlob,SIGNAL(clicked()),this,SLOT(onSaveFrangiData()));
     connect(ui->saveParamLocal,SIGNAL(clicked()),this,SLOT(onSaveFrangiData()));
+    connect(ui->saveCutouts,SIGNAL(clicked()),this,SLOT(saveSelectedCutout()));
+    connect(ui->saveReferential,SIGNAL(clicked()),this,SLOT(saveChosenReferentialFrame()));
 
     ui->globalParams->setEnabled(false);
     ui->videoParams->setEnabled(false);
+
+    changeSaveButtonsStatus(false);
 }
 
 Frangi_detektor::~Frangi_detektor()
@@ -174,7 +180,7 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
         else
             processingType = 2;
 
-        Mat chosenFrame;
+        Mat chosenFrame_temp,chosenFrame;
         if (analyseChosenFile["suffix"] == "avi")
         {
             QString chosenFile = analyseChosenFile["folder"]+"/"+analyseChosenFile["filename"]+"."+analyseChosenFile["suffix"];
@@ -185,7 +191,29 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
             }
             VideoCapture cap = VideoCapture(chosenFile.toLocal8Bit().constData());
             cap.set(CV_CAP_PROP_POS_FRAMES,analyseFrame);
-            cap.read(chosenFrame);
+            cap.read(chosenFrame_temp);
+        }
+        if (previousExtraCutoutFound && ui->externalCutout->isChecked()) {
+            chosenFrame_temp(extraCutout).copyTo(chosenFrame);
+            chosenFrame_temp.release();
+        }
+        else if (ui->externalCutout->isChecked() && extraCutout.width == 0 && extraCutout.height == 0) {
+            if (checkPresenceOfExtraCutout(analyseChosenFile["filename"],true)) {
+                chosenFrame_temp(extraCutout).copyTo(chosenFrame);
+                chosenFrame_temp.release();
+            }
+            else {
+                chosenFrame_temp.copyTo(chosenFrame);
+                chosenFrame_temp.release();
+            }
+        }
+        else if (extraCutout.width != 0 && extraCutout.height != 0) {
+            chosenFrame_temp(extraCutout).copyTo(chosenFrame);
+            chosenFrame_temp.release();
+        }
+        else {
+            chosenFrame_temp.copyTo(chosenFrame);
+            chosenFrame_temp.release();
         }
         transformMatTypeTo8C3(chosenFrame);
         Point3d pt_temp(0.0,0.0,0.0);
@@ -195,9 +223,9 @@ void Frangi_detektor::on_Frangi_filtr_clicked()
                                                      parametersForFrangi,
                                                      SharedVariables::getSharedVariables()->getFrangiMarginsWrapper(chosenFrangiType,
                                                                                                                     analyseChosenFile["filename"]));
-        qDebug()<<"Frangi maximum detected "<<detectedFrangi.x<<" "<<detectedFrangi.y;
         SharedVariables::getSharedVariables()->setFrangiMaximumWrapper(chosenFrangiType,analyseChosenFile["filename"],detectedFrangi);
         showStandardCutout(chosenFrame);
+        ui->saveReferential->setEnabled(true);
         emit calculationStopped();
     }
 }
@@ -216,37 +244,8 @@ void Frangi_detektor::showStandardCutout(Mat &i_chosenFrame){
     cutoutStandard.height = rowTo - cutoutStandard.y;
 
     cv::rectangle(i_chosenFrame, cutoutStandard, Scalar(255), 1, 8, 0);
-    //cv::namedWindow("Chosen frame with standard cutout area");
-    //cv::imshow("Chosen frame with standard cutout area",i_chosenFrame);
     MatViewer *viewer = new MatViewer(i_chosenFrame,"Chosen frame with standard cutout area");
     viewer->open();
-}
-
-void Frangi_detektor::on_fileToAnalyse_clicked()
-{
-    QString videoProFrangiFiltr = QFileDialog::getOpenFileName(this,
-       tr("Choose frame for Frangi filter analysis"), SharedVariables::getSharedVariables()->getPath("videosPath"),"(*.avi);;All files (*)");
-    QString folder,filename,suffix;
-    processFilePath(videoProFrangiFiltr,folder,filename,suffix);
-    if (suffix == "avi"){
-        analyseChosenFile["folder"] = folder;
-        analyseChosenFile["filename"] = filename;
-        analyseChosenFile["suffix"] = suffix;
-
-        this->ui->frameNumber->setEnabled(true);
-        ui->chosenFile->setText(analyseChosenFile["filename"]);
-        ui->chosenFile->setStyleSheet("color: #339933");
-        bool videoFrangiParametersLoaded = loadFrangiParametersForVideo(chosenFrangiType);
-        if (!videoFrangiParametersLoaded) {
-            disableWidgets();
-            setParametersToUI();
-            ui->globalParams->setChecked(true);
-        }
-    }
-    else {
-        // no other video format is supported
-        disableWidgets();
-    }
 }
 
 void Frangi_detektor::on_frameNumber_textChanged(const QString &arg1)
@@ -259,14 +258,86 @@ void Frangi_detektor::on_frameNumber_textChanged(const QString &arg1)
     if (arg1.toInt() <= 0 || arg1.toInt() > frameCount || !checkInput){
         ui->frameNumber->setStyleSheet("color: #FF0000");
         //readyToCalculate = false;
-        disableWidgets();
+        changeStatus(false);
     }
     else
     {
         ui->frameNumber->setStyleSheet("color: #339933");
         analyseFrame = frameNumber-1;
         //readyToCalculate = true;
-        enableWidgets();
+        changeStatus(true);
+    }
+}
+
+bool Frangi_detektor::checkPresenceOfExtraCutout(QString i_filename, bool videoInformationOnly) {
+    previousExtraCutoutFound = false;
+    QVector<int> unusedVariable;
+    // first option - video was analysed previously -> the information can be found in the dat file
+    if (checkAndLoadData("extra",i_filename,unusedVariable) && !videoInformationOnly) {
+        if (unusedVariable.length() > 2) {
+            if (unusedVariable[2] > 0 && unusedVariable[3] > 0) {
+                previousExtraCutoutFound = true;
+                extraCutout = convertVector2Rect(unusedVariable);
+                return true;
+            }
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+    else {
+        // it is still possible that the requested data will be in the video information
+        if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(i_filename)) {
+            QRect _pom = SharedVariables::getSharedVariables()->getVideoInformation(i_filename,"extra").toRect();
+            extraCutout = convertQRectToRect(_pom);
+            if (extraCutout.width > 0 && extraCutout.height > 0) {
+                previousExtraCutoutFound = true;
+                return true;
+            }
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+}
+
+void Frangi_detektor::on_fileToAnalyse_clicked()
+{
+    QString videoProFrangiFiltr = QFileDialog::getOpenFileName(this,
+                                                               tr("Choose frame for Frangi filter analysis"), SharedVariables::getSharedVariables()->getPath("videosPath"),"(*.avi);;All files (*)");
+    QString folder,filename,suffix;
+    processFilePath(videoProFrangiFiltr,folder,filename,suffix);
+    if (suffix == "avi"){
+        analyseChosenFile["folder"] = folder;
+        analyseChosenFile["filename"] = filename;
+        analyseChosenFile["suffix"] = suffix;
+
+        this->ui->frameNumber->setEnabled(true);
+        ui->chosenFile->setText(analyseChosenFile["filename"]);
+        ui->chosenFile->setStyleSheet("color: #339933");
+        bool videoFrangiParametersLoaded = loadFrangiParametersForVideo(chosenFrangiType);
+        if (!videoFrangiParametersLoaded) {
+            setParametersToUI();
+            ui->globalParams->setEnabled(false);
+            ui->videoParams->setEnabled(false);
+            ui->globalParams->setChecked(true);
+        }
+        else {
+            ui->globalParams->setEnabled(true);
+            ui->videoParams->setEnabled(true);
+            ui->videoParams->setChecked(true);
+        }
+        if (checkPresenceOfExtraCutout(filename,false)) {
+            ui->externalCutout->setCheckState(Qt::CheckState::Checked);
+        }
+        else
+            ui->externalCutout->setCheckState(Qt::CheckState::Unchecked);
+    }
+    else {
+        // no other video format is supported
+        changeStatus(false);
     }
 }
 
@@ -278,7 +349,7 @@ void Frangi_detektor::on_chosenFile_textChanged(const QString &arg1)
         ui->chosenFile->setStyleSheet("color: #FF0000");
         ui->frameNumber->setText("");
         ui->frameNumber->setEnabled(false);
-        disableWidgets();
+        changeStatus(false);
     }
     else {
         actualVideo = cv::VideoCapture(fullPath.toLocal8Bit().constData());
@@ -297,7 +368,12 @@ void Frangi_detektor::on_chosenFile_textChanged(const QString &arg1)
             ui->videoParams->setEnabled(true);
             ui->videoParams->setChecked(true);
         }
+        if (checkPresenceOfExtraCutout(arg1,false))
+            ui->externalCutout->setCheckState(Qt::CheckState::Checked);
+        else
+            ui->externalCutout->setCheckState(Qt::CheckState::Unchecked);
     }
+
 }
 
 bool Frangi_detektor::loadFrangiParametersForVideo(frangiType i_type) {
@@ -338,9 +414,30 @@ void Frangi_detektor::onFrangiSourceChosen() {
     }
 }
 
-/*void Frangi_detektor::fillWidgetsWithData() {
+void Frangi_detektor::openClickImageDialogue(int checked) {
+    if (checked == Qt::CheckState::Checked && !previousExtraCutoutFound) {
+        QString fullPath = analyseChosenFile["folder"]+"/"+analyseChosenFile["filename"]+"."+analyseChosenFile["suffix"];
+        ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,ui->frameNumber->text().toInt(),cutoutType::EXTRA,nullptr);
+        markAnomaly->setModal(true);
+        markAnomaly->show();
+        connect(markAnomaly,SIGNAL(finished(int)),this,SLOT(checkSelectedCutout()));
+    }
+    else
+        previousExtraCutoutFound = false;
+}
 
-}*/
+void Frangi_detektor::checkSelectedCutout() {
+    if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(analyseChosenFile["filename"])) {
+        QRect __extra = SharedVariables::getSharedVariables()->getVideoInformation(analyseChosenFile["filename"],"extra").toRect();
+        if (!__extra.isNull())
+            ui->saveCutouts->setEnabled(true);
+        else
+            ui->externalCutout->setCheckState(Qt::CheckState::Unchecked);
+    }
+    else {
+        ui->externalCutout->setCheckState(Qt::CheckState::Unchecked);
+    }
+}
 
 void Frangi_detektor::setParameter(QString i_doubleSpinboxName, QString parameter) {
     spinBoxes[i_doubleSpinboxName]->setValue(SharedVariables::getSharedVariables()->getSpecificFrangiParameterWrapper(chosenFrangiType,
@@ -387,21 +484,94 @@ void Frangi_detektor::getRatio(frangiType i_type, QString i_ratioName) {
                                                                          ratioSpinBoxes[i_ratioName]->value());
 }
 
+void Frangi_detektor::saveSelectedCutout() {
+    QJsonDocument document;
+    QJsonObject object;
+    QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+analyseChosenFile["filename"]+".dat";
+    QFile datFile(path);
+    if (datFile.exists()) {
+        object = readJson(datFile);
+    }
+    QRect _p = SharedVariables::getSharedVariables()->getVideoInformation(analyseChosenFile["filename"],"extra").toRect();
+    cv::Rect _pCV = convertQRectToRect(_p);
+    QVector<int> _pV = convertRect2Vector(_pCV);
+    QJsonArray _pA = vector2array(_pV);
+    object["extra"] = _pA;
+    document.setObject(object);
+    QString documentString = document.toJson();
+    QFile writer;
+    writer.setFileName(path);
+    writer.open(QIODevice::WriteOnly);
+    writer.write(documentString.toLocal8Bit());
+    writer.close();
+}
+
+void Frangi_detektor::saveChosenReferentialFrame() {
+    QJsonDocument document;
+    QJsonObject object;
+    QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+analyseChosenFile["filename"]+".dat";
+    QFile datFile(path);
+    if (datFile.exists()) {
+        object = readJson(datFile);
+    }
+
+    if (object.contains("evaluation")) {
+        QJsonArray existingEvaluation = object["evaluation"].toArray();
+        QVector<int> existingEvaluationV = array2vector<int>(existingEvaluation);
+        int existingReference = findReferenceFrame(existingEvaluationV);
+        if (existingReference != analyseFrame) {
+            existingEvaluationV[existingReference] = 0;
+            existingEvaluationV[analyseFrame] = 2;
+        }
+        object["evaluation"] = vector2array(existingEvaluationV);
+    }
+    else {
+        QVector<int> newEvaluation(actualVideo.get(CV_CAP_PROP_FRAME_COUNT),0);
+        newEvaluation[analyseFrame] = 2;
+        object["evaluation"] = vector2array(newEvaluation);
+    }
+
+    QStringList coordinates = {"FrangiX","FrangiY"};
+    cv::Point3d frangiCoordinates = SharedVariables::getSharedVariables()->getFrangiMaximumWrapper(chosenFrangiType,analyseChosenFile["filename"]);
+    foreach (QString coordinate,coordinates) {
+        if (object.contains(coordinate)) {
+            QJsonArray existingFrangi = object[coordinate].toArray();
+            QVector<double> existingFrangiV = array2vector<double>(existingFrangi);
+            existingFrangiV[analyseFrame] = coordinate=="FrangiX" ? frangiCoordinates.x : frangiCoordinates.y;
+            object[coordinate] = vector2array(existingFrangiV);
+        }
+        else {
+            QVector<double> newDataVector(actualVideo.get(CV_CAP_PROP_FRAME_COUNT),0.0);
+            newDataVector[analyseFrame] = coordinate=="FrangiX" ? frangiCoordinates.x : frangiCoordinates.y;
+            object[coordinate] = vector2array(newDataVector);
+        }
+    }
+
+    document.setObject(object);
+    QString documentString = document.toJson();
+    QFile writer;
+    writer.setFileName(path);
+    writer.open(QIODevice::WriteOnly);
+    writer.write(documentString.toLocal8Bit());
+    writer.close();
+
+}
+
 void Frangi_detektor::onSaveFrangiData() {
     frangiType saveType;
     int _glPar = -1;
-    if (QObject::sender() == ui->globalParams) {
-                saveType = frangiType::GLOBAL;
-                _glPar = 5;
+    if (QObject::sender() == ui->saveParamGlob) {
+        saveType = frangiType::GLOBAL;
+        _glPar = 5;
     }
     else
         saveType = frangiType::VIDEO_SPECIFIC;
 
     int type = ui->RB_standard->isChecked() ? 1.0 : 0.0;
-        SharedVariables::getSharedVariables()->setSpecificFrangiParameterWrapper(saveType,
-                                                                                 type,
-                                                                                 analyseChosenFile["filename"],
-                                                                                 "zpracovani",_glPar);
+    SharedVariables::getSharedVariables()->setSpecificFrangiParameterWrapper(saveType,
+                                                                             type,
+                                                                             analyseChosenFile["filename"],
+                                                                             "zpracovani",_glPar);
     foreach (QString parameter,frangiParametersList) {
         if (parameter != "zpracovani") {
             getParameter(saveType,parameter);
@@ -414,6 +584,12 @@ void Frangi_detektor::onSaveFrangiData() {
             getRatio(saveType,parameter);
     }
     SharedVariables::getSharedVariables()->saveFrangiParametersWrapper(saveType,analyseChosenFile["filename"]);
+
+    if (saveType == frangiType::VIDEO_SPECIFIC) {
+        ui->videoParams->setChecked(true);
+        ui->globalParams->setEnabled(true);
+        ui->videoParams->setEnabled(true);
+    }
 
 }
 
@@ -465,14 +641,14 @@ void Frangi_detektor::initWidgetHashes(){
     ratioSpinBoxes["right_r"] = ui->rightRatio;
 }
 
-void Frangi_detektor::enableWidgets() {
-    ui->saveParamGlob->setEnabled(true);
-    ui->saveParamLocal->setEnabled(true);
-    ui->Frangi_filtr->setEnabled(true);
+void Frangi_detektor::changeStatus(bool status) {
+    ui->saveParamGlob->setEnabled(status);
+    ui->saveParamLocal->setEnabled(status);
+    ui->Frangi_filtr->setEnabled(status);
+    ui->externalCutout->setEnabled(status);
 }
 
-void Frangi_detektor::disableWidgets() {
-    ui->saveParamGlob->setEnabled(false);
-    ui->saveParamLocal->setEnabled(false);
-    ui->Frangi_filtr->setEnabled(false);
+void Frangi_detektor::changeSaveButtonsStatus(bool status) {
+    ui->saveCutouts->setEnabled(status);
+    ui->saveReferential->setEnabled(status);
 }

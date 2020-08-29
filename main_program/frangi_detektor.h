@@ -53,7 +53,10 @@ private slots:
     void processMargins(int i_margin);
     void processRatio(double i_ratio);
     void onFrangiSourceChosen();
-
+    void openClickImageDialogue(int checked);
+    void checkSelectedCutout();
+    void saveSelectedCutout();
+    void saveChosenReferentialFrame();
 signals:
     void calculationStarted();
     void calculationStopped();
@@ -126,6 +129,14 @@ private:
     void checkStartEndValues();
 
     /**
+     * @brief checkPresenceOfExtraCutout
+     * @param i_filename
+     * @param videoInformationOnly
+     * @return
+     */
+    bool checkPresenceOfExtraCutout(QString i_filename, bool videoInformationOnly);
+
+    /**
      * @brief Loads frangi parameters - if the program is able to find video *.dat file and if the file has necessary information,
      *  video-related frangi parameters are loaded to the program. Otherwise, global-related parameters are loaded.
      * @param i_type
@@ -134,14 +145,16 @@ private:
     bool loadFrangiParametersForVideo(frangiType i_type);
 
     /**
-     * @brief Enables necessary widgets to start analysis and save parameters.
+     * @brief Changes "enabled" status of designated widgets.
+     * @param status
      */
-    void enableWidgets();
+    void changeStatus(bool status);
 
     /**
-     * @brief Disables necessary widgets if proper conditions to start analysis are not met.
+     * @brief Changes "enabled" status of saving buttons.
+     * @param status
      */
-    void disableWidgets();
+    void changeSaveButtonsStatus(bool status);
 
     int analyseFrame = -1;
     Ui::Frangi_detektor *ui;
@@ -157,8 +170,9 @@ private:
     QStringList MarginsRatiosList = {"left_m","right_m","top_m","bottom_m","left_r","right_r","top_r","bottom_r"};
     QMap<QString,int> frangiMargins;
     QMap<QString,double> cutoutRatios;
-    bool loading = true;
+    bool loading = true,previousExtraCutoutFound = false;
     frangiType chosenFrangiType = frangiType::VIDEO_SPECIFIC;
+    cv::Rect extraCutout;
 };
 
 #endif // FRANGI_DETEKTOR_H
