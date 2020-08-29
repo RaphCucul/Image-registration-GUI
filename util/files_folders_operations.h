@@ -139,6 +139,12 @@ bool checkAndLoadData(QString i_parameter, QString i_videoName, QVector<T>& o_ve
 QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input);
 
 /**
+ * @brief Converts QRectF object to cv::Rect object.
+ * @param i_input
+ */
+cv::Rect convertQRectToRect(QRect i_input);
+
+/**
  * @brief Converts cv::Rect object into a vector.
  * @param[in] i_rectangular
  */

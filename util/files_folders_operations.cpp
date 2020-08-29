@@ -133,6 +133,16 @@ QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input){
     return _output;
 }
 
+cv::Rect convertQRectToRect(QRect i_input) {
+    cv::Rect _output;
+    _output.x = i_input.x();
+    _output.y = i_input.y();
+    _output.width = i_input.width();
+    _output.height = i_input.height();
+
+    return _output;
+}
+
 QVector<int> convertRect2Vector(cv::Rect i_rectangular) {
     QVector<int> _returnVector;
 
