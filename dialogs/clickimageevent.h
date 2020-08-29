@@ -135,6 +135,10 @@ public:
                     bool i_referentialFrameFound = false,
                     chosenSource i_chosenType= chosenSource::VIDEO,
                     QDialog *parent = nullptr);
+    ClickImageEvent(QString i_fullPath,
+                    int i_referFrameNo,
+                    cutoutType i_cutoutType,
+                    QDialog *parent = nullptr);
     ClickImageEvent(QStringList i_fullPaths, cutoutType i_type, QDialog *parent = nullptr);
     ~ClickImageEvent() override;    
 public slots:
@@ -238,7 +242,7 @@ private:
      * @param i_cutout
      * @param i_loadFrangiCoordinates - true if a referential frame was found because the analysis was
      */
-    void initStandardVideoWidgets(videoCount i_count,cutoutType i_cutout,bool i_loadFrangiCoordinates);
+    void initStandardVideoWidgets(videoCount i_count, cutoutType i_cutout, bool i_loadFrangiCoordinates);
 
     /**
      * @brief Adds standard widgets to the optionalContent gridLayout when an image is analysed.
@@ -322,7 +326,7 @@ private:
     cutoutType cutout = EXTRA;
     double frameCount = 0.0;
     QMap<QString,int> referencialFrameNo;
-    bool disabled = true, mousePressed = false, modified = false, frangiOptionsShown = false;
+    bool disabled = true, mousePressed = false, modified = false, frangiOptionsShown = false,runFrangi = true;
     QPointF selectionOrigin,lastDragPosition,selectionEnd;
     QMap<QString,QPoint> frangiCoordinates;
     QPoint lastSelectionPosition;

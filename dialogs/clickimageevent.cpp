@@ -104,6 +104,31 @@ ClickImageEvent::ClickImageEvent(QStringList i_fullPaths, cutoutType i_type, QDi
     initStandardVideoWidgets(videoCount::MULTIPLE_VIDEOS,i_type,false);
 }
 
+ClickImageEvent::ClickImageEvent(QString i_fullPath,
+                                 int i_referFrameNo,
+                                 cutoutType i_cutoutType,
+                                 QDialog *parent) : QDialog(parent),ui(new Ui::ClickImageEvent)
+{
+    ui->setupUi(this);
+    QString suffix,folder;
+    filePath = i_fullPath;
+    processFilePath(i_fullPath,folder,videoName,suffix);
+
+    cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
+    frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+
+    cutout = i_cutoutType;
+    referencialFrameNo[videoName] = i_referFrameNo;
+
+    ui->clickImage->setMouseTracking(false);
+    ui->clickImage->setEnabled(false);
+    ui->clickImage->viewport()->installEventFilter(this);
+
+    runFrangi = false;
+
+    initStandardVideoWidgets(videoCount::ONE_VIDEO,i_cutoutType,false);
+}
+
 ClickImageEvent::~ClickImageEvent()
 {
     delete ui;
@@ -187,8 +212,12 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
                     startFrangiAnalysis();
                 }
             }
-            else
-                startFrangiAnalysis();
+            else {
+                if (runFrangi)
+                    startFrangiAnalysis();
+                else
+                    fillGraphicScene(false);
+            }
         }
         else{// referential frame is unknown -> try to find it
             if (findReferentialFrameData(videoName,referencialFrameNo[videoName],frangiCoordinates[videoName])){
@@ -245,7 +274,8 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
     QTransform tr;tr.rotate(180);
     revealFrangiOptions->setIcon(px.transformed(tr));
     revealFrangiOptions->setFocusPolicy(Qt::NoFocus);
-    ui->optionalContent->addWidget(revealFrangiOptions,1);
+    if (runFrangi)
+        ui->optionalContent->addWidget(revealFrangiOptions,1);
     connect(revealFrangiOptions,SIGNAL(clicked()),this,SLOT(onShowFrangiOptions()));
 
     ui->layout->addWidget(_integratedFrangiOptionsObject);
@@ -405,6 +435,7 @@ void ClickImageEvent::closeEvent(QCloseEvent *e) {
     }
     else
         saveCutouts(false);
+    this->done(0);
     e->accept();
 }
 
@@ -416,7 +447,8 @@ void ClickImageEvent::saveCutouts(bool saveNew) {
             SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",saveNew ? standardCutout[videoName] : originalStandardCutout[videoName]);
         else if (cutout == cutoutType::EXTRA) {
             SharedVariables::getSharedVariables()->setVideoInformation(videoName,"extra",saveNew ? extraCutout[videoName] : originalExtraCutout[videoName]);
-            SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",standardCutout[videoName]);
+            if (runFrangi)
+                SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",standardCutout[videoName]);
         }
         qDebug()<<SharedVariables::getSharedVariables()->getCompleteVideoInformation(videoName);
     }
@@ -537,17 +569,23 @@ bool ClickImageEvent::checkFrangiMaximumPresenceInCutout(){
             return false;
     }
     else if (cutout == cutoutType::EXTRA){
-        // if extra cutout is changed, firstly recalculate standard cutout
-        updateCutoutStandard();
-        // then check if the standard cutout contains frangi point
-        if ((frangiCoordinates[videoName].x() > tempStandardCutout.x() && frangiCoordinates[videoName].x() < (tempStandardCutout.x()+tempStandardCutout.width()))
+        if (runFrangi) {
+            // if extra cutout is changed, firstly recalculate standard cutout
+            updateCutoutStandard();
+            // then check if the standard cutout contains frangi point
+            if ((frangiCoordinates[videoName].x() > tempStandardCutout.x() && frangiCoordinates[videoName].x() < (tempStandardCutout.x()+tempStandardCutout.width()))
                 && (frangiCoordinates[videoName].y() > tempStandardCutout.y() && frangiCoordinates[videoName].y() < (tempStandardCutout.y()+tempStandardCutout.height()))){
-            standardCutout[videoName] = tempStandardCutout;
+                standardCutout[videoName] = tempStandardCutout;
+                extraCutout[videoName] = tempExtraCutout;
+                return true;
+            }
+            else
+                return false;
+        }
+        else {
             extraCutout[videoName] = tempExtraCutout;
             return true;
         }
-        else
-            return false;
     }
     else
         return false;
@@ -594,7 +632,7 @@ void ClickImageEvent::updateCutoutStandard(){
 }
 
 void ClickImageEvent::updateCutoutExtra(){
-    qDebug()<<"Updating extra cutout";
+    //qDebug()<<"Updating extra cutout";
     double height = lastDragPosition.y() - selectionOrigin.y();
     double width = lastDragPosition.x() - selectionOrigin.x();
     scene->removeItem(extraCutout_GRI);
@@ -650,15 +688,18 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts){
     scene->addItem(image);
     QPainterPath crossPath;
     paintCross(crossPath,frangiCoordinates[videoName].x(),frangiCoordinates[videoName].y());
-    pathItem = scene->addPath(crossPath,QPen(QColor(255, 0, 0), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
+    if (runFrangi)
+        pathItem = scene->addPath(crossPath,QPen(QColor(255, 0, 0), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
 
     if (i_initCutouts)
         initCutouts(referencialImage);
     originalStandardCutout = standardCutout;
     originalExtraCutout = extraCutout;
 
-    standardCutout_GRI = scene->addRect(standardCutout[videoName],QPen(QColor(255, 0, 0)));
-    extraCutout_GRI = scene->addRect(extraCutout[videoName],QPen(QColor(0,0,255)));
+    if (runFrangi) {
+        standardCutout_GRI = scene->addRect(standardCutout[videoName],QPen(QColor(255, 0, 0)));
+        extraCutout_GRI = scene->addRect(extraCutout[videoName],QPen(QColor(0,0,255)));
+    }
 
     ui->clickImage->setFixedSize(referencialImage.cols+10,referencialImage.rows+10);
     ui->clickImage->setSceneRect(0,0,referencialImage.cols,referencialImage.rows);
