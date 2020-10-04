@@ -32,18 +32,32 @@ public:
     explicit HDD_Settings(QWidget *parent = nullptr);
     ~HDD_Settings();
 private slots:
+    /**
+     * @brief Slot function for QDialog buttonbox "OK" button.
+     */
     void slot_accepted();
+
+    /**
+     * @brief Slot function for QDialog buttonbox "Cancel" button.
+     */
     void slot_rejected();
+
     /**
      * @brief Calls powershell script to identify HDD counter and parameter names. Dialogue icon is updated according to the
      * actual progress.
      */
-    void on_pushButton_clicked();
+    void onRunScript();
+
     /**
      * @brief Scans the program folder where the ouput of the powershell script is created when the process ends successfully.
      * The interval of scanning is 1 second.
      */
     void scanFolder();
+
+    /**
+     * @brief Opens a file selection dialog to allow a user look for powershell.exe file.
+     */
+    void onFindPowershell();
 
 private:
     Ui::HDD_Settings *ui;

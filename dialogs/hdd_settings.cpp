@@ -1,6 +1,7 @@
 #include <string>
 #include <io.h>
 #include <sstream>
+#include <iostream>
 #include <sys/types.h>  // For stat().
 #include <sys/stat.h>   // For stat().
 #include <cstdlib>
@@ -15,6 +16,8 @@
 #include "util/files_folders_operations.h"
 
 #include <QDebug>
+#include <QFileDialog>
+#include <QMessageBox>
 
 void ReplaceStringInPlace(std::string& subject, const std::string& search,
                           const std::string& replace) {
@@ -32,9 +35,28 @@ HDD_Settings::HDD_Settings(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->buttonBox,SIGNAL(accepted()),this,SLOT(slot_accepted()));
     connect(ui->buttonBox,SIGNAL(rejected()),this,SLOT(slot_rejected()));
+    connect(ui->runScript,SIGNAL(clicked()),this,SLOT(onRunScript()));
+    connect(ui->findPowershell,SIGNAL(clicked()),this,SLOT(onFindPowershell()));
 
     setLabelIcon(IconType::GREY);
     timer = new QTimer(this);
+
+    QString counter="",parameter="",powershell="";
+    counter = GlobalSettings::getSettings()->getHDDCounterName();
+    parameter = GlobalSettings::getSettings()->getHDDCounterParameter();
+    if (!counter.isEmpty())
+        ui->counterNameLE->setText(counter);
+    if (!parameter.isEmpty())
+        ui->counterParameterLE->setText(parameter);
+    if (!counter.isEmpty() && !parameter.isEmpty()) {
+        ui->diodeLabel->setPixmap(QPixmap(":/images/greenDiode.png"));
+        setLabelText(tr("Counter and parameter found"));
+    }
+    powershell = GlobalSettings::getSettings()->getPowershellPath();
+    if (powershell.isEmpty())
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    else
+        ui->powershellPath->setText(powershell);
 }
 
 HDD_Settings::~HDD_Settings()
@@ -43,7 +65,7 @@ HDD_Settings::~HDD_Settings()
 }
 
 void HDD_Settings::slot_accepted(){
-    GlobalSettings::getSettings()->setHDDCounter(scriptResults.at(0),scriptResults.at(1));
+    GlobalSettings::getSettings()->setHDDCounter(ui->counterNameLE->text(),ui->counterParameterLE->text());
 }
 
 void HDD_Settings::slot_rejected(){
@@ -72,7 +94,7 @@ void HDD_Settings::setLabelText(QString i_text){
 }
 
 
-void HDD_Settings::on_pushButton_clicked()
+void HDD_Settings::onRunScript()
 {
     std::string fileName = QString("/GetLocalCounterName.ps1").toLocal8Bit().constData();
 
@@ -86,7 +108,12 @@ void HDD_Settings::on_pushButton_clicked()
         std::ostringstream os;
         os << "-ExecutionPolicy ByPass -NoProfile -NonInteractive -WindowStyle Hidden -File \""+complete+"\"";
         std::string op = "open";
-        std::string ps = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\PowerShell.exe";
+        std::string ps = GlobalSettings::getSettings()->getPowershellPath().toStdString();
+        if (ps.length() == 0) {
+            int ret = QMessageBox::critical(this,tr("Powershell path"),tr("Powershell path empty. The script cannot be called!"),QMessageBox::Ok);
+            if (ret == QMessageBox::Ok)
+                return;
+        }
         std::string param = os.str();
         DWORD res = (int)(ShellExecuteA(NULL, op.c_str(), ps.c_str(), param.c_str(), NULL, SW_HIDE));
         qDebug()<<res;
@@ -128,6 +155,18 @@ void HDD_Settings::scanFolder(){
             }
             ui->counterNameLE->setText(scriptResults.at(0));
             ui->counterParameterLE->setText(scriptResults.at(1));
+            file.remove();
+        }
+    }
+}
+
+void HDD_Settings::onFindPowershell() {
+    QString filepath = QFileDialog::getOpenFileName(this,tr("Find powershell.exe file"), QString(), "EXE (*.exe)");
+    if (!filepath.isEmpty()) {
+        if (filepath.mid(filepath.length()-4) == ".exe") {
+            GlobalSettings::getSettings()->setPowershellPath(filepath);
+            ui->powershellPath->setText(filepath);
+            ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
         }
     }
 }
