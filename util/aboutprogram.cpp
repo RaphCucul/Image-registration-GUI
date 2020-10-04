@@ -10,7 +10,7 @@ AboutProgram::AboutProgram(QString i_version, QString i_language, QWidget *paren
     ui(new Ui::AboutProgram)
 {
     ui->setupUi(this);
-    ui->version->setText(i_version);
+    ui->pvLabel->setText("<b>Release notes for version "+i_version+"</b>");
     QFile file(QApplication::applicationDirPath()+"\\"+i_language+"_releaseNotes.txt");
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream in(&file);
