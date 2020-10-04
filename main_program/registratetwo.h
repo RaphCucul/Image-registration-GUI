@@ -130,6 +130,12 @@ private:
     void checkInputNumber(double i_input,double i_lower,double i_upper,
                           QLineEdit* i_editWidget,double& i_finalValue,bool& i_evaluation);
 
+    /**
+     * @brief checkSelectedCutout
+     * @param i_type
+     */
+    void checkSelectedCutout(cutoutType i_type);
+
     QMap<QString,QString> chosenVideoAnalysis;
     QMap<QString,QString> chosenReferencialImgAnalysis;
     QMap<QString,QString> chosenTranslatedImgAnalysis;
@@ -155,6 +161,7 @@ private:
     bool scaleChanged = false;
     bool firstChoiceInitialised = false;
     bool secondChoiceInitialised = false;
+    bool standardLoaded = false,extraLoaded = false;
 
     QLineEdit* chosenVideoLE;
     QPushButton* chosenVideoPB;
