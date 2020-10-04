@@ -19,7 +19,7 @@ using std::wstring;
  * @param[in] i_fullFilePath
  * @return Returns a QStringList with two strings - parameter and counter name
  */
-QStringList readAndConvert(std::string i_fullFilePath){
+QStringList readAndConvert(std::string i_fullFilePath,int part){
     QStringList results;
     string line = "";
     ifstream myfile (i_fullFilePath,ios::binary);
@@ -29,33 +29,43 @@ QStringList readAndConvert(std::string i_fullFilePath){
     char* buffer=new char[size];
     pbuf->sgetn (buffer,size);
 
-    char * pch,*pch2;
-    pch=strchr(buffer,'[')+1;
-    unsigned int start = pch-buffer;
-    pch2 = strchr(buffer,']');
-    unsigned int end = pch2-buffer;
-    char *newChar = new char[end-start];
-    newChar[end-start]='\0';
-    strncpy(newChar,pch,(end-start));
-    QString str = QString::fromUtf8(newChar);
-    qDebug()<<str;
-    results.append(str);
-    int i=1;
-    while (i < 2)
-    {
-        char *pch3,*pch4;
-        pch3=strchr(buffer+start,'[')+1;
-        unsigned int start2 = pch3-buffer;
-        pch4 = strchr(pch3,']');
-        unsigned int end2 = pch4-buffer;
-        newChar[end2-start2]='\0';
-        strncpy(newChar,pch3,(end2-start2));
-        str = QString::fromUtf8(newChar);
-        qDebug()<<str;
-        i++;
+    unsigned int start,end;
+    char *newChar;
+    if (part == 1 || part == 3 || part == 2) {
+        char * pch,*pch2;
+        pch=strchr(buffer,'[')+1;
+        start = pch-buffer;
+        pch2 = strchr(buffer,']');
+        if (part == 1 || part == 3) {
+            end = pch2-buffer;
+            newChar = new char[end-start];
+            newChar[end-start]='\0';
+            strncpy(newChar,pch,(end-start));
+            QString str = QString::fromUtf8(newChar);
+            qDebug()<<str;
+            results.append(str);
+        }
     }
-    delete[] buffer;
-    results.append(str);
+    int i=1;
+    if (part == 2 || part == 3) {
+        QString str;
+        while (i < 2)
+        {
+            char *pch3,*pch4;
+            pch3=strchr(buffer+start,'[')+1;
+            unsigned int start2 = pch3-buffer;
+            pch4 = strchr(pch3,']');
+            unsigned int end2 = pch4-buffer;
+            newChar = new char[end2-start2];
+            newChar[end2-start2]='\0';
+            strncpy(newChar,pch3,(end2-start2));
+            str = QString::fromUtf8(newChar);
+            qDebug()<<str;
+            i++;
+        }
+        results.append(str);
+    }
+    delete[] buffer;    
     return results;
 
 }
@@ -132,7 +142,7 @@ QString GlobalSettings::getHDDCounterName(){
     string fullPath = iniPath.toLocal8Bit().constData()+filename;
     QFile file(QString::fromStdString(fullPath));
     if (file.exists())
-        return readAndConvert(fullPath).at(0);
+        return readAndConvert(fullPath,1).at(0);
     else
         return "";
 }
@@ -142,7 +152,7 @@ QString GlobalSettings::getHDDCounterParameter(){
     string fullPath = iniPath.toLocal8Bit().constData()+filename;
     QFile file(QString::fromStdString(fullPath));
     if (file.exists())
-        return readAndConvert(fullPath).at(1);
+        return readAndConvert(fullPath,2).at(0);
     else
         return "";
 }
@@ -186,6 +196,15 @@ bool GlobalSettings::isHDDMonitorEnabled() {
 void GlobalSettings::setHDDMonitorStatus(bool status) {
     settings->setValue("hddMonitor",status);
     settings->sync();
+}
+
+void GlobalSettings::setPowershellPath(QString i_path) {
+    settings->setValue("powershell",i_path);
+    settings->sync();
+}
+
+QString GlobalSettings::getPowershellPath() {
+    return settings->value("powershell","").toString();
 }
 
 void GlobalSettings::setUsedCores(int i_cores) {

@@ -129,6 +129,18 @@ public:
     void setHDDMonitorStatus(bool status);
 
     /**
+     * @brief Sets path to Powershell exe file.
+     * @param i_path
+     */
+    void setPowershellPath(QString i_path);
+
+    /**
+     * @brief Returns Powershell exe file path.
+     * @return QString with saved path.
+     */
+    QString getPowershellPath();
+
+    /**
      * @brief Saves maximum number of utilizable CPU cores.
      * @param i_cores
      */
