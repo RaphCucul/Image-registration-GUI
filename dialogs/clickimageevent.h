@@ -306,6 +306,8 @@ private:
      */
     void saveCutouts(bool saveNew);
 
+    QPoint recalculateFrangiPoint(QPoint i_originalCoordinates);
+
     // Graphic part of class
     Ui::ClickImageEvent *ui;
     QPixmap image;
@@ -326,9 +328,12 @@ private:
     cutoutType cutout = EXTRA;
     double frameCount = 0.0;
     QMap<QString,int> referencialFrameNo;
-    bool disabled = true, mousePressed = false, modified = false, frangiOptionsShown = false,runFrangi = true;
+    QMap<QString,QVector<int>> frameSize;
+    bool disabled = true, mousePressed = false, modified = false, frangiOptionsShown = false,runFrangi = true,extraApplied=false;
     QPointF selectionOrigin,lastDragPosition,selectionEnd;
     QMap<QString,QPoint> frangiCoordinates;
+    QMap<QString,QPoint> frangiCoordinatesToSave;
+    QMap<QString,bool> listOfModifies;
     QPoint lastSelectionPosition;
 
     QStringList filePaths,videoNames;

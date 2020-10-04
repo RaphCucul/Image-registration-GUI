@@ -2,6 +2,7 @@
 #include "ui_clickimageevent.h"
 #include "image_analysis/image_processing.h"
 #include "util/files_folders_operations.h"
+#include "registration/multiPOC_Ai1.h"
 
 #include <QGraphicsView>
 #include <QPoint>
@@ -37,6 +38,8 @@ ClickImageEvent::ClickImageEvent(QString i_fullPath,
 
     cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
     frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    QVector<int> _v = {static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT)),static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH))};
+    frameSize[videoName] = _v;
 
     cutout = i_cutoutType;
     referencialFrameNo[videoName] = -1;
@@ -64,6 +67,8 @@ ClickImageEvent::ClickImageEvent(QString i_fullPath,
 
     cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
     frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    QVector<int> _v = {static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT)),static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH))};
+    frameSize[videoName] = _v;
 
     cutout = i_cutoutType;
     referencialFrameNo[videoName] = i_referFrameNo;
@@ -89,10 +94,14 @@ ClickImageEvent::ClickImageEvent(QStringList i_fullPaths, cutoutType i_type, QDi
         QString folder,suffix,_videoName;
         processFilePath(i_fullPaths.at(index),folder,_videoName,suffix);
         videoNames.append(_videoName);
+        listOfModifies.insert(_videoName,false);
     }
     videoName = videoNames.at(0);
     cap = cv::VideoCapture(filePaths.at(0).toLocal8Bit().constData());
     frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    QVector<int> _v = {static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT)),static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH))};
+    frameSize[videoName] = _v;
+
     cutout = i_type;
     referencialFrameNo[videoName] = -1;
     frangiCoordinates[videoName] = QPoint(-999,-999);
@@ -116,6 +125,8 @@ ClickImageEvent::ClickImageEvent(QString i_fullPath,
 
     cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
     frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    QVector<int> _v = {static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT)),static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH))};
+    frameSize[videoName] = _v;
 
     cutout = i_cutoutType;
     referencialFrameNo[videoName] = i_referFrameNo;
@@ -337,22 +348,30 @@ void ClickImageEvent::onApplyFrangiParameters() {
 }
 
 void ClickImageEvent::startFrangiAnalysis(){
-    cv::Mat referencialImage;
+    cv::Mat referencialImage_temp,referentialImage;
     if (whatIsAnalysed == chosenSource::VIDEO) {
         if (!cap.isOpened())
             cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
         cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrameNo[videoName]);
-        cap.read(referencialImage);        
+        cap.read(referencialImage_temp);
     }
     else if (whatIsAnalysed == chosenSource::IMAGE) {
-        referencialImage = cv::imread(filePath.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
+        referencialImage_temp = cv::imread(filePath.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
     }
-    transformMatTypeTo8C3(referencialImage);
+    transformMatTypeTo8C3(referencialImage_temp);
+    if (originalExtraCutout.contains(videoName) && !extraCutout.contains(videoName))
+        referencialImage_temp(convertQRectToRect(originalExtraCutout[videoName])).copyTo(referentialImage);
+    else if (extraCutout.contains(videoName))
+        referencialImage_temp(convertQRectToRect(extraCutout[videoName])).copyTo(referentialImage);
+    else
+        referencialImage_temp.copyTo(referentialImage);
+    referencialImage_temp.release();
+
     QMap<QString,double> _r,_p;
     QMap<QString,int> _m;
     _integratedFrangiOptionsObject->GetSetValues("GET",_m,_r,_p);
     qDebug()<<"Providing parameters: "<<_m<<" "<<_p<<" "<<_r;
-    FrangiThread* frangiAnalyzer = new FrangiThread(referencialImage,
+    FrangiThread* frangiAnalyzer = new FrangiThread(referentialImage,
                                       1,1,0,"",1,cv::Point3d(0.0,0.0,0.0),
                                       _p,_m);
     QThread* thread = new QThread;
@@ -364,6 +383,16 @@ void ClickImageEvent::startFrangiAnalysis(){
             this,SLOT(obtainFrangiCoordinates(QPoint)));
     connect(this,SIGNAL(dataExtracted()),frangiAnalyzer,SLOT(deleteLater()));
     connect(this,SIGNAL(dataExtracted()),this,SLOT(onDataExtracted()));
+    connect(this,&ClickImageEvent::dataExtracted,[=](){
+        if (!threadPool.isEmpty()){
+            if (threadPool[0]->isRunning()){
+                threadPool[0]->terminate();
+                threadPool[0]->wait(100);
+            }
+            threadPool[0]->deleteLater();
+            threadPool.clear();
+        }
+    });
 
     ProcessingIndicator* _processingIndicator = new ProcessingIndicator(tr("Calculating Frangi coordinates"),
                                                                         ui->clickImage);
@@ -383,19 +412,49 @@ void ClickImageEvent::onDataExtracted(){
     if (threadPool.contains(0)) {
         if (threadPool[0]->isRunning()){
             threadPool[0]->terminate();
-            threadPool[0]->wait(10);
-            threadPool[0]->deleteLater();
+            threadPool[0]->wait(100);
         }
-        else
-            threadPool[0]->deleteLater();
+        threadPool[0]->deleteLater();
         threadPool.clear();
     }
 }
 
 void ClickImageEvent::obtainFrangiCoordinates(QPoint i_calculatedData){
     qDebug()<<"Obtaining calculated Frangi: "<<i_calculatedData.x()<<" "<<i_calculatedData.y();
-    emit dataExtracted();
-    drawGraphicsScene(i_calculatedData);
+    if (i_calculatedData.x() >= 0 && i_calculatedData.y() >= 0) {
+
+        QPoint result = recalculateFrangiPoint(i_calculatedData);
+        if (cutout == cutoutType::EXTRA && listOfModifies[videoName]) {
+            if (!checkFrangiMaximumPresenceInCutout())
+                revertCutoutChange();
+            else {
+                emit dataExtracted();
+                fillGraphicScene(false);//drawGraphicsScene(result);
+            }
+        }
+        else {
+            emit dataExtracted();
+            drawGraphicsScene(result);
+        }
+    }
+}
+
+QPoint ClickImageEvent::recalculateFrangiPoint(QPoint i_originalCoordinates) {
+    QPoint _returnPoint = i_originalCoordinates;
+    if (cutout == cutoutType::EXTRA) {
+        if (extraCutout.contains(videoName)) {
+            _returnPoint.setX(i_originalCoordinates.x()+extraCutout[videoName].x());
+            _returnPoint.setY(i_originalCoordinates.y()+extraCutout[videoName].y());
+
+            frangiCoordinatesToSave[videoName] = i_originalCoordinates;
+        }
+        else {
+            frangiCoordinates[videoName] = _returnPoint;
+        }
+    }
+    else
+        frangiCoordinates[videoName] = _returnPoint;
+    return _returnPoint;
 }
 
 void ClickImageEvent::drawGraphicsScene(QPoint i_result){
@@ -404,7 +463,6 @@ void ClickImageEvent::drawGraphicsScene(QPoint i_result){
         localErrorDialogHandling[referentialFrameNumber]->show(false);
     }
      else{
-        frangiCoordinates[videoName] = i_result;
         fillGraphicScene(true);
     }
 }
@@ -426,14 +484,13 @@ void ClickImageEvent::closeEvent(QCloseEvent *e) {
             saveCutouts(true);
           break;
           case QMessageBox::No:
-            saveCutouts(false);
           break;
           default:
             saveCutouts(false);
           break;
         }
     }
-    else
+    else if (modified && whatIsAnalysed != chosenSource::VIDEO)
         saveCutouts(false);
     this->done(0);
     e->accept();
@@ -442,26 +499,34 @@ void ClickImageEvent::closeEvent(QCloseEvent *e) {
 void ClickImageEvent::saveCutouts(bool saveNew) {
     if (whatIsAnalysed == chosenSource::VIDEO && actualVideoCount == videoCount::ONE_VIDEO) {
         SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frame",referencialFrameNo[videoName]);
-        SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frangi",frangiCoordinates[videoName]);
+        if (frangiCoordinatesToSave.contains(videoName))
+            SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frangi",frangiCoordinatesToSave[videoName]);
+        else
+            SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frangi",frangiCoordinates[videoName]);
         if (cutout == cutoutType::STANDARD)
             SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",saveNew ? standardCutout[videoName] : originalStandardCutout[videoName]);
         else if (cutout == cutoutType::EXTRA) {
             SharedVariables::getSharedVariables()->setVideoInformation(videoName,"extra",saveNew ? extraCutout[videoName] : originalExtraCutout[videoName]);
-            if (runFrangi)
-                SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",standardCutout[videoName]);
+            if (runFrangi) {
+                QRect _pom = adjustStandardCutout(extraCutout[videoName],standardCutout[videoName],frameSize[videoName][0],frameSize[videoName][1]);
+                SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",_pom);
+            }
         }
-        qDebug()<<SharedVariables::getSharedVariables()->getCompleteVideoInformation(videoName);
+        qDebug()<<"Video information :"<<SharedVariables::getSharedVariables()->getCompleteVideoInformation(videoName);
     }
     else if (whatIsAnalysed == chosenSource::VIDEO && actualVideoCount == videoCount::MULTIPLE_VIDEOS) {
         QList<QString> videoNames = referencialFrameNo.keys();
         foreach (QString name, videoNames) {
-            SharedVariables::getSharedVariables()->setVideoInformation(name,"frame",referencialFrameNo[name]);
-            SharedVariables::getSharedVariables()->setVideoInformation(name,"frangi",frangiCoordinates[name]);
-            if (cutout == cutoutType::STANDARD)
-                SharedVariables::getSharedVariables()->setVideoInformation(name,"standard",saveNew ? standardCutout[name] : originalStandardCutout[name]);
-            else if (cutout == cutoutType::EXTRA) {
-                SharedVariables::getSharedVariables()->setVideoInformation(name,"extra",saveNew ? extraCutout[name] : originalExtraCutout[name]);
-                SharedVariables::getSharedVariables()->setVideoInformation(name,"standard",standardCutout[name]);
+            if (listOfModifies[name] == true) {
+                SharedVariables::getSharedVariables()->setVideoInformation(name,"frame",referencialFrameNo[name]);
+                SharedVariables::getSharedVariables()->setVideoInformation(name,"frangi",frangiCoordinates[name]);
+                if (cutout == cutoutType::STANDARD)
+                    SharedVariables::getSharedVariables()->setVideoInformation(name,"standard",saveNew ? standardCutout[name] : originalStandardCutout[name]);
+                else if (cutout == cutoutType::EXTRA) {
+                    SharedVariables::getSharedVariables()->setVideoInformation(name,"extra",saveNew ? extraCutout[name] : originalExtraCutout[name]);
+                    QRect _pom = adjustStandardCutout(extraCutout[name],standardCutout[name],frameSize[name][0],frameSize[name][1]);
+                    SharedVariables::getSharedVariables()->setVideoInformation(name,"standard",_pom);
+                }
             }
         }
     }
@@ -550,8 +615,12 @@ void ClickImageEvent::mouseReleaseEvent(QMouseEvent *release){
             revertCutoutChange();
         else{
             qDebug()<<"Results: standard: "<<standardCutout<<" extra: "<<extraCutout;
-            modified = true;
         }
+        modified = true;
+        listOfModifies[videoName] = true;
+        if (cutout == cutoutType::EXTRA)
+            startFrangiAnalysis();
+
         release->accept();
     }
     else release->ignore();
@@ -602,10 +671,10 @@ void ClickImageEvent::updateCutoutStandard(){
         // when updating the extraCutout, the frangi point must be inside recalculated standard cutout
         QMap<QString,double> frangiRatios = _integratedFrangiOptionsObject->getInternalRatios();
         int __x = int(round(frangiCoordinates[videoName].x()-frangiRatios["left_r"]*(frangiCoordinates[videoName].x()-selectionOrigin.x())));
-        qDebug()<<__x;
+        qDebug()<<"X coordinate: "<<__x;
         tempStandardCutout.setX(__x);
         int __y = int(round(frangiCoordinates[videoName].y()-frangiRatios["top_r"]*(frangiCoordinates[videoName].y()-selectionOrigin.y())));
-        qDebug()<<__y;
+        qDebug()<<"Y coordinate: "<<__y;
         tempStandardCutout.setY(__y);
         int rowTo = int(round(frangiCoordinates[videoName].y()+frangiRatios["bottom_r"]*(selectionEnd.y() - frangiCoordinates[videoName].y())));
         int columnTo = int(round(frangiCoordinates[videoName].x()+frangiRatios["right_r"]*(selectionEnd.x() - frangiCoordinates[videoName].x())));
@@ -715,16 +784,16 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts){
 
 void ClickImageEvent::initCutouts(cv::Mat i_inputFrame){
     QMap<QString,double> frangiRatios = _integratedFrangiOptionsObject->getInternalRatios();
-    qDebug()<<int(round(frangiCoordinates[videoName].x()-frangiRatios["left_r"]*(frangiCoordinates[videoName].x())));
+    qDebug()<<"X coordinate: "<<int(round(frangiCoordinates[videoName].x()-frangiRatios["left_r"]*(frangiCoordinates[videoName].x())));
     standardCutout[videoName].setX(int(round(frangiCoordinates[videoName].x()-frangiRatios["left_r"]*frangiCoordinates[videoName].x())));
-    qDebug()<<int(round(frangiCoordinates[videoName].y()-frangiRatios["top_r"]*frangiCoordinates[videoName].y()));
+    qDebug()<<"Y coordinate: "<<int(round(frangiCoordinates[videoName].y()-frangiRatios["top_r"]*frangiCoordinates[videoName].y()));
     standardCutout[videoName].setY(int(round(frangiCoordinates[videoName].y()-frangiRatios["top_r"]*frangiCoordinates[videoName].y())));
     int rowTo = int(round(frangiCoordinates[videoName].y()+frangiRatios["bottom_r"]*(i_inputFrame.rows - frangiCoordinates[videoName].y())));
     int columnTo = int(round(frangiCoordinates[videoName].x()+frangiRatios["right_r"]*(i_inputFrame.cols - frangiCoordinates[videoName].x())));
     qDebug()<<rowTo<<" "<<columnTo;
     standardCutout[videoName].setWidth(columnTo-standardCutout[videoName].x());
     standardCutout[videoName].setHeight(rowTo - standardCutout[videoName].y());
-
+    qDebug()<<"Init of cutouts for vide "<<videoName;
     extraCutout[videoName].setX(0);
     extraCutout[videoName].setY(0);
     extraCutout[videoName].setWidth(int(width));
@@ -759,9 +828,9 @@ void ClickImageEvent::referencialFrameChosen()
 }
 
 void ClickImageEvent::processChosenVideo(int videoIndex){
-    QString chosenVideoPath = filePaths.at(videoIndex);
+    filePath = filePaths.at(videoIndex);
     videoName = videoNames.at(videoIndex);
-    QFile file(chosenVideoPath);
+    QFile file(filePath);
     if (!file.exists()){
         referentialFrameNumber->setEnabled(false);
         cap.release();
@@ -769,15 +838,20 @@ void ClickImageEvent::processChosenVideo(int videoIndex){
         localErrorDialogHandling[referentialFrameNumber]->show(true);
     }
     else{
+        if (!threadPool.isEmpty())
+            threadPool.clear();
         if (findReferentialFrameData(videoNames.at(videoIndex),referencialFrameNo[videoName],frangiCoordinates[videoName])){
             referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]));
             referentialFrameNumber->setEnabled(false);
             startFrangiAnalysis();
         }
         else{
-            cap = cv::VideoCapture(chosenVideoPath.toLocal8Bit().constData());
+            cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
             referentialFrameNumber->setEnabled(true);
             frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+            QVector<int> _v = {static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT)),static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH))};
+            frameSize[videoName] = _v;
+
             filePath = filePaths.at(videoIndex);videoName = videoNames.at(videoIndex);
             bool ok;
             int existiningFrame = referentialFrameNumber->text().toInt(&ok);
@@ -947,6 +1021,8 @@ void IntegratedFrangiOptions::createWidget(){
     BG->addButton(reverse);
     BG->setExclusive(true);
     layoutForIntegratedFrangi->setMargin(2);
+    connect(setParameters,SIGNAL(clicked()),this,SLOT(setButtonClicked()));
+    connect(saveParameters,SIGNAL(clicked()),this,SLOT(saveButtonClicked()));
 }
 
 void IntegratedFrangiOptions::addWidgetToGrid(QWidget *widget, int row, int col) {
