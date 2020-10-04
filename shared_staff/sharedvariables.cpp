@@ -200,8 +200,10 @@ void SharedVariables::setSpecificVideoFrangiParameter(QString i_videoName, QStri
 
 void SharedVariables::setSpecificFrangiParameterWrapper(frangiType i_type, double i_value, QString i_videoName,
                                                         QString i_parameter, int i_param) {
-    if (i_type == frangiType::GLOBAL)
+    if (i_type == frangiType::GLOBAL) {
+        i_param = i_param==-1 ? FrangiParametersList.indexOf(i_parameter) : i_param;
         setSpecificFrangiParameter(i_param, i_value);
+    }
     else
         setSpecificVideoFrangiParameter(i_videoName,i_parameter,i_value);
 }
@@ -494,7 +496,7 @@ void SharedVariables::setSpecificFrangiMarginWrapper(frangiType i_type, QString 
 //---------------------------------------------------------------------------//
 //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
 //---------------------------------------------------------------------------//
-void SharedVariables::setVideoInformation(QString i_video, QString i_key, QVariant i_dataToSave){
+void SharedVariables:: setVideoInformation(QString i_video, QString i_key, QVariant i_dataToSave){
     videoInformation[i_video].insert(i_key,i_dataToSave);
 }
 

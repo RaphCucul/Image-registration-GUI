@@ -26,7 +26,7 @@ namespace clickImageEnums {
     enum videoCount {ONE_VIDEO,MULTIPLE_VIDEOS,NO_VIDEO};
     /**
      * @enum cutoutType
-     * @brief The cutoutType enum helps to determine which cutout is being determined
+     * @brief The cutoutType enum helps to determine which cutout is being analysed
      */
     enum cutoutType {STANDARD=1,EXTRA,NO_CUTOUT};
     /**
