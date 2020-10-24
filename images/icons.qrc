@@ -28,5 +28,6 @@
         <file>processing.gif</file>
         <file>UP.png</file>
         <file>play_inactive.png</file>
+        <file>dataExistsComplete.png</file>
     </qresource>
 </RCC>
