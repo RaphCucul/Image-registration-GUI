@@ -212,10 +212,13 @@ bool ErrorDialog::eventFilter(QObject *obj, QEvent *event)
 {
     Q_UNUSED(obj)
     if (event->type() == QEvent::MouseButtonPress)
-        {
-            emit mouseClicked();
-            //qDebug() << "Click event";
-        }
+    {
+        emit mouseClicked();
+        //qDebug() << "Click event";
+    }
+    else if (event->type() == QEvent::HoverEnter) {
+        //qDebug()<<"HoverEnter event";
+    }
     return false;
 }
 
@@ -242,7 +245,8 @@ void ErrorDialog::show(bool timerStop)
 
 void ErrorDialog::hideErrorIcon(){
     hide();
-    delete timer;
+    if (timer != nullptr && timer->isActive())
+        timer->stop();
 }
 void ErrorDialog::hide()
 {
