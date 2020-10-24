@@ -17,7 +17,11 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Mark the edge of the anomaly</string>
+   <string>Select cutout</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../images/icons.qrc">
+    <normaloff>:/images/AppLogo.png</normaloff>:/images/AppLogo.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -73,6 +77,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../images/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

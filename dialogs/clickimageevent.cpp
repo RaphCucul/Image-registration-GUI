@@ -383,6 +383,7 @@ void ClickImageEvent::startFrangiAnalysis(){
             this,SLOT(obtainFrangiCoordinates(QPoint)));
     connect(this,SIGNAL(dataExtracted()),frangiAnalyzer,SLOT(deleteLater()));
     connect(this,SIGNAL(dataExtracted()),this,SLOT(onDataExtracted()));
+    connect(this,SIGNAL(dataExtracted()),thread,SLOT(deleteLater()));
     connect(this,&ClickImageEvent::dataExtracted,[=](){
         if (!threadPool.isEmpty()){
             if (threadPool[0]->isRunning()){
@@ -744,6 +745,9 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts){
     }
     transformMatTypeTo8C3(referencialImage);
 
+    if (cutout == cutoutType::EXTRA && extraCutout[videoName].width() > 0 && extraCutout[videoName].height() > 0)
+        standardCutout[videoName] = adjustStandardCutout(extraCutout[videoName],standardCutout[videoName],height,width,false);
+
     imageObject = new QImage(referencialImage.data,
                              referencialImage.cols,
                              referencialImage.rows,
@@ -843,7 +847,9 @@ void ClickImageEvent::processChosenVideo(int videoIndex){
         if (findReferentialFrameData(videoNames.at(videoIndex),referencialFrameNo[videoName],frangiCoordinates[videoName])){
             referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]));
             referentialFrameNumber->setEnabled(false);
-            startFrangiAnalysis();
+            standardCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"standard").toRect();
+            extraCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"extra").toRect();
+            fillGraphicScene(false);
         }
         else{
             cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
@@ -994,7 +1000,7 @@ void IntegratedFrangiOptions::createWidget(){
     // create parameters doublespinboxes and corresponding labels
     _innerCounter = 0;
     foreach (QString parameter, FrangiParametersList) {
-        if (parameter != "zpracovani") {
+        if (parameter != "mode") {
             parametersConnections.insert(parameter,new QDoubleSpinBox);
             labels.insert(parameter,new QLabel(labelsConnections[parameter]));
             addWidgetToGrid(labels[parameter],4,_innerCounter);
@@ -1054,21 +1060,15 @@ void IntegratedFrangiOptions::GetSetValues(QString method,QMap<QString, int> &m,
                                            QMap<QString, double> &r,
                                            QMap<QString, double> &p) {
     if (method == "GET") {
-        //int _innerCounter = 0;
         foreach (QString margin, FrangiMarginsList) {
             m[margin] = marginsConnections[margin]->value();
-            //_innerCounter++;
         }
-        //_innerCounter = 0;
         foreach (QString ratio, FrangiRatiosList) {
             r[ratio] = ratiosConnections[ratio]->value();
-            //_innerCounter++;
         }
-        //_innerCounter = 0;
         foreach (QString parameter, FrangiParametersList) {
-            if (parameter != "zpracovani") {
+            if (parameter != "mode") {
                 p[parameter] = parametersConnections[parameter]->value();
-                //_innerCounter++;
             }
             else {
                 if (standard->isChecked())
@@ -1079,24 +1079,18 @@ void IntegratedFrangiOptions::GetSetValues(QString method,QMap<QString, int> &m,
         }
     }
     else {
-        //int _innerCounter = 0;
         foreach (QString margin, FrangiMarginsList) {
             marginsConnections[margin]->setValue(m[margin]);
             marginsInternal[margin] = m[margin];
-            //_innerCounter++;
         }
-        //_innerCounter = 0;
         foreach (QString ratio, FrangiRatiosList) {
             ratiosConnections[ratio]->setValue(r[ratio]);
             ratiosInternal[ratio] = r[ratio];
-            //_innerCounter++;
         }
-        //_innerCounter = 0;
         foreach (QString parameter, FrangiParametersList) {
-            if (parameter != "zpracovani") {
+            if (parameter != "mode") {
                 parametersConnections[parameter]->setValue(p[parameter]);
                 parametersInternal[parameter] = p[parameter];
-                //_innerCounter++;
             }
             else {
                 if (p[parameter] == 1.0)

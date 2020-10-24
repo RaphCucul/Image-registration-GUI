@@ -84,12 +84,12 @@ private:
      */
     void addWidgetToGrid(QWidget* widget,int row,int col);
 
-    QStringList FrangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    QStringList FrangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","mode"};
     QStringList FrangiMarginsList = {"top_m","bottom_m","left_m","right_m"};
     QStringList FrangiRatiosList = {"top_r","bottom_r","left_r","right_r"};
     QStringList labelsTexts = {tr("top margin"),tr("bottom margin"),tr("left margin"),tr("right margin"),
                                tr("top ration"),tr("bottom ratio"),tr("left ration"),tr("right ration"),
-                               tr("sigma start"),tr("sigma stop"),tr("sigma step"),tr("beta one"),tr("beta two"),tr("zpracovani")};
+                               tr("sigma start"),tr("sigma stop"),tr("sigma step"),tr("beta one"),tr("beta two"),tr("mode")};
 
     QPushButton* setParameters = nullptr;
     QPushButton* saveParameters = nullptr;
