@@ -32,6 +32,9 @@ MainWindow::MainWindow(QWidget *parent) :
     if (GlobalSettings::getSettings()->isHDDMonitorEnabled()) {
         QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
     }
+    else {
+        ui->hddWidget->setThemeColor(QColor("#dfe9ff"));
+    }
     connect(ui->hddWidget,SIGNAL(hddUsagePlotClicked(bool)),this,SLOT(onHddUsagePlotClicked(bool)));
 
     this->setStyleSheet("background-color: white");
