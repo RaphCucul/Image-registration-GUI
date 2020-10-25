@@ -234,7 +234,7 @@ private:
      * @param i_initCutouts - if true, all cutouts are initialized automatically. Frangi maximum coordinates are used together with
      * default ratios.
      */
-    void fillGraphicScene(bool i_initCutouts);
+    void fillGraphicScene(bool i_initCutouts,bool afterFrangi);
 
     /**
      * @brief Adds standard widgets to the optionalContent gridLayout when a video is analysed.

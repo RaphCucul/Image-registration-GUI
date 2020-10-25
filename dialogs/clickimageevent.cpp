@@ -205,7 +205,7 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
             frangiCoordinates[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frangi").toPoint();
             standardCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"standard").toRect();
             extraCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"extra").toRect();
-            fillGraphicScene(false);
+            fillGraphicScene(false,false);
         }
         else if (referencialFrameNo[videoName] != -1){
             // one video with known reference -> start processing
@@ -216,7 +216,7 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
             if (i_loadFrangiCoordinates){
                 if (findReferentialFrameData(videoName,referencialFrameNo[videoName],frangiCoordinates[videoName])){
                     // dat file for video exists, referential frame record was found -> setup scene
-                    fillGraphicScene(true);
+                    fillGraphicScene(true,false);
                 }
                 else{
                     // file not found or frangi info is missign -> start frangi analysis
@@ -227,7 +227,7 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
                 if (runFrangi)
                     startFrangiAnalysis();
                 else
-                    fillGraphicScene(false);
+                    fillGraphicScene(false,false);
             }
         }
         else{// referential frame is unknown -> try to find it
@@ -235,7 +235,7 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
                 // success -> setup scene
                 referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]+1));
                 referentialFrameNumber->setEnabled(false);
-                fillGraphicScene(true);
+                fillGraphicScene(true,false);
             }            
             else{
                 // file does not exist -> ask to add referential frame No to start frangi analysis
@@ -261,13 +261,13 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
             frangiCoordinates[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frangi").toPoint();
             standardCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"standard").toRect();
             extraCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"extra").toRect();
-            fillGraphicScene(false);
+            fillGraphicScene(false,false);
         }
         // blind shot - test if the first video in list exists to start working immediately
         else if (findReferentialFrameData(videoName,referencialFrameNo[videoName],frangiCoordinates[videoName])){
             referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]+1));
             referentialFrameNumber->setEnabled(false);
-            fillGraphicScene(true);
+            fillGraphicScene(true,false);
         }
         else{
             // if the first video does not have *.dat file, standard procedure follows
@@ -383,7 +383,6 @@ void ClickImageEvent::startFrangiAnalysis(){
             this,SLOT(obtainFrangiCoordinates(QPoint)));
     connect(this,SIGNAL(dataExtracted()),frangiAnalyzer,SLOT(deleteLater()));
     connect(this,SIGNAL(dataExtracted()),this,SLOT(onDataExtracted()));
-    connect(this,SIGNAL(dataExtracted()),thread,SLOT(deleteLater()));
     connect(this,&ClickImageEvent::dataExtracted,[=](){
         if (!threadPool.isEmpty()){
             if (threadPool[0]->isRunning()){
@@ -430,7 +429,7 @@ void ClickImageEvent::obtainFrangiCoordinates(QPoint i_calculatedData){
                 revertCutoutChange();
             else {
                 emit dataExtracted();
-                fillGraphicScene(false);//drawGraphicsScene(result);
+                fillGraphicScene(false,true);//drawGraphicsScene(result);
             }
         }
         else {
@@ -464,7 +463,7 @@ void ClickImageEvent::drawGraphicsScene(QPoint i_result){
         localErrorDialogHandling[referentialFrameNumber]->show(false);
     }
      else{
-        fillGraphicScene(true);
+        fillGraphicScene(true,true);
     }
 }
 
@@ -727,7 +726,7 @@ void ClickImageEvent::revertCutoutChange(){
     }
 }
 
-void ClickImageEvent::fillGraphicScene(bool i_initCutouts){
+void ClickImageEvent::fillGraphicScene(bool i_initCutouts, bool afterFrangi){
     cv::Mat referencialImage;
     if(whatIsAnalysed == chosenSource::VIDEO) {
         if (!cap.isOpened())
@@ -745,7 +744,7 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts){
     }
     transformMatTypeTo8C3(referencialImage);
 
-    if (cutout == cutoutType::EXTRA && extraCutout[videoName].width() > 0 && extraCutout[videoName].height() > 0)
+    if (cutout == cutoutType::EXTRA && extraCutout[videoName].width() > 0 && extraCutout[videoName].height() > 0 && !afterFrangi)
         standardCutout[videoName] = adjustStandardCutout(extraCutout[videoName],standardCutout[videoName],height,width,false);
 
     imageObject = new QImage(referencialImage.data,
@@ -842,6 +841,10 @@ void ClickImageEvent::processChosenVideo(int videoIndex){
         localErrorDialogHandling[referentialFrameNumber]->show(true);
     }
     else{
+        if (!frameSize.contains(videoName)) {
+            QVector<int> _v = {static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT)),static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH))};
+            frameSize[videoName] = _v;
+        }
         if (!threadPool.isEmpty())
             threadPool.clear();
         if (findReferentialFrameData(videoNames.at(videoIndex),referencialFrameNo[videoName],frangiCoordinates[videoName])){
@@ -849,14 +852,12 @@ void ClickImageEvent::processChosenVideo(int videoIndex){
             referentialFrameNumber->setEnabled(false);
             standardCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"standard").toRect();
             extraCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"extra").toRect();
-            fillGraphicScene(false);
+            fillGraphicScene(false,false);
         }
         else{
             cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
             referentialFrameNumber->setEnabled(true);
-            frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
-            QVector<int> _v = {static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT)),static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH))};
-            frameSize[videoName] = _v;
+            frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);            
 
             filePath = filePaths.at(videoIndex);videoName = videoNames.at(videoIndex);
             bool ok;
