@@ -77,26 +77,6 @@ RegistrateTwo::RegistrateTwo(QWidget *parent) :
     whatIsAnalysed=chosenSource::VIDEO;
     firstChoiceInitialised = true;
 
-    /*QWidget* widgetVideoPB = ui->nabidkaAnalyzy->itemAt(1)->widget();
-    chosenVideoPB = qobject_cast<QPushButton*>(widgetVideoPB);
-    QWidget* widgetVideoLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-    chosenVideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
-
-    QSignalMapper* m_sigmapper = new QSignalMapper(this);
-    connect(chosenVideoPB,SIGNAL(clicked()),m_sigmapper,SLOT(map()));
-    m_sigmapper->setMapping(chosenVideoPB,chosenVideoLE);
-    QObject::connect(m_sigmapper, SIGNAL(mapped(QWidget *)),this, SLOT(chosenVideoPB_clicked(QWidget *)));
-    QObject::connect(widgetVideoLE,SIGNAL(textChanged(const QString &)),this,
-                     SLOT(Slot_VideoLE_textChanged(const QString&)));
-
-    QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();    
-    referenceNoLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
-    QWidget* widgetPosunutehoLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
-    translatedNoLE = qobject_cast<QLineEdit*>(widgetPosunutehoLE);
-    QObject::connect(referenceNoLE,SIGNAL(textChanged(const QString &)),
-                     this,SLOT(ReferenceLE_textChanged(const QString&)));
-    QObject::connect(translatedNoLE,SIGNAL(textChanged(const QString &)),
-                     this,SLOT(TranslatedLE_textChanged(const QString&)));*/
     referenceNoLE->setEnabled(false);
     translatedNoLE->setEnabled(false);
 
@@ -104,28 +84,11 @@ RegistrateTwo::RegistrateTwo(QWidget *parent) :
     localErrorDialogHandling[ui->registrateTwo] = new ErrorDialog(ui->registrateTwo);
     localErrorDialogHandling[ui->standardCutout] = new ErrorDialog(ui->standardCutout);
     localErrorDialogHandling[ui->extraCutout] = new ErrorDialog(ui->extraCutout);
-    localErrorDialogHandling[referenceNoLE] = new ErrorDialog(referenceNoLE);
 }
 
 RegistrateTwo::~RegistrateTwo()
 {
     delete ui;
-
-    /*if (firstChoiceInitialised) {
-        delete chosenVideoLE;
-        delete chosenVideoPB;
-        delete referenceNoLE;
-        delete translatedNoLE;
-        delete horizontalSpacer1;
-    }
-
-    if (secondChoiceInitialised) {
-        delete horizontalSpacer2;
-        delete chooseReferencialImagePB;
-        delete chooseTranslatedImagePB;
-        delete referenceImgLE;
-        delete translatedImgLE;
-    }*/
 }
 
 void RegistrateTwo::initChoiceOneInnerWidgets(){
@@ -195,6 +158,8 @@ void RegistrateTwo::placeChoiceOneWidgets(){
     ui->nabidkaAnalyzy->addWidget(referenceNoLE,0,2);
     ui->nabidkaAnalyzy->addWidget(translatedNoLE,0,3);
     ui->nabidkaAnalyzy->addItem(horizontalSpacer1,0,4);
+
+    localErrorDialogHandling[referenceNoLE] = new ErrorDialog(referenceNoLE);
 
     connect(chosenVideoPB,SIGNAL(clicked()),this,SLOT(chosenVideoPB_clicked()));
     connect(chosenVideoLE,SIGNAL(textChanged(const QString &)),this,SLOT(Slot_VideoLE_textChanged(const QString &)));
@@ -374,29 +339,6 @@ void RegistrateTwo::on_comboBox_activated(int index)
         translatedImg.release();
         whatIsAnalysed = chosenSource::VIDEO;
         placeChoiceOneWidgets();
-
-        // signals and slots should be connected from the class constructor (?)
-
-        /*QWidget* widgetVideoPB = ui->nabidkaAnalyzy->itemAt(1)->widget();
-        chosenVideoPB = qobject_cast<QPushButton*>(widgetVideoPB);
-        QWidget* widgetVideoLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-        chosenVideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
-        /// Řešení se QSignalMapper konečně funkční, jen je třeba uvnitř funkce castit QLineEdit
-        QSignalMapper* m_sigmapper = new QSignalMapper(this);
-        connect(chosenVideoPB,SIGNAL(clicked()),m_sigmapper,SLOT(map()));
-        m_sigmapper->setMapping(chosenVideoPB,chosenVideoLE);
-        QObject::connect(m_sigmapper, SIGNAL(mapped(QWidget *)),this, SLOT(chosenVideoPB_clicked(QWidget *)));
-        QObject::connect(widgetVideoLE,SIGNAL(textChanged(const QString &)),this,
-                         SLOT(Slot_VideoLE_textChanged(const QString&)));
-
-        QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
-        referenceNoLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
-        QWidget* widgettranslatedImageLE = ui->nabidkaAnalyzy->itemAt(3)->widget();
-        translatedNoLE = qobject_cast<QLineEdit*>(widgettranslatedImageLE);
-        QObject::connect(referenceNoLE,SIGNAL(textChanged(const QString &)),
-                         this,SLOT(ReferenceLE_textChanged(const QString&)));
-        QObject::connect(translatedNoLE,SIGNAL(textChanged(const QString &)),
-                         this,SLOT(TranslatedLE_textChanged(const QString&)));*/
 }
     else if (index == 1)
     {
@@ -411,32 +353,6 @@ void RegistrateTwo::on_comboBox_activated(int index)
         typeOfFrangi = frangiType::GLOBAL;
         referencialNumber = -1;
         cap.release();
-
-        /*QWidget* widgetReferencePB = ui->nabidkaAnalyzy->itemAt(1)->widget();
-        QWidget* widgetReferenceLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-        QWidget* widgettranslatedImagePB = ui->nabidkaAnalyzy->itemAt(3)->widget();
-        QWidget* widgettranslatedImageLE = ui->nabidkaAnalyzy->itemAt(2)->widget();
-        chooseReferencialImagePB = qobject_cast<QPushButton*>(widgetReferencePB);
-        chooseTranslatedImagePB = qobject_cast<QPushButton*>(widgettranslatedImagePB);
-        referenceImgLE = qobject_cast<QLineEdit*>(widgetReferenceLE);
-        translatedImgLE = qobject_cast<QLineEdit*>(widgettranslatedImageLE);
-
-        QSignalMapper* m_sigmapper1 = new QSignalMapper(this);
-
-        connect(chooseReferencialImagePB,SIGNAL(clicked()),m_sigmapper1,SLOT(map()));
-        m_sigmapper1->setMapping(chooseReferencialImagePB,referenceImgLE);
-        QObject::connect(m_sigmapper1, SIGNAL(mapped(QWidget *)),this, SLOT(chosenReferenceImgPB_clicked(QWidget *)));
-
-        QSignalMapper* m_sigmapper2 = new QSignalMapper(this);
-        connect(chooseTranslatedImagePB,SIGNAL(clicked()),m_sigmapper2,SLOT(map()));
-        m_sigmapper2->setMapping(chooseTranslatedImagePB,translatedImgLE);
-        QObject::connect(m_sigmapper2, SIGNAL(mapped(QWidget *)),this, SLOT(chosenTranslatedImgPB_clicked(QWidget *)));
-
-        QObject::connect(referenceImgLE,SIGNAL(textChanged(const QString &)),
-                         this,SLOT(ReferenceImgLE_textChanged(const QString&)));
-        QObject::connect(translatedImgLE,SIGNAL(textChanged(const QString &)),
-                         this,SLOT(TranslatedImgLE_textChanged(const QString&)));*/
-
     }
 }
 
@@ -455,21 +371,12 @@ void RegistrateTwo::clearLayout(QGridLayout *layout)
     }
 }
 
-/*void RegistrateTwo::chosenVideoPBWrapper()
-{
-    QWidget* widgetVideoLE = ui->nabidkaAnalyzy->itemAt(0)->widget();
-    chosenVideoLE = qobject_cast<QLineEdit*>(widgetVideoLE);
-    emit chosenVideoPB_clicked(chosenVideoLE);
-}*/
-
 void RegistrateTwo::chosenVideoPB_clicked()
 {
     QString pathToVideo = QFileDialog::getOpenFileName(this,
          tr("Choose video"), "","*.avi;;;");
     analyseAndSave(pathToVideo,chosenVideoAnalysis);
     chosenVideoLE->setText(chosenVideoAnalysis["filename"]);
-    //chosenVideoLE = qobject_cast<QLineEdit*>(W);
-    //chosenVideoLE->setText(chosenVideoAnalysis[1]);
     evaluateVideoImageInput(pathToVideo,"video");
 }
 
@@ -478,7 +385,6 @@ void RegistrateTwo::chosenReferenceImgPB_clicked()
     QString referencialImagePath = QFileDialog::getOpenFileName(this,
          tr("Choose referencial image"), "",tr("Images (*.bmp *.png *.jpg)"));
     analyseAndSave(referencialImagePath,chosenReferencialImgAnalysis);
-    //referenceImgLE = qobject_cast<QLineEdit*>(W);
     referenceImgLE->setText(chosenReferencialImgAnalysis["filename"]);
     evaluateVideoImageInput(referencialImagePath,"referencialImage");
 }
@@ -488,7 +394,6 @@ void RegistrateTwo::chosenTranslatedImgPB_clicked()
     QString translatedImgPath = QFileDialog::getOpenFileName(this,
          tr("Choose translated image"), "",tr("Images (*.bmp *.png *.jpg)"));
     analyseAndSave(translatedImgPath,chosenTranslatedImgAnalysis);
-    //translatedImgLE = qobject_cast<QLineEdit*>(W);
     translatedImgLE->setText(chosenTranslatedImgAnalysis["filename"]);
     evaluateVideoImageInput(translatedImgPath,"translatedImage");
 }
