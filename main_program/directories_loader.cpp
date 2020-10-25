@@ -101,7 +101,7 @@ bool DirectoriesLoader::checkFileFolderExistence()
             localErrorDialogHandling[ui->FileFolderDirectory]->evaluate("center","softError",0);
             localErrorDialogHandling[ui->FileFolderDirectory]->show(false);
             search = "json";
-            ui->ChooseFileFolderDirectory->setText(tr("Find json file"));
+            ui->ChooseFileFolderDirectory->setText(tr("Found json file"));
         }
         else{            
             return processLoadedSettings();
@@ -255,8 +255,10 @@ void DirectoriesLoader::chosenPath(int i_index)
              localErrorDialogHandling[ui->Combo_FrangiParams]->evaluate("left","softError",2);
              localErrorDialogHandling[ui->Combo_FrangiParams]->show(false);
          }
-         else
-             localErrorDialogHandling[ui->Combo_FrangiParams]->hide();
+         else {
+             if (localErrorDialogHandling[ui->Combo_FrangiParams]->isEvaluated())
+                localErrorDialogHandling[ui->Combo_FrangiParams]->hide();
+         }
      }
  }
 
@@ -415,21 +417,6 @@ bool DirectoriesLoader::eventFilter(QObject *obj, QEvent *event){
     // standard event processing
     return QObject::eventFilter(obj, event);
 }
-
-/*void DirectoriesLoader::on_FileFolderDirectory_textEdited(const QString &arg1)
-{
-    QStringList foundJSONs;
-    int JSONsCount;
-    analyseFileNames(arg1,foundJSONs,JSONsCount,"json");
-    if (JSONsCount == 0){
-        disableElements();
-        emit fileFolderDirectoryNotFound();
-    }
-    else{
-        enableElements();
-        emit fileFolderDirectoryFound();
-    }
-}*/
 
 void DirectoriesLoader::enableElements(){
     ui->pathToVideos->setEnabled(true);
