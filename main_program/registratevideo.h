@@ -6,7 +6,7 @@
 #include <QVector>
 #include <QString>
 #include <QProgressBar>
-#include <QShowEvent>
+#include <QResizeEvent>
 
 namespace Ui {
 class RegistrateVideo;
@@ -36,7 +36,7 @@ private slots:
     void enableTabs();
     void disableTabs();
 private:
-    void showEvent(QShowEvent* e) override;
+    void resizeEvent(QResizeEvent* e) override;
     Ui::RegistrateVideo *ui;
 };
 
