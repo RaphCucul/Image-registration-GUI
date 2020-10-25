@@ -24,7 +24,7 @@ class tabs : public QWidget
 
 public:
     explicit tabs(QWidget *parent = nullptr);
-    QIcon iconRotation(QIcon i_icon);
+    QIcon iconRotation(QIcon i_icon, int size);
     ~tabs();
 
 private slots:
