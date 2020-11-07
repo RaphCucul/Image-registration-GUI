@@ -5,6 +5,7 @@
 PlayButton::PlayButton(QString i_videoPath,QWidget *parent) : QPushButton(parent),videoPath(i_videoPath)
 {
     this->setIcon(QIcon(":/images/play.png"));
+    this->setIconSize(QSize(32,32));
     this->setEnabled(true);
     this->setFocusPolicy(Qt::NoFocus);
 
