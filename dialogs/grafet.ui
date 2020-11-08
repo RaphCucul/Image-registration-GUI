@@ -29,7 +29,11 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>E+T analysis results overview</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../images/icons.qrc">
+    <normaloff>:/images/AppLogo2.png</normaloff>:/images/AppLogo2.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_3" rowstretch="1,1,1,2,2,30" columnstretch="0,0,0,0,0">
    <property name="leftMargin">
@@ -379,6 +383,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../images/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
