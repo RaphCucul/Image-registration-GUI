@@ -8,7 +8,7 @@ using std::string;
 
 /**
  * @struct Version
- * @brief The Version struct helps the program to identify the actual version.
+ * @brief Helps the program to identify the actual version.
  */
 
 struct Version {

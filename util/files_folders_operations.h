@@ -17,16 +17,16 @@ using namespace std;
 
 /**
  * @file files_folders_operations.h
- * The file contains declarations of functions supporting different operations with files and folders.
+ * Functions supporting different operations with files and folders.
  **/
 
 /**
- * @brief It analyses the content of the provided directory and tries to find all files with the given
+ * @brief Analyses the content of the provided directory and tries to find all files with the given
  * suffix.
- * @param[in] chosenPathToFiles
- * @param[out] filenameList
- * @param[out] filenameWithSuffixCount
- * @param[in] searchedSuffix
+ * @param[in] chosenPathToFiles - userly selected path to source folder with videos
+ * @param[out] filenameList - names of found files with requested suffix
+ * @param[out] filenameWithSuffixCount - number of found files with requested suffix
+ * @param[in] searchedSuffix - requested suffix
  */
 void analyseFileNames(QString i_chosenPathToFiles,
                       QStringList &i_filenameList,
@@ -34,34 +34,35 @@ void analyseFileNames(QString i_chosenPathToFiles,
                       QString i_searchedSuffix);
 
 /**
- * @brief It splits given file path into pieces to provide folder path, filename and suffix of the chosen
+ * @brief Splits given file path into pieces to provide folder path, filename and suffix of the chosen
  * file.
- * @param[in] wholePaht
- * @param[out] folder
- * @param[out] onlyFilename
- * @param[out] suffix
+ * @param[in] wholePaht - whole path
+ * @param[out] folder - extracted folder path
+ * @param[out] onlyFilename - extracted name of the file
+ * @param[out] suffix - extracted suffix
  */
-void processFilePath(QString i_wholePaht, QString& i_folder, QString& i_onlyFilename, QString& i_suffix);
+void processFilePath(QString i_wholePaht, QString& o_folder, QString& o_onlyFilename, QString& o_suffix);
 
 /**
- * @brief Ut reads a file with json-style saved variables.
- * @param[in] file
+ * @brief Reads a file with json-style saved variables.
+ * @param[in] file - given JSON-like file with data
  * @return Processed content of the input file.
  */
 QJsonObject readJson(QFile& i_file);
 
 /**
- * @brief It saves data in json-style format into the file.
- * @param[in] object
- * @param[in] array
- * @param[in] type
- * @param[in] pathAndName
+ * @brief Saves data in json-style format into the file.
+ * @param[in] object - JSON object with data
+ * @param[in] array - JSON array with values to be saved
+ * @param[in] type - parameter (key) for the JSON object
+ * @param[in] pathAndName - path and filename (complete path to the file)
  */
 void writeJson(QJsonObject& i_object, QJsonArray& i_array, QString i_type, QString i_pathAndName);
 
 /**
  * @brief Template function converts given vector of type T into QJsonArray.
  * @tparam T - vector data type
+ * @code vector2array(TtypeVector>
  */
 template <class T>
 QJsonArray vector2array(QVector<T> i_vector){
@@ -136,13 +137,19 @@ bool checkAndLoadData(QString i_parameter, QString i_videoName, QVector<T>& o_ve
  * @brief It converts QRectF object to cv::Rect object.
  * @param[in] i_input - QRectF object(s)
  */
-QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input);
+QMap<QString,cv::Rect> convertQRectsToRects(QMap<QString,QRectF> i_input);
 
 /**
- * @brief Converts QRectF object to cv::Rect object.
+ * @brief Converts QRect object to cv::Rect object.
  * @param i_input
  */
 cv::Rect convertQRectToRect(QRect i_input);
+
+/**
+ * @brief Converts cv::Rect object to QRect object.
+ * @param i_input
+ */
+QRect convertRectToQRect(cv::Rect i_input);
 
 /**
  * @brief Converts cv::Rect object into a vector.

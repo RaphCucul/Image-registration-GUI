@@ -23,7 +23,7 @@ WindowsImpl::WindowsImpl() : SystemMonitor(), mCpuLoadLastValues()
     s+= std::wstring(_name.toStdWString().c_str());
     s+= std::wstring(L"(_total)\\");
     s+= std::wstring(_parameter.toStdWString().c_str());
-    fullString = s;
+    fullString = s; /**< complete string containing PC host name, name and parameter of the HDD counter */
 }
 double WindowsImpl::memoryUsed(){
     MEMORYSTATUSEX memoryStatus;
@@ -52,7 +52,6 @@ double WindowsImpl::hddUsed(){
         goto Cleanup;
     }
 
-    //wprintf("\n Counter %s",CounterPathBuffer);
     Status = PdhCollectQueryData(Query);
     if (Status != ERROR_SUCCESS)
     {
@@ -81,7 +80,7 @@ Cleanup:
         PdhCloseQuery(Query);
         return -999.0;
     }
-
+return 0;
 }
 void WindowsImpl::init()
 {

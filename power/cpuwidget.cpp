@@ -6,7 +6,6 @@
 using namespace QtCharts;
 
 CPUWidget::CPUWidget(QWidget *parent):SystemMonitorWidget(parent),mSeries(new QPieSeries(this))
-  //mSeries(new QLineSeries(this))
 {
     mSeries->setHoleSize(0.5);
     mSeries->setPieSize(1);
@@ -24,11 +23,5 @@ void CPUWidget::updateSeries(){
     mSeries->append(QString::number(cpuLoadAverage), cpuLoadAverage);
     QLabel label(QString::number(cpuLoadAverage),this);
     mSeries->append("", 100.0 - cpuLoadAverage);
-
-    /* Retrieve the current average CPU load in the  cpuLoadAverage  variable.
-    Past history is not meaningful with this kind of graph; that's
-    why the  mSeries is cleared (mSeries->clear()), and append
-    the  cpuLoadAverage  variable and then the free part ( 100.0 - cpuLoadAverage ).*/
-
    updateWidget();
 }

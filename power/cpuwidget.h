@@ -6,8 +6,10 @@
 
 /**
  * @class CPUWidget
- * @brief The CPUWidget class is derived from the SystemMonitorWidget class. CPUWidget class overrides updateSeries
- * function and together with the SystemMonitor singleton updates the mSeries chart with actual CPU load value.
+ * @brief It is derived from the SystemMonitorWidget class.
+ *
+ * CPUWidget class overrides updateSeries function and together with the SystemMonitor singleton updates the mSeries chart with actual
+ * CPU load value.
  */
 class CPUWidget : public SystemMonitorWidget
 {
@@ -16,7 +18,7 @@ public:
      explicit CPUWidget(QWidget* parent = nullptr);
 protected slots:
     /**
-     * @brief Overriden function updates the mSeries chart with the actual CPU load and free values.
+     * @brief Updates the mSeries chart with the actual CPU load and free values.
      */
     void updateSeries() override;
 private:

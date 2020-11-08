@@ -7,21 +7,15 @@ HddUsagePlot::HddUsagePlot(QWidget *parent) : QCustomPlot (parent),
 {
     blockRedraw = false;
     axisRect()->setMinimumMargins(QMargins(0,20,0,20));
-    //xAxis2->setVisible(false);
-    //yAxis2->setVisible(false);
+    this->setStyleSheet("border-color: red;border-width: 15px");
     xAxis->setTickLabels(false);
-    //xAxis2->setTickLabels(false);
     yAxis->setTickLabels(false);
-    //yAxis2->setTickLabels(false);
     xAxis->setRangeReversed(true);
     xAxis->setTickPen(QPen(QColor(255, 255, 255, 0)));
     xAxis->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
-    //xAxis2->setTickPen(QPen(QColor(255, 255, 255, 0)));
-    //xAxis2->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
     yAxis->setTickPen(QPen(QColor(255, 255, 255, 0)));
     yAxis->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
-    //yAxis2->setTickPen(QPen(QColor(255, 255, 255, 0)));
-    //yAxis2->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
+
     addGraph();
     graph(0)->addData(time,usage);
     this->setContextMenuPolicy(Qt::CustomContextMenu);
