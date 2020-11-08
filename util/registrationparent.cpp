@@ -18,19 +18,30 @@ void RegistrationParent::onFinishThread(int threadIndex){
     }
     else
         threadPool[threadIndex]->deleteLater();
+    finishedThreadCounter++;
+    if (finishedThreadCounter == numberOfThreads) {
+        threadPool.clear();
+        finishedThreadCounter=0;
+    }
 }
 
 void RegistrationParent::cancelAllCalculations(){
     if (!threadPool.isEmpty()){
         for (int threadIndex = 1; threadIndex <= threadPool.count(); threadIndex++){
-            if (threadPool[threadIndex]->isRunning()){
-                threadPool[threadIndex]->terminate();
-                threadPool[threadIndex]->wait(10);
+            if (threadPool.contains(threadIndex)) {
+                if (threadPool[threadIndex]->isRunning()){
+                    threadPool[threadIndex]->terminate();
+                    threadPool[threadIndex]->wait(100);
+                }
                 threadPool[threadIndex]->dataObtained();
+                threadPool[threadIndex]->deleteLater();
             }
         }
     }
     canProceed = false;
+    /*if (!threadPool.isEmpty()){
+        threadPool.clear();
+    }*/
     initMaps();
     emit calculationStopped();
 }
@@ -48,7 +59,7 @@ void RegistrationParent::initMaps(){
         else if (index > 6){
             videoAnomalies[videoParameters.at(index)] = pomI;
         }
-    }
+    }    
 }
 
 VideoWriter::VideoWriter(QString i_videoFullPath,QMap<QString,QVector<double>> i_data,
@@ -75,24 +86,28 @@ void VideoWriter::writeVideo(){
     cv::Size _frameSize = cv::Size(int(_width),int(_height));
     double frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
     cv::VideoWriter writer;
-    writer.open(videoWritePath.toLocal8Bit().constData(),static_cast<int>(cap.get(CV_CAP_PROP_FOURCC)),cap.get(CV_CAP_PROP_FPS),_frameSize,true);
+    writer.open(videoWritePath.toLocal8Bit().constData(),static_cast<int>(cap.get(CV_CAP_PROP_FOURCC)),cap.get(CV_CAP_PROP_FPS),
+                _frameSize,true);
     if (!writer.isOpened()){
         errorOccured(12);
     }
+
+    qDebug()<<"Writing video to "<<videoWritePath;
 
     for (int indexImage = 0; indexImage < int(frameCount); indexImage++){
         cv::Mat shiftedOrig;
         cap.set(CV_CAP_PROP_POS_FRAMES,indexImage);
         if (cap.read(shiftedOrig)!=1)
         {
-            QString errorMessage = QString(tr("Frame %1 could not be loaded from the video for registration. Process interrupted")).arg(indexImage);
+            QString errorMessage = QString(tr("Frame %1 could not be loaded from the video for registration. Process "
+                                              "interrupted")).arg(indexImage);
             errorOccured(errorMessage);
         }
         else if (obtainedData["POCX"][indexImage] == 999.0 && !onlyBestFrames){
             writer.write(shiftedOrig);
             shiftedOrig.release();
         }
-        else if (onlyBestFrames && (obtainedData["POCX"][indexImage] == 999.0 && evaluation[indexImage] !=0 && evaluation[indexImage] !=2)) {
+        else if (onlyBestFrames && (obtainedData["POCX"][indexImage] == 999.0 || (evaluation[indexImage] !=0 && evaluation[indexImage] !=2))) {
             qDebug()<<"Frame "<<indexImage<<" skipped because "<<evaluation[indexImage]<<" "<<evaluation[indexImage];
             continue;
         }
@@ -112,5 +127,6 @@ void VideoWriter::writeVideo(){
        }
     }
     qDebug()<<"Finished emitted";
+    writer.release();
     emit finishedSuccessfully();
 }

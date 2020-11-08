@@ -15,7 +15,9 @@
 
 /**
  * @class VideoWriter
- * @brief The VideoWriter class provides functions to write frames into a new video in a separate QThread class object.
+ * @brief Provides functions to write frames into a new video in a separate QThread class object.
+ *
+ * It also reflects a user choice to write only those frames with best evaluation index.
  */
 class VideoWriter : public QObject
 {
@@ -28,7 +30,7 @@ public:
     friend class RegistrationParent;
 public slots:
     /**
-     * @brief Slot function starts to write frames into a new video when a QThread class object is ready for use.
+     * @brief Starts to write frames into a new video when a QThread class object is ready for use.
      */
     void writeVideo();
 signals:
@@ -44,7 +46,7 @@ private:
 
 /**
  * @class RegistrationParent
- * @brief The RegistrationParent class is a parent class for the registration classes.
+ * @brief It is a parent class for the video registration classes.
  */
 class RegistrationParent : public QWidget
 {
@@ -54,13 +56,13 @@ public:
     virtual ~RegistrationParent() { }
 signals:
     /**
-     * @brief Signal informs the GUI to block all tabs except the current one
+     * @brief Informs the GUI to block all tabs except the current one
      * to prevent the program from unexpected behaviour.
      */
     void calculationStarted();
 
     /**
-     * @brief Signal informs the GUI all procedures have stopped. All actions are enabled.
+     * @brief Informs the GUI all procedures have stopped. All actions are enabled.
      */
     void calculationStopped();
 public slots:
@@ -71,7 +73,7 @@ public slots:
     void onFinishThread(int);
 protected:
     /**
-     * @brief It initialises QMaps with vectors of vectors, filled by values during analysis.
+     * @brief Initialises QMaps with vectors of vectors, filled by values during analysis.
      */
     void initMaps();
 
@@ -88,6 +90,7 @@ protected:
     bool canProceed = true;
     int processedVideoNo = 0;
     int numberOfThreads = 1;
+    int finishedThreadCounter = 0;
     QHash<int,RegistrationThread*> threadPool;
 
     QStringList videoParameters = {"FrangiX","FrangiY","FrangiEuklid","POCX","POCY",
