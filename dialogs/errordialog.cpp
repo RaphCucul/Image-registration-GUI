@@ -214,11 +214,8 @@ bool ErrorDialog::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::MouseButtonPress)
     {
         emit mouseClicked();
-        //qDebug() << "Click event";
     }
-    else if (event->type() == QEvent::HoverEnter) {
-        //qDebug()<<"HoverEnter event";
-    }
+    event->accept();
     return false;
 }
 
