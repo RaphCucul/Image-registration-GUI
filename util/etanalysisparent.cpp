@@ -264,6 +264,22 @@ void ETanalysisParent::saveVideoAnalysisResultsFromGraphET(QString i_videoName, 
     QJsonDocument document;
     QJsonObject object;
     QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+i_videoName+".dat";
+    if (mapDouble.contains("FrangiX") && mapDouble.contains("FrangiY")) {
+        if (mapDouble["FrangiX"].contains(i_videoName) && mapDouble["FrangiY"].contains(i_videoName)) {
+            if (mapDouble["FrangiX"][i_videoName].length() >= framesReferencial[i_videoName] &&
+                mapDouble["FrangiY"][i_videoName].length() >= framesReferencial[i_videoName]) {
+                mapDouble["FrangiX"][i_videoName][framesReferencial[i_videoName]] = framesReferentialFrangiCoordinates[i_videoName].x;
+                mapDouble["FrangiY"][i_videoName][framesReferencial[i_videoName]] = framesReferentialFrangiCoordinates[i_videoName].y;
+            }
+        }
+    }
+    if (mapInt.contains("evaluation")) {
+        if (mapInt["evaluation"].contains(i_videoName)) {
+            if (mapInt["evaluation"][i_videoName].length() >= framesReferencial[i_videoName])
+                mapInt["evaluation"][i_videoName][framesReferencial[i_videoName]] = 2;
+        }
+    }
+
     for (int parameter = 0; parameter < videoParameters.count(); parameter++){
         if (parameter < 9){
             QVector<double> pomDouble = mapDouble[videoParameters.at(parameter)][i_videoName];
