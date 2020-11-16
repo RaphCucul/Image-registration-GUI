@@ -12,39 +12,43 @@
 #include <opencv2/opencv.hpp>
 
 /**
- * @brief Namespace clickImageEnums is used in ClickImageEvent class to determine
- * how many videos will be processed and what type of cutout is being edited. Because RegistrateTwo class
- * enables to registrate two images, ClickImageEvent class must be prepared for this case too.
+ * @brief Namespace is used in ClickImageEvent class.
+ *
+ * It helps to determine how many videos will be processed and what type of cutout is being edited.
+ *
+ * Because RegistrateTwo class enables to registrate two images, ClickImageEvent class must be prepared for this case too.
  * @namespace clickImageEnums
  */
 namespace clickImageEnums {
     /**
      * @enum videoCount
-     * @brief videoCount enum helps to determine what type of ClickImageEvent constructor should be used. The constructor
+     * @brief Helps to determine what type of ClickImageEvent constructor should be used. The constructor
      * then defines everything else.
      */
     enum videoCount {ONE_VIDEO,MULTIPLE_VIDEOS,NO_VIDEO};
     /**
      * @enum cutoutType
-     * @brief The cutoutType enum helps to determine which cutout is being analysed
+     * @brief Helps to determine which cutout is being analysed.
      */
     enum cutoutType {STANDARD=1,EXTRA,NO_CUTOUT};
     /**
      * @enum chosenSource
-     * @brief The chosenSource enum helps to determine what layout in RegistrateTwo class was activated
+     * @brief Helps to determine what layout in RegistrateTwo class was activated.
      */
     enum  chosenSource {VIDEO,IMAGE,NOTHING};
 }
 /**
  * @namespace frangiEnums
- * @brief frangiEnums namespace helps to define if the requested/provided frangi parameter(s) should be global
+ * @brief Namespace helps to define if the requested/provided frangi parameter(s) should be global
  * or video specific.
  */
 namespace frangiEnums {
     /**
      * @enum frangiType
-     * @brief The frangiType enum helps to determine which frangi parameters are requested - global or video specific.
-     * This enum is used together with wrapper functions described below.
+     * @brief Helps to determine which frangi parameters are requested - global or video specific.
+     *
+     * This enum is used together with wrapper functions described below. It enables to use individual
+     * frangi parameters settings for each video individually.
      */
     enum frangiType {GLOBAL,VIDEO_SPECIFIC};
 }
@@ -53,11 +57,12 @@ using namespace frangiEnums;
 
 /**
  * @class FrangiThread
- * @brief The FrangiThread class can be used as an independent caller of the Frangi analysis functions.
- * The class was created for the purpose of the ClickImageEvent class and the need to do Frangi analysis of a frame
+ * @brief The class is the independent caller of the Frangi analysis functions.
+ *
+ * The class is used by the ClickImageEvent class and the need to do Frangi analysis of a frame
  * chose by a user.
- * The main advantage of this class is the object can be moved to the separate thread so the main app windows remain
- * active and the application does not "freeze" during the calculation.
+ * The main advantage of this class is its object can be moved to the separate thread and the main app window remain
+ * active - the application does not "freeze" during the calculation.
  */
 class FrangiThread : public QObject
 {
@@ -75,20 +80,20 @@ public:
     virtual ~FrangiThread(){ }
 public slots:
     /**
-     * @brief Slot function initiates the start of the Frangi analysis.
+     * @brief Initiates the start of the Frangi analysis.
      */
     void startFrangiAnalysis();    
 signals:
     /**
-     * @brief The signal emitted when the analysis is finished and the results can be processed.
+     * @brief Emitted when the analysis is finished and the results can be processed.
      * @param[in] i_calculatedData - Frangi coordinates
      */
     void finishedCalculation(QPoint i_calculatedData);
 private:
     cv::Point3d _translation;
     cv::Mat _inputFrameForAnalysis;
-    int _processingMode=0, /**<Standard or reverse */
-        _accuracy=0, /**<Subpixel or pixel precision */
+    int _processingMode=0, /**< Standard or reverse */
+        _accuracy=0, /**< Subpixel or pixel precision */
         _showResult=0, /**< Detected coordinates should be shown */
         _frameType=0; /**< Determines how the frame should be preprocessed in terms of borders (margins) */
     QString _windowName = "";
@@ -98,8 +103,10 @@ private:
 
 /**
  * @class ProcessingIndicator
- * @brief The ProcessingIndicator class is used in the ClickImageEvent class and fills the QGraphicsView during the
- * calculation of the Frangi maximum coordinates. The indicator should give a user the feeling the program is doing its job
+ * @brief The class is used in the ClickImageEvent class and fills the QGraphicsView during the
+ * calculation of the Frangi maximum coordinates.
+ *
+ * The indicator should give a user the feeling the program is doing its job
  * and it is not irresponsive. The class works with the gif element from the resources.
  */
 class ProcessingIndicator : public QWidget
@@ -109,34 +116,38 @@ public:
     ProcessingIndicator(QString i_description, QWidget* i_widgetWithIndicator, QWidget* parent = nullptr);
     ~ProcessingIndicator();
     /**
-     * @brief The function adds the indicator to the QGraphicsView widget.
+     * @brief Adds the indicator to the QGraphicsView widget.
      * @sa wasPlaced()
      */
     void placeIndicator();
+
     /**
-     * @brief The function enables to check if the indicator was/is placed or not.
-     * @return Was placed status
+     * @brief Enables to check if the indicator was/is placed or not.
+     * @return Returns true if the indicator was placed
      * @sa placeIndicator()
      */
     bool  wasPlaced(){ return alreadyPlaced; }
+
     /**
-     * @brief The function hides the indicator if it is not necessary to show it.
+     * @brief Hides the indicator if it is not necessary to show it.
      * @sa showIndicator()
      */
     void hideIndicator();
+
     /**
-     * @brief The function shows the indicator if necessary.
+     * @brief Shows the indicator if requested.
      * @sa hideIndicator()
      */
     void showIndicator();
+
 public slots:
     /**
-     * @brief Slot function reacting on the signal the indicator can be hidden.
+     * @brief Initiates the indicator hiding if the corresponding signal is emitted.
      */
     void hideIndicatorSlot();
 private:
     /**
-     * @brief The function adds a tooltip message with the defined text. If a mouse is moved over the indicator,
+     * @brief Adds a tooltip message with the defined text. If a mouse is moved over the indicator,
      * the message appears.
      */
     void showMessage();
@@ -150,24 +161,30 @@ private:
 };
 
 /**
- * @brief The SharedVariables class is provided as a singleton storing variables which must exist in the one
+ * @class SharedVariables
+ * @brief The class works as a singleton storing variables which must exist in the one
  *  instance only. Use the public functions of the class to access and modify private variables.
+ *
  * The functions are mostly setters and getters. The class is aimed to provide data of the frangi parameters, margins and ratios
- * (so-called frangi functions). It can be used to manipulate with actual directory paths too.
- * Frangi functions are encapsulated into the wrapper functions accessible publicly. This enables a user to choose
+ * (sby using so-called frangi functions). It can be used to manipulate with actual directory paths too.
+ * Frangi functions are encapsulated into the public wrapper functions. This enables a user to choose
  * if the program should work with the global frangi parameters or video-specific parameters.
- * If the video-specific parameter is not found, the global parameter is used then.
+ * If the video-specific parameter is not found, the global parameter is used instead.
  */
 class SharedVariables
 {
 public:
     Q_DISABLE_COPY(SharedVariables)
 
+    /**
+     * @brief Provides access to the SharedVariables singleton.
+     * @return Returns SharedVariables singleton
+     */
     static SharedVariables *getSharedVariables();
 
     /**
      * @brief Get actual path for specific path type.
-     * @param[in] type
+     * @param[in] type - path category
      * @sa setPath(QString type, QString path)
      * @return actual path for the given type
      */
@@ -175,16 +192,16 @@ public:
 
     /**
      * @brief Set actual path for specific path type.
-     * @param[in] type
-     * @param[in] path
-     * @sa getPath(QString type)
+     * @param[in] type - path category
+     * @param[in] path - actual path
+     * @sa getPath(QString type) const
      */
     void setPath(QString type, QString path);
 
     /**
      * @brief Loads data from *.json with frangi parameters and stores the data as global frangi parameters.
      * Predefined name of *.json file is expected!
-     * @param[in] path
+     * @param[in] path - actual path
      * @return the result of the parameters processing
      */
     bool processFrangiParameters(QString path);
@@ -201,19 +218,17 @@ public:
     //---------------------------------------------------------------------------//
     /**
      * @brief Returns frangi parameters - global-related or video-related.
-     * @param[in] i_type
      * @param[in] i_videoName
      * @sa getSpecificFrangiParameterWrapper(frangiType i_type, QString i_videoName, QString parameter)
      * @sa getFrangiParameters()
-     * @sa getVideoFrangiParameters(QString i_videoName)
+     * @sa getVideoFrangiParameters(QString i_videoName) const
      */
     QMap<QString,double> getFrangiParameterWrapper(frangiType i_type, QString i_videoName) const;
     /**
      * @brief Returns specific frangi parameter - global-related or video-related.
-     * @param[in] i_type
      * @param[in] i_videoName
-     * @param[in] parameter
-     * @sa getFrangiParameterWrapper(frangiType i_type, QString i_videoName)
+     * @param[in] parameter - specific frangi paramter
+     * @sa getFrangiParameterWrapper(frangiType i_type, QString i_videoName) const
      * @sa getSpecificFrangiParameter(QString parameter)
      * @sa getSpecificFrangiParameter(int parameter)
      * @sa getSpecificVideoFrangiParameter(QString i_videoName, QString parameter)
@@ -223,19 +238,22 @@ public:
      * @brief Sets all frangi parameters at once - global-related or video-related.
      * @param[in] i_type
      * @param[in] i_videoName
-     * @param[in] i_parameters
-     * @sa setSpecificFrangiParameterWrapper(frangiType i_type, double i_value, QString i_videoName,QString i_parameter, int i_param=-1)
+     * @param[in] i_parameters - frangi parameters prepared for saving
+     * @sa setSpecificFrangiParameterWrapper(frangiType i_type, double i_value, QString i_videoName,QString i_parameter, int
+     * i_param=-1)
      * @sa setFrangiParameters(QMap<QString,double> i_parameters)
      * @sa setVideoFrangiParameters(QString i_videoName,QMap<QString,double> i_parameters)
      */
-    void setFrangiParameterWrapper(frangiType i_type,QString i_videoName,QMap<QString,double> i_parameters);
+    void setFrangiParameterWrapper(frangiType i_type, QString i_videoName, QMap<QString,double> i_parameters);
     /**
-     * @brief Sets one specific frangi parameter - global-related or video-related. The specific parameter can be represented by a string
-     * or number. Threfore, i_param is prepared for this situation.
+     * @brief Sets one specific frangi parameter - global-related or video-related.
+     *
+     * The specific parameter can be represented by a
+     * string (value is loaded from the private variable) or number. Threfore, i_param is prepared for this situation.
      * @param[in] i_type
-     * @param[in] i_value
+     * @param[in] i_value - value of the parameter
      * @param[in] i_videoName
-     * @param[in] i_parameter
+     * @param[in] i_parameter - specific frangi parameter
      * @param[in] i_param
      * @sa setFrangiParameterWrapper(frangiType i_type,QString i_videoName,QMap<QString,double> i_parameters)
      * @sa setSpecificFrangiParameter(int parameter,double value)
@@ -247,14 +265,15 @@ public:
     //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
     //---------------------------------------------------------------------------//
     /**
-     * @brief Saves stored frangi parameters - global-related or video-related - to a file. If global, main frangi JSON file is updated.
-     * If video specific, specific video *.dat file is updated.
+     * @brief Saves stored frangi parameters - global-related or video-related - to a file.
+     *
+     * If global, main frangi JSON file is updated. If video specific, specific video *.dat file is updated.
      * @param[in] i_type
      * @param[in] i_videoName
      * @sa saveFrangiParameters()
      * @sa saveVideoFrangiParameters(QString i_videoName)
      */
-    void saveFrangiParametersWrapper(frangiType i_type,QString i_videoName);
+    void saveFrangiParametersWrapper(frangiType i_type, QString i_videoName);
     //---------------------------------------------------------------------------//
     //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
     //---------------------------------------------------------------------------//
@@ -269,8 +288,9 @@ public:
      */
     cv::Point3d getFrangiMaximumWrapper(frangiType i_type,QString i_videoName);
     /**
-     * @brief Temporally saves detected frangi maximum coordinates - global-related or video-related - to a file. But the coordinates are
-     * saved temporally in the memory, not into a file!
+     * @brief Temporally saves detected frangi maximum coordinates - global-related or video-related - to a file.
+     *
+     * But the coordinates are saved temporally in the memory, not into a file!
      * @param[in] i_type
      * @param[in] i_videoName
      * @param[in] i_coordinates
@@ -348,7 +368,7 @@ public:
      * @sa setSpecificFrangiRatio(QString i_ratioName,double i_value)
      * @sa setSpecificVideoFrangiRatio(QString i_videoName,QString i_ratioName,double i_value)
      */
-    void setSpecificFrangiRatioWrapper(frangiType i_type,QString i_ratioName,QString i_videoName,double i_value);
+    void setSpecificFrangiRatioWrapper(frangiType i_type, QString i_ratioName, QString i_videoName, double i_value);
     //---------------------------------------------------------------------------//
     //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
     //---------------------------------------------------------------------------//
@@ -360,7 +380,7 @@ public:
      * @sa getFrangiRatios()
      * @sa getVideoFrangiRatios(QString i_videoName)
      */
-    QMap<QString,double> getFrangiRatiosWrapper(frangiType i_type,QString i_videoName);
+    QMap<QString,double> getFrangiRatiosWrapper(frangiType i_type, QString i_videoName);
     /**
      * @brief Returns one specific frangi ratio - global-related or video-related.
      * @param[in] i_type
@@ -370,7 +390,7 @@ public:
      * @sa getSpecificFrangiRatio(QString i_ratioName)
      * @sa getSpecificVideoFrangiRatio(QString i_videoName, QString i_ratioName)
      */
-    double getSpecificFrangiRatioWrapper(frangiType i_type,QString i_ratioName,QString i_videoName);
+    double getSpecificFrangiRatioWrapper(frangiType i_type, QString i_ratioName, QString i_videoName);
     //---------------------------------------------------------------------------//
     //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
     //---------------------------------------------------------------------------//
@@ -382,7 +402,7 @@ public:
 
     /**
      * @brief Temporally saves QRect information about standard cutout.
-     * @param[in] i_newStandardCutout
+     * @param[in] i_newStandardCutout - a new standard cutouts parameters
      */
     void setStandardCutout(QRect i_newStandardCutout);
 
@@ -394,17 +414,18 @@ public:
 
     /**
      * @brief Temporally saves QRect information about extra cutout.
-     * @param[in] i_newExtraCutout
+     * @param[in] i_newExtraCutout - a new extra cutouts parameters
      */
     void setExtraCutout(QRect i_newExtraCutout);
     //---------------------------------------------------------------------------//
     //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
     //---------------------------------------------------------------------------//
     /**
-     * @brief Temporally saves necessary information about a video. This information is used
-     * in different situations and also during the final saving of computed parameters.
+     * @brief Temporally saves necessary information about a video.
+     *
+     * This information is used in different situations and also during the final saving of computed parameters.
      * @param[in] i_video
-     * @param[in] i_key
+     * @param[in] i_key - specific video information parameter
      * @param[in] i_dataToSave
      * @sa getVideoInformation(QString i_video, QString i_key)
      */
@@ -435,24 +456,24 @@ private:
 
     /**
      * @brief Fills vector of Frangi parameters with values from JSON object
-     * @param[in] loadedObject
-     * @param[in] parameter
-     * @param[in] loadedParameters
-     * @param[in] position
+     * @param[in] loadedObject - loaded JSON file with frangi parameters
+     * @param[in] parameter - specific frangi parameter
+     * @param[out] loadedParameters - returned vector of loaded parameters
+     * @param[in] position - designaged position of the parameter in the returned vector
      */
     bool inicialization_frangi_opt(QJsonObject loadedObject, QString parameter, QVector<double>& loadedParameters,
                                  int &position);
     /**
      * @brief Vector of Frangi parameters is initialized to have specific size for better processing.
      * @param[in] size - requested size of the vector
-     * @param[in] loadedParameters output vector prepared to be filled
+     * @param[out] loadedParameters - output vector prepared to be filled
      */
     void size_frangi_opt(int size, QVector<double>& loadedParameters);
 
     /**
      * @brief Returns a value of the specific parameter from the Frangi parameters vector.
-     * @param[in] position
-     * @param[in] loadedParameters
+     * @param[in] position - specific parameter position
+     * @param[in] loadedParameters - data
      */
     double data_from_frangi_opt(int position, QVector<double>& loadedParameters);
 
@@ -465,11 +486,6 @@ private:
     //---------------------------------------------------------------------------//
     //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
     //---------------------------------------------------------------------------//
-    /**
-     * @brief Returns the vector of frangi parameters in predefined order for better processing.
-     * @return
-     */
-    //QVector<double> getFrangiParameters() const;
     /**
      * @brief Returns global frangi parameters.
      * @sa getVideoFrangiParameters(QString i_videoName) const
@@ -521,14 +537,14 @@ private:
      * @param[in] i_parameters
      * @sa setFrangiParameters(QMap<QString,double> i_parameters)
      */
-    void setVideoFrangiParameters(QString i_videoName,QMap<QString,double> i_parameters);
+    void setVideoFrangiParameters(QString i_videoName, QMap<QString,double> i_parameters);
     /**
      * @brief Sets the value of specific global parameter.
      * @param[in] parameter
      * @param[in] value
      * @sa setSpecificVideoFrangiParameter(QString i_videoName, QString i_parameter,double i_value)
      */
-    void setSpecificFrangiParameter(int parameter,double value);
+    void setSpecificFrangiParameter(int parameter, double value);
     /**
      * @brief Sets the value of specific video-related parameter.
      * @param[in] i_videoName
@@ -546,7 +562,7 @@ private:
      */
     void saveFrangiParameters();
     /**
-     * @brief saveVideoFrangiParameters
+     * @brief Saves video-releated frangi parameters to the corresponding video *.dat file.
      * @param[in] i_videoName
      * @sa saveFrangiParameters()
      */
@@ -598,14 +614,14 @@ private:
     cv::Point3d getVideoFrangiMaximum(QString i_videoName);
     /**
      * @brief Temporally saves coordinates of the global-related frangi maximum.
-     * @param[in] coordinates
+     * @param[in] i_coordinates
      * @sa setVideoFrangiMaximum(QString i_videoName, cv::Point3d i_coordinates)
      */
     void setFrangiMaximum(cv::Point3d i_coordinates);
     /**
      * @brief Temporally saves coordinates of the video-related frangi maximum.
      * @param[in] i_videoName
-     * @param[in] coordinates
+     * @param[in] i_coordinates
      * @sa setFrangiMaximum(cv::Point3d i_coordinates)
      */
     void setVideoFrangiMaximum(QString i_videoName, cv::Point3d i_coordinates);
@@ -666,7 +682,7 @@ private:
      * @param[in] i_value
      * @sa setSpecificFrangiRatio(QString i_ratioName,double i_value)
      */
-    void setSpecificVideoFrangiRatio(QString i_videoName,QString i_ratioName,double i_value);
+    void setSpecificVideoFrangiRatio(QString i_videoName, QString i_ratioName, double i_value);
     //---------------------------------------------------------------------------//
     //-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-//
     //---------------------------------------------------------------------------//
@@ -702,7 +718,7 @@ private:
     QMap<QString,QString> chosenActualPathes;
     QVector<double> FrangiParameters;
     QMap<QString,double> FrangiParametersMap;
-    QStringList FrangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    QStringList FrangiParametersList = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","mode"};
     QStringList FrangiMarginsList = {"top_m","bottom_m","left_m","right_m"};
     QStringList FrangiRatiosList = {"top_r","bottom_r","left_r","right_r"};
     cv::Point3d detectedFrangiMaximum;

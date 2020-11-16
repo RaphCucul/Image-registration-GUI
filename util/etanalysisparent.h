@@ -1,3 +1,7 @@
+// Part of Frames registration project
+// created by Jan Prosser
+// Licensed under BSD-2-Clause License
+
 #ifndef ETANALYSISPARENT_H
 #define ETANALYSISPARENT_H
 
@@ -18,8 +22,11 @@
 
 /**
  * @class ETanalysisParent
- * @brief The ETanalysisParent class is a parent class for entropy and tennegrad analysis classes. Signal functions
- * are emitted when the corresponding thread is finished and calculated parameters are obtained.
+ * @brief It is a parent class for entropy and tennegrad analysis classes.
+ *
+ * The class provides standard init functios for QMaps with calculated parameters and functions for saving parameters.
+ * Signal functions are emitted when the corresponding thread is finished and calculated parameters are obtained.
+ * The main purpose of this parent class is to hold variables common for E+T analysis.
  */
 class ETanalysisParent : public QWidget
 {
@@ -28,29 +35,50 @@ public:
     ETanalysisParent(QWidget *parent);
     virtual ~ETanalysisParent() { }
 signals:
+    /**
+     * @brief Indicates the start of the analysis.
+     */
     void calculationStarted();
+    /**
+     * @brief Indicates the end of the analysis.
+     */
     void calculationStopped();
+    /**
+     * @brief Indicates that calculated data from the first thread was saved.
+     */
     void dataObtained_first();
+    /**
+     * @brief Indicates that calculated data from the second thread was saved.
+     */
     void dataObtained_second();
+    /**
+     * @brief Indicates that calculated data from the third thread was saved.
+     */
     void dataObtained_third();
+    /**
+     * @brief Indicates that calculated data from the fourth thread was saved.
+     */
     void dataObtained_fourth();
+    /**
+     * @brief Indicates that calculated data from the fifth thread was saved.
+     */
     void dataObtained_fifth();
 protected:
     /**
-     * @brief It checks if the numerical input is in the given range. If the input is out of range,
+     * @brief Checks if the numerical input is in the given range. If the input is out of range,
      * font color is set red, otherwise green.
-     * @param input - user input
-     * @param lower - minimum
-     * @param upper - maximum
-     * @param editWidget - affected QLineEdit
-     * @param finalValue - -99 returned if a problem is discovered
-     * @param evaluation - true if input in the range, otherwise false
+     * @param[in] i_input - user input
+     * @param[in] i_lower - minimum
+     * @param[in] i_upper - maximum
+     * @param[in] i_editWidget - affected QLineEdit
+     * @param[in] i_finalValue - -99 returned if a problem is discovered
+     * @param[in] i_evaluation - true if input in the range, otherwise false
      */
     void checkInputNumber(double i_input,double i_lower,double i_upper,
                           QLineEdit* i_editWidget,double& i_finalValue,bool& i_evaluation);
 
     /**
-     * @brief It terminates all running threads and clears the content of QMap objects.
+     * @brief Terminates all running threads and clears the content of QMap objects.
      */
     void cancelAllCalculations();
 
@@ -86,7 +114,8 @@ protected:
     }
 
     /**
-     * @brief It separates initialisation function for anomalies QMap object (standard and extra cutout defined by a user).
+     * @brief Separate initialisation function for anomalies - QMap object, standard and extra cutout defined by a user.
+     *
      * Because a QMap is storing cv::Rect object not a vector, it is easier to do the necessary things in a separate
      * function.
      * @param parameters - a list of parameters of analysed video(s)
@@ -100,7 +129,7 @@ protected:
                                                      int end_pos);
 
     /**
-     * @brief Template function fills input map variable with a key and a value. If the key
+     * @brief Template function fills input QMap variable with a key and a value. If the key
      * already exists in the map variable, the value is just changed. If it does not exist, then new pair
      * key-value is inserted into the map variable.
      * @tparam i_key - a QMap key of type T
@@ -116,8 +145,8 @@ protected:
     }
 
     /**
-     * @brief It processes calculated parameters from a thread and initialises its termination.
-     * @param done
+     * @brief Processes calculated parameters from a thread and initialises its termination.
+     * @param done - index of the thread which was terminated and waits for processing
      */
     void done(int done);
 

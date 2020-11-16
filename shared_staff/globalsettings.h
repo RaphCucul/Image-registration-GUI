@@ -6,8 +6,8 @@
 
 /**
  * @class GlobalSettings
- * @brief The GlobalSettings class object (singleton) contains getters and setters to get/set important pathes. The singleton
- * also allows to customize each parameter of the *.ini file.
+ * @brief Contains getters and setters to get/set important pathes. Works as a singleton,
+ * allowing to customize each parameter of the *.ini file.
  */
 class GlobalSettings
 {
@@ -22,7 +22,7 @@ public:
 
     /**
      * @brief Checks if a specific setting is present in the settings ini file.
-     * @param i_settingToCheck
+     * @param[in] i_settingToCheck - specific setting
      * @return True if setting is present.
      */
     bool checkPresenceOfSetting(QString i_settingToCheck);
@@ -30,7 +30,7 @@ public:
     /**
      * @brief Saves a given path to the JSON file with the list of directories.
      * @sa getFileFolderDirectoriesPath()
-     * @param[in] input
+     * @param[in] input - given path with the file
      */
     void setFileFolderDirectoriesPath(const QString& input);
 
@@ -87,7 +87,7 @@ public:
      * @sa getHDDCounterParameter()
      * @sa getHDDCounterName()
      */
-    void setHDDCounter(QString i_name,QString i_parameter);
+    void setHDDCounter(QString i_name, QString i_parameter);
 
     /**
      * @brief Returns application path where all files
@@ -127,18 +127,6 @@ public:
      * @param status
      */
     void setHDDMonitorStatus(bool status);
-
-    /**
-     * @brief Sets path to Powershell exe file.
-     * @param i_path
-     */
-    void setPowershellPath(QString i_path);
-
-    /**
-     * @brief Returns Powershell exe file path.
-     * @return QString with saved path.
-     */
-    QString getPowershellPath();
 
     /**
      * @brief Saves maximum number of utilizable CPU cores.

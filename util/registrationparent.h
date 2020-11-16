@@ -34,9 +34,20 @@ public slots:
      */
     void writeVideo();
 signals:
-    void errorOccured(int errorIndex); /**< Emits index of the error text which should be raised */
-    void errorOccured(QString errorMessage); /**< Emits error message which should appear in the error label */
-    void finishedSuccessfully(); /**< Emitted when the operation is finished */
+    /**
+     * @brief Emits index of the error text which should be raised (from errors.h).
+     * @param errorIndex
+     */
+    void errorOccured(int errorIndex);
+    /**
+     * @brief Emits error message which should appear in the error label.
+     * @param errorMessage - custom error text
+     */
+    void errorOccured(QString errorMessage);
+    /**
+     * @brief Emitted when the operation is finished.
+     */
+    void finishedSuccessfully();
 private:
     QString videoReadPath,videoWritePath;
     QMap<QString,QVector<double>> obtainedData;

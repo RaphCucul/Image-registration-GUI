@@ -1,3 +1,7 @@
+// Part of Frames registration project
+// created by Jan Prosser
+// Licensed under BSD-2-Clause License
+
 #ifndef FILES_FOLDERS_OPERATIONS_H_INCLUDED
 #define FILES_FOLDERS_OPERATIONS_H_INCLUDED
 

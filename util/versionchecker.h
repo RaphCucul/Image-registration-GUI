@@ -27,12 +27,17 @@ public:
     void startDownload();
 
 signals:
+    /**
+     * @brief Informs the program that everything was download.
+     */
     void downloaded();
+    /**
+     * @brief Informs the program that the download failed.
+     */
     void notDownloaded();
 public slots:
     /**
-     * @brief Slot function called when the QNetworkAccessManager obtains a reply from the URL.
-     * Processes the QNetworkReply object.
+     * @brief It is called when the QNetworkAccessManager obtains a reply from the URL. Processes the QNetworkReply object.
      * @param[in] pReply
      */
     void fileDownloaded(QNetworkReply* pReply);

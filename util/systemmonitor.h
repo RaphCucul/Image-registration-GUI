@@ -8,7 +8,9 @@ class SystemMonitor;
 /**
  * @class SystemMonitor
  * @brief Contains virtual functions for derived classes to perform data acquision
- * for CPU, RAM and HDD graphs. The program contains implementation for Windows style data acquisition. Therefore
+ * for CPU, RAM and HDD graphs.
+ *
+ * The program contains implementation for Windows style data acquisition. Therefore
  * only one WindowsImpl class exists as a derived class from SystemMonitor class. However, if the program
  * would be ported on another system, another derived class can be created.
  */

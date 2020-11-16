@@ -6,7 +6,9 @@
 
 /**
  * @class util_GraphET
- * @brief The util_GraphET class is a helper class of the GrafET class. The purpose of the util_GraphET is simple - initialise
+ * @brief The util_GraphET class is a helper class of the GrafET class.
+ *
+ * The purpose of the util_GraphET is simple - initialise
  * a QCustumPlot automatically as much as possible. The initialisation means creating separate graph items, adjusting visual styles etc.
  * The class constructor gets QCustomPlot class object as an input - this object is in the QDialog.
  */
@@ -22,25 +24,25 @@ public:
                  QVector<double> i_range);
 
     /**
-     * @brief It selects frames which will be visualised in the graph.
-     * @param i_indexes - frames indexes (x axis)
-     * @param i_values - values of entropy/tennengrad of given frames (y axis)
-     * @param i_chooseType - category of frames - based on the ET analysis and evaluation index
+     * @brief Selects frames which will be visualised in the graph.
+     * @param[in] i_indexes - frames indexes (x axis)
+     * @param[in] i_values - values of entropy/tennengrad of given frames (y axis)
+     * @param[in] i_chooseType - category of frames - based on the ET analysis and evaluation index
      * @return Vector of values (y axis) for frames according to the chosen type
      */
     QVector<double> chooseFrames(QVector<int> i_indexes,
                                  QVector<double> i_values,int i_chooseType);
     /**
-     * @brief It converts int values of a vector to double.
-     * @param i_input
-     * @param i_chooseType
+     * @brief Converts int values of a vector to double.
+     * @param[in] i_input
+     * @param[in] i_chooseType
      * @return Converted values.
      */
     QVector<double> convertInt2Double(QVector<int> i_input,int i_chooseType);
 
     /**
-     * @brief It returns the index of requested graph element.
-     * @param i_requestedPlotPart
+     * @brief Returns the index of requested graph element.
+     * @param[in] i_requestedPlotPart
      */
     int getNumberReference(QString i_requestedPlotPart);
 private:
@@ -48,16 +50,16 @@ private:
     /**
      * @brief Main initialisation function. Loops through the list of graph parts to create corresponding graph elements,
      * together with the graphical settings.
-     * @param i_QCustomPlot
-     * @param i_data
-     * @param i_range
+     * @param[in] i_QCustomPlot
+     * @param[in] i_data - all data for a graph
+     * @param[in] i_range - y axis range
      */
     void initGraphObject(QCustomPlot* i_QCustomPlot,
                          QMap<QString,QVector<double>> i_data,
                          QVector<double> i_range);
 
     /**
-     * @brief It assigns numeric index to each plottable graphical object.
+     * @brief Assigns numeric index to each plottable graphical object.
      * Creates a connection between these indexes and scatter styles.
      */
     void initGraphPlotNumbersReferences();
