@@ -9,9 +9,10 @@
 
 /**
  * @class MatViewer
- * @brief The MatViewer class object enables to replace cv::imshow function because created window was not able
- * to see when the program runs in "release" mode. Everything is ok in "debug" mode.
- * Everything is set up in the contructor.
+ * @brief The MatViewer class object replaces cv::imshow function because created window was not visible
+ *  in the "release" mode.
+ *
+ * Necessary information is provided in the class constructor.
  */
 class MatViewer : public QDialog
 {
