@@ -11,23 +11,24 @@
 using namespace std;
 
 void analyseFileNames(QString i_chosenPathToFiles,
-                                QStringList &i_filenameList,
-                                int &i_filenameWithSuffixCount,
-                                QString i_searchedSuffix)
+                      QStringList &i_filenameList,
+                      int &i_filenameWithSuffixCount,
+                      QString i_searchedSuffix)
 {
      QDir chosenDirectory(i_chosenPathToFiles);
-     i_filenameList = chosenDirectory.entryList(QStringList() << "*."+i_searchedSuffix << "*."+i_searchedSuffix.toUpper(),QDir::Files);
+     i_filenameList = chosenDirectory.entryList(QStringList() << "*."+i_searchedSuffix <<
+                                                    "*."+i_searchedSuffix.toUpper(),QDir::Files);
      i_filenameWithSuffixCount = i_filenameList.count();
 }
 
-void processFilePath(QString i_wholePaht, QString& i_folder, QString& i_onlyFilename, QString& i_suffix)
+void processFilePath(QString i_wholePaht, QString& o_folder, QString& o_onlyFilename, QString& o_suffix)
 {
     int lastindexSlash = i_wholePaht.lastIndexOf("/");
     int lastIndexDot = i_wholePaht.length() - i_wholePaht.lastIndexOf(".");
-    i_folder = i_wholePaht.left(lastindexSlash);
-    i_onlyFilename = i_wholePaht.mid(lastindexSlash+1,
+    o_folder = i_wholePaht.left(lastindexSlash);
+    o_onlyFilename = i_wholePaht.mid(lastindexSlash+1,
          (i_wholePaht.length()-lastindexSlash-lastIndexDot-1));
-    i_suffix = i_wholePaht.right(lastIndexDot-1);
+    o_suffix = i_wholePaht.right(lastIndexDot-1);
 }
 
 QJsonObject readJson(QFile& i_file)
@@ -49,44 +50,12 @@ void writeJson(QJsonObject &i_object, QJsonArray &i_array, QString i_type, QStri
     QJsonDocument document;
     document.setObject(i_object);
     QString documentString = document.toJson();
-    QFile zapis;
-    zapis.setFileName(i_pathAndName);
-    zapis.open(QIODevice::WriteOnly);
-    zapis.write(documentString.toLocal8Bit());
-    zapis.close();
+    QFile _write;
+    _write.setFileName(i_pathAndName);
+    _write.open(QIODevice::WriteOnly);
+    _write.write(documentString.toLocal8Bit());
+    _write.close();
 }
-
-/*QJsonArray vector2array(QVector<double> &i_vector)
-{
-    QJsonArray array;
-    copy(i_vector.begin(), i_vector.end(), back_inserter(array));
-    return array;
-}
-
-QJsonArray vector2array(QVector<int>& i_vector)
-{
-    QJsonArray array;
-    copy(i_vector.begin(), i_vector.end(), back_inserter(array));
-    return array;
-}*/
-
-/*QVector<int> arrayInt2vector(QJsonArray& i_array)
-{
-    QVector<int> output;
-    for (int indexarray = 0; indexarray < i_array.size(); indexarray++){
-        output.push_back(i_array[indexarray].toInt());
-    }
-    return output;
-}
-
-QVector<double> arrayDouble2vector(QJsonArray& i_array)
-{
-    QVector<double> output;
-    for (int indexarray = 0; indexarray < i_array.size(); indexarray++){
-        output.push_back(i_array[indexarray].toDouble());
-    }
-    return output;
-}*/
 
 QJsonObject maps2Object(QStringList i_parameters,
                         QString i_videoName,
@@ -104,8 +73,6 @@ QJsonObject maps2Object(QStringList i_parameters,
         }
         else if (parameter > 8 && parameter <= 13){
             QVector<int> pomInt = i_mapInt[i_parameters.at(parameter)][i_videoName];
-            /*if (i_parameters.at(parameter) == "evaluation")
-                pomInt[framesReferencial[i_videoName]]=2;*/
             QJsonArray pomArray = vector2array(pomInt);
             _returnObject[i_parameters.at(parameter)] = pomArray;
         }
@@ -118,7 +85,7 @@ QJsonObject maps2Object(QStringList i_parameters,
     return _returnObject;
 }
 
-QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input){
+QMap<QString,cv::Rect> convertQRectsToRects(QMap<QString,QRectF> i_input){
     QMap<QString,cv::Rect> _output;
     _output["extra"].x = int(i_input["extra"].x());
     _output["extra"].y = int(i_input["extra"].y());
@@ -134,13 +101,23 @@ QMap<QString,cv::Rect> convertQRectToRect(QMap<QString,QRectF> i_input){
 }
 
 cv::Rect convertQRectToRect(QRect i_input) {
-    cv::Rect _output;
+    /*cv::Rect _output;
     _output.x = i_input.x();
     _output.y = i_input.y();
     _output.width = i_input.width();
     _output.height = i_input.height();
 
-    return _output;
+    return _output;*/
+    return cv::Rect(i_input.x(),i_input.y(),i_input.width(),i_input.height());
+}
+
+QRect convertRectToQRect(cv::Rect i_input) {
+    /*QRect _output;
+    _output.setX(i_input.x);
+    _output.setY(i_input.y);
+    _output.setSize(QSize(i_input.width,i_input.height));
+    return _output;*/
+    return QRect(i_input.x,i_input.y,i_input.width,i_input.height);
 }
 
 QVector<int> convertRect2Vector(cv::Rect i_rectangular) {
@@ -197,6 +174,7 @@ bool findReferentialFrameData(QString i_name, int &i_referentialFrame, QPoint& i
 
         // user set referential frame - it can be true referential frame
         // but it could not be -> -1 indicates a user does not know referential frame
+        i_referentialFrame = -1;
         if (i_referentialFrame == -1){
             for (int i=0;i<dataArray.count();i++){
                 if (dataArray.at(i).toInt() == 2){
