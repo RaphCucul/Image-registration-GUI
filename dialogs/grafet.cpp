@@ -170,18 +170,13 @@ void GrafET::closeEvent(QCloseEvent *event){
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, tr("Save data"), tr("Data was changed. Do you want to save it?\n"
                                                                 "Save - save data\n"
-                                                                "Cancel - close this dialog\n"
-                                                                "Close - close dialog and the whole window without saving"),
+                                                                "Cancel - close the dialog\n"
+                                                                "Close - close the dialog and the whole window without saving"),
                                         QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Close,QMessageBox::Save);
-        switch(reply){
-            case QMessageBox::Save:
-                dataChanged ? saveData(SaveOption::ALL) : saveData(SaveOption::EXTREMES);
-                event->accept();
-            case QMessageBox::Close:
-                event->accept();
-            default:
-                event->ignore();
+        if (reply == QMessageBox::Save) {
+            dataChanged ? saveData(SaveOption::ALL) : saveData(SaveOption::EXTREMES);
         }
+        event->accept();
     }
     else
         event->accept();
