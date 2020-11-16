@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 
-std::string actualVersion = "1.1.0";
+std::string actualVersion = "2.0.0";
 
 VersionCheckerParent::VersionCheckerParent(QObject *parent) : QObject(parent)
 {
