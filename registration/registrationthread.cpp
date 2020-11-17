@@ -58,6 +58,9 @@ RegistrationThread::RegistrationThread(int& i_indexOfThread,
     qDebug()<<"registration thread initialized";
 }
 
+/**
+ * @brief Returns calculated results of frangi and POC.
+ */
 QMap<QString,QVector<double>> RegistrationThread::provideResults()
 {
     vectors["FrangiX"] = frangiX;
@@ -69,6 +72,9 @@ QMap<QString,QVector<double>> RegistrationThread::provideResults()
     return vectors;
 }
 
+/**
+ * @brief Returns information about the range of frames in the current thread.
+ */
 QVector<int> RegistrationThread::threadFrameRange(){
     QVector<int> output;
     output.push_back(startingFrame);
@@ -78,10 +84,12 @@ QVector<int> RegistrationThread::threadFrameRange(){
 
 /**
  * @brief The function is designed to registrate referential frame with a frame with evaluation index 0 (perfect for
- * the registration, no problems are expected). The registration process itself is covered by the function "fullRegistration"
+ * the registration, no problems are expected).
+ *
+ * The registration process itself is covered by the function "fullRegistration"
  * followed by some postprocessing.
  * @param i_cap
- * @param i_referencialFrame
+ * @param i_referentialFrame
  * @param i_coordsFrangiStandardReferencialReverse
  * @param i_index_translated
  * @param i_iteration
@@ -101,7 +109,7 @@ QVector<int> RegistrationThread::threadFrameRange(){
  * @return
  */
 bool registrateTheBest(cv::VideoCapture& i_cap,
-                       cv::Mat& i_referencialFrame,
+                       cv::Mat& i_referentialFrame,
                        cv::Point3d i_coordsFrangiStandardReferencialReverse,
                        int i_index_translated,
                        int i_iteration,
@@ -120,8 +128,10 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                        QMap<QString, int> i_margins);
 
 /**
- * @brief The main registration function of the class. It is called by the function "registrateTheBest" to registrate
- * the referential frame with a frame with the evaluation index 0. If a frame has evaluation index 1 aor 4, problems are expected
+ * @brief The main registration function of the class.
+ *
+ * It is called by the function "registrateTheBest" to registrate
+ * the referential frame with a frame with the evaluation index 0, 1 or 4. If a frame has evaluation index 1 aor 4, problems are expected
  * and there is no postprocessing when the frames are registrated.
  * @param i_cap
  * @param i_referencialFrame
@@ -153,37 +163,8 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                       QVector<double> &i_maxAngles);
 
 /**
- * @brief If a cutout was created, this function applies the cutout on a frame. If extra cutout was
- * @param i_referencialFrame
- * @param i_preprocessed
- * @param i_frangiParameters
- * @param i_verticalAnomaly
- * @param i_horizontalAnomaly
- * @param i_anomalyArea
- * @param i_coutouExtra
- * @param i_cutoutStandard
- * @param i_cap
- * @param i_scaleChange
- * @param i_margins
- * @param i_ratios
- * @return
- */
-bool imagePreprocessing(cv::Mat &i_referencialFrame,
-                        cv::Mat &i_preprocessed,
-                        QMap<QString, double> &i_frangiParameters,
-                        cv::Point2f &i_verticalAnomaly,
-                        cv::Point2f &i_horizontalAnomaly,
-                        cv::Rect &i_anomalyArea,
-                        cv::Rect &i_coutouExtra,
-                        cv::Rect &i_cutoutStandard,
-                        cv::VideoCapture &i_cap,
-                        bool &i_scaleChange,
-                        QMap<QString, int> i_margins,
-                        QMap<QString, double> i_ratios);
-
-/**
- * @brief It tries to improve the registration result with one additional phase correlation. The correlation coefficient is
- * used to determine, if the correction was senseless or not.
+ * @brief Tries to improve the registration result with one additional phase correlation. The correlation coefficient is
+ * used to determine if the correction was senseless or not.
  * @param i_registratedFrame
  * @param i_frame
  * @param i_corrected
@@ -203,42 +184,48 @@ void RegistrationThread::run()
 {
     /// define helpers for frame preprocessing
     bool scaling=false;
-    /// frame and video properties
-    double width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
-    double height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
-
-    if (extraCutout.width!=0 && extraCutout.height!=0) {
-        adjustedStandardCutout = adjustStandardCutout(extraCutout,
-                                                      standardCutout,
-                                                      height,width);
+    if (extraCutout.width>0 && extraCutout.height>0) {
         scaling = true;
     }
 
     Point3d pt_temp(0.0,0.0,0.0);
     Mat preprocessed,preprocessed_cutout;
     if (scaling) {
+        qDebug()<<"Extra cutout applied: "<<extraCutout.height<<" "<<extraCutout.width;
         referencialImage(extraCutout).copyTo(preprocessed);
-        preprocessed(adjustedStandardCutout).copyTo(preprocessed_cutout);
     }
     else {
         referencialImage.copyTo(preprocessed);
-        preprocessed(standardCutout).copyTo(preprocessed_cutout);
     }
-    Point3d frangiMaxReversal = frangi_analysis(preprocessed,2,2,0,"",1,pt_temp,frangiParameters,margins);
+    qDebug()<<"Standard cutout applied: "<<standardCutout.height<<" "<<standardCutout.width<<" "<<standardCutout.x<<" "<<standardCutout.y;
+    preprocessed(standardCutout).copyTo(preprocessed_cutout);
+
+    int mode = frangiParameters.contains("mode") ? frangiParameters["mode"] : 1;
+    qDebug()<<"Applying frangi mode "<<mode;
+    Point3d frangiMaxReversal = frangi_analysis(preprocessed,mode,2,0,"",1,pt_temp,frangiParameters,margins);
     if (frangiMaxReversal.z == 0.0){
         emit errorDetected(threadIndex,QString(tr("Frangi filter for referencial image failed for %1.")).arg(videoName));
         return;
     }
-
+    qDebug()<<"Beginning registration phase";
     for (int indexFrame = startingFrame; indexFrame <= stoppingFrame; indexFrame++)
     {
         bool errorOccured = false;
         if (framesEvaluation[indexFrame] == 0){
-            if (!registrateTheBest(capture,preprocessed,frangiMaxReversal,indexFrame,iteration,maximalArea,
-                                   totalAngle,extraCutout,
-                                   scaling ? adjustedStandardCutout : standardCutout,
-                                   scaling,frangiParameters,
-                                   finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles,margins)){
+            if (!registrateTheBest(capture,
+                                   preprocessed,
+                                   frangiMaxReversal,
+                                   indexFrame,
+                                   iteration,
+                                   maximalArea,
+                                   totalAngle,
+                                   extraCutout,
+                                   standardCutout,
+                                   scaling,
+                                   frangiParameters,
+                                   finalPOCx,finalPOCy,frangiX,
+                                   frangiY,frangiEuklidean,
+                                   maximalAngles,margins)){
                 errorOccured = true;
                 continue;
             }
@@ -259,7 +246,7 @@ void RegistrationThread::run()
                 {
                     Mat shifted;
                     shifted_temp(extraCutout).copyTo(shifted);
-                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted,2,2,0,"",1,pt_temp,
+                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted,mode,2,0,"",1,pt_temp,
                                                                                 frangiParameters,margins);
                     if (frangiCoords_preprocessed_reverse.z == 0.0){
                         errorOccured = true;
@@ -274,7 +261,7 @@ void RegistrationThread::run()
                 }
                 else
                 {
-                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted_temp,2,2,0,"",1,pt_temp,
+                    Point3d frangiCoords_preprocessed_reverse = frangi_analysis(shifted_temp,mode,2,0,"",1,pt_temp,
                                                                                 frangiParameters,margins);
                     if (frangiCoords_preprocessed_reverse.z == 0.0){
                         errorOccured = true;
@@ -323,7 +310,7 @@ void RegistrationThread::run()
                                   maximalArea,
                                   angle,
                                   extraCutout,
-                                  scaling ? adjustedStandardCutout : standardCutout,
+                                  standardCutout,
                                   scaling,
                                   registratedFrame,
                                   finalPOCx,
@@ -344,7 +331,7 @@ void RegistrationThread::run()
                 Point3d translationCorrection(0.0,0.0,0.0);
                 cv::Mat fully_registratedFrame;
                 if (!registrationCorrection(registratedFrame,preprocessed,fully_registratedFrame,
-                                            scaling ? adjustedStandardCutout : standardCutout,
+                                            standardCutout,
                                             translationCorrection,
                                             maximalArea)){
                     errorOccured = true;
@@ -398,14 +385,8 @@ void RegistrationThread::run()
             /*qDebug()<<"Sending: frame: "<<indexFrame<<" "<<QString::number(finalPOCx[indexFrame])<<" "<<
                       QString::number(finalPOCy[indexFrame])<<" "<<QString::number(maximalAngles[indexFrame]);*/
 
-            //QTableWidgetItem* newItem = new QTableWidgetItem(QString::number(finalPOCx[indexFrame]));
-            //emit x_coordInfo(indexFrame,0,newItem);
             emit x_coordInfo(indexFrame,0,QString::number(finalPOCx[indexFrame]));
-            //newItem = new QTableWidgetItem(QString::number(finalPOCy[indexFrame]));
-            //emit y_coordInfo(indexFrame,1,newItem);
             emit y_coordInfo(indexFrame,1,QString::number(finalPOCy[indexFrame]));
-            //newItem = new QTableWidgetItem(QString::number(maximalAngles[indexFrame]));
-            //emit angleInfo(indexFrame,2,newItem);
             emit angleInfo(indexFrame,2,QString::number(maximalAngles[indexFrame]));
             emit statusInfo(indexFrame,3,QString("done"));
         }
@@ -416,7 +397,7 @@ void RegistrationThread::run()
         //qDebug()<<"Recalculating starting frame "<<startingFrame;
         if (registrateTheBest(capture,preprocessed,frangiMaxReversal,startingFrame,iteration,maximalArea,
                                totalAngle,extraCutout,
-                              scaling ? adjustedStandardCutout : standardCutout,scaling,frangiParameters,
+                              standardCutout,scaling,frangiParameters,
                                finalPOCx,finalPOCy,frangiX,frangiY,frangiEuklidean,maximalAngles,margins)){
             emit x_coordInfo(startingFrame,0,QString::number(finalPOCx[startingFrame]));
             emit y_coordInfo(startingFrame,1,QString::number(finalPOCy[startingFrame]));
@@ -433,7 +414,7 @@ void RegistrationThread::dataObtained(){
 }
 
 bool registrateTheBest(cv::VideoCapture& i_cap,
-                       cv::Mat& i_referencialFrame,
+                       cv::Mat& i_referentialFrame,
                        cv::Point3d i_coordsFrangiStandardReferencialReverse,
                        int i_index_translated,
                        int i_iteration,
@@ -451,10 +432,10 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                        QVector<double> &_maxAngles,
                        QMap<QString,int> i_margins)
 {
-    Mat fully_registratedFrame = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
-
+    Mat fully_registratedFrame = cv::Mat::zeros(cv::Size(i_referentialFrame.cols,i_referentialFrame.rows), CV_32FC3);
+    qDebug()<<"Registrating the best frames";
     if (!fullRegistration(i_cap,
-                          i_referencialFrame,
+                          i_referentialFrame,
                           i_index_translated,
                           i_iteration,
                           i_areaMaximum,
@@ -474,10 +455,10 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
     else
     {
         //qDebug()<<"Full registration correct.";
-        Mat refSnimek_cutout;
-        i_referencialFrame(i_cutoutStandard).copyTo(refSnimek_cutout);
-        int rows = i_referencialFrame.rows;
-        int cols = i_referencialFrame.cols;
+        Mat refFrame_cutout;
+        i_referentialFrame(i_cutoutStandard).copyTo(refFrame_cutout);
+        int rows = i_referentialFrame.rows;
+        int cols = i_referentialFrame.cols;
         if (std::abs(_pocX[i_index_translated]) == 999.0)
         {
             qWarning()<< "Frame "<<i_index_translated<<" written without changes.";
@@ -506,8 +487,8 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
             }
 
             Point3d translationCorrection(0.0,0.0,0.0);
-            Mat registratedCorrectedFrame = cv::Mat::zeros(cv::Size(i_referencialFrame.cols,i_referencialFrame.rows), CV_32FC3);
-            if (!registrationCorrection(fully_registratedFrame,i_referencialFrame,registratedCorrectedFrame,
+            Mat registratedCorrectedFrame = cv::Mat::zeros(cv::Size(i_referentialFrame.cols,i_referentialFrame.rows), CV_32FC3);
+            if (!registrationCorrection(fully_registratedFrame,i_referentialFrame,registratedCorrectedFrame,
                                         i_cutoutStandard,translationCorrection,i_areaMaximum)){
                 qWarning()<<"Frame "<<i_index_translated<<" - registration correction failed";
                 return false;
@@ -518,10 +499,10 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                     //qDebug()<<"Correction: "<<translationCorrection.x<<" "<<translationCorrection.y;
                     _pocX[i_index_translated] += translationCorrection.x;
                     _pocY[i_index_translated] += translationCorrection.y;
-                    Point3d pt6 = pc_translation_hann(i_referencialFrame,registratedCorrectedFrame,i_areaMaximum);
+                    Point3d pt6 = pc_translation_hann(i_referentialFrame,registratedCorrectedFrame,i_areaMaximum);
                     if (std::abs(pt6.x)>=290 || std::abs(pt6.y)>=290)
                     {
-                        pt6 = pc_translation(i_referencialFrame,registratedCorrectedFrame,i_areaMaximum);
+                        pt6 = pc_translation(i_referentialFrame,registratedCorrectedFrame,i_areaMaximum);
                     }
                     //qDebug()<<"Checking translation after correction: "<<pt6.x<<" "<<pt6.y;
                     _pocX[i_index_translated] += pt6.x;
@@ -531,10 +512,12 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
                 registratedCorrectedFrame.copyTo(interresult32f);
                 transformMatTypeTo32C1(interresult32f);
                 interresult32f(i_cutoutStandard).copyTo(interresult32f_cutout);
-                double R1 = calculateCorrCoef(i_referencialFrame,registratedCorrectedFrame,i_cutoutStandard);
+                double R1 = calculateCorrCoef(i_referentialFrame,registratedCorrectedFrame,i_cutoutStandard);
                 Point3d _tempTranslation = Point3d(_pocX[i_index_translated],_pocY[i_index_translated],0.0);
 
-                Point3d frangiCoords_registrated_reverse = frangi_analysis(registratedCorrectedFrame,2,2,0,"",2,
+                int mode = parametry_frangi.contains("mode") ? parametry_frangi["mode"] : 1;
+                qDebug()<<"Applying frangi mode "<<mode;
+                Point3d frangiCoords_registrated_reverse = frangi_analysis(registratedCorrectedFrame,mode,2,0,"",2,
                                                                            _tempTranslation,parametry_frangi,i_margins);
 
                 _frangiX[i_index_translated] = frangiCoords_registrated_reverse.x;
@@ -556,14 +539,9 @@ bool registrateTheBest(cv::VideoCapture& i_cap,
 
                 Mat shifted2 = frameTranslation(shifted,finalTranslation,rows,cols);
                 Mat finalFrame = frameRotation(shifted2,_maxAngles[i_index_translated]);
-                //Mat finalFrame_32f,finalFrame_32f_cutout;
-                /*finalFrame.copyTo(finalFrame_32f);
-                transformMatTypeTo32C1(finalFrame_32f);
-                finalFrame_32f(i_cutoutStandard).copyTo(finalFrame_32f_cutout);
-                finalFrame_32f.release();*/
                 shifted2.release();
-                double R2 = calculateCorrCoef(i_referencialFrame,finalFrame,i_cutoutStandard);
-                // finalFrame_32f_cutout.release();
+                double R2 = calculateCorrCoef(i_referentialFrame,finalFrame,i_cutoutStandard);
+
                 if (R1 >= R2)
                 {
                     //qDebug()<< "Frame "<<i_index_translated<<" written after standard registration.";
@@ -744,15 +722,15 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                 Mat registrated2_32f,registrated2_cutout;
                 registrated2.copyTo(registrated2_32f);
                 transformMatTypeTo32C1(registrated2_32f);
-                Mat registrated2_rotace = frameRotation(registrated2_32f,rotation_result.y);
-                registrated2_rotace(i_cutoutStandard).copyTo(registrated2_cutout);
+                Mat registrated2_rotation = frameRotation(registrated2_32f,rotation_result.y);
+                registrated2_rotation(i_cutoutStandard).copyTo(registrated2_cutout);
                 Mat interresult_cutout,interresult;
-                registrated2_rotace.copyTo(interresult);
+                registrated2_rotation.copyTo(interresult);
                 registrated2_cutout.copyTo(interresult_cutout);
                 //registrated2.release();
                 registrated2_cutout.release();
                 registrated2_32f.release();
-                registrated2_rotace.release();
+                registrated2_rotation.release();
                 totalAngle+=rotation_result.y;
                 rotation_result.y = 0;
                 int maxIterationCount = 0;
@@ -771,22 +749,22 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                 }
                 for (int i = 0; i < maxIterationCount; i++)
                 {
-                    Point3d rotace_ForLoop(0.0,0.0,0.0);
-                    rotace_ForLoop = pc_rotation(i_referencialFrame,interresult,i_angle,pt3.z,pt3);
-                    if (std::abs(rotace_ForLoop.y) > i_angle)
-                        rotace_ForLoop.y = 0.0;
-                    else if (std::abs(totalAngle+rotace_ForLoop.y)>i_angle)
-                        rotace_ForLoop.y=0.0;
+                    Point3d rotation_ForLoop(0.0,0.0,0.0);
+                    rotation_ForLoop = pc_rotation(i_referencialFrame,interresult,i_angle,pt3.z,pt3);
+                    if (std::abs(rotation_ForLoop.y) > i_angle)
+                        rotation_ForLoop.y = 0.0;
+                    else if (std::abs(totalAngle+rotation_ForLoop.y)>i_angle)
+                        rotation_ForLoop.y=0.0;
                     else
-                        totalAngle+=rotace_ForLoop.y;
+                        totalAngle+=rotation_ForLoop.y;
 
                     Mat rotatedFrame;
-                    if (rotace_ForLoop.y != 0.0)
-                        rotatedFrame = frameRotation(interresult,rotace_ForLoop.y);
+                    if (rotation_ForLoop.y != 0.0)
+                        rotatedFrame = frameRotation(interresult,rotation_ForLoop.y);
                     else
                         rotatedFrame = interresult;
 
-                    rotace_ForLoop.y = 0.0;
+                    rotation_ForLoop.y = 0.0;
                     Mat rotatedFrame_cutout;
                     rotatedFrame(i_cutoutStandard).copyTo(rotatedFrame_cutout);
                     rotatedFrame.release();
@@ -803,9 +781,7 @@ bool fullRegistration(cv::VideoCapture& i_cap,
                     {
                         pt3.x += pt4.x;
                         pt3.y += pt4.y;
-                        pt3.z = pt4.z;
-                        //if (cislo_shifted == 0)
-                            //qDebug()<<"PT3 loop: "<<pt3.x<<" "<<pt3.y;
+                        pt3.z = pt4.z;                        
                         i_pocX[i_shiftedNo] = pt3.x;
                         i_pocY[i_shiftedNo] = pt3.y;
                         i_maxAngles[i_shiftedNo] = totalAngle;
@@ -838,19 +814,13 @@ bool registrationCorrection(cv::Mat& i_registratedFrame,
                             double i_areaMaximum)
 {
     try {
-        Mat interresult,interresult32f,interresult32f_cutout,obraz_cutout;
+        Mat interresult,interresult32f,interresult32f_cutout,frame_cutoutArea;
         i_registratedFrame.copyTo(interresult);
         int rows = i_registratedFrame.rows;
-        int cols = i_registratedFrame.cols;
-        //interresult.copyTo(interresult32f);
-        //transformMatTypeTo32C1(interresult32f);
-        //interresult32f(vyrez_korelace_standard).copyTo(interresult32f_cutout);
-        i_frame(i_cutoutStandard).copyTo(obraz_cutout);
+        int cols = i_registratedFrame.cols;        
+        i_frame(i_cutoutStandard).copyTo(frame_cutoutArea);
 
         double R1 = calculateCorrCoef(i_frame,interresult,i_cutoutStandard);
-
-        //interresult32f.release();
-        //interresult32f_cutout.release();
 
         Point3d shiftCorrection(0.0,0.0,0.0);
         shiftCorrection = pc_translation_hann(i_frame,interresult,i_areaMaximum);
@@ -860,7 +830,7 @@ bool registrationCorrection(cv::Mat& i_registratedFrame,
         }
         if (std::abs(shiftCorrection.x) > 290 || std::abs(shiftCorrection.y) > 290)
         {
-            shiftCorrection = pc_translation(obraz_cutout,interresult32f_cutout,i_areaMaximum);
+            shiftCorrection = pc_translation(frame_cutoutArea,interresult32f_cutout,i_areaMaximum);
         }
         i_corrected = frameTranslation(interresult,shiftCorrection,rows,cols);
         double R2 = calculateCorrCoef(i_frame,i_corrected,i_cutoutStandard);
