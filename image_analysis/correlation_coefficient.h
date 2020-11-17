@@ -8,11 +8,11 @@
 
 /**
  * @file correlation_coefficient.h
- * The file contains a declaration of a function calculating a correlation coefficient of two frames.
+ * A function calculating a correlation coefficient of two frames.
  */
 
 /**
- * @brief It calculates the correlation coefficient of referencial and registrated frame.
+ * @brief Calculates the correlation coefficient of referencial and registrated frame.
  * @param i_referential - a referential frame
  * @param i_registrated - a registrated frame
  * @param i_cutoutCorrelation - an area of the frame which will be used for the calculation of the CC

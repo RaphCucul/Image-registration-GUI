@@ -9,7 +9,7 @@
 #include <random>
 using namespace cv;
 
-cv::Mat frameTranslation(const cv::Mat& i_shifted_orig, const cv::Point3d& i_shift, int i_rows, int i_cols)
+cv::Mat frameTranslation(const cv::Mat& i_orig, const cv::Point3d& i_shift, int i_rows, int i_cols)
 {
     cv::Mat srcX(i_rows,i_cols,CV_32FC1);
     cv::Mat srcY(i_rows,i_cols,CV_32FC1);
@@ -23,7 +23,7 @@ cv::Mat frameTranslation(const cv::Mat& i_shifted_orig, const cv::Point3d& i_shi
             srcY.at<float>(i,j) = float(i+i_shift.y);
         }
     }
-    cv::remap(i_shifted_orig,translation_result,srcX,srcY,cv::INTER_LINEAR);
+    cv::remap(i_orig,translation_result,srcX,srcY,cv::INTER_LINEAR);
 
     srcX.release();
     srcY.release();
@@ -36,28 +36,6 @@ cv::Mat frameRotation(const cv::Mat& i_frameAfterTranslation, const double i_ang
     cv::Mat rotation_result;// = cv::Mat::zeros(i_frameAfterTranslation.size(), CV_32FC3);
     cv::warpAffine(i_frameAfterTranslation,rotation_result,M,i_frameAfterTranslation.size(),0,BORDER_REPLICATE);
     return rotation_result;
-}
-void showMat(std::string i_windowName, cv::Mat i_frameToShow)
-{
-    cv::namedWindow(i_windowName);
-    cv::Mat frameToShow_8U = cv::Mat::zeros(i_frameToShow.rows,i_frameToShow.cols,CV_8UC3);
-    i_frameToShow.copyTo(frameToShow_8U);
-    i_frameToShow.release();
-    if (frameToShow_8U.type() != 0)
-    {
-        if (frameToShow_8U.channels() == 3)
-        {
-            cv::cvtColor(frameToShow_8U,frameToShow_8U,CV_BGR2GRAY);
-            frameToShow_8U.convertTo(frameToShow_8U,CV_8UC1);
-        }
-        else
-        {
-            frameToShow_8U.convertTo(frameToShow_8U,CV_8UC1);
-        }
-    }
-    namedWindow(i_windowName);
-    imshow(i_windowName,frameToShow_8U);
-    frameToShow_8U.release();
 }
 
 void transformMatTypeTo32C1(cv::Mat& i_MatToCheck)

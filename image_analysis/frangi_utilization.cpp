@@ -238,7 +238,7 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
 
     Mat imageFiltered,imageFrangi,image_scale, imageAngles;
     imageFiltered = imageFiltrationPreprocessing(i_inputFrame,60.0f,0.4f);
-    qDebug()<<"filtration processed";
+    //qDebug()<<"filtration processed";
     if (i_frameType == 1) {borderProcessing(imageFiltered,1,
                                             i_margins["top_m"],i_margins["bottom_m"],
                                             i_margins["left_m"],i_margins["right_m"]);}
@@ -246,46 +246,48 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     else if (i_frameType == 3) {borderProcessing(imageFiltered,1,
                                                  20,20,
                                                  20,20);}
-    qDebug()<<"border processed";
+    //qDebug()<<"border processed";
     cv::Mat _pom;
     imageFiltered.copyTo(_pom);
     transformMatTypeTo8C3(_pom);
-    //cv::imshow("forFrangi",_pom);
 
     frangi2d(imageFiltered, imageFrangi, image_scale, imageAngles, opts);
-    qDebug()<<"Frangi done";
-    //imwrite("frangi",imageFrangi);
+    //qDebug()<<"Frangi done";
     image_scale.release();
     imageAngles.release();
     imageFiltered.release();
-    if (i_frameType == 1) {zeroBorders(imageFrangi,1,i_margins["top_m"],i_margins["bottom_m"],
-                            i_margins["left_m"],i_margins["right_m"]);}
-    if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,s,0,0);}
-    qDebug()<<"Borders zeroed";
+    //if (i_frameType == 1) {zeroBorders(imageFrangi,1,i_margins["top_m"],i_margins["bottom_m"],
+                            //i_margins["left_m"],i_margins["right_m"]);}
+    //if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,r,s,s);}
+    //qDebug()<<"Borders zeroed";
     double maximum_imageFrangi;
     Point max_loc_frangi;
     cv::minMaxLoc(imageFrangi, NULL, &maximum_imageFrangi, NULL, &max_loc_frangi);
-    qDebug()<<"minMaxLoc calculated";
-    if ((max_loc_frangi.x!=max_loc_frangi.x)== 1 || (max_loc_frangi.y!=max_loc_frangi.y) == 1)
+    bool maxCondition = (max_loc_frangi.x > 0 && max_loc_frangi.y > 0);
+
+    if (i_processingMode == 2 && !maxCondition)
     {
         qDebug()<<"minMaxLoc -> something went wrong";
         definitiveCoords.z = 0.0;
         definitiveCoords.x = -10;
         definitiveCoords.y = -10;
+        return definitiveCoords;
     }
     else
     {
         if (i_accuracy == 1)
         {
-            qDebug()<<"Setting standard pixel resolution";
+            //qDebug()<<"Setting standard pixel resolution";
             definitiveCoords.x = max_loc_frangi.x;
             definitiveCoords.y = max_loc_frangi.y;
             definitiveCoords.z = 1.0;
         }
         else if (i_accuracy == 2)
         {
-            qDebug()<<"Setting subpixel resolution";
-            cv::Point2d centerOfWeight = FrangiSubpixel(imageFrangi,maximum_imageFrangi,max_loc_frangi);
+            //qDebug()<<"Setting subpixel resolution";
+            cv::Point2d centerOfWeight = FrangiSubpixel(imageFrangi,
+                                                        maximum_imageFrangi,
+                                                        max_loc_frangi);
             definitiveCoords.x = centerOfWeight.x;
             definitiveCoords.y = centerOfWeight.y;
             definitiveCoords.z = 1.0;
@@ -293,15 +295,11 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
 
         if (i_showResult == 1)
         {
-            qDebug()<<"Setting showResolution";
-            /*namedWindow(i_windowName.toLocal8Bit().constData());
-            drawMarker(imageFrangi,max_loc_frangi,(0));
-            cv::imshow(i_windowName.toLocal8Bit().constData(),imageFrangi);*/
             drawMarker(imageFrangi,max_loc_frangi,cv::Scalar(0));
             MatViewer *viewer = new MatViewer(imageFrangi,i_windowName);
             viewer->open();
         }
     }
-    qDebug()<<"Returning results: "<<definitiveCoords.x<<" "<<definitiveCoords.y;
+    qDebug()<<"Returning frangi results: "<<definitiveCoords.x<<" "<<definitiveCoords.y;
     return definitiveCoords;
 }

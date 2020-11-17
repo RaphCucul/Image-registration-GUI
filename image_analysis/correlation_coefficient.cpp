@@ -6,9 +6,6 @@
 #include <iomanip>
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
 #include "image_analysis/correlation_coefficient.h"
 #include "image_analysis/image_processing.h"
 using namespace std;

@@ -82,7 +82,6 @@ bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
                               QVector<double> &i_tennengrad)
 {
     int success = false;
-    int percentage = 0;
 
     if (i_capture.isOpened() == 0)
     {
@@ -93,19 +92,13 @@ bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
         int frameCount = int(i_capture.get(CV_CAP_PROP_FRAME_COUNT));
         for (int a = 0; a < frameCount; a++)
         {
-            if (a == 0)
-                percentage = 0;
-            else if (a == (frameCount-1))
-                percentage = 100;
-            else
-                percentage = ((a/frameCount)*100);
-
             cv::Mat image;
-            double entropyValue = 0;
+            double entropyValue = 0.0;
             cv::Scalar tennengradValue;
             i_capture.set(CAP_PROP_POS_FRAMES,double(a));
             if (!i_capture.read(image)){
-
+                i_entropy[a] = 0.0;
+                i_tennengrad[a] = 0.0;
             }
             else
             {

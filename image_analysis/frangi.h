@@ -2,7 +2,7 @@
 
 /**
  * @file frangi.h
- * The file contains declarations of functions calculating frangi parameters.
+ * Functions calculating frangi parameters.
  * For more info about the origin of these functions, please visit the repository of this program.
  */
 
@@ -37,13 +37,13 @@ typedef struct{
 /////////////////
 
 /**
- * @brief It applies full Frangi filter to src. Vesselness is saved in J, scale is saved to scale, vessel angle is saved to
+ * @brief Applies full Frangi filter to src. Vesselness is saved in J, scale is saved to scale, vessel angle is saved to
  * directions.
- * @param src
- * @param J
- * @param scale
- * @param directions
- * @param opts
+ * @param[in] src - input image
+ * @param[out] J - frame with output values
+ * @param[] scale - frame with scale information
+ * @param[] directions - frame with calculated directories
+ * @param[] opts - defined frangi parameters
  */
 void frangi2d(const cv::Mat &src, cv::Mat &J, cv::Mat &scale, cv::Mat &directions, frangi2d_opts_t opts);
 
@@ -54,7 +54,7 @@ void frangi2d(const cv::Mat &src, cv::Mat &J, cv::Mat &scale, cv::Mat &direction
 ////////////////////
 
 /**
- * @brief It runs 2D Hessian filter with parameter sigma on src, save to Dxx, Dxy and Dyy.
+ * @brief Runs 2D Hessian filter with parameter sigma on src, save to Dxx, Dxy and Dyy.
  * @param src
  * @param Dxx
  * @param Dxy
@@ -64,13 +64,13 @@ void frangi2d(const cv::Mat &src, cv::Mat &J, cv::Mat &scale, cv::Mat &direction
 void frangi2d_hessian(const cv::Mat &src, cv::Mat &Dxx, cv::Mat &Dxy, cv::Mat &Dyy, float sigma);
 
 /**
- * @brief It sets opts to default options (sigma_start = 1, sigma_end = 10, sigma_step = 1, BetaOne = 8.0, BetaTwo 8.0)
+ * @brief Sets opts variable to default options (sigma_start = 1, sigma_end = 10, sigma_step = 1, BetaOne = 8.0, BetaTwo 8.0)
  * @param opts
  */
 void frangi2d_createopts(frangi2d_opts_t *opts);
 
 /**
- * @brief It estimates eigenvalues from Dxx, Dxy, Dyy. Save results to lambda1, lambda2, Ix, Iy.
+ * @brief Estimates eigenvalues from Dxx, Dxy, Dyy. Save results to lambda1, lambda2, Ix, Iy.
  * @param Dxx
  * @param Dxy
  * @param Dyy

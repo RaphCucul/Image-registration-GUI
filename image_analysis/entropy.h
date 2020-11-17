@@ -8,23 +8,23 @@
 
 /**
  * @file entropy.h
- * The file contains declarations of functions calculating entropy and tennengrad parameter of a frame.
+ * Functions calculating entropy and tennengrad parameter of a frame.
  */
 
 /**
- * @brief It calculates entropy and tennengrad parameter of the given frame.
- * @param[in] i_specificImage
- * @param[out] i_entropy
- * @param[out] i_tennengrad
- * @return True if the calculation ended successfully, otherwise false.
+ * @brief Calculates entropy and tennengrad parameter of a frame.
+ * @param[in] i_specificImage - input frame
+ * @param[out] i_entropy - calculated entropy
+ * @param[out] i_tennengrad - calculated tennengrad
+ * @return True if the calculation ends successfully, otherwise false.
  */
 bool calculateParametersET(cv::Mat &i_specificImage, double &i_entropy, cv::Scalar &i_tennengrad);
 
 /**
- * @brief It wraps the calcutaion of entropy and tennengrad parameter of the video.
+ * @brief Wraps the calcutaion of an entropy and tennengrad parameter of a video.
  * @param[in] capture - video for analysis
- * @param[out] entropy
- * @param[out] tennengrad
+ * @param[out] entropy - vector for entropy of all video frames
+ * @param[out] tennengrad - vector for tennengrad of all video frames
  * @return True if the calculation ended successfully, otherwise false.
  */
 bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
@@ -32,7 +32,7 @@ bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
                               QVector<double>& i_tennengrad);
 
 /**
- * @brief It calculates the sum of the histogram.
+ * @brief Calculates the sum of the histogram.
  * @param[in] inputImage - histogram
  * @param[in] histogramSize
  * @return The sum of the histogram.
@@ -40,7 +40,7 @@ bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
 double binFrequency(cv::Mat &inputImage,int &histogramSize);
 
 /**
- * @brief It standardised input data. Maximum and minimum value must be provided.
+ * @brief Standardised input data. Maximum and minimum value must be provided.
  * @param[out] i_dataStandardized
  * @param[in] i_dataOriginal
  * @param[in] i_minimum

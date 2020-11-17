@@ -157,7 +157,7 @@ void frangi2d(const Mat &src, Mat &maxVals, Mat &whatScale, Mat &outAngles, fran
 	whatScale.setTo(sigma);
 
 	//find element-wise maximum across all accumulated filter results
-	for (int i=1; i < ALLfiltered.size(); i++){
+    for (unsigned int i=1; i < ALLfiltered.size(); i++){
 		maxVals = max(maxVals, ALLfiltered[i]);
 		whatScale.setTo(sigma, ALLfiltered[i] == maxVals);
 		ALLangles[i].copyTo(outAngles, ALLfiltered[i] == maxVals);
