@@ -149,7 +149,7 @@ void ETanalysisParent::done(int done)
                 mapAnomalies["extra"][name] = First[1]->computedCOextra()[name];
                 mapInt["evaluation"][name] = First[1]->computedCompleteEvaluation()[name];                
                 badFramesComplete.insert(name,First[1]->computedBadFrames()[name]);
-                framesReferencial.insert(name,First[1]->estimatedReferencialFrames()[name]);
+                framesReferencial.insert(name,First[1]->estimatedreferentialFrames()[name]);
                 framesReferentialFrangiCoordinates.insert(name,First[1]->estimatedReferentialFrangiCoordinates()[name]);
 
                 if (temporalySavedThresholds.keys().indexOf(name) == -1)
@@ -184,14 +184,14 @@ void ETanalysisParent::done(int done)
                 qDebug()<<"Processing data from thread "<<done<<" for video "<<name;
                 mapInt["evaluation"][name] = Third[3]->framesUpdateEvaluation()[name];
                 mapInt["firstEval"][name] = Third[3]->framesFirstEvaluationComplete()[name];
-                CC_problematicFrames[name] = Third[3]->framesProblematic_CC()[name];
-                FWHM_problematicFrames[name] = Third[3]->framesProblematic_FWHM()[name];
+                CC_problematicFrames[name] = Third[3]->frames_CC()[name];
+                FWHM_problematicFrames[name] = Third[3]->frames_FWHM()[name];
                 mapDouble["FrangiX"][name] = Third[3]->framesFrangiXestimated()[name];
                 mapDouble["FrangiY"][name] = Third[3]->framesFrangiYestimated()[name];
                 mapDouble["FrangiEuklid"][name] = Third[3]->framesFrangiEuklidestimated()[name];
                 mapDouble["POCX"][name] = Third[3]->framesPOCXestimated()[name];
                 mapDouble["POCY"][name] = Third[3]->framesPOCYestimated()[name];
-                mapDouble["angle"][name] = Third[3]->framesUhelestimated()[name];
+                mapDouble["angle"][name] = Third[3]->framesAngleEstimated()[name];
             }
         }
         emit dataObtained_third();

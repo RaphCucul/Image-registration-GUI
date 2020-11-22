@@ -54,7 +54,7 @@ void qThreadFourthPart::run()
         QString folder,filename,suffix;
         processFilePath(fullPath,folder,filename,suffix);
         if (notProcessThese.indexOf(filename) == -1){
-            QVector<int> snimky_k_provereni_druhy;
+            QVector<int> framesForSecondEvaluation;
             framesToAnalyse = double(framesFirstEvaluationComplete[filename].length());
 
             emit actualVideo(videoIndex);
@@ -71,7 +71,7 @@ void qThreadFourthPart::run()
                     else
                     {
                         qDebug()<< "Frame "<< framesFirstEvaluationComplete[filename][b]<< " will be analysed in the next step.";
-                        snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[filename][b]);
+                        framesForSecondEvaluation.push_back(framesFirstEvaluationComplete[filename][b]);
                     }
                     continue;
                 }
@@ -96,7 +96,7 @@ void qThreadFourthPart::run()
                     else
                     {
                         qDebug()<< "Frame "<< framesFirstEvaluationComplete[filename][b]<< " will be analysed in the next step.";
-                        snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[filename][b]);
+                        framesForSecondEvaluation.push_back(framesFirstEvaluationComplete[filename][b]);
                     }
                     continue;
                 }
@@ -110,12 +110,12 @@ void qThreadFourthPart::run()
                     else
                     {
                         qDebug()<< "Frame "<< framesFirstEvaluationComplete[filename][b]<< " will be analysed in the next step.";
-                        snimky_k_provereni_druhy.push_back(framesFirstEvaluationComplete[filename][b]);
+                        framesForSecondEvaluation.push_back(framesFirstEvaluationComplete[filename][b]);
                     }
                     continue;
                 }
             }
-            framesSecondEvaluationComplete.insert(filename,snimky_k_provereni_druhy);
+            framesSecondEvaluationComplete.insert(filename,framesForSecondEvaluation);
         }
         else{
             fillEmpty(filename);

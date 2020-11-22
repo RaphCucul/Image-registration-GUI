@@ -22,7 +22,7 @@ qThreadThirdPart::qThreadThirdPart(QStringList i_videoList,
                                    QVector<QString> i_badVideos,
                                    QMap<QString,QVector<int>> i_badFramesFirstEval,
                                    QMap<QString,QVector<int>> i_framesCompleteEval,
-                                   QMap<QString, int> i_framesReferencial,
+                                   QMap<QString, int> i_framesreferential,
                                    QMap<QString, double> i_averageCC,
                                    QMap<QString, double> i_averageFWHM,
                                    QMap<QString,cv::Rect> i_standardCutout,
@@ -34,7 +34,7 @@ qThreadThirdPart::qThreadThirdPart(QStringList i_videoList,
     videoList = i_videoList;
     badFrames_firstEvaluation = i_badFramesFirstEval;
     framesEvaluationCompelte = i_framesCompleteEval;
-    referencialFrames = i_framesReferencial;
+    referentialFrames = i_framesreferential;
     obtainedCutoffStandard = i_standardCutout;
     obtainedCutoffExtra = i_extraCutout;
     selectedCutout = i_cutoutType;
@@ -72,9 +72,9 @@ void qThreadThirdPart::run()
                 continue;
             }
             int videoFrameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-            cv::Mat referencialFrame_temp,referencialFrame,referencialFrame32f,referencialCutout;
-            cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[filename]);
-            if (!cap.read(referencialFrame_temp))
+            cv::Mat referentialFrame_temp,referentialFrame,referentialFrame32f,referentialCutout;
+            cap.set(CV_CAP_PROP_POS_FRAMES,referentialFrames[filename]);
+            if (!cap.read(referentialFrame_temp))
             {
                 emit unexpectedTermination(videoIndex,"hardError");
                 fillEmpty(filename);
@@ -82,25 +82,25 @@ void qThreadThirdPart::run()
             }
             int rows = 0;
             int cols = 0;
-            cv::Rect _tempStandard,_tempExtra,_tempStandardAdjusted;
-            _tempStandard = obtainedCutoffStandard[filename];
-            _tempExtra = obtainedCutoffExtra[filename];
+            cv::Rect _tempStandard,_tempExtra;
+            _tempStandard = obtainedCutoffStandard.contains(filename) ? obtainedCutoffStandard[filename] : cv::Rect(0,0,0,0);
+            _tempExtra = obtainedCutoffExtra.contains(filename) ? obtainedCutoffExtra[filename] : cv::Rect(0,0,0,0);
 
-            if (selectedCutout == cutoutType::EXTRA)
+            if (selectedCutout == cutoutType::EXTRA  && (_tempExtra.width > 0 && _tempExtra.height > 0))
             {
-                referencialFrame_temp(_tempExtra).copyTo(referencialFrame);
-                rows = referencialFrame.rows;
-                cols = referencialFrame.cols;
-                referencialFrame(_tempStandard).copyTo(referencialCutout);
-                referencialFrame_temp.release();
+                referentialFrame_temp(_tempExtra).copyTo(referentialFrame);
+                rows = referentialFrame.rows;
+                cols = referentialFrame.cols;
+                referentialFrame(_tempStandard).copyTo(referentialCutout);
+                referentialFrame_temp.release();
             }
             else
             {
-                referencialFrame_temp.copyTo(referencialFrame);
-                rows = referencialFrame.rows;
-                cols = referencialFrame.cols;
-                referencialFrame(_tempStandard).copyTo(referencialCutout);
-                referencialFrame_temp.release();
+                referentialFrame_temp.copyTo(referentialFrame);
+                rows = referentialFrame.rows;
+                cols = referentialFrame.cols;
+                referentialFrame(_tempStandard).copyTo(referentialCutout);
+                referentialFrame_temp.release();
             }
 
             QVector<double> pomVecD(videoFrameCount,0.0);
@@ -114,13 +114,8 @@ void qThreadThirdPart::run()
                 emit percentageCompleted(qRound((double(videoIndex)/videoCount)*100.0+((double(i)/double(badFrameCount))*100.0)/videoCount));
                 Mat moved_temp,moved,moved_cutOut,registrated,registrated_cutOut;
                 Mat _frame, _frame_cutOut;
-                referencialFrame.copyTo(_frame);
+                referentialFrame.copyTo(_frame);
                 _frame(_tempStandard).copyTo(_frame_cutOut);
-
-                /*if (!scaleChanged)
-                    _frame(_tempStandard).copyTo(_frame_cutOut);
-                else
-                    _frame(_tempStandardAdjusted).copyTo(_frame_cutOut);*/
 
                 cap.set(CV_CAP_PROP_POS_FRAMES,_badFrames[i]);
                 if (cap.read(moved_temp) != 1)
@@ -136,17 +131,13 @@ void qThreadThirdPart::run()
                     continue;
                 }
 
-                if (selectedCutout == cutoutType::EXTRA)
+                if (selectedCutout == cutoutType::EXTRA  && (_tempExtra.width > 0 && _tempExtra.height > 0))
                 {
                     moved_temp(_tempExtra).copyTo(moved);
-                    /*moved(_tempStandard).copyTo(moved_cutOut);
-                    moved_temp.release();*/
                 }
                 else
                 {
                     moved_temp.copyTo(moved);
-                    /*moved(_tempStandard).copyTo(moved_cutOut);
-                    moved_temp.release();*/
                 }
                 moved(_tempStandard).copyTo(moved_cutOut);
                 moved_temp.release();
@@ -183,14 +174,6 @@ void qThreadThirdPart::run()
                     double R = -1;
                     registrated(_tempStandard).copyTo(registrated_cutOut);
                     R = calculateCorrCoef(_frame,registrated,_tempStandard);
-                    /*if (!scaleChanged){
-                        registrated(_tempStandard).copyTo(registrated_cutOut);
-                        R = calculateCorrCoef(_frame,registrated,_tempStandard);
-                    }
-                    else{
-                        registrated(_tempStandardAdjusted).copyTo(registrated_cutOut);
-                        R = calculateCorrCoef(_frame,registrated,_tempStandardAdjusted);
-                    }*/
 
                     qDebug() <<"Tested frame has "<<_badFrames[i]<< "R " << R <<" a FWHM " << FWHM;
                     registrated.release();
@@ -270,7 +253,6 @@ void qThreadThirdPart::run()
 
                     }
                 }
-
             }
             framesComputedCC.insert(filename,_computedCC);
             framesComputedFWHM.insert(filename,_computedFWHM);
@@ -319,11 +301,11 @@ QMap<QString, QVector<int> > qThreadThirdPart::framesFirstEvaluationComplete()
 {
     return framesFirstCompleteEvaluation;
 }
-QMap<QString,QVector<double>> qThreadThirdPart::framesProblematic_CC()
+QMap<QString,QVector<double>> qThreadThirdPart::frames_CC()
 {
     return framesComputedCC;
 }
-QMap<QString, QVector<double> > qThreadThirdPart::framesProblematic_FWHM()
+QMap<QString, QVector<double> > qThreadThirdPart::frames_FWHM()
 {
     return framesComputedFWHM;
 }
@@ -347,7 +329,7 @@ QMap<QString,QVector<double>> qThreadThirdPart::framesPOCYestimated()
 {
     return framesPOCY;
 }
-QMap<QString,QVector<double>> qThreadThirdPart::framesUhelestimated()
+QMap<QString,QVector<double>> qThreadThirdPart::framesAngleEstimated()
 {
     return framesUhel;
 }

@@ -16,6 +16,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <QVector>
 #include <QThread>
+#include <QDebug>
 
 using cv::Mat;
 using cv::Point3d;
@@ -28,9 +29,6 @@ qThreadFirstPart::qThreadFirstPart(QStringList i_videosForAnalysis,
 {
     processVideos = i_videosForAnalysis;
     videoCount = i_videosForAnalysis.count();
-    //FrangiParameters = i_FrangiParametersValues;
-    //margins = i_margins;
-    //ratios = i_ratios;
     selectedCutout = i_cutoutType;
     previousThresholds = ETthresholds;
     usePreviousThresholds = i_previousThresholdsUsageAllowed;
@@ -59,21 +57,21 @@ void qThreadFirstPart::run()
             continue;
         }
 
-        maximum_frangi_reverse.insert(filename,cv::Point3d(0.0,0.0,0.0));
+        maximum_frangi.insert(filename,cv::Point3d(0.0,0.0,0.0));
         cv::Rect cutoutExtra(0,0,0,0);
-        int rowsFullFrame=0,columnsFullFrame=0;
         bool cutoutExtraFound = false;
+        qDebug()<<"Selected cutout: "<<selectedCutout;
         if (selectedCutout != cutoutType::NO_CUTOUT && SharedVariables::getSharedVariables()->checkVideoInformationPresence(filename)) {
-            /*QRect _extraCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"extra").toRect();
-            cutoutExtra = transform_QRect_to_CV_RECT(_extraCutout);
-            cutoutExtraFound = true;*/
             if (selectedCutout == cutoutType::EXTRA) {
                 QRect _extraCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"extra").toRect();
                 cutoutExtra = transform_QRect_to_CV_RECT(_extraCutout);
-                cutoutExtraFound = true;
+                if (cutoutExtra.width > 0 && cutoutExtra.height > 0) {
+                    cutoutExtraFound = true;
+                    qDebug()<<"Extra discovered and implemented";
+                }
             }
         }
-
+        qDebug()<<"Extra cutout: "<<cutoutExtra.height<<" "<<cutoutExtra.width;
         int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
         QVector<double> pomVecD(frameCount,0.0);
         QVector<int> pomVecI(frameCount,0);
@@ -100,7 +98,7 @@ void qThreadFirstPart::run()
             {
                 // if extracutout was selected before this procedure, it is necessary to apply it
                 // on the frames
-                rowsFullFrame = frame_original.rows;columnsFullFrame = frame_original.cols;
+                //rowsFullFrame = frame_original.rows;columnsFullFrame = frame_original.cols;
                 if (cutoutExtraFound){
                     frame_original(cutoutExtra).copyTo(frame);
                     frame_original.release();
@@ -120,7 +118,7 @@ void qThreadFirstPart::run()
         entropyComplete.insert(filename,entropyActual);
         tennengradComplete.insert(filename,tennengradActual);
 
-        // Secondly, it is necessary to select proper maximal value for later selection of bad images
+        // Secondly, it is necessary to select proper maximum value for the later selection of bad images
         // after this procedure, windows for detail analysis of entropy and tennengrad vectors are computed
         // medians of values in these windows are computed
         double correctEntropyMax = checkMaximum(entropyComplete[filename]);
@@ -188,43 +186,57 @@ void qThreadFirstPart::run()
         }
 
         // only entropy is used to determine referential frame, because tennengrad was not reliable
-        int referencialImageNo = findReferencialNumber(correctEntropyMax,nextAnalysisEntropy,
+        int referentialImageNo = findReferencialNumber(correctEntropyMax,nextAnalysisEntropy,
                                                              entropyComplete[filename]);
-        referencialFrames.insert(filename,referencialImageNo);
+        qDebug()<<"Referential frame for "<<filename<<": "<<referentialImageNo;
+        referentialFrames.insert(filename,referentialImageNo);
 
         // Fourth part - frangi filter is applied on the frame marked as the reference
-        Mat referencialMat;
-        cap.set(CV_CAP_PROP_POS_FRAMES,referencialImageNo);
-        cap.read(referencialMat);
+        Mat referential_temp,referentialMat;
+        cap.set(CV_CAP_PROP_POS_FRAMES,referentialImageNo);
+        cap.read(referential_temp);
 
         // here the analysis can be speed up, of the frangi filter was applied on the video before
         // this thread was started
         cv::Rect cutoutStandard(0,0,0,0);
+        cv::Rect cutoutStandardPreprocessed(0,0,0,0);
         cv::Point3d frangi_bod(0,0,0);
+        bool standardCutoutDiscovered = false;
         if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(filename)){
             QPoint _frangiCoordinates = SharedVariables::getSharedVariables()->getVideoInformation(filename,"frangi").toPoint();
             frangi_bod = transform_QPoint_to_CV_Point3d(_frangiCoordinates);
 
             if (cutoutExtraFound){
                 QRect _standardCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"standard").toRect();
-                cv::Rect _cutoutStandard = transform_QRect_to_CV_RECT(_standardCutout);
-                cutoutStandard = adjustStandardCutout(cutoutExtra,_cutoutStandard,rowsFullFrame,columnsFullFrame);
+                qDebug()<<"Discovered standard cutout because extra"<<_standardCutout.height()<<" "<<_standardCutout.width()<<" "<<_standardCutout.x()<<" "<<_standardCutout.y();
+                cutoutStandard = transform_QRect_to_CV_RECT(_standardCutout);
+                referential_temp(cutoutExtra).copyTo(referentialMat);
+                referential_temp.release();
             }
             else{
                 QRect _standardCutout = SharedVariables::getSharedVariables()->getVideoInformation(filename,"standard").toRect();
+                qDebug()<<"Discovered standard cutout"<<_standardCutout.height()<<" "<<_standardCutout.width()<<" "<<_standardCutout.x()<<" "<<_standardCutout.y();
                 cutoutStandard = transform_QRect_to_CV_RECT(_standardCutout);
+                referential_temp.copyTo(referentialMat);
+                referential_temp.release();
             }
+            standardCutoutDiscovered = true;
         }
-
+        qDebug()<<"Final standard cutout "<<cutoutStandard.height<<" "<<cutoutStandard.width<<" "<<cutoutStandard.x<<" "<<cutoutStandard.y;
+        if (referentialMat.rows==0 || referentialMat.cols==0) {
+            referential_temp.copyTo(referentialMat);
+            referential_temp.release();
+        }
         if (frangi_bod.x <=0 || frangi_bod.y <=0) {
             // the referential frame was not preprocessed -> no anomaly is present in the frame
             // video was not analysed in the past -> no data about referential frame and frangi coordinates
             // =>
             // extraCutout is not expected, only standard cutout must be calculated from the newly calculated
             // frangi coordinates -> preprocessing before complete registration
-            if (!preprocessingCompleteRegistration(referencialMat,
-                                                   maximum_frangi_reverse[filename],
-                                                   cutoutStandard,
+            qDebug()<<"Referential before preprocessing "<<referentialMat.rows<<" "<<referentialMat.cols;
+            if (!preprocessingCompleteRegistration(referentialMat,
+                                                   frangi_bod,
+                                                   cutoutStandardPreprocessed,
                                                    SharedVariables::getSharedVariables()->getFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,filename),
                                                    SharedVariables::getSharedVariables()->getFrangiRatiosWrapper(frangiType::VIDEO_SPECIFIC,filename),
                                                    SharedVariables::getSharedVariables()->getFrangiMarginsWrapper(frangiType::VIDEO_SPECIFIC,filename)
@@ -234,9 +246,18 @@ void qThreadFirstPart::run()
                 continue;
             }
         }
+        if (cutoutExtraFound) {
+            // if extra cutout is present, standard cutout size must be saved because each thread, and especially fifth thread,
+            // calculates adjusted standard cutout from the standard cutout
+            obtainedCutoffExtra.insert(filename,cutoutExtra);
+        }
+        qDebug()<<"### Referential frame "<<referentialImageNo<<frangi_bod.x<<" "<<frangi_bod.y;
+        maximum_frangi[filename] = frangi_bod;
+        if (standardCutoutDiscovered)
+            obtainedCutoffStandard.insert(filename,cutoutStandard);
+        else
+            obtainedCutoffStandard.insert(filename,cutoutStandardPreprocessed);
 
-        obtainedCutoffStandard.insert(filename,cutoutStandard);
-        obtainedCutoffExtra.insert(filename,cutoutExtra);
         QVector<int> badFrame_completeList = mergeVectors(badFramesEntropy,badFramesTennengrad);
         integrityCheck(badFrame_completeList);
 
@@ -274,7 +295,7 @@ void qThreadFirstPart::fillEmpty(QString i_videoName){
     QVector<int> pomVecI(i_frameCount,0);
 
     badFramesComplete.insert(i_videoName, pomVecI);
-    referencialFrames.insert(i_videoName,0);
+    referentialFrames.insert(i_videoName,0);
     obtainedCutoffStandard.insert(i_videoName, cv::Rect(0,0,0,0));
     obtainedCutoffExtra.insert(i_videoName, cv::Rect(0,0,0,0));*/
     doNotProcessThis.push_back(i_videoName);
@@ -288,9 +309,9 @@ QMap<QString,QVector<double> > qThreadFirstPart::computedTennengrad()
 {
     return tennengradComplete;
 }
-QMap<QString, int> qThreadFirstPart::estimatedReferencialFrames()
+QMap<QString, int> qThreadFirstPart::estimatedreferentialFrames()
 {
-    return referencialFrames;
+    return referentialFrames;
 }
 QMap<QString,QVector<int> > qThreadFirstPart::computedFirstEntropyEvaluation()
 {

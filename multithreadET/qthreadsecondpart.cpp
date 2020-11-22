@@ -74,15 +74,18 @@ void qThreadSecondPart::run()
             capture.read(referencialImage_temp);
             int rows = 0;
             int cols = 0;
-            cv::Rect _tempStandard,_tempExtra,_tempStandardAdjusted;
-            _tempStandard = obtainedCutoffStandard[filename];
-            _tempExtra = obtainedCutoffExtra[filename];
+            cv::Rect _tempStandard,_tempExtra;
+            _tempStandard = obtainedCutoffStandard.contains(filename) ? obtainedCutoffStandard[filename] : cv::Rect(0,0,0,0);
+            _tempExtra = obtainedCutoffExtra.contains(filename) ? obtainedCutoffExtra[filename] : cv::Rect(0,0,0,0);
 
-            if (selectedCutout == cutoutType::EXTRA)
+            if (selectedCutout == cutoutType::EXTRA && (_tempExtra.width > 0 && _tempExtra.height > 0))
             {
+                qDebug()<<"Extra cutout: "<<_tempExtra.height<<" "<<_tempExtra.width;
                 referencialImage_temp(_tempExtra).copyTo(referencialImage);
                 rows = referencialImage.rows;
                 cols = referencialImage.cols;
+                qDebug()<<"Frame size "<<rows<<" "<<cols;
+                qDebug()<<"Standard cutout: "<<_tempStandard.height<<" "<<_tempStandard.width<<" "<<_tempStandard.x<<" "<<_tempStandard.y;
                 referencialImage(_tempStandard).copyTo(referencni_vyrez);
                 referencialImage_temp.release();
             }
@@ -91,6 +94,8 @@ void qThreadSecondPart::run()
                 referencialImage_temp.copyTo(referencialImage);
                 rows = referencialImage.rows;
                 cols = referencialImage.cols;
+                qDebug()<<"Frame size "<<rows<<" "<<cols;
+                qDebug()<<"Standard cutout: "<<_tempStandard.height<<" "<<_tempStandard.width;
                 referencialImage(_tempStandard).copyTo(referencni_vyrez);
                 referencialImage_temp.release();
             }
@@ -112,17 +117,13 @@ void qThreadSecondPart::run()
                 }
                 else
                 {
-                    if (selectedCutout == cutoutType::EXTRA)
+                    if (selectedCutout == cutoutType::EXTRA  && (_tempExtra.width > 0 && _tempExtra.height > 0))
                     {
                         translated_temp(_tempExtra).copyTo(translated);
-                        /*translated(_tempStandard).copyTo(translated_vyrez);
-                        translated_temp.release();*/
                     }
                     else
                     {
                         translated_temp.copyTo(translated);
-                        /*translated(_tempStandard).copyTo(translated_vyrez);
-                        translated_temp.release();*/
                     }
                     translated(_tempStandard).copyTo(translated_vyrez);
                     translated_temp.release();
@@ -193,10 +194,10 @@ QMap<QString,double> qThreadSecondPart::computedFWHM()
 QVector<double> qThreadSecondPart::vectorForFWHM(QVector<int>& badFrames,
                                                  int frameCount)
 {
-    int velikost_spojeneho_vektoru = badFrames.size();
-    QVector<double> framesForSigma((frameCount-velikost_spojeneho_vektoru-10),0);
-    QVector<double> cisla_pro_generator(frameCount,0);
-    std::generate(cisla_pro_generator.begin(), cisla_pro_generator.end(), [n = 0] () mutable { return n++; });
+    int mergedVectorSize = badFrames.size();
+    QVector<double> framesForSigma((frameCount-mergedVectorSize-10),0);
+    QVector<double> numberForGenerator(frameCount,0);
+    std::generate(numberForGenerator.begin(), numberForGenerator.end(), [n = 0] () mutable { return n++; });
 
     std::random_device rd;
     std::mt19937 eng(rd());
@@ -204,21 +205,21 @@ QVector<double> qThreadSecondPart::vectorForFWHM(QVector<int>& badFrames,
     QVector<int>::iterator it;
     for (int i = 0; i < framesForSigma.size(); i++)
     {
-        int kontrola_ulozeni = 0;
-        while (kontrola_ulozeni == 0)
+        int saveControl = 0;
+        while (saveControl == 0)
         {
-            int vygenerovane_cislo = distr(eng);
-            while (cisla_pro_generator[vygenerovane_cislo] == 0.0)
+            int generatedNumber = distr(eng);
+            while (numberForGenerator[generatedNumber] == 0.0)
             {
-                vygenerovane_cislo = distr(eng);
+                generatedNumber = distr(eng);
             }
-            it = std::find(badFrames.begin(), badFrames.end(), cisla_pro_generator[vygenerovane_cislo]);
+            it = std::find(badFrames.begin(), badFrames.end(), numberForGenerator[generatedNumber]);
             if (it != badFrames.end())
-            {kontrola_ulozeni = 0;}
+            {saveControl = 0;}
             else
-            {framesForSigma[i] = vygenerovane_cislo;
-                cisla_pro_generator[vygenerovane_cislo] = 0;
-                kontrola_ulozeni = 1;}
+            {framesForSigma[i] = generatedNumber;
+                numberForGenerator[generatedNumber] = 0;
+                saveControl = 1;}
         }
     }
     std::sort(framesForSigma.begin(),framesForSigma.end());

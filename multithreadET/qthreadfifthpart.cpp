@@ -50,32 +50,29 @@ qThreadFifthPart::qThreadFifthPart(QStringList i_videos,
     selectedCutout = i_cutoutType;
     framesCompleteEvaluation = i_EvaluationComplete;
     framesSecondEval = i_frEvalSec;
-    //FrangiParameters = i_FrangiParams;
-    referencialFrames = i_referFrames;
+    referentialFrames = i_referFrames;
     iteration = i_iteration;
     areaMaximum = i_areaMaximum;
     maximalAngle = i_maximalAngle;
-
-    //margins = i_margins;
-
     emit setTerminationEnabled(true);
 }
 
 void qThreadFifthPart::run()
 {
     // The last part - the coordinates of Frangi Filter maximum pixel are calculated and compared with the coords
-    // of referencial frame. The euclidean distance of these two pixels can show, if the Frangi filter is usable
+    // of referential frame. The euclidean distance of these two pixels can show, if the Frangi filter is usable
     // for this frame.
     emit typeOfMethod(4);
     emit percentageCompleted(0);
     videoCount = double(videoList.count());
-    qDebug()<<videoCount<<" videos ready for the analysis.";
     for (int videoIndex = 0; videoIndex < videoList.count(); videoIndex++)
     {
         QString fullPath = videoList.at(videoIndex);
         QString folder,filename,suffix;
         processFilePath(fullPath,folder,filename,suffix);
-        if (notProcessThese.indexOf(filename) == -1){
+        qDebug()<<"Processing video "<<filename;
+        if (notProcessThese.indexOf(filename) == -1)
+        {
             framesToAnalyse = double(framesSecondEval[filename].length());
 
             QMap<QString,double> FrangiParameters = SharedVariables::getSharedVariables()->getFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,filename);
@@ -89,66 +86,70 @@ void qThreadFifthPart::run()
                 fillEmpty(filename);
                 continue;
             }
-            cv::Mat referencialFrame_temp,referencialFrame,translatedFrame,referencialFrame32f,referencialFrame_cutout;
-            cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrames[filename]);
-            if (!cap.read(referencialFrame_temp))
+            cv::Mat referentialFrame_temp,referentialFrame,translatedFrame,referentialFrame32f;
+            cap.set(CV_CAP_PROP_POS_FRAMES,referentialFrames[filename]);
+            if (!cap.read(referentialFrame_temp))
             {
                 emit unexpectedTermination(videoIndex,"hardError");
                 fillEmpty(filename);
                 continue;
             }
+
             int rows;
             int cols;
-            cv::Rect _tempStandard,_tempExtra,_tempStandardAdjusted;
-            _tempStandard = obtainedCutoffStandard[filename];
-            _tempExtra = obtainedCutoffExtra[filename];
-            /*_tempStandardAdjusted = adjustStandardCutout(_tempExtra,_tempStandard,
-                                                         referencialFrame_temp.rows,
-                                                         referencialFrame_temp.cols);*/
-            if (selectedCutout == cutoutType::EXTRA)
-            {
-                referencialFrame_temp(_tempExtra).copyTo(referencialFrame);
-                rows = referencialFrame.rows;
-                cols = referencialFrame.cols;
-                referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
-                referencialFrame_temp.release();
-            }
-            else
-            {
-                referencialFrame_temp.copyTo(referencialFrame);
-                rows = referencialFrame.rows;
-                cols = referencialFrame.cols;
-                referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
-                referencialFrame_temp.release();
-            }
+            cv::Rect _tempStandard,_tempExtra;
+            _tempStandard = obtainedCutoffStandard.contains(filename) ? obtainedCutoffStandard[filename] : cv::Rect(0,0,0,0);
+            _tempExtra = obtainedCutoffExtra.contains(filename) ? obtainedCutoffExtra[filename] : cv::Rect(0,0,0,0);
 
+            if (selectedCutout == cutoutType::EXTRA  && (_tempExtra.width > 0 && _tempExtra.height > 0))
+            {
+                qDebug()<<_tempExtra.width<<" "<<_tempExtra.height;
+                scaleChanged = true;
+                qDebug()<<"Referential frame size before registration "<<referentialFrame_temp.cols<<" "<<referentialFrame_temp.rows;
+                referentialFrame_temp(_tempExtra).copyTo(referentialFrame);
+                rows = referentialFrame.rows;
+                cols = referentialFrame.cols;
+                qDebug()<<"Referential frame 2 size before registration "<<referentialFrame.cols<<" "<<referentialFrame.rows;
+            }
+            else {
+                referentialFrame_temp.copyTo(referentialFrame);
+                rows = referentialFrame.rows;
+                cols = referentialFrame.cols;
+                qDebug()<<"Referential frame 2 size before registration "<<referentialFrame.cols<<" "<<referentialFrame.rows;
+                //referentialFrame(_tempStandard).copyTo(referentialFrame_cutout);
+            }            
             cv::Point3d pt_temp(0,0,0);
-            Point3d frame_FrangiReverse = frangi_analysis(referencialFrame,2,2,0,"",1,pt_temp,FrangiParameters,margins);
-            referencialFrame(_tempStandard).copyTo(referencialFrame_cutout);
+            Point3d frame_FrangiReverse;
+            int mode = FrangiParameters.contains("mode") ? FrangiParameters["mode"] : 1;
+            qDebug()<<"Applying frangi mode "<<mode;
+            frame_FrangiReverse = frangi_analysis(referentialFrame,mode,2,0,"",1,pt_temp,FrangiParameters,margins);
+            qDebug()<<"Referential frame size before registration "<<referentialFrame_temp.cols<<" "<<referentialFrame_temp.rows;
+            qDebug()<<"Frangi coordinates: "<<frame_FrangiReverse.x<<" "<<frame_FrangiReverse.y;
             qDebug()<<"Analysing "<<framesToAnalyse<<" of "<<filename;
             for (int i = 0; i < framesSecondEval[filename].length(); i++)
             {
                 emit percentageCompleted(qRound((videoIndex/videoCount)*100+((i/framesToAnalyse)*100.0)/videoCount));
-                Mat registrated = cv::Mat::zeros(referencialFrame.size(), CV_32FC3);
+                Mat registrated = cv::Mat::zeros(referentialFrame_temp.size(), CV_32FC3);
                 Point3d calculatedTranslation(0.0,0.0,0.0);
                 QVector<double> pocX;
                 QVector<double> pocY;
                 QVector<double> fullAngle;
-                int registrartionDone = completeRegistration(cap,referencialFrame,translatedFrame,
-                                                           framesSecondEval[filename][i],
-                                                           iteration,
-                                                           areaMaximum,
-                                                           maximalAngle,
-                                                           _tempExtra,
-                                                           _tempStandard,
-                                                           selectedCutout,
-                                                           registrated,
-                                                           pocX,pocY,fullAngle);
-                qDebug() << framesSecondEval[filename][i] <<" -> ";
+
+                int registrartionDone = completeRegistration(cap,
+                                                             referentialFrame,
+                                                             translatedFrame,
+                                                             framesSecondEval[filename][i],
+                                                             iteration,
+                                                             areaMaximum,
+                                                             maximalAngle,
+                                                             _tempExtra,
+                                                             _tempStandard,
+                                                             scaleChanged,
+                                                             registrated,
+                                                             pocX,pocY,fullAngle);
                 translatedFrame.release();
                 if (registrartionDone == 0)
                 {
-
                     emit unexpectedTermination(videoIndex,"hardError");
                     framesCompleteEvaluation[filename][framesSecondEval[filename][i]] = 5.0;
                     POC_x[filename][framesSecondEval[filename][i]] = 999.0;
@@ -162,31 +163,27 @@ void qThreadFifthPart::run()
                 }
                 else
                 {
-                    Mat interresult32f,interresult32f_cutout;
-                    registrated.copyTo(interresult32f);
-                    transformMatTypeTo32C1(interresult32f);
-                    interresult32f(_tempStandard).copyTo(interresult32f_cutout);
-                    double R1 = calculateCorrCoef(referencialFrame,registrated,_tempStandard);
-                    interresult32f.release();
-                    interresult32f_cutout.release();
+                    qDebug() << framesSecondEval[filename][i] <<" -> ";
+
+                    //qDebug()<<"Referential frame size after registration "<<referentialFrame.cols<<" "<<referentialFrame.rows;
+                    //qDebug()<<"Registrated frame size after registration "<<registrated.cols<<" "<<registrated.rows;
+                    double R1;
+                    R1 = calculateCorrCoef(referentialFrame,registrated,_tempStandard);
                     Point3d registrationCorrection(0,0,0);
                     if (selectedCutout != cutoutType::NO_CUTOUT)
                     {
-                        registrationCorrection = pc_translation(referencialFrame,registrated,areaMaximum);
+                        registrationCorrection = pc_translation(referentialFrame,registrated,areaMaximum);
                         if (std::abs(registrationCorrection.x)>=290.0 || std::abs(registrationCorrection.y)>=290.0)
                         {
-                            registrationCorrection = pc_translation_hann(referencialFrame,registrated,areaMaximum);
+                            registrationCorrection = pc_translation_hann(referentialFrame,registrated,areaMaximum);
                         }
                     }
                     else
                     {
-                        registrationCorrection = pc_translation_hann(referencialFrame,registrated,areaMaximum);
+                        registrationCorrection = pc_translation_hann(referentialFrame,registrated,areaMaximum);
                     }
                     Mat correctionMat = frameTranslation(registrated,registrationCorrection,rows,cols);
-                    correctionMat.copyTo(interresult32f);
-                    transformMatTypeTo32C1(interresult32f);
-                    interresult32f(_tempStandard).copyTo(interresult32f_cutout);
-                    double R2 = calculateCorrCoef(referencialFrame,correctionMat,_tempStandard);
+                    double R2 = calculateCorrCoef(referentialFrame,correctionMat,_tempStandard);
                     Point3d registratedFrangiReverse(0,0,0);
                     double difference = R2-R1;
                     if (difference>0.015)
@@ -196,12 +193,12 @@ void qThreadFifthPart::run()
                         extra_translace.y = calculatedTranslation.y+registrationCorrection.y;
                         extra_translace.z = calculatedTranslation.z;
                         qDebug()<< "Frame was translated for more objective frangi filter analysis.";
-                        registratedFrangiReverse = frangi_analysis(correctionMat,2,2,0,"",2,extra_translace,
+                        registratedFrangiReverse = frangi_analysis(correctionMat,mode,2,0,"",2,extra_translace,
                                                                    FrangiParameters,margins);
                     }
                     else
                     {
-                        registratedFrangiReverse = frangi_analysis(registrated,2,2,0,"",2,calculatedTranslation,
+                        registratedFrangiReverse = frangi_analysis(registrated,mode,2,0,"",2,calculatedTranslation,
                                                                    FrangiParameters,margins);
                     }
                     registrated.release();
