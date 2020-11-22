@@ -51,7 +51,7 @@ HDD_Settings::HDD_Settings(QWidget *parent) :
         ui->diodeLabel->setPixmap(QPixmap(":/images/greenDiode.png"));
         setLabelText(tr("Counter and parameter found"));
     }
-
+    _rA = new RegistryAccess();
     _rE = new RegistryError();
 }
 
@@ -136,14 +136,14 @@ void HDD_Settings::onRunScript()
     setLabelIcon(IconType::ORANGE);
     QString message = QString(tr("Processing"));
     setLabelText(message);
-    int disk = _rA.GetIndexForName("PhysicalDisk",_rE);
+    int disk = _rA->GetIndexForName("PhysicalDisk",_rE);
     QString diskLocated = "";
     if (disk != -1)
-        diskLocated = _rA.GetTranslationForName(disk,_rE);
-    int counter = _rA.GetIndexForName("% Disk Time",_rE);
+        diskLocated = _rA->GetTranslationForName(disk,_rE);
+    int counter = _rA->GetIndexForName("% Disk Time",_rE);
     QString counterLocated = "";
     if (counter != -1)
-        counterLocated = _rA.GetTranslationForName(counter,_rE);
+        counterLocated = _rA->GetTranslationForName(counter,_rE);
     if (counter == -1 || disk == -1) {
         setLabelIcon(IconType::RED);
         QString errorMessage = QString(tr("An error occured when processing registry keys."));
@@ -172,6 +172,11 @@ int HDD_Settings::RegistryAccess::GetIndexForName(const QString i_name, Registry
         }
     }
     return -1;
+}
+
+void HDD_Settings::RegistryError::setData(const char *message, LONG errorCode) {
+    m_errorMessage = message;
+    m_errorCode = errorCode;
 }
 
 QString HDD_Settings::RegistryAccess::GetTranslationForName(const int i_index, RegistryError *o_rE) {

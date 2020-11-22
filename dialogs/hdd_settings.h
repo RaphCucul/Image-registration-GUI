@@ -129,7 +129,7 @@ private:
 
     QTimer* timer = nullptr;
 
-    RegistryAccess _rA;
+    RegistryAccess* _rA = nullptr;
     RegistryError* _rE = nullptr;
 };
 
