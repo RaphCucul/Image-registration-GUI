@@ -14,6 +14,9 @@ using namespace clickImageEnums;
 /**
  * @class qThreadSecondPart
  * @brief The qThreadSecondPart class contains functions calculating FWHM and correlation coefficient for each frame.
+ *
+ * Entropy and tennengrad values are stored in vectors. These vectors are then divided in several parts, each part is analysed separately,
+ * because differences in values between frames may vary dramatically.
  */
 class qThreadSecondPart : public QThread
 {

@@ -23,7 +23,7 @@ class ErrorDialog : public QObject
 
 public:
     /**
-     * @enum
+     * @enum ErrorType
      * @brief The ErrorType enum holds types of error dialog.
      */
     enum class ErrorType{

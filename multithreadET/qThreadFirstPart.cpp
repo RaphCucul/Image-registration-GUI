@@ -186,7 +186,7 @@ void qThreadFirstPart::run()
         }
 
         // only entropy is used to determine referential frame, because tennengrad was not reliable
-        int referentialImageNo = findReferencialNumber(correctEntropyMax,nextAnalysisEntropy,
+        int referentialImageNo = findReferentialNumber(correctEntropyMax,nextAnalysisEntropy,
                                                              entropyComplete[filename]);
         qDebug()<<"Referential frame for "<<filename<<": "<<referentialImageNo;
         referentialFrames.insert(filename,referentialImageNo);

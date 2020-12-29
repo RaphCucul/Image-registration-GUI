@@ -29,11 +29,32 @@ public:
      */
     void checkPathinitialization();
 signals:
+    /**
+     * @brief An operation started and the program has to block all tabs until it is finished.
+     * @sa disableTabs()
+     */
     void calculationStarted();
+    /**
+     * @brief An operation finished and the program has to unblock all tabs.
+     * @sa enableTabs()
+     */
     void calculationStopped();
+    /**
+     * @brief When this tab is clicked, the program emits this signal to inform all necessary objects that it is necessary
+     * to check actual path to a video folder.
+     *
+     * SingleVideoET, MultipleVideoET, SingleVideoRegistration, MultiVideoRegistration objects are accessing the folder with
+     * original videos and if the path is not available, the program has to react correctly. The signal invokes this folder control.
+     */
     void checkFilePaths();
 private slots:
+    /**
+     * @brief Enables tabs of all classes connected with this class.
+     */
     void enableTabs();
+    /**
+     * @brief Disables tabs of all classes connected with this class.
+     */
     void disableTabs();
 private:
     void resizeEvent(QResizeEvent* e) override;

@@ -11,9 +11,10 @@ class HDD_Settings;
 
 /**
  * @class HDD_Settings
- * @brief The HDD_Settings class provides user interface for HDD counter and parameter processing. If a user wants to add
- * HDD counter and parameter names translated to the system language, it is necessary to run Powershell script. This class calls
- * the necessary script when correct button is clicked.
+ * @brief The HDD_Settings class provides user interface for HDD counter and parameter processing.
+ *
+ * If a user wants to add
+ * HDD counter and parameter names translated to the system language, the program must be started with administrator privileges
  */
 class HDD_Settings : public QDialog
 {
@@ -34,12 +35,12 @@ public:
     ~HDD_Settings();
 private slots:
     /**
-     * @brief Slot function for QDialog buttonbox "OK" button.
+     * @brief The function for QDialog buttonbox "OK" button.
      */
     void slot_accepted();
 
     /**
-     * @brief Slot function for QDialog buttonbox "Cancel" button.
+     * @brief The function for QDialog buttonbox "Cancel" button.
      */
     void slot_rejected();
 

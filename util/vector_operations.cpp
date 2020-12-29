@@ -267,20 +267,20 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
     }
 }
 
-int findReferencialNumber(double& i_recalculatedMaximum, QVector<double>& i_forEvaluation,
+int findReferentialNumber(double& i_recalculatedMaximum, QVector<double>& i_forEvaluation,
                                  QVector<double>& i_inputValues)
 {
     double difference = 1000.0;
-    int referencialNumber = 0;
+    int referentialNumber = 0;
     for (int i = 0; i < i_forEvaluation.size(); i++)
     {
         if (std::abs(i_recalculatedMaximum - i_inputValues[int(i_forEvaluation[i])]) < difference)
         {
-            referencialNumber = int(i_forEvaluation[i]);
+            referentialNumber = int(i_forEvaluation[i]);
             difference = i_recalculatedMaximum - i_inputValues[int(i_forEvaluation[i])];
         }
     }
-    return referencialNumber;
+    return referentialNumber;
 }
 
 void integrityCheck(QVector<int> &i_badFrames)

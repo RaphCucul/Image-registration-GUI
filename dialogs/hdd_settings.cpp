@@ -146,7 +146,7 @@ void HDD_Settings::onRunScript()
         counterLocated = _rA->GetTranslationForName(counter,_rE);
     if (counter == -1 || disk == -1) {
         setLabelIcon(IconType::RED);
-        QString errorMessage = QString(tr("An error occured when processing registry keys."));
+        QString errorMessage = QString(tr("An error occured when processing registry keys. %1")).arg(_rE->ErrorMessage());
         setLabelText(errorMessage);
     }
     else {
@@ -225,10 +225,10 @@ std::vector<std::wstring> HDD_Settings::RegistryAccess::RegGetMultiString(HKEY h
         &data[0],
         &dataSize
         );
-    if (retCode == ERROR_SUCCESS)
+    if (retCode != ERROR_SUCCESS)
     {
         o_rE->setData("Cannot read multi-string from registry", retCode);
-        //return result;
+        return result;
     }
     data.resize( dataSize / sizeof(wchar_t) );
     // Parse the double-NUL-terminated string into a vector<wstring>

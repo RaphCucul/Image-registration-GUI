@@ -42,7 +42,7 @@ ClickImageEvent::ClickImageEvent(QString i_fullPath,
     frameSize[videoName] = _v;
 
     cutout = i_cutoutType;
-    referencialFrameNo[videoName] = -1;
+    referentialFrameNo[videoName] = -1;
     frangiCoordinates[videoName] = QPoint(-999,-999);
 
     ui->clickImage->setMouseTracking(true);
@@ -71,7 +71,7 @@ ClickImageEvent::ClickImageEvent(QString i_fullPath,
     frameSize[videoName] = _v;
 
     cutout = i_cutoutType;
-    referencialFrameNo[videoName] = i_referFrameNo;
+    referentialFrameNo[videoName] = i_referFrameNo;
     frangiCoordinates[videoName] = QPoint(-999,-999);
 
     ui->clickImage->setMouseTracking(true);
@@ -103,7 +103,7 @@ ClickImageEvent::ClickImageEvent(QStringList i_fullPaths, cutoutType i_type, QDi
     frameSize[videoName] = _v;
 
     cutout = i_type;
-    referencialFrameNo[videoName] = -1;
+    referentialFrameNo[videoName] = -1;
     frangiCoordinates[videoName] = QPoint(-999,-999);
 
     ui->clickImage->setMouseTracking(false);
@@ -129,7 +129,7 @@ ClickImageEvent::ClickImageEvent(QString i_fullPath,
     frameSize[videoName] = _v;
 
     cutout = i_cutoutType;
-    referencialFrameNo[videoName] = i_referFrameNo;
+    referentialFrameNo[videoName] = i_referFrameNo;
 
     ui->clickImage->setMouseTracking(false);
     ui->clickImage->setEnabled(false);
@@ -168,7 +168,7 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
     // exists everytime
     referentialFrameNumber = new QLineEdit();
     ui->optionalContent->addWidget(referentialFrameNumber,1);
-    QObject::connect(referentialFrameNumber,SIGNAL(returnPressed()),this,SLOT(referencialFrameChosen()));
+    QObject::connect(referentialFrameNumber,SIGNAL(returnPressed()),this,SLOT(referentialFrameChosen()));
     localErrorDialogHandling[referentialFrameNumber] = new ErrorDialog(referentialFrameNumber);
 
     _integratedFrangiOptionsObject = new IntegratedFrangiOptions;
@@ -199,7 +199,7 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
         ui->optionalContent->addWidget(chosenVideo,10);
 
         if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(videoName) &&
-                (SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frame").toInt() == referencialFrameNo[videoName])){
+                (SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frame").toInt() == referentialFrameNo[videoName])){
             // first possible situation - video was analysed previously and the program was not closed -> necessary
             // data is stored temporaly in the SharedViariables class
             frangiCoordinates[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frangi").toPoint();
@@ -207,14 +207,14 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
             extraCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"extra").toRect();
             fillGraphicScene(false,false);
         }
-        else if (referencialFrameNo[videoName] != -1){
+        else if (referentialFrameNo[videoName] != -1){
             // one video with known reference -> start processing
-            referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]+1));
+            referentialFrameNumber->setText(QString::number(referentialFrameNo[videoName]+1));
             referentialFrameNumber->setEnabled(false);
             // check if the *.dat file for selected video and referential frame info exist
             // we can check, if the frangi coordinates are present in the file
             if (i_loadFrangiCoordinates){
-                if (findReferentialFrameData(videoName,referencialFrameNo[videoName],frangiCoordinates[videoName])){
+                if (findReferentialFrameData(videoName,referentialFrameNo[videoName],frangiCoordinates[videoName])){
                     // dat file for video exists, referential frame record was found -> setup scene
                     fillGraphicScene(true,false);
                 }
@@ -231,9 +231,9 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
             }
         }
         else{// referential frame is unknown -> try to find it
-            if (findReferentialFrameData(videoName,referencialFrameNo[videoName],frangiCoordinates[videoName])){
+            if (findReferentialFrameData(videoName,referentialFrameNo[videoName],frangiCoordinates[videoName])){
                 // success -> setup scene
-                referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]+1));
+                referentialFrameNumber->setText(QString::number(referentialFrameNo[videoName]+1));
                 referentialFrameNumber->setEnabled(false);
                 fillGraphicScene(true,false);
             }            
@@ -255,7 +255,7 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
         filePath = filePaths.at(0);videoName = videoNames.at(0);
 
         if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(videoName) &&
-                (SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frame").toInt() == referencialFrameNo[videoName])){
+                (SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frame").toInt() == referentialFrameNo[videoName])){
             // first possible situation - video was analysed previously in this app run -> all necessary
             // data is stored temporaly in the SharedViariables class
             frangiCoordinates[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"frangi").toPoint();
@@ -264,8 +264,8 @@ void ClickImageEvent::initStandardVideoWidgets(videoCount i_count, cutoutType i_
             fillGraphicScene(false,false);
         }
         // blind shot - test if the first video in list exists to start working immediately
-        else if (findReferentialFrameData(videoName,referencialFrameNo[videoName],frangiCoordinates[videoName])){
-            referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]+1));
+        else if (findReferentialFrameData(videoName,referentialFrameNo[videoName],frangiCoordinates[videoName])){
+            referentialFrameNumber->setText(QString::number(referentialFrameNo[videoName]+1));
             referentialFrameNumber->setEnabled(false);
             fillGraphicScene(true,false);
         }
@@ -348,24 +348,24 @@ void ClickImageEvent::onApplyFrangiParameters() {
 }
 
 void ClickImageEvent::startFrangiAnalysis(){
-    cv::Mat referencialImage_temp,referentialImage;
+    cv::Mat referentialImage_temp,referentialImage;
     if (whatIsAnalysed == chosenSource::VIDEO) {
         if (!cap.isOpened())
             cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
-        cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrameNo[videoName]);
-        cap.read(referencialImage_temp);
+        cap.set(CV_CAP_PROP_POS_FRAMES,referentialFrameNo[videoName]);
+        cap.read(referentialImage_temp);
     }
     else if (whatIsAnalysed == chosenSource::IMAGE) {
-        referencialImage_temp = cv::imread(filePath.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
+        referentialImage_temp = cv::imread(filePath.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
     }
-    transformMatTypeTo8C3(referencialImage_temp);
+    transformMatTypeTo8C3(referentialImage_temp);
     if (originalExtraCutout.contains(videoName) && !extraCutout.contains(videoName))
-        referencialImage_temp(convertQRectToRect(originalExtraCutout[videoName])).copyTo(referentialImage);
+        referentialImage_temp(convertQRectToRect(originalExtraCutout[videoName])).copyTo(referentialImage);
     else if (extraCutout.contains(videoName))
-        referencialImage_temp(convertQRectToRect(extraCutout[videoName])).copyTo(referentialImage);
+        referentialImage_temp(convertQRectToRect(extraCutout[videoName])).copyTo(referentialImage);
     else
-        referencialImage_temp.copyTo(referentialImage);
-    referencialImage_temp.release();
+        referentialImage_temp.copyTo(referentialImage);
+    referentialImage_temp.release();
 
     QMap<QString,double> _r,_p;
     QMap<QString,int> _m;
@@ -498,7 +498,7 @@ void ClickImageEvent::closeEvent(QCloseEvent *e) {
 
 void ClickImageEvent::saveCutouts(bool saveNew) {
     if (whatIsAnalysed == chosenSource::VIDEO && actualVideoCount == videoCount::ONE_VIDEO) {
-        SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frame",referencialFrameNo[videoName]);
+        SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frame",referentialFrameNo[videoName]);
         if (frangiCoordinatesToSave.contains(videoName))
             SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frangi",frangiCoordinatesToSave[videoName]);
         else
@@ -515,10 +515,10 @@ void ClickImageEvent::saveCutouts(bool saveNew) {
         qDebug()<<"Video information :"<<SharedVariables::getSharedVariables()->getCompleteVideoInformation(videoName);
     }
     else if (whatIsAnalysed == chosenSource::VIDEO && actualVideoCount == videoCount::MULTIPLE_VIDEOS) {
-        QList<QString> videoNames = referencialFrameNo.keys();
+        QList<QString> videoNames = referentialFrameNo.keys();
         foreach (QString name, videoNames) {
             if (listOfModifies[name] == true) {
-                SharedVariables::getSharedVariables()->setVideoInformation(name,"frame",referencialFrameNo[name]);
+                SharedVariables::getSharedVariables()->setVideoInformation(name,"frame",referentialFrameNo[name]);
                 SharedVariables::getSharedVariables()->setVideoInformation(name,"frangi",frangiCoordinates[name]);
                 if (cutout == cutoutType::STANDARD)
                     SharedVariables::getSharedVariables()->setVideoInformation(name,"standard",saveNew ? standardCutout[name] : originalStandardCutout[name]);
@@ -727,35 +727,35 @@ void ClickImageEvent::revertCutoutChange(){
 }
 
 void ClickImageEvent::fillGraphicScene(bool i_initCutouts, bool afterFrangi){
-    cv::Mat referencialImage;
+    cv::Mat referentialImage;
     if(whatIsAnalysed == chosenSource::VIDEO) {
         if (!cap.isOpened())
             cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
         frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
-        cap.set(CV_CAP_PROP_POS_FRAMES,referencialFrameNo[videoName]);
-        cap.read(referencialImage);
+        cap.set(CV_CAP_PROP_POS_FRAMES,referentialFrameNo[videoName]);
+        cap.read(referentialImage);
         width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
         height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
     }
     else if (whatIsAnalysed == chosenSource::IMAGE) {
-        referencialImage = cv::imread(filePath.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
-        width = referencialImage.cols;
-        height = referencialImage.rows;
+        referentialImage = cv::imread(filePath.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
+        width = referentialImage.cols;
+        height = referentialImage.rows;
     }
-    transformMatTypeTo8C3(referencialImage);
+    transformMatTypeTo8C3(referentialImage);
 
     if (cutout == cutoutType::EXTRA && extraCutout[videoName].width() > 0 && extraCutout[videoName].height() > 0 && !afterFrangi)
         standardCutout[videoName] = adjustStandardCutout(extraCutout[videoName],standardCutout[videoName],height,width,false);
 
-    imageObject = new QImage(referencialImage.data,
-                             referencialImage.cols,
-                             referencialImage.rows,
-                             static_cast<int>(referencialImage.step),
+    imageObject = new QImage(referentialImage.data,
+                             referentialImage.cols,
+                             referentialImage.rows,
+                             static_cast<int>(referentialImage.step),
                              QImage::Format_RGB888);//
 
     QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageObject));
     scene = new QGraphicsScene();
-    ui->clickImage->setFixedSize(referencialImage.cols,referencialImage.rows);
+    ui->clickImage->setFixedSize(referentialImage.cols,referentialImage.rows);
     ui->clickImage->setScene(scene);
     scene->addItem(image);
     QPainterPath crossPath;
@@ -764,7 +764,7 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts, bool afterFrangi){
         pathItem = scene->addPath(crossPath,QPen(QColor(255, 0, 0), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
 
     if (i_initCutouts)
-        initCutouts(referencialImage);
+        initCutouts(referentialImage);
     originalStandardCutout = standardCutout;
     originalExtraCutout = extraCutout;
 
@@ -773,8 +773,8 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts, bool afterFrangi){
         extraCutout_GRI = scene->addRect(extraCutout[videoName],QPen(QColor(0,0,255)));
     }
 
-    ui->clickImage->setFixedSize(referencialImage.cols+10,referencialImage.rows+10);
-    ui->clickImage->setSceneRect(0,0,referencialImage.cols,referencialImage.rows);
+    ui->clickImage->setFixedSize(referentialImage.cols+10,referentialImage.rows+10);
+    ui->clickImage->setSceneRect(0,0,referentialImage.cols,referentialImage.rows);
     ui->clickImage->setMouseTracking(true);
     ui->clickImage->setEnabled(true);
     disabled = false;
@@ -803,14 +803,14 @@ void ClickImageEvent::initCutouts(cv::Mat i_inputFrame){
     extraCutout[videoName].setHeight(int(height));
 }
 
-void ClickImageEvent::referencialFrameChosen()
+void ClickImageEvent::referentialFrameChosen()
 {
     bool ok;
-    referencialFrameNo[videoName] = referentialFrameNumber->text().toInt(&ok)-1;
-    if (ok && (referencialFrameNo[videoName] < 0 || double(referencialFrameNo[videoName]) > frameCount))
+    referentialFrameNo[videoName] = referentialFrameNumber->text().toInt(&ok)-1;
+    if (ok && (referentialFrameNo[videoName] < 0 || double(referentialFrameNo[videoName]) > frameCount))
     {
         referentialFrameNumber->setStyleSheet("color: #FF0000");
-        referencialFrameNo[videoName] = -1;
+        referentialFrameNo[videoName] = -1;
         ui->clickImage->setEnabled(false);
         ui->clickImage->setMouseTracking(false);
         disabled = true;
@@ -847,8 +847,8 @@ void ClickImageEvent::processChosenVideo(int videoIndex){
         }
         if (!threadPool.isEmpty())
             threadPool.clear();
-        if (findReferentialFrameData(videoNames.at(videoIndex),referencialFrameNo[videoName],frangiCoordinates[videoName])){
-            referentialFrameNumber->setText(QString::number(referencialFrameNo[videoName]));
+        if (findReferentialFrameData(videoNames.at(videoIndex),referentialFrameNo[videoName],frangiCoordinates[videoName])){
+            referentialFrameNumber->setText(QString::number(referentialFrameNo[videoName]));
             referentialFrameNumber->setEnabled(false);
             standardCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"standard").toRect();
             extraCutout[videoName] = SharedVariables::getSharedVariables()->getVideoInformation(videoName,"extra").toRect();

@@ -144,7 +144,6 @@ bool MultipleVideoET::checkFileAndLoadThresholds(QString i_videoName) {
         temporalySavedThresholds.insert(i_videoName,videoETthresholds);
         ui->previousThresholdsCB->setEnabled(true);
         ETthresholdsFound.insert(i_videoName,true);
-
         _returnResult = true;
     }
     else{
@@ -172,6 +171,7 @@ QLabel* MultipleVideoET::createIconTableItem(QString i_icon) {
 void MultipleVideoET::fillTable(bool fillInternalVariables) {
     int _helperCounter = 0;
     bool _controlCheckToEnableElements = false;
+    bool overallSCutout=false,overallECutout=false;
     if (!analysedVideos.isEmpty()) {
         ui->selectedVideos->setRowCount(analysedVideos.count());
         for (int indexList = 0; indexList < analysedVideos.count();indexList++)
@@ -190,10 +190,35 @@ void MultipleVideoET::fillTable(bool fillInternalVariables) {
                 }
                 else
                     ui->selectedVideos->setItem(_helperCounter,0,new QTableWidgetItem(videoNamesList.at(indexList)));
-
+                bool cutoutEFound=false,cutoutSFound=false;
                 ui->selectedVideos->setCellWidget(_helperCounter,1,createIconTableItem("everythingOK.png"));
                 if (checkFileAndLoadThresholds(fillInternalVariables ? filename : videoNamesList.at(indexList))) {
-                    ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataExists.png"));
+                    //if (fillInternalVariables) {
+                        QVector<int> _tempStandard,_tempExtra;
+                        if (checkAndLoadData("standard",fillInternalVariables ? filename : videoNamesList.at(indexList),_tempStandard)) {
+                            cv::Rect _tempStandardRect = convertVector2Rect(_tempStandard);
+                            SharedVariables::getSharedVariables()->setVideoInformation(fillInternalVariables ? filename : videoNamesList.at(indexList),"standard",convertRectToQRect(_tempStandardRect));
+                            ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataExistsComplete.png"));
+                            cutoutSFound=true;standardLoaded=true;overallSCutout=true;
+                            if (!ui->standardCutout->isChecked())
+                                ui->standardCutout->setChecked(true);
+                            selectedCutout=cutoutType::STANDARD;
+                        }                        
+                        if (checkAndLoadData("extra",fillInternalVariables ? filename : videoNamesList.at(indexList),_tempExtra)) {
+                            cv::Rect _tempExtraRect = convertVector2Rect(_tempExtra);
+                            SharedVariables::getSharedVariables()->setVideoInformation(fillInternalVariables ? filename : videoNamesList.at(indexList),"extra",convertRectToQRect(_tempExtraRect));
+                            ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataExistsComplete.png"));
+                            cutoutEFound=true;extraLoaded=true;overallECutout=true;
+                            if (!ui->extraCutout->isChecked())
+                                ui->extraCutout->setChecked(true);
+                            selectedCutout=cutoutType::EXTRA;
+                        }
+
+                        if (!cutoutEFound && !cutoutSFound)
+                            ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataExists.png"));
+                    /*}
+                    else
+                        ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataExists.png"));*/
                 }
                 else {
                     ui->selectedVideos->setCellWidget(_helperCounter,2,createIconTableItem("dataMissing.png"));
@@ -205,6 +230,12 @@ void MultipleVideoET::fillTable(bool fillInternalVariables) {
                 ui->selectedVideos->setCellWidget(_helperCounter,1,createIconTableItem("everythingBad.png"));
             }
         }
+
+        if (!overallSCutout && ui->standardCutout->isChecked())
+            ui->standardCutout->setChecked(false);
+        if (!overallECutout && ui->extraCutout->isChecked())
+            ui->extraCutout->setChecked(false);
+
         ui->selectedVideos->setColumnWidth(0,(ui->selectedVideos->width()/5)*3);
         ui->selectedVideos->setColumnWidth(1,(ui->selectedVideos->width()/5));
         ui->selectedVideos->setColumnWidth(2,(ui->selectedVideos->width()/5));
@@ -309,7 +340,25 @@ void MultipleVideoET::deleteSelectedFiles(){
             readyToProcess.remove(selectedVideoFull.at(0));
         }
         ui->selectedVideos->clearContents();
-        fillTable(false);
+        if (!analysedVideos.isEmpty())
+            fillTable(false);
+        else {
+            ui->standardCutout->setEnabled(false);
+            ui->extraCutout->setEnabled(false);
+            ui->savePB->setEnabled(false);
+            ui->showResultsPB->setEnabled(false);
+            ui->analyzeVideosPB->setEnabled(false);
+            if (ui->standardCutout->isChecked())
+                ui->standardCutout->setChecked(false);
+            if (ui->extraCutout->isChecked())
+                ui->extraCutout->setChecked(false);
+            standardLoaded=false;extraLoaded=false;
+        }
+    }
+    if (videoNamesList.isEmpty()) {
+        ui->areaMaximum->clear();
+        ui->rotationAngle->clear();
+        ui->iterationCount->clear();
     }
     qDebug()<<videoNamesList;
     qDebug()<<analysedVideos;
@@ -522,30 +571,77 @@ void MultipleVideoET::on_iterationCount_editingFinished()
 }
 
 void MultipleVideoET::showDialog(){
-    if (QObject::sender() == ui->standardCutout) {
+    if (QObject::sender() == ui->standardCutout && !standardLoaded) {
         if (ui->standardCutout->isChecked())
         {
             ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::STANDARD);
             markAnomaly->setModal(true);
             markAnomaly->show();
+            connect(markAnomaly,&QDialog::finished,[=](){
+                checkSelectedCutout(cutoutType::STANDARD);
+            });
         }
     }
-    if (QObject::sender() == ui->extraCutout) {
+    else if (QObject::sender() == ui->standardCutout && !ui->standardCutout->isChecked())
+        standardLoaded = false;
+    else if (QObject::sender() == ui->extraCutout && !extraLoaded) {
         if (ui->extraCutout->isChecked())
         {
             ClickImageEvent* markAnomaly = new ClickImageEvent(analysedVideos,cutoutType::EXTRA);
             markAnomaly->setModal(true);
             markAnomaly->show();
+            connect(markAnomaly,&QDialog::finished,[=](){
+                checkSelectedCutout(cutoutType::EXTRA);
+            });
         }
     }
-    if (ui->extraCutout->isChecked() && ui->standardCutout->isChecked())
-        selectedCutout = cutoutType::EXTRA;
-    else if (ui->extraCutout->isChecked() && !ui->standardCutout->isChecked())
-        selectedCutout = cutoutType::EXTRA;
-    else if (!ui->extraCutout->isChecked() && ui->standardCutout->isChecked())
-        selectedCutout = cutoutType::STANDARD;
-    else
-        selectedCutout = cutoutType::NO_CUTOUT;
+    else if (QObject::sender() == ui->extraCutout && !ui->extraCutout->isChecked()) {
+        extraLoaded = false;
+    }
+}
+
+void MultipleVideoET::checkSelectedCutout(cutoutType i_type) {
+    if (i_type == cutoutType::EXTRA) {
+        int controlCount=0;
+        foreach (QString video,videoNamesList) {
+            if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(video)) {
+                QRect __extra = SharedVariables::getSharedVariables()->getVideoInformation(video,"extra").toRect();
+                if (!__extra.isNull() && __extra.width() > 0 && __extra.height() > 0) {
+                    controlCount++;
+                }
+            }
+        }
+        if (controlCount <1) {
+            ui->extraCutout->setChecked(false);
+            if (standardLoaded)
+                selectedCutout = cutoutType::STANDARD;
+        }
+        else {
+            selectedCutout = cutoutType::EXTRA;
+            if (!standardLoaded && !ui->standardCutout->isChecked()) {
+                bool previous = ui->standardCutout->blockSignals(true);
+                ui->standardCutout->setChecked(true);
+                ui->standardCutout->blockSignals(previous);
+            }
+        }
+    }
+    else {
+        int controlCount=0;
+        foreach (QString video,videoNamesList) {
+            if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(video)) {
+                QRect __standard = SharedVariables::getSharedVariables()->getVideoInformation(video,"standard").toRect();
+                if (!__standard.isNull() && __standard.width() > 0 && __standard.height() > 0) {
+                    controlCount++;
+                }
+            }
+        }
+        if (controlCount <1) {
+            ui->standardCutout->setChecked(false);
+        }
+        else {
+            selectedCutout = cutoutType::STANDARD;
+        }
+    }
 }
 
 void MultipleVideoET::disableWidgets(){
@@ -555,6 +651,9 @@ void MultipleVideoET::disableWidgets(){
     ui->extraCutout->setEnabled(false);
     ui->savePB->setEnabled(false);
     ui->showResultsPB->setEnabled(false);
+    ui->areaMaximum->setEnabled(false);
+    ui->iterationCount->setEnabled(false);
+    ui->rotationAngle->setEnabled(false);
 }
 
 void MultipleVideoET::enableWidgets(){
@@ -564,4 +663,7 @@ void MultipleVideoET::enableWidgets(){
     ui->extraCutout->setEnabled(true);
     ui->savePB->setEnabled(true);
     ui->showResultsPB->setEnabled(true);
+    ui->areaMaximum->setEnabled(true);
+    ui->iterationCount->setEnabled(true);
+    ui->rotationAngle->setEnabled(true);
 }

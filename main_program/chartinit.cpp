@@ -86,7 +86,7 @@ void ChartInit::deleteSelectedFiles(){
         ui->pushButton->setEnabled(false);
 }
 
-void ChartInit::on_pushButton_clicked()
+void ChartInit::on_showDataPB_clicked()
 {
     if (ui->datFiles->isChecked()) {
         GraphET_parent* _parent = new GraphET_parent(fileList,this);

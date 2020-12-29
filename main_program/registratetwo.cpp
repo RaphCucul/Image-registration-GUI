@@ -30,22 +30,19 @@
 #include <array>
 #include <typeinfo>
 
-static cv::Mat src1;
-static cv::Mat src2;
-
 RegistrateTwo::RegistrateTwo(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::RegistrateTwo)
 {
     ui->setupUi(this);
-    ui->comboBox->addItem(tr("Choose two videoframes"));
-    ui->comboBox->addItem(tr("Choose two images"));
+    ui->selectInput->addItem(tr("Choose two videoframes"));
+    ui->selectInput->addItem(tr("Choose two images"));
     ui->areaMaximumLabel->setText(tr("Size of calculation area"));
     ui->rotationAngleLabel->setText(tr("Maximal tolerated rotation angle"));
     ui->iterationCountLabel->setText(tr("Number of iteration of algorithm"));
-    ui->entropie_referencial->setText(tr("Reference entropy"));
+    ui->entropy_referential->setText(tr("Reference entropy"));
     ui->entropie_translated->setText(tr("Translated entropy"));
-    ui->tennengrad_referencial->setText(tr("Tennengrad reference"));
+    ui->tennengrad_referential->setText(tr("Tennengrad reference"));
     ui->tennengrad_translated->setText(tr("Tennengrad translated"));
     ui->standardCutout->setText(tr("Modify standard cutout"));
     ui->extraCutout->setText(tr("Modify extra cutout"));
@@ -125,7 +122,7 @@ void RegistrateTwo::initChoiceTwoInnerWidgets(){
     horizontalSpacer2 = new QSpacerItem(5,20);
     referenceImgLE = new QLineEdit();
     translatedImgLE = new QLineEdit();
-    chooseReferencialImagePB = new QPushButton();
+    chooseReferentialImagePB = new QPushButton();
     chooseTranslatedImagePB = new QPushButton();
 
     referenceImgLE->setMinimumWidth(90);
@@ -140,11 +137,11 @@ void RegistrateTwo::initChoiceTwoInnerWidgets(){
     translatedImgLE->setMaximumWidth(200);
     translatedImgLE->setMaximumHeight(20);
 
-    chooseReferencialImagePB->setText(tr("Chooce referencial"));
-    chooseReferencialImagePB->setMinimumWidth(90);
-    chooseReferencialImagePB->setMinimumHeight(20);
-    chooseReferencialImagePB->setMaximumWidth(90);
-    chooseReferencialImagePB->setMaximumHeight(20);
+    chooseReferentialImagePB->setText(tr("Chooce referential"));
+    chooseReferentialImagePB->setMinimumWidth(90);
+    chooseReferentialImagePB->setMinimumHeight(20);
+    chooseReferentialImagePB->setMaximumWidth(90);
+    chooseReferentialImagePB->setMaximumHeight(20);
     chooseTranslatedImagePB->setText(tr("Choose shifted"));
     chooseTranslatedImagePB->setMinimumWidth(90);
     chooseTranslatedImagePB->setMinimumHeight(20);
@@ -153,11 +150,11 @@ void RegistrateTwo::initChoiceTwoInnerWidgets(){
 }
 
 void RegistrateTwo::placeChoiceOneWidgets(){    
-    ui->nabidkaAnalyzy->addWidget(chosenVideoLE,0,0);
-    ui->nabidkaAnalyzy->addWidget(chosenVideoPB,0,1);
-    ui->nabidkaAnalyzy->addWidget(referenceNoLE,0,2);
-    ui->nabidkaAnalyzy->addWidget(translatedNoLE,0,3);
-    ui->nabidkaAnalyzy->addItem(horizontalSpacer1,0,4);
+    ui->analysisOption->addWidget(chosenVideoLE,0,0);
+    ui->analysisOption->addWidget(chosenVideoPB,0,1);
+    ui->analysisOption->addWidget(referenceNoLE,0,2);
+    ui->analysisOption->addWidget(translatedNoLE,0,3);
+    ui->analysisOption->addItem(horizontalSpacer1,0,4);
 
     localErrorDialogHandling[referenceNoLE] = new ErrorDialog(referenceNoLE);
 
@@ -168,13 +165,13 @@ void RegistrateTwo::placeChoiceOneWidgets(){
 }
 
 void RegistrateTwo::placeChoiceTwoWidgets(){
-    ui->nabidkaAnalyzy->addWidget(referenceImgLE,0,0);
-    ui->nabidkaAnalyzy->addWidget(chooseReferencialImagePB,0,1);
-    ui->nabidkaAnalyzy->addWidget(translatedImgLE,0,2);
-    ui->nabidkaAnalyzy->addWidget(chooseTranslatedImagePB,0,3);
-    ui->nabidkaAnalyzy->addItem(horizontalSpacer2,0,4);
+    ui->analysisOption->addWidget(referenceImgLE,0,0);
+    ui->analysisOption->addWidget(chooseReferentialImagePB,0,1);
+    ui->analysisOption->addWidget(translatedImgLE,0,2);
+    ui->analysisOption->addWidget(chooseTranslatedImagePB,0,3);
+    ui->analysisOption->addItem(horizontalSpacer2,0,4);
 
-    connect(chooseReferencialImagePB,SIGNAL(clicked()),this,SLOT(chosenReferenceImgPB_clicked()));
+    connect(chooseReferentialImagePB,SIGNAL(clicked()),this,SLOT(chosenReferenceImgPB_clicked()));
     connect(chooseTranslatedImagePB,SIGNAL(clicked()),this,SLOT(chosenTranslatedImgPB_clicked()));
     connect(referenceImgLE,SIGNAL(textChanged(const QString &)),this,SLOT(ReferenceImgLE_textChanged(const QString &)));
     connect(translatedImgLE,SIGNAL(textChanged(const QString &)),this,SLOT(TranslatedImgLE_textChanged(const QString &)));
@@ -258,22 +255,22 @@ bool RegistrateTwo::evaluateVideoImageInput(QString i_path, QString i_method){
             return true;
         }
     }
-    else if (i_method == "referencialImage"){
-        referencialImg = cv::imread(i_path.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
-        if (referencialImg.empty())
+    else if (i_method == "referentialImage"){
+        referentialImg = cv::imread(i_path.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
+        if (referentialImg.empty())
         {
             referenceImgLE->setStyleSheet("color: #FF0000");
-            referencialImgCorrect = false;
+            referentialImgCorrect = false;
             ui->areaMaximum->setEnabled(false);
             ui->rotationAngle->setEnabled(false);
             ui->iterationCount->setEnabled(false);
-            referencialImg.release();
+            referentialImg.release();
             return false;
         }
         else
         {
             referenceImgLE->setStyleSheet("color: #339900");
-            referencialImgCorrect = true;
+            referentialImgCorrect = true;
             return true;
         }        
     }
@@ -303,8 +300,11 @@ void RegistrateTwo::evaluateCorrectValues(){
         ui->standardCutout->setEnabled(true);
         ui->extraCutout->setEnabled(true);
     }
-    else
+    else {
         ui->registrateTwo->setEnabled(false);
+        ui->registrateTwo->setEnabled(false);
+        ui->standardCutout->setEnabled(false);
+    }
 }
 
 void RegistrateTwo::checkPaths(){
@@ -319,23 +319,23 @@ void RegistrateTwo::checkPaths(){
     }
 }
 
-void RegistrateTwo::on_comboBox_activated(int index)
+void RegistrateTwo::on_selectInput_activated(int index)
 {
     if (index == 2)
     {
         if (whatIsAnalysed != chosenSource::NOTHING)
-            clearLayout(ui->nabidkaAnalyzy);
+            clearLayout(ui->analysisOption);
 
         whatIsAnalysed = chosenSource::NOTHING;
     }
     if (index == 0)
     {
         if (whatIsAnalysed != chosenSource::NOTHING)
-            clearLayout(ui->nabidkaAnalyzy);
+            clearLayout(ui->analysisOption);
         if (whatIsAnalysed != chosenSource::VIDEO)
             initChoiceOneInnerWidgets();
 
-        referencialImg.release();
+        referentialImg.release();
         translatedImg.release();
         whatIsAnalysed = chosenSource::VIDEO;
         placeChoiceOneWidgets();
@@ -343,7 +343,7 @@ void RegistrateTwo::on_comboBox_activated(int index)
     else if (index == 1)
     {
         if (whatIsAnalysed != chosenSource::NOTHING)
-            clearLayout(ui->nabidkaAnalyzy);
+            clearLayout(ui->analysisOption);
         if (whatIsAnalysed != chosenSource::IMAGE)
             initChoiceTwoInnerWidgets();
 
@@ -351,7 +351,7 @@ void RegistrateTwo::on_comboBox_activated(int index)
         placeChoiceTwoWidgets();
         secondChoiceInitialised = true;
         typeOfFrangi = frangiType::GLOBAL;
-        referencialNumber = -1;
+        referentialNumber = -1;
         cap.release();
     }
 }
@@ -382,11 +382,11 @@ void RegistrateTwo::chosenVideoPB_clicked()
 
 void RegistrateTwo::chosenReferenceImgPB_clicked()
 {
-    QString referencialImagePath = QFileDialog::getOpenFileName(this,
-         tr("Choose referencial image"), "",tr("Images (*.bmp *.png *.jpg)"));
-    analyseAndSave(referencialImagePath,chosenReferencialImgAnalysis);
-    referenceImgLE->setText(chosenReferencialImgAnalysis["filename"]);
-    evaluateVideoImageInput(referencialImagePath,"referencialImage");
+    QString referentialImagePath = QFileDialog::getOpenFileName(this,
+         tr("Choose referential image"), "",tr("Images (*.bmp *.png *.jpg)"));
+    analyseAndSave(referentialImagePath,chosenReferentialImgAnalysis);
+    referenceImgLE->setText(chosenReferentialImgAnalysis["filename"]);
+    evaluateVideoImageInput(referentialImagePath,"referentialImage");
 }
 
 void RegistrateTwo::chosenTranslatedImgPB_clicked()
@@ -400,9 +400,9 @@ void RegistrateTwo::chosenTranslatedImgPB_clicked()
 
 void RegistrateTwo::ReferenceImgLE_textChanged(const QString &arg1)
 {
-    QString fullPath = chosenReferencialImgAnalysis["folder"]+"/"+arg1+"."+chosenReferencialImgAnalysis["suffix"];
-    evaluateVideoImageInput(fullPath,"referencialImage");
-    if (referencialImgCorrect && translatedImgCorrect){
+    QString fullPath = chosenReferentialImgAnalysis["folder"]+"/"+arg1+"."+chosenReferentialImgAnalysis["suffix"];
+    evaluateVideoImageInput(fullPath,"referentialImage");
+    if (referentialImgCorrect && translatedImgCorrect){
         ui->areaMaximum->setEnabled(true);
         ui->rotationAngle->setEnabled(true);
         ui->iterationCount->setEnabled(true);
@@ -413,7 +413,7 @@ void RegistrateTwo::TranslatedImgLE_textChanged(const QString &arg1)
 {
     QString fullPath = chosenTranslatedImgAnalysis["folder"]+"/"+arg1+"."+chosenTranslatedImgAnalysis["suffix"];
     evaluateVideoImageInput(fullPath,"translatedImage");
-    if (referencialImgCorrect && translatedImgCorrect){
+    if (referentialImgCorrect && translatedImgCorrect){
         ui->areaMaximum->setEnabled(true);
         ui->rotationAngle->setEnabled(true);
         ui->iterationCount->setEnabled(true);
@@ -437,7 +437,7 @@ void RegistrateTwo::ReferenceLE_textChanged(const QString &arg1)
     {
         referenceNoLE->setStyleSheet("color: #FF0000");
         referenceCorrect = false;
-        referencialNumber = -1;
+        referentialNumber = -1;
         if (localErrorDialogHandling[referenceNoLE]->isEvaluated())
             localErrorDialogHandling[referenceNoLE]->hide();
     }
@@ -445,14 +445,14 @@ void RegistrateTwo::ReferenceLE_textChanged(const QString &arg1)
     {
         referenceNoLE->setStyleSheet("color: #33aa00");
         referenceCorrect = true;
-        referencialNumber = referenceFrameNo;
+        referentialNumber = referenceFrameNo;
         if (referenceCorrect && translatedCorrect){
             ui->areaMaximum->setEnabled(true);
             ui->rotationAngle->setEnabled(true);
             ui->iterationCount->setEnabled(true);
         }
         if (!checkReferentialFrameExistence(SharedVariables::getSharedVariables()->getPath("datFilesPath"),
-                                             chosenVideoAnalysis["filename"],referencialNumber)){
+                                             chosenVideoAnalysis["filename"],referentialNumber)){
             if (!localErrorDialogHandling[referenceNoLE]->isEvaluated()){
                 localErrorDialogHandling[referenceNoLE]->evaluate("left","info",4);
                 localErrorDialogHandling[referenceNoLE]->show(false);
@@ -548,13 +548,13 @@ void RegistrateTwo::on_registrateTwo_clicked()
     if (whatIsAnalysed == chosenSource::VIDEO) {
         QString filePath = chosenVideoAnalysis["folder"]+"/"+chosenVideoAnalysis["filename"]+"."+chosenVideoAnalysis["suffix"];
         cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
-        cap.set(CV_CAP_PROP_POS_FRAMES,double(referencialNumber));
+        cap.set(CV_CAP_PROP_POS_FRAMES,double(referentialNumber));
         cap.read(referentialImage_temp);
         cap.set(CV_CAP_PROP_POS_FRAMES,double(translatedNumber)-1);
         cap.read(translatedImage_temp);
     }
     else if (whatIsAnalysed == chosenSource::IMAGE) {
-        referencialImg.copyTo(referentialImage_temp);
+        referentialImg.copyTo(referentialImage_temp);
         translatedImg.copyTo(translatedImage_temp);
     }
     transformMatTypeTo8C3(referentialImage_temp);
@@ -606,10 +606,10 @@ void RegistrateTwo::on_registrateTwo_clicked()
         translatedImage_temp.copyTo(translatedImage);
         translatedImage_temp.release();
     }
-    referencialImg = referentialImage;
+    referentialImg = referentialImage;
     // III. Was frangi maximum already estimated for the referential frame?
     if (readyToObtainData) {
-        if (SharedVariables::getSharedVariables()->getVideoInformation(chosenVideoAnalysis["filename"],"frame").toInt() == referencialNumber) {
+        if (SharedVariables::getSharedVariables()->getVideoInformation(chosenVideoAnalysis["filename"],"frame").toInt() == referentialNumber) {
             QPoint _frangiCoordinates = SharedVariables::getSharedVariables()->getVideoInformation(chosenVideoAnalysis["filename"],"frangi").toPoint();
             if (!_frangiCoordinates.isNull()) {
                 maximum_frangi = transform_QPoint_to_CV_Point3d(_frangiCoordinates);
@@ -619,7 +619,7 @@ void RegistrateTwo::on_registrateTwo_clicked()
     }
     // IV. It may happen, that frangi is not in the videoInformation, but it can be still present in the dat file
     if (!frangiReady) {
-        if (findReferentialFrameData(chosenVideoAnalysis["filename"],referencialNumber,_MFR)){
+        if (findReferentialFrameData(chosenVideoAnalysis["filename"],referentialNumber,_MFR)){
             maximum_frangi = transform_QPoint_to_CV_Point3d(_MFR);
             if (!standardReady) {
                 cutoutStandard = calculateStandardCutout(maximum_frangi,
@@ -667,8 +667,8 @@ void RegistrateTwo::on_registrateTwo_clicked()
     ui->EM->setText(QString::number(entropyTranslated));
     ui->TM->setText(QString::number(tennengradTranslated[0]));
 
-    //int rows = referencialImage.rows;
-    //int cols = referencialImage.cols;
+    //int rows = referentialImage.rows;
+    //int cols = referentialImage.cols;
 
     qDebug()<<"Maximum frangi "<<maximum_frangi.x<<" "<<maximum_frangi.y;
     qDebug()<<"Standard cutout "<<cutoutStandard.width<<" "<<cutoutStandard.height;
@@ -755,13 +755,13 @@ void RegistrateTwo::showDialog()
         fullPath = chosenVideoAnalysis["folder"]+"/"+chosenVideoAnalysis["filename"]+"."+chosenVideoAnalysis["suffix"];
     }
     else if (whatIsAnalysed == chosenSource::IMAGE) {
-        fullPath = chosenReferencialImgAnalysis["folder"]+"/"+chosenReferencialImgAnalysis["filename"]+"."+chosenReferencialImgAnalysis["suffix"];
+        fullPath = chosenReferentialImgAnalysis["folder"]+"/"+chosenReferentialImgAnalysis["filename"]+"."+chosenReferentialImgAnalysis["suffix"];
     }
 
     if (QObject::sender() == ui->standardCutout && !standardLoaded){
         if (ui->standardCutout->isChecked())
         {
-            ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,cutoutType::STANDARD,false,whatIsAnalysed);
+            ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referentialNumber,cutoutType::STANDARD,false,whatIsAnalysed);
             markAnomaly->setModal(true);
             markAnomaly->show();
             connect(markAnomaly,&QDialog::finished,[=](){
@@ -774,7 +774,7 @@ void RegistrateTwo::showDialog()
     else if (QObject::sender() == ui->extraCutout && !extraLoaded){
         if (ui->extraCutout->isChecked())
         {
-            ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referencialNumber,cutoutType::EXTRA,false,whatIsAnalysed);
+            ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,referentialNumber,cutoutType::EXTRA,false,whatIsAnalysed);
             markAnomaly->setModal(true);
             markAnomaly->show();
             connect(markAnomaly,&QDialog::finished,[=](){

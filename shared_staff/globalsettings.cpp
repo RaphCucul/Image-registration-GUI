@@ -29,7 +29,7 @@ QStringList readAndConvert(std::string i_fullFilePath,int part){
     char* buffer=new char[size];
     pbuf->sgetn (buffer,size);
 
-    unsigned int start,end;
+    unsigned int start=999,end=999;
     char *newChar;
     if (part == 1 || part == 3 || part == 2) {
         char * pch,*pch2;
@@ -52,7 +52,10 @@ QStringList readAndConvert(std::string i_fullFilePath,int part){
         while (i < 2)
         {
             char *pch3,*pch4;
-            pch3=strchr(buffer+start,'[')+1;
+            if (start != 999)
+                pch3=strchr(buffer+start,'[')+1;
+            else
+                pch3=strchr(buffer,'[')+1;
             unsigned int start2 = pch3-buffer;
             pch4 = strchr(pch3,']');
             unsigned int end2 = pch4-buffer;
@@ -196,15 +199,6 @@ bool GlobalSettings::isHDDMonitorEnabled() {
 void GlobalSettings::setHDDMonitorStatus(bool status) {
     settings->setValue("hddMonitor",status);
     settings->sync();
-}
-
-void GlobalSettings::setPowershellPath(QString i_path) {
-    settings->setValue("powershell",i_path);
-    settings->sync();
-}
-
-QString GlobalSettings::getPowershellPath() {
-    return settings->value("powershell","").toString();
 }
 
 void GlobalSettings::setUsedCores(int i_cores) {

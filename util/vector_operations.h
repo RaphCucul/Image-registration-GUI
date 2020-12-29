@@ -11,20 +11,20 @@
  */
 
 /**
- * @brief It calculates median of the vector.
+ * @brief Calculates median of the vector.
  * @param[in] values
  */
 double median_VectorDouble(QVector<double> i_input);
 
 /**
- * @brief It checks if the maximum of entropy or tennenfrad is not to high and if so, it finds better value.
+ * @brief Checks if the maximum of entropy or tennenfrad is not to high and if so, it finds better value.
  * @param[in] inputValues
  * @return Maximum value of entropy or tennegrad that suits the given conditions.
  */
 double checkMaximum(QVector<double>& i_input);
 
 /**
- * @brief It merges two vectors into the only one and preserves only unique inputs.
+ * @brief Merges two vectors into the only one and preserves only unique inputs.
  * @param[in] input1
  * @param[in] input2
  * @return Merged vector.
@@ -32,7 +32,7 @@ double checkMaximum(QVector<double>& i_input);
 QVector<int> mergeVectors(QVector<int>& i_input1,QVector<int>& i_input2);
 
 /**
- * @brief It divides input vector into 9 separate "windows" for processing.
+ * @brief Divides input vector into 9 separate "windows" for processing.
  * @param[in] inputValues
  * @param[in] windows
  * @param[in] restToEnd
@@ -40,7 +40,7 @@ QVector<int> mergeVectors(QVector<int>& i_input1,QVector<int>& i_input2);
 void vectorWindows(QVector<double>& i_inputValues, QVector<double>& i_windows, double& i_restToEnd);
 
 /**
- * @brief It calculates median from the values in the given part (window) of a input vector.
+ * @brief Calculates median from the values in the given part (window) of a input vector.
  * @param[in] inputValues
  * @param[in] inputWindows
  * @param[in] restToEnd
@@ -50,7 +50,7 @@ QVector<double> mediansOfVector(QVector<double>& i_inputValues,
                                     double i_restToEnd);
 
 /**
- * @brief It takes a vector with entropy or tennengrad values and look for frames with values out of the range
+ * @brief Takes a vector with entropy or tennengrad values and look for frames with values out of the range
  * defined by thresholds and tolerance.
  * @param[in] inputValues
  * @param[in] medianVector
@@ -76,31 +76,31 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
                             bool explicitThresholds);
 
 /**
- * @brief It determines a referential frame from a vector of frames.
+ * @brief Determines a referential frame from a vector of frames.
  * @param[in] recalculatedMaximum
  * @param[in] forEvaluation
  * @param[in] inputValues
  * @return The index of the referential frame.
  */
-int findReferencialNumber(double& i_recalculatedMaximum, QVector<double>& i_forEvaluation,
+int findReferentialNumber(double& i_recalculatedMaximum, QVector<double>& i_forEvaluation,
                                  QVector<double>& i_inputValues);
 
 /**
- * @brief It checks the "integrity" of the bad frames vector and add those frames which could be skipped
+ * @brief Checks the "integrity" of the bad frames vector and add those frames which could be skipped
  * by mistake
  * @param[out] badFrames
  */
 void integrityCheck(QVector<int>& i_badFrames);
 
 /**
- * @brief It looks for a frame with evaluation value 2 (=referential frame).
+ * @brief Looks for a frame with evaluation value 2 (=referential frame).
  * @param[in] vectorEvaluation
  * @return The index of the referential frame.
  */
 int findReferenceFrame(QVector<int> i_vectorEvaluation);
 
 /**
- * @brief It creates sub-vectors of frames. The number of the sub-vectors corresponds with the total threadCount.
+ * @brief Creates sub-vectors of frames. The number of the sub-vectors corresponds with the total threadCount.
  * @param[in] totalLength
  * @param[in] threadCount
  * @return A vector of vectors with indexes of frames.
@@ -108,7 +108,7 @@ int findReferenceFrame(QVector<int> i_vectorEvaluation);
 QVector<QVector<int>> divideIntoPeaces(int i_totalLength, int i_threadCount);
 
 /**
- * @brief It analyses given path to videos, checks for the presence of *.avi files and loads first video from the
+ * @brief Analyses given path to videos, checks for the presence of *.avi files and loads first video from the
  * list of found videos to cap variable and put the video name into a line edit widget.
  * @param[in] analysedFolder
  * @param whereToSave

@@ -1,9 +1,8 @@
 // Part of Frames registration project
-// created by Jan Prosser
 // Licensed under BSD-2-Clause License
 
-#ifndef FILES_FOLDERS_OPERATIONS_H_INCLUDED
-#define FILES_FOLDERS_OPERATIONS_H_INCLUDED
+#ifndef FILES_FOLDERS_OPERATIONS
+#define FILES_FOLDERS_OPERATIONS
 
 #include <QString>
 #include <QStringList>
@@ -185,4 +184,5 @@ bool checkReferentialFrameExistence(QString i_folder,QString i_videoName,int i_r
  * @return True if frangi maximum coordinates were found. Otherwise, returns false.
  */
 bool findReferentialFrameData(QString i_name, int& i_referentialFrame, QPoint& i_point);
-#endif // FILES_FOLDERS_OPERATIONS_H_INCLUDED
+
+#endif // FILES_FOLDERS_OPERATIONS

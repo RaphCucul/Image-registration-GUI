@@ -31,6 +31,7 @@ using namespace clickImageEnums;
 /**
  * @class IntegratedFrangiOptions
  * @brief The IntegratedFrangiOptions class is an independent widget which can be displayed in a ClickImageEvent dialog.
+ *
  * The widgets enables to change frangi parameters during the selection of a cutout. The widget also enables to temporally set or
  * save selected parameters. When saving, parameters are always saved to video-related *.dat file.
  */
@@ -65,10 +66,29 @@ public:
      */
     QMap<QString,double> getInternalRatios() {return ratiosInternal;}
 public slots:
+    /**
+     * @brief When "Save" button is clicked, selected margins, ratios and parameters are prepared to be saved.
+     * Then a signal is emitted to initiate the saving.
+     * @sa frangiParametersSelected(QMap<QString,int> _margins,QMap<QString,double> ratios,QMap<QString,double> _parameters)
+     */
     void saveButtonClicked();
+    /**
+     * @brief When "Set" button is clicked, margins, ratios and parameters are saved to internal variables and
+     * the frangi analysis starts.
+     * @sa applyFrangiParameters()
+     */
     void setButtonClicked();
 signals:
+    /**
+     * @brief Invokes saving of margins, ratios and parameters to shared variables.
+     * @param _margins
+     * @param ratios
+     * @param _parameters
+     */
     void frangiParametersSelected(QMap<QString,int> _margins,QMap<QString,double> ratios,QMap<QString,double> _parameters);
+    /**
+     * @brief applyFrangiParameters
+     */
     void applyFrangiParameters();
 private:
     /**
@@ -115,6 +135,7 @@ class ClickImageEvent;
  * @class ClickImageEvent
  * @brief The ClickImageEvent class enables to select standard or extra cutout of the frame. The part of the program from where
  * ClickImageEvent is called affects the options what can be selected in the dialog.
+ *
  * 1. If called from SVET tab when a video or image is analysed, it is not possible to change analysed video and frame.
  * 2. If called from RegistrateTwo, it is also not possible to change analysed video and frame.
  * 3. If called from MVET tab when a videos are analysed, it is possible to choose the video to be analysed and the specific
@@ -169,19 +190,38 @@ public slots:
      */
     void onApplyFrangiParameters();
 protected:
+    /**
+     * @brief When a left mouse button is pressed inside QGraphicsScene, the coordinates are saved as start coordinates (upper
+     * left corner).
+     * @param press
+     */
     void mousePressEvent(QMouseEvent *press) override;
+    /**
+     * @brief When a button is pressed and the mouse moves, a rectangle of a cutout (standard/extra) is plotted.
+     * @param move
+     */
     void mouseMoveEvent(QMouseEvent *move) override;
+    /**
+     * @brief When a mouse button is released, the coordinates are saved as stop coordinates (lower right corner).
+     * @param release
+     */
     void mouseReleaseEvent(QMouseEvent *release) override;
+    /**
+     * @brief Overriden close event ensures that a user is asked if changed cutout size should be saved or not.
+     * @param e
+     */
     void closeEvent(QCloseEvent *e) override;
 signals:
-    void saveVideoCutout();
+    /**
+     * @brief dataExtracted
+     */
     void dataExtracted();
 private slots:
     /**
      * @brief Processes the input of the referential frame line edit and enables the QGraphicsView object if
      * the frame number is correct and can be loaded.
      */
-    void referencialFrameChosen();
+    void referentialFrameChosen();
 
     /**
      * @brief Processes the chosen video, checks if it is loadable and enables other widgets.
@@ -233,6 +273,7 @@ private:
      * @brief Fills the graphic scene object of graphics view object with proper frame defined at the dialog initialization.
      * @param i_initCutouts - if true, all cutouts are initialized automatically. Frangi maximum coordinates are used together with
      * default ratios.
+     * @param afterFrangi - helps to determine if the standard cutout size should be adjusted or not
      */
     void fillGraphicScene(bool i_initCutouts,bool afterFrangi);
 
@@ -306,6 +347,12 @@ private:
      */
     void saveCutouts(bool saveNew);
 
+    /**
+     * @brief Because of extra cutout selection, it might be necessary to recalculate obtained Frangi coordinates (when
+     * loading from the video *.dat file) to fit to extra cutout part of the frame.
+     * @param i_originalCoordinates - original coordinates from the whole frame
+     * @return recalculated Frangi maximum coordinations
+     */
     QPoint recalculateFrangiPoint(QPoint i_originalCoordinates);
 
     // Graphic part of class
@@ -327,7 +374,7 @@ private:
     QString filePath = "",videoName = "";
     cutoutType cutout = EXTRA;
     double frameCount = 0.0;
-    QMap<QString,int> referencialFrameNo;
+    QMap<QString,int> referentialFrameNo;
     QMap<QString,QVector<int>> frameSize;
     bool disabled = true, mousePressed = false, modified = false, frangiOptionsShown = false,runFrangi = true,extraApplied=false;
     QPointF selectionOrigin,lastDragPosition,selectionEnd;
@@ -339,7 +386,14 @@ private:
     QStringList filePaths,videoNames;
     cv::VideoCapture cap;
     std::function<void(ClickImageEvent*)> cutoutFunctionPointer;
+    /**
+     * @enum updateType
+     * @brief The updateType enum helps to handle a cutout parameters recalculation. A standard cutout is always recalculated to
+     *
+     */
     enum updateType{UPDATE_DIRECTLY,RECALCULATE} cutoutUpdate;
+
+
     QMap<QWidget*,ErrorDialog*> localErrorDialogHandling;
     IntegratedFrangiOptions* _integratedFrangiOptionsObject = nullptr;
     QHash<int,QThread*> threadPool;

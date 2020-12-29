@@ -144,6 +144,7 @@ void SingleVideoRegistration::registrateVideoframes()
             return;
         }
         else{
+            ui->vysledkyLicovaniTW->clearContents();
             QFile videoParametersFile(SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+chosenVideo["filename"]+".dat");
             if (videoParametersFile.exists()){
                 videoParametersJson = readJson(videoParametersFile);
@@ -151,6 +152,7 @@ void SingleVideoRegistration::registrateVideoframes()
 
                 emit calculationStarted();
                 ui->registratePB->setText(tr("Cancel"));
+                ui->registratePB->setEnabled(false);
                 runStatus = false;
                 canProceed = true;
 
@@ -166,7 +168,7 @@ void SingleVideoRegistration::registrateVideoframes()
             }
             else{
                 ui->chooseVideoLE->setStyleSheet("color: #FF0000");
-                localErrorDialogHandling[ui->registratePB]->evaluate("left","infoList",3);
+                localErrorDialogHandling[ui->registratePB]->evaluate("left","info",3);
                 localErrorDialogHandling[ui->registratePB]->show(true);
             }
         }
@@ -174,8 +176,11 @@ void SingleVideoRegistration::registrateVideoframes()
     else{
         cancelAllCalculations();
         ui->registratePB->setText(tr("Registrate videoframes"));
+        ui->vysledkyLicovaniTW->clearContents();
+        ui->onlyBestFrames->setEnabled(true);
         runStatus = true;
         canProceed = false;
+        internalCounter = 0;
         ui->progress->setValue(0);
     }
 }
@@ -200,11 +205,14 @@ void SingleVideoRegistration::createAndRunThreads(int indexThread, cv::VideoCapt
         double _angle = 0.1;
         cv::Rect _extra = convertVector2Rect(videoAnomalies["extra"]);
         cv::Rect _standard = convertVector2Rect(videoAnomalies["standard"]);
+        bool scaleChanged = false;
+        if (_extra.width > 0 && _extra.height > 0)
+            scaleChanged = true;
         threadPool[indexThread] = new RegistrationThread(indexThread,_tempVideoPath,_tempVideoName,
                                                          SharedVariables::getSharedVariables()->getFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,chosenVideo["filename"]),
                                                          _evalFrames,
                                                          referencialFrame,lowerLimit,upperLimit,_iter,_arMax,_angle,
-                                                         _extra,_standard,false,
+                                                         _extra,_standard,scaleChanged,
                                                          SharedVariables::getSharedVariables()->getFrangiMarginsWrapper(frangiType::VIDEO_SPECIFIC,chosenVideo["filename"]),
                                                          SharedVariables::getSharedVariables()->getFrangiRatiosWrapper(frangiType::VIDEO_SPECIFIC,chosenVideo["filename"]));
 
@@ -218,13 +226,6 @@ void SingleVideoRegistration::createAndRunThreads(int indexThread, cv::VideoCapt
         threadPool[indexThread]->start();
         ui->name_state->setText(tr("Processing video ")+videoListNames.at(videoCounter));
     }
-}
-
-void SingleVideoRegistration::totalFramesCompleted(int frameCounter)
-{
-    cv::VideoCapture cap = cv::VideoCapture(videoListFull.at(videoCounter).toLocal8Bit().constData());
-    double frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
-    ui->progress->setValue(qRound(double(frameCounter)/frameCount)*100);
 }
 
 void SingleVideoRegistration::addItem(int row, int column, QString parameter)
@@ -247,6 +248,8 @@ void SingleVideoRegistration::addStatus(int row, int column, QString status){
     }
     ui->progress->setValue(qRound((double(internalCounter)/actualFrameCount)*100.0));
     internalCounter+=1;
+    if (internalCounter > 1 && !ui->registratePB->isEnabled())
+        ui->registratePB->setEnabled(true);
     /*if (internalCounter == 20){
         processResuluts(1);
         terminateThreads();
@@ -276,7 +279,11 @@ void SingleVideoRegistration::processAnother(int indexOfThread){
 void SingleVideoRegistration::continueAlgorithm(){
     if (readyToContinue){
         ui->name_state->setText(tr("Video written properly."));
-        calculationStopped();
+        emit calculationStopped();
+        internalCounter = 0;
+        threadProcessed = 0;
+        ui->progress->setValue(0);
+        runStatus = true;
         ui->registratePB->setText(tr("Registrate videoframes"));
         enableWidgets();
     }
@@ -315,16 +322,6 @@ void SingleVideoRegistration::processVideoParameters(QJsonObject &videoData)
     }
 }
 
-void SingleVideoRegistration::VideoWriterErrorHandler(int errorIndex){
-    localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",errorIndex);
-    localErrorDialogHandling[ui->registratePB]->show(true);
-}
-
-void SingleVideoRegistration::VideoWriterErrorHandler(QString errorMessage){
-    localErrorDialogHandling[ui->registratePB]->evaluate("left","hardError",errorMessage);
-    localErrorDialogHandling[ui->registratePB]->show(true);
-}
-
 void SingleVideoRegistration::processWriterError(int errorNumber){
     localErrorDialogHandling[ui->registratePB]->evaluate("center","hardError",errorNumber);
     localErrorDialogHandling[ui->registratePB]->show(true);
@@ -344,7 +341,7 @@ void SingleVideoRegistration::processSuccess(){
     emit terminateWriter();
 }
 
-bool SingleVideoRegistration::writeToVideo()
+void SingleVideoRegistration::writeToVideo()
 {
     QString whereToWrite = SharedVariables::getSharedVariables()->getPath("saveVideosPath")+"/"+chosenVideo["filename"]+"_GUI.avi";
     VideoWriter* videoWriter = new VideoWriter(videoListFull.at(0),videoParametersDouble,
@@ -415,7 +412,6 @@ bool SingleVideoRegistration::writeToVideo()
             _fullyRegistrated.release();
        }
     }*/
-    return true;
 }
 
 void SingleVideoRegistration::on_savePB_clicked()
@@ -456,11 +452,6 @@ void SingleVideoRegistration::showRegistrationResult() {
     showResults->callVideo();
     showResults->setModal(true);
     showResults->show();
-}
-
-void SingleVideoRegistration::populateLists(QVector<QString> _file){
-    videoListFull.append(_file[0]+"/"+_file[1]+"."+_file[2]);
-    videoListNames.append(_file[1]);
 }
 
 void SingleVideoRegistration::disableWidgets(){

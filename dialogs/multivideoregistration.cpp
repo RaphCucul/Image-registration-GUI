@@ -32,7 +32,6 @@ MultiVideoRegistration::MultiVideoRegistration(QWidget *parent) :
     ui->listOfVideos->setColumnCount(3);
     QStringList columnHeadersList = {tr("Video"),tr("Status"),tr("Result")};
     ui->listOfVideos->setHorizontalHeaderLabels(columnHeadersList);
-    connect(ui->listOfVideos,SIGNAL(cellClicked(int,int)),this,SLOT(clickedToPlay(int,int)));
 
     ui->chooseMultiVPB->setText(tr("Choose few videos"));
     ui->chooseFolderPB->setText(tr("Choose whole folder"));
@@ -54,30 +53,18 @@ MultiVideoRegistration::~MultiVideoRegistration()
 void MultiVideoRegistration::displayStatus(QString status){
     ui->listOfVideos->removeCellWidget(videoCounter,1);
     if (status == "startingCalculations"){
-        QIcon icon(":/images/currentlyProcessed.png");
-        QTableWidgetItem *icon_item = new QTableWidgetItem;
-        icon_item->setIcon(icon);
-        ui->listOfVideos->setItem(videoCounter, 1, icon_item);
+        ui->listOfVideos->setCellWidget(videoCounter, 1, createIconTableItem(true,"currentlyProcessed.png"));
     }
     else if (status == "noProgress"){
-        QIcon icon(":/images/noProgress.png");
-        QTableWidgetItem *icon_item = new QTableWidgetItem;
-        icon_item->setIcon(icon);
-        ui->listOfVideos->setItem(videoCounter, 1, icon_item);
+        ui->listOfVideos->setCellWidget(videoCounter, 1, createIconTableItem(true,"noProgress.png"));
     }
     else if (status == "allDone"){
-        QIcon icon(":/images/everythingOK.png");
-        QTableWidgetItem *icon_item = new QTableWidgetItem;
-        icon_item->setIcon(icon);
-        ui->listOfVideos->setItem(videoCounter, 1, icon_item);
+        ui->listOfVideos->setCellWidget(videoCounter, 1, createIconTableItem(true,"everythingOK.png"));
         ui->listOfVideos->removeCellWidget(videoCounter,2);
         ui->listOfVideos->setCellWidget(videoCounter,2,createIconTableItem(false,videoListFull.at(videoCounter)));
     }
     else if (status == "error"){
-        QIcon icon(":/images/everythingBad.png");
-        QTableWidgetItem *icon_item = new QTableWidgetItem;
-        icon_item->setIcon(icon);
-        ui->listOfVideos->setItem(videoCounter, 1, icon_item);
+        ui->listOfVideos->setCellWidget(videoCounter, 1, createIconTableItem(true,"everythingBad.png"));
     }
 }
 
@@ -165,31 +152,6 @@ void MultiVideoRegistration::on_chooseMultiVPB_clicked()
         videoListFull.removeDuplicates();
         fillTable(true);
     }
-        /*QStringList videosToAdd;
-        ui->listOfVideos->setRowCount(filenames.count());
-        for (int i =0;i<filenames.count();i++)
-        {
-            if (videoListFull.contains(filenames.at(i)))
-                continue;
-            else{
-                QString path = filenames.at(i);
-                QString folder,filename,suffix;
-                processFilePath(path,folder,filename,suffix);
-
-                if (checkPath(filename)){
-                    videoListFull.append(filenames.at(i));
-                    videoListNames.append(filename);
-                    videosToAdd.append(filename);
-                    QTableWidgetItem* newVideo = new QTableWidgetItem(filename);
-                    ui->listOfVideos->setItem(i,1,newVideo);
-                    QIcon icon(":/images/noProgress.png");
-                    QTableWidgetItem *icon_item = new QTableWidgetItem;
-                    icon_item->setIcon(icon);
-                    ui->listOfVideos->setItem(i, 0, icon_item);
-                    populateProperties(videosToAdd);
-                }
-            }
-        }*/
 }
 
 void MultiVideoRegistration::on_chooseFolderPB_clicked()
@@ -206,30 +168,6 @@ void MultiVideoRegistration::on_chooseFolderPB_clicked()
         videoListFull.removeDuplicates();
         fillTable(true);
     }
-        /*QStringList videosToAdd;
-        ui->listOfVideos->setRowCount(videosInDirectory.count());
-        for (int a = 0; a < videosInDirectory.count();a++)
-        {
-            if (videoListFull.contains(videosInDirectory.at(a)))
-                continue;
-            else{
-                QString path = videosInDirectory.at(a);
-                QString folder,filename,suffix;
-                processFilePath(path,folder,filename,suffix);
-                if (checkPath(filename)){
-                    videoListFull.append(videosInDirectory.at(a));
-                    videoListNames.append(filename);
-                    videosToAdd.append(filename);
-                    QTableWidgetItem* newVideo = new QTableWidgetItem(filename);
-                    ui->listOfVideos->setItem(a,1,newVideo);
-                    QIcon icon(":/images/noProgress.png");
-                    QTableWidgetItem *icon_item = new QTableWidgetItem;
-                    icon_item->setIcon(icon);
-                    ui->listOfVideos->setItem(a, 0, icon_item);
-                    populateProperties(videosToAdd);
-                }
-            }
-        }*/
 }
 
 bool MultiVideoRegistration::checkVideo(QString i_video){
@@ -266,7 +204,7 @@ QWidget* MultiVideoRegistration::createIconTableItem(bool icon, QString informat
 
 void MultiVideoRegistration::fillTable(bool fillInternalVariables) {
     int _helperCounter = 0;
-    bool _controlCheckToEnableElements = false;
+    //bool _controlCheckToEnableElements = false;
     if (!videoListFull.isEmpty()) {
         ui->listOfVideos->setRowCount(videoListFull.count());
         for (int indexList = 0; indexList < videoListFull.count();indexList++)
@@ -276,7 +214,7 @@ void MultiVideoRegistration::fillTable(bool fillInternalVariables) {
                 processFilePath(videoListFull.at(indexList),folder,filename,suffix);
                 if (checkPath(filename)) {
                     readyToProcess[videoListFull.at(indexList)] = true;
-                    _controlCheckToEnableElements = true;
+                    //_controlCheckToEnableElements = true;
 
                     if (fillInternalVariables) {
                         if (!videoListNames.contains(filename))
@@ -313,59 +251,16 @@ void MultiVideoRegistration::fillTable(bool fillInternalVariables) {
     }
 }
 
-/*void MultiVideoRegistration::on_deleteChosenPB_clicked()
-{
-    QList<QTableWidgetItem*> selectedVideos = ui->listOfVideos->selectedItems();
-    //qDebug()<<"Selected videos will be deleted: "<<selectedVideos;
-    QVector<int> indexOfDeletion;
-    foreach (QTableWidgetItem* item,selectedVideos)
-    {
-        int index = ui->listOfVideos->row(item);        
-        QString actuallyDeleted = item->text();
-        if (actuallyDeleted == "")
-            continue;
-        indexOfDeletion.push_back(index);
-        qDebug()<<"video "<<item->text()<<" will be deleted";
-        //delete ui->listOfVideos->takeItem(ui->listOfVideos->row(item),1);
-        QString folder,filename,suffix;
-        processFilePath(actuallyDeleted,folder,filename,suffix);
-        auto foundItemDouble = videoPropertiesDouble.find(filename);
-        auto foundItemInt = videoPropertiesInt.find(filename);
-        videoPropertiesDouble.erase(foundItemDouble);
-        videoPropertiesInt.erase(foundItemInt);
-        qDebug()<<videoPropertiesDouble;
-    }
-    for (int deletion = 0; deletion < indexOfDeletion.length(); deletion++){
-        if (deletion == 0){
-            videoListFull.removeAt(indexOfDeletion[deletion]);
-            videoListNames.removeAt(indexOfDeletion[deletion]);
-        }
-        else{
-            videoListFull.removeAt(indexOfDeletion[deletion] - deletion);
-            videoListNames.removeAt(indexOfDeletion[deletion] - deletion);
-        }
-    }
-    ui->listOfVideos->clearContents();
-    if (!videoListFull.isEmpty()){
-        ui->listOfVideos->setRowCount(videoListFull.count());
-        for (int videoIndex = 0; videoIndex < videoListFull.count(); videoIndex++){
-            QTableWidgetItem* newVideo = new QTableWidgetItem(videoListNames.at(videoIndex));
-            ui->listOfVideos->setItem(videoIndex,1,newVideo);
-            QIcon icon(":/images/noProgress.png");
-            QTableWidgetItem *icon_item = new QTableWidgetItem;
-            icon_item->setIcon(icon);
-            ui->listOfVideos->setItem(videoIndex, 0, icon_item);
-        }
-    }
-    else
-        ui->listOfVideos->setRowCount(1);
-}*/
-
 void MultiVideoRegistration::startCalculations(cv::VideoCapture &capture){
     actualFrameCount = capture.get(CV_CAP_PROP_FRAME_COUNT);
     actualVideoName = videoListNames.at(videoCounter);
     videoPool[videoListNames.at(videoCounter)] = new QTableWidget(int(actualFrameCount),4);
     videoPool[videoListNames.at(videoCounter)]->setHorizontalHeaderLabels(columnHeaders);
+    videoPool[videoListNames.at(videoCounter)]->setColumnWidth(0,ui->registrationResults->width()/4);
+    videoPool[videoListNames.at(videoCounter)]->setColumnWidth(1,ui->registrationResults->width()/4);
+    videoPool[videoListNames.at(videoCounter)]->setColumnWidth(2,ui->registrationResults->width()/4);
+    videoPool[videoListNames.at(videoCounter)]->setColumnWidth(3,ui->registrationResults->width()/4);
+
     ui->registrationResults->addWidget(videoPool[videoListNames.at(videoCounter)]);
     displayStatus("startingCalculations");
     QVector<QVector<int>> threadRange = divideIntoPeaces(int(actualFrameCount),numberOfThreads);
@@ -420,13 +315,26 @@ void MultiVideoRegistration::on_registratePB_clicked()
         else{
             ui->registratePB->setText(tr("Cancel"));
             runStatus = false;
+            ui->registratePB->setEnabled(false);
         }
     }
     else{
+        cancelAllCalculations();
         runStatus = true;
         ui->registratePB->setText(tr("Registrate"));
         canProceed = false;
         ui->progressBar->setValue(0);
+        for (int i=0;i<ui->registrationResults->count();i++) {
+            QWidget* widget = ui->registrationResults->widget(i);
+            ui->registrationResults->removeWidget(widget);
+            widget->deleteLater();
+        }
+        for (int i=0;i<ui->listOfVideos->rowCount();i++) {
+            ui->listOfVideos->removeCellWidget(i,1);
+            ui->listOfVideos->removeCellWidget(i,2);
+            ui->listOfVideos->setCellWidget(i,1,createIconTableItem(true,"noProgress.png"));
+            ui->listOfVideos->setCellWidget(i,2,createIconTableItem(true,"play_inactive.png"));
+        }
     }
 }
 
@@ -475,19 +383,15 @@ void MultiVideoRegistration::addItem(int row, int column, QString parameter)
 
 void MultiVideoRegistration::addStatus(int row, int column, QString status){
     if (status == "error"){
-        QIcon iconError(":/images/everythingBad.png");
-        QTableWidgetItem *icon_item = new QTableWidgetItem;
-        icon_item->setIcon(iconError);
-        videoPool[videoListNames.at(videoCounter)]->setItem(row,column,icon_item);
+        videoPool[videoListNames.at(videoCounter)]->setCellWidget(row,column,createIconTableItem(true,"everythingBad.png"));
     }
     else if (status == "done"){
-        QIcon iconError(":/images/everythingOK.png");
-        QTableWidgetItem *icon_item = new QTableWidgetItem;
-        icon_item->setIcon(iconError);
-        videoPool[videoListNames.at(videoCounter)]->setItem(row,column,icon_item);
+        videoPool[videoListNames.at(videoCounter)]->setCellWidget(row,column,createIconTableItem(true,"everythingOK.png"));
     }
     ui->progressBar->setValue(qRound((double(internalCounter)/actualFrameCount)*100.0));
     internalCounter+=1;
+    if (internalCounter > 1 && !ui->registratePB->isEnabled())
+        ui->registratePB->setEnabled(true);
 }
 void MultiVideoRegistration::errorHandler(int indexOfThread, QString errorMessage){
     Q_UNUSED(indexOfThread)
@@ -527,7 +431,7 @@ void MultiVideoRegistration::continueAlgorithm(){
                 emit calculationStopped();
         }
         else
-            calculationStopped();
+            emit calculationStopped();
     }
 }
 
@@ -542,18 +446,6 @@ void MultiVideoRegistration::processResuluts(int analysedThread){
         }
     }
     threadPool[analysedThread]->dataObtained();
-}
-
-void MultiVideoRegistration::saveTheResults(QMap<QString, QVector<double> > input, int from, int to)
-{
-    for (int index = from; index <= to; index++){
-        videoPropertiesDouble[actualVideoName]["FrangiX"][index] = input["FrangiX"][index];
-        videoPropertiesDouble[actualVideoName]["FrangiY"][index] = input["FrangiY"][index];
-        videoPropertiesDouble[actualVideoName]["FrangiEuklid"][index] = input["FrangiEuklid"][index];
-        videoPropertiesDouble[actualVideoName]["POCX"][index] = input["FinalPOCx"][index];
-        videoPropertiesDouble[actualVideoName]["POCY"][index] = input["FinalPOCy"][index];
-        videoPropertiesDouble[actualVideoName]["angle"][index] = input["Angles"][index];
-    }
 }
 
 void MultiVideoRegistration::processWriterError(int errorNumber){
@@ -727,10 +619,6 @@ void MultiVideoRegistration::keyPressEvent(QKeyEvent *event){
          default:
             QWidget::keyPressEvent(event);
     }
-}
-
-void MultiVideoRegistration::clickedToPlay(int row,int column) {
-
 }
 
 void MultiVideoRegistration::deleteSelectedFiles(){

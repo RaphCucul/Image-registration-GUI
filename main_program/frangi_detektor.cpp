@@ -95,7 +95,7 @@ void Frangi_detektor::setParametersToUI(){
 
     if (SharedVariables::getSharedVariables()->getSpecificFrangiParameterWrapper(frangiType::VIDEO_SPECIFIC,
                                                                                  analyseChosenFile["filename"],
-                                                                                 "zpracovani") == 1.0){
+                                                                                 "mode") == 1.0){
         ui->RB_standard->setChecked(1);
         ui->RB_reverz->setChecked(0);}
     else{
@@ -387,7 +387,7 @@ bool Frangi_detektor::loadFrangiParametersForVideo(frangiType i_type) {
                     ratioSpinBoxes[name]->setValue(receivedParameters[name].toDouble());
             }
             foreach (QString name,frangiParametersList) {
-                if (name != "zpracovani")
+                if (name != "mode")
                     spinBoxes[name]->setValue(receivedParameters[name].toDouble());
                 else {
                     if (receivedParameters[name].toDouble() == 1.0)
@@ -571,9 +571,9 @@ void Frangi_detektor::onSaveFrangiData() {
     SharedVariables::getSharedVariables()->setSpecificFrangiParameterWrapper(saveType,
                                                                              type,
                                                                              analyseChosenFile["filename"],
-                                                                             "zpracovani",_glPar);
+                                                                             "mode",_glPar);
     foreach (QString parameter,frangiParametersList) {
-        if (parameter != "zpracovani") {
+        if (parameter != "mode") {
             getParameter(saveType,parameter);
         }
     }

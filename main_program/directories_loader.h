@@ -1,3 +1,7 @@
+// Part of Frames registration project
+// created by Jan Prosser
+// Licensed under BSD-2-Clause License
+
 #ifndef DIRECTORIESLOADER_H
 #define DIRECTORIESLOADER_H
 
@@ -18,8 +22,10 @@ class DirectoriesLoader;
 
 /**
  * @class DirectoriesLoader
- * @brief The DirectoriesLoader class provides functions allowing a user to load *.ini file and json file with directories pathes and
- * save chosen pathes.
+ * @brief Provides functions allowing a user to load *.ini settings file, frangi parameters JSON file
+ * with global frangi parameters and the JSON file with directories paths.
+ *
+ * It also automatically saves an added directory to the JSON.
  */
 class DirectoriesLoader : public QWidget
 {
@@ -29,17 +35,18 @@ public:
     explicit DirectoriesLoader(QWidget *parent = nullptr);
 
     /**
-     * @brief The function controls if the *.ini file contains path to the JSON file (fileFolderDirectory)
-     * where paths for loading, saving videos, video parameters and Frangi filter parameters are stored. If the
-     * JSON file exists, stored paths are added to comboboxes and paths with zero index are marked as actualy
-     * used directories. If the JSON is not found, all tabs are disabled.
+     * @brief Controls if the *.ini file contains a path to the JSON file where paths for loading from, saving videos, video
+     * parameters and Frangi filter parameters are stored.
+     *
+     * If the JSON file exists, stored directories are loaded to combo boxes,
+     * those with zero indexes are marked as actually used directories. If the JSON file isn't found, all tabs are disabled.
      * @return Returns true or false based on the check existence result
      */
     bool checkFileFolderExistence();
 
     /**
-     * @brief The function loads the JSON path stored in the *.ini file, processed by GlobalSettings class
-     * @sa processLoadedSettings();
+     * @brief Loads a path linked to a JSON file with directories stored in the *.ini file, processed by GlobalSettings class.
+     * @sa processLoadedSettings
      * @return The result of the loading process.
      */
     bool LoadSettings();
@@ -47,108 +54,106 @@ public:
     ~DirectoriesLoader();
 private slots:
     /**
-     * @brief Slot function which stores a directory path user has selected
-     * @param[in] index
+     * @brief Stores a directory path a user has selected.
+     * @param[in] index - index of the selected path in the combo box list
      */
     void chosenPath(int i_index);
     /**
-     * @brief Slot function which enables a user to add a new directory path with Frangi parameters description file
+     * @brief Enables a user to add a new directory with Frangi parameters description file.
      */
     void on_paramFrangPB_clicked();
     /**
-     * @brief Slot function which enables a user to update a directory path of a JSON file with the list of directories
+     * @brief Enables a user to update a directory with a JSON file with the list of directories.
      */
     void on_ChooseFileFolderDirectory_clicked();
     /**
-     * @brief Slot function which enables a user to add a new directory path with original videos
+     * @brief Enables a user to add a new directory with original videos.
      */
     void on_pathToVideos_clicked();
     /**
-     * @brief Slot function which enables a user to to add a new directory path where registrated videos should be saved.
+     * @brief Enables a user to to add a new directory where registrated videos should be saved.
      */
     void on_SaveVideos_clicked();
     /**
-     * @brief Slot function which enables a user to to add a new directory path with created *.dat files.
+     * @brief Enables a user to to add a new directory with created video *.dat files.
      */
     void on_DataFolder_clicked();
 
-    //void on_FileFolderDirectory_textEdited(const QString &arg1);
 signals:
     /**
-     * @brief Signal emitted to unblock all tabs of the program, if the paths were loaded successfully - program is usable
+     * @brief Emitted to unblock all tabs of the program. If the paths were loaded successfully - the program is
+     * usable.
      */
     void fileFolderDirectoryFound();
 
     /**
-     * @brief Signal emitted to block the GUI until the proper path to the directory with json file is found.
+     * @brief Emitted to block all tabs until a path to a directory with JSON file is found.
      */
     void fileFolderDirectoryNotFound();
 private:
     Ui::DirectoriesLoader *ui;
 
     /**
-     * @brief The function processes a path chosen by a user. It is added to the JSON array and string list.
-     * @param[in] type - corresponding path type
+     * @brief Processes a path chosen by a user. It is added to the JSON array and string list.
+     * @param[in] type - corresponding path type (category)
      * @param[in] path - chosen path itself
      */
     void processPath(QString i_type, QString i_path);
 
     /**
-     * @brief The function makes all form elements enabled. Paths can be added and selected.
+     * @brief Makes all widgets enabled. Directories can be added and selected.
      */
     void enableElements();
 
     /**
-     * @brief The function makes all form elements. No operations are allowed.
+     * @brief Disables all widgets. No operation can be done.
      */
     void disableElements();
 
     /**
-     * @brief The function reads the content of an object specified by a type from the JSON file.
-     * Combobox is then filled with the loaded content. onlyCheckEmpty parameter says if the JSON object
-     * should be analysed and the content loaded or if the user wants to check the JSON object is empty or not.
-     * @param[in] type - corresponding path type
+     * @brief Checks existing loaded directories. It may check if a directory exists or it can added it
+     * to the internal variable.
+     * @param[in] type - corresponding path category (type)
      * @param[in] box - activated comboBox
-     * @param[in] onlyCheckEmpty - if true, the path is not added to the comboBox list
+     * @param[in] onlyCheckEmpty - if true, the path is not added to the internal variable
      * @return Returns true or false based on the processing result
      */
     bool getPathFromJson(QString i_type, QComboBox* i_box, bool i_onlyCheckEmpty);
 
     /**
-     * @brief The function calls getPathFromJson for all JSON object types and sets the argument onlyCheckEmpty
-     * to these functions. onlyCheckEmpty parameter says if the JSON object
-     * should be analysed and the content loaded or if the user wants to check the JSON object is empty or not.
+     * @brief Calls getPathFromJson for all directory types and sets the argument onlyCheckEmpty
+     * to these functions.
      * @sa getPathFromJson(QString i_type, QComboBox* i_box, bool i_onlyCheckEmpty)
-     * @param[in] onlyCheckEmpty
-     * @return
+     * @param[in] onlyCheckEmpty - if true, the path is not added to the internal variable
+     * @return Returns true or false based on the processing result
      */
     bool getPathsFromJson(bool i_onlyCheckEmpty);
 
     /**
-     * @brief The function loads the content from the JSON folder file.
+     * @brief Loads the content from a JSON file with directories.
      * @sa getPathsFromJson(bool i_onlyCheckEmpty)
-     * @return
+     * @return Returns true or false based on the processing result
      */
     bool loadJsonPaths();
 
     /**
-     * @brief Helper function for LoadSettings function. Loads data from JSON file.
-     * @sa LoadSettings()
-     * @return
+     * @brief Wrapper function for a JSON file data loading.
+     * @sa loadJsonPaths();
+     * @return Returns true or false based on the processing result
      */
     bool processLoadedSettings();
 
     /**
-     * @brief The function creates a new *.ini settings file, if the file is missing, when the program
+     * @brief Creates a new *.ini settings file, if the file is found missing when the program
      * starts. Then, the path to JSON file is added to this new *.ini file.
      */
     void createIni();
 
     /**
      * @brief Function implements the posibility to delete the highlighted item from a combobox list.
-     * @param[in] obj
-     * @param[in] event
-     * @return
+     * @param[in] obj - affected object (widget)
+     * @param[in] event - type of event (mouse pressed, released etc.)
+     * @return Returns true or false based on the processing result
      */
     bool eventFilter(QObject *obj, QEvent *event);
 

@@ -24,7 +24,7 @@ class GraphET_parent : public QDialog
 public:
     /**
      * @enum namesFlag
-     * @brief The namesFlag enum helps to identify, what should be the name of the tab.
+     * @brief The namesFlag enum helps to identify, what should appear in the tab.
      */
     enum class namesFlag {
         Fullname,FilenameOnly

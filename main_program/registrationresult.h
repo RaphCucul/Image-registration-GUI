@@ -14,8 +14,9 @@ class RegistrationResult;
 
 /**
  * @class RegistrationResult
- * @brief The RegistrationResult class is a simple dialog showing registration result - it can be a video or just two frames. It
- * depends when the program is called. It is not stand-alone dialog, it is always called from the program by some algorithm.
+ * @brief The RegistrationResult class is a simple dialog showing registration result - it can be a video or just two frames.
+ *
+ * It depends when the program is called. It is not stand-alone dialog, it is always called from the program by some algorithm.
  * For example registrated videos can be viewed in the moment they are created. Not later.
  */
 class RegistrationResult : public QDialog
@@ -56,6 +57,10 @@ public:
     void callVideo();
 
 private slots:
+    /**
+     * @brief According to what should be displayed (image or videoframe), the program handles the source data differently.
+     * @param value - index of image/frame, 0 or 1
+     */
     void changeDisplayed(int value);
 private:
     /**

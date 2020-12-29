@@ -11,9 +11,9 @@
  */
 
 /**
- * @brief The main function performing the registration of two frames - referencial and another one.
+ * @brief The main function performing the registration of two frames - referential and another one.
  * @param[in] cap
- * @param[in] i_referencial
+ * @param[in] i_referential
  * @param[in] i_shifted
  * @param[in] i_translatedNo
  * @param[in] i_iteration

@@ -43,7 +43,7 @@ double WindowsImpl::hddUsed(){
     SYSTEMTIME SampleTime;
 
     WCHAR CounterPathBuffer[PDH_MAX_COUNTER_PATH];
-    Status = PdhOpenQuery(NULL, NULL, &Query);
+    Status = PdhOpenQuery(NULL, 0, &Query);
 
     wcscpy_s(CounterPathBuffer,sizeof(CounterPathBuffer),fullString.c_str());
     Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);

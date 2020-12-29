@@ -8,7 +8,7 @@ class AboutProgram;
 }
 
 /**
- * @class AbotuProgram
+ * @class AboutProgram
  * @brief The AboutProgram class is a simple QDialog implementation displaying release notes of the current version.
  */
 class AboutProgram : public QDialog

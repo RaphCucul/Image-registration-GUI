@@ -8,7 +8,7 @@
 #include <QNetworkReply>
 
 /**
- * @class VersionChecker class
+ * @class VersionChecker
  * @brief The VersionChecker class downloads data from the given URL and stores it for processing.
  */
 class VersionChecker : public QObject

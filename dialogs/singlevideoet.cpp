@@ -87,39 +87,12 @@ void SingleVideoET::on_chooseVideoPB_clicked()
         ui->chosenVideoLE->setReadOnly(false);
         QString folder,filename,suffix;
         processFilePath(referencialImagePath,folder,filename,suffix);
-        /*if (chosenVideoETSingle.length() == 0)
-        {
-            chosenVideoETSingle.push_back(folder);
-            chosenVideoETSingle.push_back(filename);
-            chosenVideoETSingle.push_back(suffix);
-        }
-        else
-        {
-            chosenVideoETSingle.clear();
-            chosenVideoETSingle.push_back(folder);
-            chosenVideoETSingle.push_back(filename);
-            chosenVideoETSingle.push_back(suffix);
-        }*/
+
         chosenVideoETSingle["folder"] = folder;
         chosenVideoETSingle["filename"] = filename;
         chosenVideoETSingle["suffix"] = suffix;
         ui->chosenVideoLE->setText(chosenVideoETSingle["filename"]);
-        cv::VideoCapture cap = cv::VideoCapture(referencialImagePath.toLocal8Bit().constData());
-        if (!cap.isOpened())
-        {
-            ui->chosenVideoLE->setStyleSheet("color: #FF0000");
-            cap.release();
-        }
-        else
-        {
-            ui->chosenVideoLE->setStyleSheet("color: #33aa00");
-            videoETScorrect = true;
-            int frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-            actualEntropy.fill(0.0,frameCount);
-            actualTennengrad.fill(0.0,frameCount);
-            ui->standardCutout->setEnabled(true);
-            ui->extraCutout->setEnabled(true);
-        }
+        evaluateVideoImageInput(referencialImagePath);        
     }
     else{
         ui->chosenVideoLE->setReadOnly(true);
@@ -138,27 +111,80 @@ void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
     }
     else
     {
-        cv::VideoCapture cap = cv::VideoCapture(fullPath.toLocal8Bit().constData());
-        ui->chosenVideoLE->setStyleSheet("color: #339900");
         videoETScorrect = true;
         chosenVideoETSingle["filename"] = arg1;
+        evaluateVideoImageInput(fullPath);
+    }
+}
+
+bool SingleVideoET::evaluateVideoImageInput(QString i_path){
+    cv::VideoCapture cap = cv::VideoCapture(i_path.toLocal8Bit().constData());
+    if (!cap.isOpened())
+    {
+        ui->chosenVideoLE->setStyleSheet("color: #FF0000");
+        ui->areaMaximum->setEnabled(false);
+        ui->rotationAngle->setEnabled(false);
+        ui->iterationCount->setEnabled(false);
+        cap.release();
+        return false;
+    }
+    else
+    {
+        ui->chosenVideoLE->setStyleSheet("color: #339900");
+
+        QVector<int> standardCutout,extraCutout;
+        if (checkAndLoadData("standard",chosenVideoETSingle["filename"],standardCutout)) {
+            if (standardCutout.length() == 4 && standardCutout[2] > 0 && standardCutout[3] > 0) {
+                cv::Rect _p0 = convertVector2Rect(standardCutout);
+                QRect _p1 = convertRectToQRect(_p0);
+                SharedVariables::getSharedVariables()->setVideoInformation(chosenVideoETSingle["filename"],"standard",_p1);
+                standardLoaded = true;
+                ui->standardCutout->setChecked(true);
+                selectedCutout = cutoutType::STANDARD;
+            }
+            else {
+                standardLoaded = false;
+                ui->standardCutout->setChecked(false);
+            }
+        }
+        else {
+            standardLoaded = false;
+            ui->standardCutout->setChecked(false);
+        }
+
+        if (checkAndLoadData("extra",chosenVideoETSingle["filename"],extraCutout)) {
+            if (extraCutout.length() == 4 && extraCutout[2] > 0 && extraCutout[3] > 0) {
+                cv::Rect _p0 = convertVector2Rect(extraCutout);
+                QRect _p1 = convertRectToQRect(_p0);
+                SharedVariables::getSharedVariables()->setVideoInformation(chosenVideoETSingle["filename"],"extra",_p1);
+                extraLoaded = true;
+                ui->extraCutout->setChecked(true);
+                selectedCutout = cutoutType::EXTRA;
+            }
+            else {
+                extraLoaded = false;
+                ui->extraCutout->setChecked(false);
+            }
+        }
+        else {
+            extraLoaded = false;
+            ui->extraCutout->setChecked(false);
+        }
+
         QVector<double> videoETthresholds;
-        if (checkAndLoadData("thresholds",arg1,videoETthresholds)){
-            temporalySavedThresholds.insert(arg1,videoETthresholds);
+        if (checkAndLoadData("thresholds",chosenVideoETSingle["filename"],videoETthresholds)){
+            temporalySavedThresholds.insert(chosenVideoETSingle["filename"],videoETthresholds);
             ui->previousThresholdsCB->setEnabled(true);
-            ETthresholdsFound.insert(arg1,true);
+            ETthresholdsFound.insert(chosenVideoETSingle["filename"],true);
         }
         else{
-            ETthresholdsFound.insert(arg1,false);
+            ETthresholdsFound.insert(chosenVideoETSingle["filename"],false);
             ui->previousThresholdsCB->setEnabled(false);
         }
-        if (ui->standardCutout->isChecked()) {
-            ui->standardCutout->setCheckState(Qt::Unchecked);
-        }
-        if (ui->extraCutout->isChecked()) {
-            ui->extraCutout->setCheckState(Qt::Unchecked);
-        }
+
+        return true;
     }
+
 }
 
 void SingleVideoET::on_calculateET_clicked()
@@ -187,12 +213,14 @@ void SingleVideoET::on_calculateET_clicked()
             QObject::connect(First[1],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
             QObject::connect(this,SIGNAL(dataObtained_first()),First[1],SLOT(onDataObtained()));
             QObject::connect(First[1],&qThreadFirstPart::readyForFinish,[=](){
-                if (First[1]->isRunning()){
-                    First[1]->terminate();
-                    First[1]->wait(100);
-                    First[1]->deleteLater();
+                if (!First.isEmpty()) {
+                    if (First[1]->isRunning()){
+                        First[1]->terminate();
+                        First[1]->wait(100);
+                        First[1]->deleteLater();
+                    }
+                    else First[1]->deleteLater();
                 }
-                else First[1]->deleteLater();
             });
             First[1]->start();
             emit calculationStarted();
@@ -474,33 +502,79 @@ void SingleVideoET::on_iterationCount_editingFinished()
 }
 
 void SingleVideoET::showDialog(){
-    if (QObject::sender() == ui->standardCutout) {
+    if (QObject::sender() == ui->standardCutout && !standardLoaded) {
         if (ui->standardCutout->isChecked())
         {
             QString fullPath = chosenVideoETSingle["folder"]+"/"+chosenVideoETSingle["filename"]+"."+chosenVideoETSingle["suffix"];
             ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,cutoutType::STANDARD);
             markAnomaly->setModal(true);
             markAnomaly->show();
+            connect(markAnomaly,&QDialog::finished,[=](){
+                checkSelectedCutout();
+            });
         }
     }
-    if (QObject::sender() == ui->extraCutout) {
+    else if (QObject::sender() == ui->standardCutout && !ui->standardCutout->isChecked())
+        standardLoaded = false;
+    else if (QObject::sender() == ui->extraCutout && !extraLoaded) {
         if (ui->extraCutout->isChecked())
         {
             QString fullPath = chosenVideoETSingle["folder"]+"/"+chosenVideoETSingle["filename"]+"."+chosenVideoETSingle["suffix"];
             ClickImageEvent* markAnomaly = new ClickImageEvent(fullPath,cutoutType::EXTRA);
             markAnomaly->setModal(true);
             markAnomaly->show();
+            connect(markAnomaly,&QDialog::finished,[=](){
+                checkSelectedCutout();
+            });
         }
     }
+    else if (QObject::sender() == ui->extraCutout && !ui->extraCutout->isChecked()) {
+        extraLoaded = false;
+        if (ui->standardCutout->isChecked()) {
+            ui->standardCutout->setChecked(false);
+        }
+    }
+}
 
-    if (ui->extraCutout->isChecked() && ui->standardCutout->isChecked())
-        selectedCutout = cutoutType::EXTRA;
-    else if (ui->extraCutout->isChecked() && !ui->standardCutout->isChecked())
-        selectedCutout = cutoutType::EXTRA;
-    else if (!ui->extraCutout->isChecked() && ui->standardCutout->isChecked())
-        selectedCutout = cutoutType::STANDARD;
-    else
+void SingleVideoET::checkSelectedCutout() {
+
+    if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(chosenVideoETSingle["filename"])) {
+        QRect __extra = SharedVariables::getSharedVariables()->getVideoInformation(chosenVideoETSingle["filename"],"extra").toRect();
+        if (__extra.isNull() && __extra.width() <= 0 && __extra.height() <= 0) {
+            ui->extraCutout->setChecked(false);
+            ui->standardCutout->setChecked(false);
+            selectedCutout = cutoutType::NO_CUTOUT;
+        }
+        else {
+            selectedCutout = cutoutType::EXTRA;
+            standardLoaded = true;
+            extraLoaded = true;
+            ui->standardCutout->setChecked(true);
+        }
+    }
+    else {
+        ui->extraCutout->setChecked(false);
+        ui->standardCutout->setChecked(false);
         selectedCutout = cutoutType::NO_CUTOUT;
+    }
+
+    if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(chosenVideoETSingle["filename"])) {
+        QRect __standard = SharedVariables::getSharedVariables()->getVideoInformation(chosenVideoETSingle["filename"],"standard").toRect();
+        if (__standard.isNull() && __standard.width() <= 0 && __standard.height() <= 0) {
+            ui->standardCutout->setChecked(false);
+            selectedCutout = cutoutType::NO_CUTOUT;
+        }
+        else {
+            if (!extraLoaded)
+                selectedCutout = cutoutType::STANDARD;
+            standardLoaded = true;
+        }
+    }
+    else {
+        ui->standardCutout->setChecked(false);
+        selectedCutout = cutoutType::NO_CUTOUT;
+    }
+
 }
 
 void SingleVideoET::disableWidgets(){
@@ -510,6 +584,9 @@ void SingleVideoET::disableWidgets(){
     ui->extraCutout->setEnabled(false);
     ui->savePB->setEnabled(false);
     ui->showGraphET->setEnabled(false);
+    ui->areaMaximum->setEnabled(false);
+    ui->iterationCount->setEnabled(false);
+    ui->rotationAngle->setEnabled(false);
 }
 
 void SingleVideoET::enableWidgets(){
@@ -519,4 +596,7 @@ void SingleVideoET::enableWidgets(){
     ui->extraCutout->setEnabled(true);
     ui->savePB->setEnabled(true);
     ui->showGraphET->setEnabled(true);
+    ui->areaMaximum->setEnabled(true);
+    ui->iterationCount->setEnabled(true);
+    ui->rotationAngle->setEnabled(true);
 }

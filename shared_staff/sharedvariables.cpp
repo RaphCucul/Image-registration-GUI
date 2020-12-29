@@ -530,7 +530,7 @@ FrangiThread::FrangiThread(const cv::Mat i_inputFrame, int i_processingMode, int
     _showResult = (i_showResult);
     _frameType = (i_frameType);
     _windowName = (i_windowName);
-    QStringList _l = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","zpracovani"};
+    QStringList _l = {"sigma_start","sigma_end","sigma_step","beta_one","beta_two","mode"};
     for (int index = 0; index < i_FrangiParameters.length(); index++) {
         _FrangiParameters[_l.at(index)] = i_FrangiParameters[index];
     }

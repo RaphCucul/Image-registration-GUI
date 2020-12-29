@@ -25,7 +25,9 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,
                                QMap<QString, QVector<int>> i_FirstDecisionResults,
                                QMap<QString, QVector<int>> i_SecondDecisionResults,
                                QMap<QString, QVector<int>> i_CompleteEvaluation,
-                               QWidget *parent) : QDialog(parent),ui(new Ui::GraphET_parent)
+                               QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::GraphET_parent)
 {
     ui->setupUi(this);
     fileList = i_chosenList;

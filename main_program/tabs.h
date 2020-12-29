@@ -24,13 +24,41 @@ class tabs : public QWidget
 
 public:
     explicit tabs(QWidget *parent = nullptr);
+    /**
+     * @brief Rotates given icon for 90°.
+     * @param[in] i_icon - original icon
+     * @param[in] size - size of the icon
+     * @return rotated icon
+     */
     QIcon iconRotation(QIcon i_icon, int size);
     ~tabs();
 
 private slots:
+    /**
+     * @brief When a tab is clicked, program automatically checks if a path to videos is set.
+     *
+     * If the path exists, it automatically checks the content of the folder and place the name of the first found
+     * video to the videopicker widget. If a path is not found, a placeholder is visible in videopicker widget.
+     * @param[in] i_index - tab index
+     */
     void on_pages_tabBarClicked(int i_index);
+    /**
+     * @brief When the file with directories is located, loaded and all necessary conditions are passed, all tabs are enabled
+     * and the program is fully functional.
+     */
     void fileFolderDirectoryLocated();
+    /**
+     * @brief Calls "disableTabs" function in case a calculation has started. Tabs are disabled when the file with directories is not
+     * found.
+     *
+     * In the case of running calculation, only currently selected tab stays active, the rest of tabs is deactivated.
+     */
     void disableTabs_slot();
+    /**
+     * @brief Enables all tabs.
+     *
+     * Tabs can be enabled when a user completes the list of necessary directories or a calculation is finished/terminated.
+     */
     void enableTabs_slot();
 private:
     /**

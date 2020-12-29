@@ -586,7 +586,7 @@ private:
     /**
      * @brief Sets a value to specific global-related frangi margin.
      * @param[in] i_marginName
-     * @param[in] value
+     * @param[in] i_value
      * @sa setSpecificVideoFrangiMargin(QString i_videoName, QString i_marginName, int i_value)
      */
     void setSpecificFrangiMargin(QString i_marginName, int i_value);

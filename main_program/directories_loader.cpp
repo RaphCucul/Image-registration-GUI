@@ -12,10 +12,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
-#include <QComboBox>
-#include <QLineEdit>
-#include <QJsonArray>
-#include <QJsonObject>
 #include <QJsonDocument>
 #include <exception>
 #include <QCoreApplication>
@@ -129,6 +125,8 @@ bool DirectoriesLoader::loadJsonPaths()
             qDebug()<<"Loading paths.";
             return getPathsFromJson(false);
         }
+        else
+            return false;
     } catch (std::exception& e) {
         localErrorDialogHandling[ui->FileFolderDirectory]->evaluate("center","hardError",e.what());
         localErrorDialogHandling[ui->FileFolderDirectory]->show(false);

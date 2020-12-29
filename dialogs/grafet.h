@@ -13,6 +13,10 @@ namespace Ui {
 class GrafET;
 }
 
+/**
+ * @enum ColorTheme
+ * @brief The ColorTheme enum helps to use ColorTheme of the QCPItemLine
+ */
 enum class ColorTheme
 {
     Light,
@@ -32,7 +36,7 @@ public:
     virtual ~SW_VerticalQCPItemLine();
 
     /**
-     * @brief Unused function - could be used to show label of the line. Label can show for example image.
+     * @brief Unused function - could be used to show label of the line.
      * @param x
      * @param y
      * @param i_framePixmap
@@ -53,6 +57,7 @@ public:
 };
 
 /**
+ * @class GrafET
  * @brief The GrafET class visualizes calculated entropy and tennengrad data. It is also possible to highlight frames
  * according to their evaluation indexes.
  */
@@ -120,6 +125,11 @@ public:
     QJsonObject getReturnJSONObject(){ return returnObject; }
 signals:
     void saveCalculatedData(QString videoName, QJsonObject data);
+    /**
+     * @brief Informs the program to resize the dialogue.
+     *
+     * The signal is connected to the choice to show/hide actually selected frame.
+     */
     void resizeWindow();
 private slots:
     /**
@@ -129,10 +139,19 @@ private slots:
     void showVals(QMouseEvent* event);
     /**
      * @brief Shows/hides an overview of the frame under the cursor.
-     * @param arg1
+     * @param arg1 - unused checkbox status
      */
     void on_showFrameOverview_stateChanged(int arg1);
+    /**
+     * @brief Calls save function to save complete loaded information. If a user changes an evaluation index
+     * of a frame, this function helps to save it.
+     * @sa saveData(SaveOption i_saveOption)
+     */
     void on_saveResults_clicked();
+    /**
+     * @brief Calls save function saving E+T thresholds only.
+     * @sa saveData(SaveOption i_saveOption)
+     */
     void on_saveThresholds_clicked();
     /**
      * @brief Invokes context menu - it is possible to change evaluation index of a frame or it is possible to change
@@ -363,7 +382,7 @@ private:
      * @param i_evaluationType - evaluation index of affected frames
      * @param showFramesInGraph - the graph is meant to be shown (true) or hidden (false)
      * @param ETdependency - if graph is dependent on entropy or tennengrad graph
-     * @param evaluationType - numeric representation of evaluation index
+     * @param i_evaluatioTypeIndex - numeric representation of evaluation index
      */
     void showCorrespondingFrames(int i_valueType, int i_evaluationType,
                                  bool showFramesInGraph, bool ETdependency, int i_evaluatioTypeIndex);

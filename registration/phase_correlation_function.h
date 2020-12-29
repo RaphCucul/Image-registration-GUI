@@ -4,7 +4,7 @@
 
 /**
  * @file phase_correlation_function.h
- * Vital phase correlation function wrappers. These function wrappers are calling the cv::PhaseCorrelate
+ * Vital phase correlation functions wrappers. These function wrappers are calling the cv::PhaseCorrelate
  * function directly and process the results automatically for another use, if necessary.
  */
 
