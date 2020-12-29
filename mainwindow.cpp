@@ -14,12 +14,11 @@
 #include <QInputDialog>
 #include <QUrl>
 
-#include "power/cpuwidget.h"
-#include "power/memorywidget.h"
 #include "main_program/tabs.h"
 #include "shared_staff/globalsettings.h"
 #include "dialogs/hdd_settings.h"
 #include "util/aboutprogram.h"
+#include "util/adminCheck.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,14 +27,26 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     SystemMonitor::instance().init();
 
-    setupUsagePlots();
-    if (GlobalSettings::getSettings()->isHDDMonitorEnabled()) {
-        QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
+    // detect if the program is started with admin privilegies
+    bool isAdmin = IsCurrentUserLocalAdministrator();
+    CPU = new CPUWidget();
+    Memory = new MemoryWidget();
+
+    if (isAdmin) {
+        HDD = new HddUsagePlot();
+        placePowerWidgets(true);
+        setupUsagePlots();
+        if (GlobalSettings::getSettings()->isHDDMonitorEnabled()) {
+            QObject::connect(CPU,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
+        }
+        else {
+            HDD->setThemeColor(QColor("#dfe9ff"));
+        }
+        connect(HDD,SIGNAL(hddUsagePlotClicked(bool)),this,SLOT(onHddUsagePlotClicked(bool)));
     }
     else {
-        ui->hddWidget->setThemeColor(QColor("#dfe9ff"));
+        placePowerWidgets(false);
     }
-    connect(ui->hddWidget,SIGNAL(hddUsagePlotClicked(bool)),this,SLOT(onHddUsagePlotClicked(bool)));
 
     this->setStyleSheet("background-color: white");
 
@@ -59,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->menuSettings,SIGNAL(triggered(QAction*)),this,SLOT(slotSettingsChanged(QAction*)));
     connect(ui->menuHelp,SIGNAL(triggered(QAction*)),this,SLOT(slotHelpChanged(QAction*)));
 
-    localErrorDialogHandler[ui->hddWidget] = new ErrorDialog(ui->hddWidget);
+    localErrorDialogHandler[HDD] = new ErrorDialog(HDD);
     bool status = GlobalSettings::getSettings()->getAutoUpdateSetting();
     ui->menuSettings->actions().at(2)->setChecked(status);
     if (status){
@@ -97,28 +108,31 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::placePowerWidgets(bool includeHDD) {
+    ui->stateIndicators->addWidget(CPU,1);
+    ui->stateIndicators->addWidget(Memory,1);
+    if (includeHDD) {
+        ui->stateIndicators->addWidget(HDD,5);
+    }
+}
+
 void MainWindow::setupUsagePlots()
 {
-    ui->hddWidget->setMaximumTime(60);
-    ui->hddWidget->setMaximumUsage(110);
-    ui->hddWidget->setThemeColor(QColor(Qt::blue));
+    HDD->setMaximumTime(60);
+    HDD->setMaximumUsage(110);
+    HDD->setThemeColor(QColor(Qt::blue));
 }
 
 void MainWindow::updateWidget()
 {
     double hddused = SystemMonitor::instance().hddUsed();
     if (hddused >= 0.0)
-        ui->hddWidget->addData(hddused);
+        HDD->addData(hddused);
     else if (hddused < 0.0 && !alreadyEvaluated){
-        localErrorDialogHandler[ui->hddWidget]->evaluate("center","",0);
-        localErrorDialogHandler[ui->hddWidget]->show(false);
+        localErrorDialogHandler[HDD]->evaluate("center","",0);
+        localErrorDialogHandler[HDD]->show(false);
         alreadyEvaluated = true;
     }
-}
-
-void MainWindow::onStopUpdatingWidget()
-{
-    emit stopUpdatingPowerWidget();
 }
 
 void MainWindow::switchTranslator(QString language)
@@ -224,7 +238,6 @@ void MainWindow::onHddUsagePlotClicked(bool newStatus) {
 }
 
 void MainWindow::closeEvent(QCloseEvent *e){
-    emit stopUpdatingPowerWidget();
     QMainWindow::closeEvent(e);
     QApplication::quit();
 }
