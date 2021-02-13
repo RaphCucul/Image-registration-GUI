@@ -54,14 +54,14 @@
    <item row="1" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QCheckBox" name="zobrazGrafE">
+      <widget class="QCheckBox" name="showGraphE">
        <property name="text">
         <string>Show entropy</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="zobrazGrafT">
+      <widget class="QCheckBox" name="showGraphT">
        <property name="text">
         <string>Show tennengrad</string>
        </property>
@@ -113,28 +113,28 @@
    <item row="1" column="2">
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="0" column="0">
-      <widget class="QDoubleSpinBox" name="T_HP">
+      <widget class="QDoubleSpinBox" name="T_UT">
        <property name="maximum">
         <double>999.990000000000009</double>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QCheckBox" name="T_DPzobraz">
+      <widget class="QCheckBox" name="T_LTshow">
        <property name="text">
         <string>Show</string>
        </property>
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QCheckBox" name="T_HPzobraz">
+      <widget class="QCheckBox" name="T_UTshow">
        <property name="text">
         <string>Show</string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QDoubleSpinBox" name="T_DP">
+      <widget class="QDoubleSpinBox" name="T_LT">
        <property name="maximum">
         <double>999.990000000000009</double>
        </property>
@@ -159,28 +159,28 @@
    <item row="1" column="1">
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
-      <widget class="QDoubleSpinBox" name="E_HP">
+      <widget class="QDoubleSpinBox" name="E_UT">
        <property name="singleStep">
         <double>0.010000000000000</double>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QCheckBox" name="E_DPzobraz">
+      <widget class="QCheckBox" name="E_LTshow">
        <property name="text">
         <string>Show</string>
        </property>
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QCheckBox" name="E_HPzobraz">
+      <widget class="QCheckBox" name="E_UTshow">
        <property name="text">
         <string>Show</string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QDoubleSpinBox" name="E_DP">
+      <widget class="QDoubleSpinBox" name="E_LT">
        <property name="singleStep">
         <double>0.010000000000000</double>
        </property>
@@ -208,28 +208,28 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="QCheckBox" name="ohodnoceniEntropyCB">
+      <widget class="QCheckBox" name="evalEntropyCB">
        <property name="text">
         <string>entropy evaluation</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="ohodnoceniTennenCB">
+      <widget class="QCheckBox" name="evalTennengradCB">
        <property name="text">
         <string>tennengrad evaluation</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="prvniRozhodCB">
+      <widget class="QCheckBox" name="firstDecisionCB">
        <property name="text">
         <string>First decision</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="druheRozhodCB">
+      <widget class="QCheckBox" name="secondDecisionCB">
        <property name="text">
         <string>Second decision</string>
        </property>
@@ -306,7 +306,7 @@
    <item row="3" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QCheckBox" name="ohodnocKomplet">
+      <widget class="QCheckBox" name="evalComplete">
        <property name="text">
         <string>Complete evaluation</string>
        </property>

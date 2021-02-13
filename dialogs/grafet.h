@@ -41,7 +41,7 @@ public:
      * @param y
      * @param i_framePixmap
      */
-    void UpdateLabel(double x, double y, QPixmap i_framePixmap);
+    void UpdateLabel(double x, double y, int frameIndex);
 
     /**
      * @brief Sets the visibility of the cursor.

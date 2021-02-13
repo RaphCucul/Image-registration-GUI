@@ -50,19 +50,19 @@ GrafET::GrafET(QVector<double> i_entropy,
                  i_SecondDecisionResults,i_CompleteEvaluation);
 
     // standard GUI elements initialization
-    ui->E_HPzobraz->setEnabled(false);
-    ui->E_DPzobraz->setEnabled(false);
-    ui->T_HPzobraz->setEnabled(false);
-    ui->T_DPzobraz->setEnabled(false);
+    ui->E_UTshow->setEnabled(false);
+    ui->E_LTshow->setEnabled(false);
+    ui->T_UTshow->setEnabled(false);
+    ui->T_LTshow->setEnabled(false);
 
     if (ETparametersIntMap["entropyFirstEval"].length() == 0)
-        ui->ohodnoceniEntropyCB->setEnabled(false);
+        ui->evalEntropyCB->setEnabled(false);
     if (ETparametersIntMap["tennengradFirstEval"].length()==0)
-        ui->ohodnoceniTennenCB->setEnabled(false);
+        ui->evalTennengradCB->setEnabled(false);
     if (ETparametersIntMap["decisAlgorFirst"].length() == 0)
-        ui->prvniRozhodCB->setEnabled(false);
+        ui->firstDecisionCB->setEnabled(false);
     if (ETparametersIntMap["decisAlgorSecond"].length() == 0)
-        ui->druheRozhodCB->setEnabled(false);
+        ui->secondDecisionCB->setEnabled(false);
 
     // find extremes for entropy and tennengrad and apply correct thresholds
     findExtremesAndThresholds(i_thresholds);
@@ -79,46 +79,46 @@ GrafET::GrafET(QVector<double> i_entropy,
     ActualGraphicalObject = new QCustomPlot(WSCustomPlot);
     ui->graphLayout->addWidget(ActualGraphicalObject);
     //change of visible value type
-    connect(ui->zobrazGrafE,SIGNAL(stateChanged(int)),this,SLOT(onReactOnDisplayedParameterChange()));
-    connect(ui->zobrazGrafT,SIGNAL(stateChanged(int)),this,SLOT(onReactOnDisplayedParameterChange()));
+    connect(ui->showGraphE,SIGNAL(stateChanged(int)),this,SLOT(onReactOnDisplayedParameterChange()));
+    connect(ui->showGraphT,SIGNAL(stateChanged(int)),this,SLOT(onReactOnDisplayedParameterChange()));
     // change of threshold (value or visibility) - checkboxes
-    QObject::connect(ui->E_HPzobraz,&QCheckBox::stateChanged,[=](){
+    QObject::connect(ui->E_UTshow,&QCheckBox::stateChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::ENTROPY,ThresholdType::UPPER,true);});
-    QObject::connect(ui->E_DPzobraz,&QCheckBox::stateChanged,[=](){
+    QObject::connect(ui->E_LTshow,&QCheckBox::stateChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::ENTROPY,ThresholdType::LOWER,true);});
-    QObject::connect(ui->T_HPzobraz,&QCheckBox::stateChanged,[=](){
+    QObject::connect(ui->T_UTshow,&QCheckBox::stateChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::TENNENGRAD,ThresholdType::UPPER,true);});
-    QObject::connect(ui->T_DPzobraz,&QCheckBox::stateChanged,[=](){
+    QObject::connect(ui->T_LTshow,&QCheckBox::stateChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::TENNENGRAD,ThresholdType::LOWER,true);});
     // change of threshold (value or visibility) - doublespinboxes
-    QObject::connect(ui->E_HP,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
+    QObject::connect(ui->E_UT,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::ENTROPY,ThresholdType::UPPER,false);});
-    connect(ui->E_DP,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
+    connect(ui->E_LT,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::ENTROPY,ThresholdType::LOWER,false);});
-    connect(ui->T_HP,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
+    connect(ui->T_UT,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::TENNENGRAD,ThresholdType::UPPER,false);});
-    connect(ui->T_DP,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
+    connect(ui->T_LT,(void(QDoubleSpinBox::*)(double))&QDoubleSpinBox::valueChanged,[=](){
         onReactOnThresholdParameterChange(ValueType::TENNENGRAD,ThresholdType::LOWER,false);});
     // show/hide evaluation data
-    connect(ui->ohodnoceniEntropyCB,&QCheckBox::stateChanged,[=](){
+    connect(ui->evalEntropyCB,&QCheckBox::stateChanged,[=](){
         showCorrespondingFrames(ValueType::ENTROPY,EvaluationFrames::ENTROPY_FIRST,
-                                ui->ohodnoceniEntropyCB->isChecked(),true,0);
+                                ui->evalEntropyCB->isChecked(),true,0);
     });
-    connect(ui->ohodnoceniTennenCB,&QCheckBox::stateChanged,[=](){
+    connect(ui->evalTennengradCB,&QCheckBox::stateChanged,[=](){
         showCorrespondingFrames(ValueType::TENNENGRAD,EvaluationFrames::TENNENGRAD_FIRST,
-                                ui->ohodnoceniTennenCB->isChecked(),true,0);
+                                ui->evalTennengradCB->isChecked(),true,0);
     });
-    connect(ui->prvniRozhodCB,&QCheckBox::stateChanged,[=](){
+    connect(ui->firstDecisionCB,&QCheckBox::stateChanged,[=](){
         showCorrespondingFrames(-1,EvaluationFrames::DECISION_FIRST,
-                                ui->prvniRozhodCB->isChecked(),false,0);
+                                ui->firstDecisionCB->isChecked(),false,0);
     });
-    connect(ui->druheRozhodCB,&QCheckBox::stateChanged,[=](){
+    connect(ui->secondDecisionCB,&QCheckBox::stateChanged,[=](){
         showCorrespondingFrames(-1,EvaluationFrames::DECISION_SECOND,
-                                ui->druheRozhodCB->isChecked(),false,0);
+                                ui->secondDecisionCB->isChecked(),false,0);
     });
-    connect(ui->ohodnocKomplet,&QCheckBox::stateChanged,[=](){
+    connect(ui->evalComplete,&QCheckBox::stateChanged,[=](){
         showCorrespondingFrames(-1,EvaluationFrames::EVALUATION_COMPLETE,
-                                ui->ohodnocKomplet->isChecked(),false,1);
+                                ui->evalComplete->isChecked(),false,1);
     });
     connect(ui->IV1,&QCheckBox::stateChanged,[=](){
         showCorrespondingFrames(-1,EvaluationFrames::EVALUATION_1,
@@ -149,11 +149,11 @@ GrafET::GrafET(QVector<double> i_entropy,
     utilGraph = new util_GraphET(ActualGraphicalObject,ETparametersDoubleMap,valueRange);
     initAffectedFramesConnections();
     // set values into QDoubleSpinBoxes
-    ui->zobrazGrafE->setChecked(true);
-    ui->E_HP->setValue(thresholds[ValueType::ENTROPY+ThresholdType::UPPER]);
-    ui->E_DP->setValue(thresholds[ValueType::ENTROPY+ThresholdType::LOWER]);
-    ui->T_HP->setValue(thresholds[ValueType::TENNENGRAD+ThresholdType::UPPER]);
-    ui->T_DP->setValue(thresholds[ValueType::TENNENGRAD+ThresholdType::LOWER]);
+    ui->showGraphE->setChecked(true);
+    ui->E_UT->setValue(thresholds[ValueType::ENTROPY+ThresholdType::UPPER]);
+    ui->E_LT->setValue(thresholds[ValueType::ENTROPY+ThresholdType::LOWER]);
+    ui->T_UT->setValue(thresholds[ValueType::TENNENGRAD+ThresholdType::UPPER]);
+    ui->T_LT->setValue(thresholds[ValueType::TENNENGRAD+ThresholdType::LOWER]);
     // setup cursor object for better visual mouse movement effect
     cursor = new SW_VerticalQCPItemLine(ActualGraphicalObject,ColorTheme::Dark);
     connect(ActualGraphicalObject, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showVals(QMouseEvent*)));
@@ -215,18 +215,18 @@ void GrafET::initDataMaps(QVector<double> i_entropy, QVector<double> i_tennengra
     EFconnections.insert(EvaluationFrames::EVALUATION_4,"eval4");
     EFconnections.insert(EvaluationFrames::EVALUATION_5,"eval5");
 
-    DSBreferences.insert(ValueType::ENTROPY+ThresholdType::UPPER,ui->E_HP);
-    DSBreferences.insert(ValueType::ENTROPY+ThresholdType::LOWER,ui->E_DP);
-    DSBreferences.insert(ValueType::TENNENGRAD+ThresholdType::UPPER,ui->T_HP);
-    DSBreferences.insert(ValueType::TENNENGRAD+ThresholdType::LOWER,ui->T_DP);
-    CBreferences.insert(ValueType::ENTROPY+ThresholdType::UPPER,ui->E_HPzobraz);
-    CBreferences.insert(ValueType::ENTROPY+ThresholdType::LOWER,ui->E_DPzobraz);
-    CBreferences.insert(ValueType::TENNENGRAD+ThresholdType::UPPER,ui->T_HPzobraz);
-    CBreferences.insert(ValueType::TENNENGRAD+ThresholdType::LOWER,ui->T_DPzobraz);
-    interWidgetsReferences.insert(ui->E_HP,ui->E_HPzobraz);
-    interWidgetsReferences.insert(ui->E_DP,ui->E_DPzobraz);
-    interWidgetsReferences.insert(ui->T_HP,ui->T_HPzobraz);
-    interWidgetsReferences.insert(ui->T_DP,ui->T_DPzobraz);
+    DSBreferences.insert(ValueType::ENTROPY+ThresholdType::UPPER,ui->E_UT);
+    DSBreferences.insert(ValueType::ENTROPY+ThresholdType::LOWER,ui->E_LT);
+    DSBreferences.insert(ValueType::TENNENGRAD+ThresholdType::UPPER,ui->T_UT);
+    DSBreferences.insert(ValueType::TENNENGRAD+ThresholdType::LOWER,ui->T_LT);
+    CBreferences.insert(ValueType::ENTROPY+ThresholdType::UPPER,ui->E_UTshow);
+    CBreferences.insert(ValueType::ENTROPY+ThresholdType::LOWER,ui->E_LTshow);
+    CBreferences.insert(ValueType::TENNENGRAD+ThresholdType::UPPER,ui->T_UTshow);
+    CBreferences.insert(ValueType::TENNENGRAD+ThresholdType::LOWER,ui->T_LTshow);
+    interWidgetsReferences.insert(ui->E_UT,ui->E_UTshow);
+    interWidgetsReferences.insert(ui->E_LT,ui->E_LTshow);
+    interWidgetsReferences.insert(ui->T_UT,ui->T_UTshow);
+    interWidgetsReferences.insert(ui->T_LT,ui->T_LTshow);
 }
 
 void GrafET::initAffectedFramesConnections() {
@@ -272,6 +272,7 @@ void GrafET::showVals(QMouseEvent *event)
                 ui->entropyLabel->setText(QString::number(ETparametersDoubleMap[ETconnections[ValueType::ENTROPY]][int(frameIndex)]));
                 ui->tennengradLabel->setText(QString::number(ETparametersDoubleMap[ETconnections[ValueType::TENNENGRAD]][int(frameIndex)]));
             }
+            cursor->UpdateLabel(mouseX,ActualGraphicalObject->xAxis->pixelToCoord(event->pos().y()),frameIndex);
             ui->evalIndex_label->setText(QString::number(ETparametersIntMap["evalComplete"][int(frameIndex)]));
             // load frame preview if allowed
             if (showFrames){
@@ -505,19 +506,19 @@ QVector<double> GrafET::thresholdsToVector() {
 }
 
 void GrafET::onReactOnDisplayedParameterChange() {
-    if(ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked()){
+    if(ui->showGraphE->isChecked() && !ui->showGraphT->isChecked()){
         _displayedGraphs = ValueType::ENTROPY;
         reactOnDisplayedParameterChange(ValueType::ENTROPY,false);
         entropyRelatedWidgetsController(true);
         tennengradRelatedWidgetsController(false);
     }
-    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()){
+    else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked()){
         _displayedGraphs = ValueType::TENNENGRAD;
         reactOnDisplayedParameterChange(ValueType::TENNENGRAD,false);
         entropyRelatedWidgetsController(false);
         tennengradRelatedWidgetsController(true);
     }
-    else if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()){
+    else if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked()){
         _displayedGraphs = ValueType::BOTH;
         ActualGraphicalObject->yAxis->setRange(0.0,1.0);
         reactOnDisplayedParameterChange(ValueType::ENTROPY,true);
@@ -576,11 +577,11 @@ void GrafET::adjustThresholdVectors(int i_mapIdentifier, int i_thresholdIdentifi
 }
 
 void GrafET::entropyRelatedWidgetsController(bool status) {
-    ui->E_HPzobraz->setEnabled(status);
-    ui->E_DPzobraz->setEnabled(status);
-    ui->ohodnoceniEntropyCB->setEnabled(status);
-    ui->prvniRozhodCB->setEnabled(status);
-    ui->druheRozhodCB->setEnabled(status);
+    ui->E_UTshow->setEnabled(status);
+    ui->E_LTshow->setEnabled(status);
+    ui->evalEntropyCB->setEnabled(status);
+    ui->firstDecisionCB->setEnabled(status);
+    ui->secondDecisionCB->setEnabled(status);
     ui->IV1->setEnabled(status);
     ui->IV4->setEnabled(status);
     ui->IV5->setEnabled(status);
@@ -588,11 +589,11 @@ void GrafET::entropyRelatedWidgetsController(bool status) {
     if (!status){
         // if status indicates to disable all corresponding widgets,
         // checkboxes must be unchecked
-        ui->E_HPzobraz->setChecked(status);
-        ui->E_DPzobraz->setChecked(status);
-        ui->ohodnoceniEntropyCB->setChecked(status);
-        ui->prvniRozhodCB->setChecked(status);
-        ui->druheRozhodCB->setChecked(status);
+        ui->E_UTshow->setChecked(status);
+        ui->E_LTshow->setChecked(status);
+        ui->evalEntropyCB->setChecked(status);
+        ui->firstDecisionCB->setChecked(status);
+        ui->secondDecisionCB->setChecked(status);
         ui->IV1->setChecked(status);
         ui->IV4->setChecked(status);
         ui->IV5->setChecked(status);
@@ -600,22 +601,22 @@ void GrafET::entropyRelatedWidgetsController(bool status) {
 }
 
 void GrafET::tennengradRelatedWidgetsController(bool status) {
-    ui->T_HPzobraz->setEnabled(status);
-    ui->T_DPzobraz->setEnabled(status);
-    ui->ohodnoceniTennenCB->setEnabled(status);
+    ui->T_UTshow->setEnabled(status);
+    ui->T_LTshow->setEnabled(status);
+    ui->evalTennengradCB->setEnabled(status);
 
     if (!status){
         // if status indicates to disable all corresponding widgets,
         // checkboxes must be unchecked
-        ui->T_HPzobraz->setChecked(status);
-        ui->T_DPzobraz->setChecked(status);
-        ui->ohodnoceniTennenCB->setChecked(status);
+        ui->T_UTshow->setChecked(status);
+        ui->T_LTshow->setChecked(status);
+        ui->evalTennengradCB->setChecked(status);
     }
 }
 
 /*void GrafET::showEntropy()
 {
-    if(ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+    if(ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
     {
         _displayedGraphs = DisplayedGraphs::ENTROPY;
         ActualGraphicalObject->xAxis->setRange(1, frameCount);
@@ -630,51 +631,51 @@ void GrafET::tennengradRelatedWidgetsController(bool status) {
         LT_entropy.fill(thresholds["lowerE"],frameCount);
         ActualGraphicalObject->graph(5)->setData(valueRange,LT_entropy);
 
-        ui->E_HPzobraz->setEnabled(true);ui->E_DPzobraz->setEnabled(true);
-        ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
-        ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
-        ui->ohodnoceniEntropyCB->setEnabled(true);
-        ui->ohodnoceniTennenCB->setEnabled(false);ui->ohodnoceniTennenCB->setChecked(false);
-        ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);
+        ui->E_UTshow->setEnabled(true);ui->E_LTshow->setEnabled(true);
+        ui->T_UTshow->setEnabled(false);ui->T_UTshow->setChecked(false);
+        ui->T_LTshow->setEnabled(false);ui->T_LTshow->setChecked(false);
+        ui->evalEntropyCB->setEnabled(true);
+        ui->evalTennengradCB->setEnabled(false);ui->evalTennengradCB->setChecked(false);
+        ui->firstDecisionCB->setEnabled(true);
+        ui->secondDecisionCB->setEnabled(true);
         ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
     }
-    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+    else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
     {
         _displayedGraphs = DisplayedGraphs::TENNENGRAD;
         ActualGraphicalObject->graph(0)->setVisible(false);
         ActualGraphicalObject->graph(2)->setVisible(false);
         ActualGraphicalObject->graph(3)->setVisible(false);
-        ui->E_HPzobraz->setChecked(false);
-        ui->E_DPzobraz->setChecked(false);
+        ui->E_UTshow->setChecked(false);
+        ui->E_LTshow->setChecked(false);
 
         ActualGraphicalObject->xAxis->setRange(1, frameCount);
         ActualGraphicalObject->yAxis->setRange(extremes["minTennengrad"]-1,extremes["maxTennengrad"]+1);
         ActualGraphicalObject->graph(1)->setVisible(true);
 
-        //if (ui->T_HPzobraz->isChecked()){
+        //if (ui->T_UTshow->isChecked()){
             HP_tennengrad.fill(0.0,frameCount);
             HP_tennengrad.fill(thresholds["upperT"],frameCount);
             ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
         //}
-        //if (ui->T_DPzobraz->isChecked()){
+        //if (ui->T_LTshow->isChecked()){
             DP_tennengrad.fill(0.0,frameCount);
             DP_tennengrad.fill(thresholds["lowerT"],frameCount);
             ActualGraphicalObject->graph(7)->setData(valueRange,DP_tennengrad);
         //}
 
         ActualGraphicalObject->replot();
-        ui->E_HPzobraz->setEnabled(false);
-        ui->E_DPzobraz->setEnabled(false);
-        ui->T_HPzobraz->setEnabled(true);
-        ui->T_DPzobraz->setEnabled(true);
-        ui->ohodnoceniEntropyCB->setEnabled(false);
-        ui->ohodnoceniTennenCB->setEnabled(true);
-        ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);
+        ui->E_UTshow->setEnabled(false);
+        ui->E_LTshow->setEnabled(false);
+        ui->T_UTshow->setEnabled(true);
+        ui->T_LTshow->setEnabled(true);
+        ui->evalEntropyCB->setEnabled(false);
+        ui->evalTennengradCB->setEnabled(true);
+        ui->firstDecisionCB->setEnabled(true);
+        ui->secondDecisionCB->setEnabled(true);
         ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
     }
-    else if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+    else if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
     {
         _displayedGraphs = DisplayedGraphs::BOTH;
         ActualGraphicalObject->graph(0)->setVisible(false);
@@ -685,13 +686,13 @@ void GrafET::tennengradRelatedWidgetsController(bool status) {
         ActualGraphicalObject->graph(2)->setVisible(true);
         ActualGraphicalObject->graph(3)->setVisible(true);
 
-        //if (ui->T_HPzobraz->isChecked())
+        //if (ui->T_UTshow->isChecked())
         //{
             HP_tennengrad.fill(0.0,frameCount);
             HP_tennengrad.fill(thresholds["upperTS"],frameCount);
             ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
         //}
-        //if (ui->T_DPzobraz->isChecked())
+        //if (ui->T_LTshow->isChecked())
         //{
             DP_tennengrad.fill(0.0,frameCount);
             DP_tennengrad.fill(thresholds["lowerTS"],frameCount);
@@ -699,12 +700,12 @@ void GrafET::tennengradRelatedWidgetsController(bool status) {
         //}
         ActualGraphicalObject->replot();
 
-        ui->E_HPzobraz->setEnabled(true);
-        ui->E_DPzobraz->setEnabled(true);
-        ui->ohodnoceniEntropyCB->setEnabled(true);
-        ui->ohodnoceniTennenCB->setEnabled(true);
-        ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);
+        ui->E_UTshow->setEnabled(true);
+        ui->E_LTshow->setEnabled(true);
+        ui->evalEntropyCB->setEnabled(true);
+        ui->evalTennengradCB->setEnabled(true);
+        ui->firstDecisionCB->setEnabled(true);
+        ui->secondDecisionCB->setEnabled(true);
         ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
     }
     else{
@@ -714,7 +715,7 @@ void GrafET::tennengradRelatedWidgetsController(bool status) {
 
 void GrafET::showTennengrad()
 {
-    if(ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+    if(ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
     {
         _displayedGraphs = DisplayedGraphs::ENTROPY;
         ActualGraphicalObject->graph(2)->setVisible(false);
@@ -722,14 +723,14 @@ void GrafET::showTennengrad()
         ActualGraphicalObject->xAxis->setRange(1, frameCount);
         ActualGraphicalObject->yAxis->setRange(extremes["minEntropy"]-0.1,extremes["maxEntropy"]+0.1);
         ActualGraphicalObject->graph(0)->setVisible(true);
-        ui->ohodnoceniTennenCB->setEnabled(false);
-        //if (ui->E_HPzobraz->isChecked())
+        ui->evalTennengradCB->setEnabled(false);
+        //if (ui->E_UTshow->isChecked())
         //{
             UT_entropy.fill(0.0,frameCount);
             UT_entropy.fill(thresholds["upperE"],frameCount);
             ActualGraphicalObject->graph(4)->setData(valueRange,UT_entropy);
         //}
-        //if (ui->E_DPzobraz->isChecked())
+        //if (ui->E_LTshow->isChecked())
         //{
             LT_entropy.fill(0.0,frameCount);
             LT_entropy.fill(thresholds["lowerE"],frameCount);
@@ -737,28 +738,28 @@ void GrafET::showTennengrad()
         //}
         ActualGraphicalObject->replot();
 
-        ui->T_HPzobraz->setEnabled(false);ui->T_HPzobraz->setChecked(false);
-        ui->T_DPzobraz->setEnabled(false);ui->T_DPzobraz->setChecked(false);
-        ui->ohodnoceniEntropyCB->setEnabled(true);
-        ui->ohodnoceniTennenCB->setEnabled(false);
-        ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);
+        ui->T_UTshow->setEnabled(false);ui->T_UTshow->setChecked(false);
+        ui->T_LTshow->setEnabled(false);ui->T_LTshow->setChecked(false);
+        ui->evalEntropyCB->setEnabled(true);
+        ui->evalTennengradCB->setEnabled(false);
+        ui->firstDecisionCB->setEnabled(true);
+        ui->secondDecisionCB->setEnabled(true);
         ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
     }
-    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+    else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
     {
         _displayedGraphs = DisplayedGraphs::TENNENGRAD;
         ActualGraphicalObject->xAxis->setRange(1, frameCount);
         ActualGraphicalObject->yAxis->setRange(extremes["minTennengrad"]-1,extremes["maxTennengrad"]+1);
         ActualGraphicalObject->graph(1)->setVisible(true);
 
-        //if (ui->T_HPzobraz->isChecked())
+        //if (ui->T_UTshow->isChecked())
         //{
             HP_tennengrad.fill(0.0,frameCount);
             HP_tennengrad.fill(thresholds["upperT"],frameCount);
             ActualGraphicalObject->graph(6)->setData(valueRange,HP_tennengrad);
         //}
-        //if (ui->T_DPzobraz->isChecked())
+        //if (ui->T_LTshow->isChecked())
         //{
             DP_tennengrad.fill(0.0,frameCount);
             DP_tennengrad.fill(thresholds["lowerT"],frameCount);
@@ -767,15 +768,15 @@ void GrafET::showTennengrad()
 
         ActualGraphicalObject->replot();
 
-        ui->T_HPzobraz->setEnabled(true);ui->ohodnoceniTennenCB->setEnabled(true);
-        ui->T_DPzobraz->setEnabled(true);
-        ui->ohodnoceniEntropyCB->setEnabled(false);
-        ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);
+        ui->T_UTshow->setEnabled(true);ui->evalTennengradCB->setEnabled(true);
+        ui->T_LTshow->setEnabled(true);
+        ui->evalEntropyCB->setEnabled(false);
+        ui->firstDecisionCB->setEnabled(true);
+        ui->secondDecisionCB->setEnabled(true);
         ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
 
     }
-    else if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+    else if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
     {
         _displayedGraphs = DisplayedGraphs::BOTH;
         ActualGraphicalObject->xAxis->setRange(1, frameCount);
@@ -783,14 +784,14 @@ void GrafET::showTennengrad()
         ActualGraphicalObject->graph(2)->setVisible(true);
         ActualGraphicalObject->graph(3)->setVisible(true);
         ActualGraphicalObject->graph(0)->setVisible(false);
-        //if (ui->E_HPzobraz->isChecked() == true)
+        //if (ui->E_UTshow->isChecked() == true)
         //{
             UT_entropy.fill(0.0,frameCount);
             UT_entropy.fill(thresholds["upperES"],frameCount);
             ActualGraphicalObject->graph(4)->setData(valueRange,UT_entropy);
             ActualGraphicalObject->graph(4)->setVisible(true);
         //}
-        //if (ui->E_DPzobraz->isChecked() == true)
+        //if (ui->E_LTshow->isChecked() == true)
         //{
             LT_entropy.fill(0.0,frameCount);
             LT_entropy.fill(thresholds["lowerES"],frameCount);
@@ -800,12 +801,12 @@ void GrafET::showTennengrad()
 
         ActualGraphicalObject->replot();
 
-        ui->T_HPzobraz->setEnabled(true);
-        ui->T_DPzobraz->setEnabled(true);
-        ui->ohodnoceniEntropyCB->setEnabled(true);
-        ui->ohodnoceniTennenCB->setEnabled(true);
-        ui->prvniRozhodCB->setEnabled(true);
-        ui->druheRozhodCB->setEnabled(true);
+        ui->T_UTshow->setEnabled(true);
+        ui->T_LTshow->setEnabled(true);
+        ui->evalEntropyCB->setEnabled(true);
+        ui->evalTennengradCB->setEnabled(true);
+        ui->firstDecisionCB->setEnabled(true);
+        ui->secondDecisionCB->setEnabled(true);
         ui->IV1->setEnabled(true);ui->IV4->setEnabled(true);ui->IV5->setEnabled(true);
 
     }
@@ -882,8 +883,8 @@ void GrafET::reactOnThresholdParameterChange(ValueType i_affectedType,
 
 /*void GrafET::showEntropyUpperThreshold()
 {
-    double actualValueEUT = ui->E_HP->value();
-    if (_displayedGraphs == DisplayedGraphs::ENTROPY && ui->E_HPzobraz->isChecked())
+    double actualValueEUT = ui->E_UT->value();
+    if (_displayedGraphs == DisplayedGraphs::ENTROPY && ui->E_UTshow->isChecked())
     {
             UT_entropy.fill(0.0,frameCount);
             thresholds["upperE"] = actualValueEUT;
@@ -894,7 +895,7 @@ void GrafET::reactOnThresholdParameterChange(ValueType i_affectedType,
             ActualGraphicalObject->replot();
             extremesChanged = true;
     }
-    else if (_displayedGraphs == DisplayedGraphs::BOTH && ui->E_HPzobraz->isChecked())
+    else if (_displayedGraphs == DisplayedGraphs::BOTH && ui->E_UTshow->isChecked())
     {
         if (std::abs(actualValueEUT-thresholds["upperE"])>0.005)
         {
@@ -917,7 +918,7 @@ void GrafET::reactOnThresholdParameterChange(ValueType i_affectedType,
             ActualGraphicalObject->replot();
         }
     }
-    else if (!ui->E_HPzobraz->isChecked())
+    else if (!ui->E_UTshow->isChecked())
     {
         thresholds["upperE"] = actualValueEUT;
         ActualGraphicalObject->graph(4)->setVisible(false);
@@ -928,8 +929,8 @@ void GrafET::reactOnThresholdParameterChange(ValueType i_affectedType,
 
 void GrafET::showEntropyLowerThreshold()
 {
-    double aktualniHodnotaEDP = ui->E_DP->value();
-    if (_displayedGraphs == DisplayedGraphs::ENTROPY && ui->E_DPzobraz->isChecked())
+    double aktualniHodnotaEDP = ui->E_LT->value();
+    if (_displayedGraphs == DisplayedGraphs::ENTROPY && ui->E_LTshow->isChecked())
     {
         if (std::abs(aktualniHodnotaEDP-thresholds["lowerE"])>0.005)
         {
@@ -950,7 +951,7 @@ void GrafET::showEntropyLowerThreshold()
         }
 
     }
-    else if (_displayedGraphs == DisplayedGraphs::BOTH && ui->E_DPzobraz->isChecked())
+    else if (_displayedGraphs == DisplayedGraphs::BOTH && ui->E_LTshow->isChecked())
     {
         if (std::abs(aktualniHodnotaEDP-thresholds["lowerE"])>0.005)
         {
@@ -973,7 +974,7 @@ void GrafET::showEntropyLowerThreshold()
             ActualGraphicalObject->replot();
         }
     }
-    else if(!ui->E_DPzobraz->isChecked())
+    else if(!ui->E_LTshow->isChecked())
     {
         thresholds["lowerE"] = aktualniHodnotaEDP;
         ActualGraphicalObject->graph(5)->setVisible(false);
@@ -984,10 +985,10 @@ void GrafET::showEntropyLowerThreshold()
 
 void GrafET::showTennengradUpperThreshold()
 {
-    double aktualHodnotaTHP = ui->T_HP->value();
+    double aktualHodnotaTHP = ui->T_UT->value();
     //qDebug()<<"Aktualni hodnota THP: "<<aktualHodnotaTHP;
-    if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
-            ui->T_HPzobraz->isChecked())
+    if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked() &&
+            ui->T_UTshow->isChecked())
     {
         //qDebug()<<"Zobrazuji graf horního prahu tennengradu.";
         if (std::abs(aktualHodnotaTHP-thresholds["upperT"])>0.005)
@@ -1011,8 +1012,8 @@ void GrafET::showTennengradUpperThreshold()
             ActualGraphicalObject->replot();
         }
     }
-    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
-             ui->T_HPzobraz->isChecked())
+    else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked() &&
+             ui->T_UTshow->isChecked())
     {
         if (std::abs(aktualHodnotaTHP-thresholds["upperT"])>0.005)
         {
@@ -1030,7 +1031,7 @@ void GrafET::showTennengradUpperThreshold()
             ActualGraphicalObject->replot();
         }
     }
-    else if (!ui->T_HPzobraz->isChecked())
+    else if (!ui->T_UTshow->isChecked())
     {
         thresholds["upperT"] = aktualHodnotaTHP;
         ActualGraphicalObject->graph(6)->setVisible(false);
@@ -1040,9 +1041,9 @@ void GrafET::showTennengradUpperThreshold()
 
 void GrafET::showTennengradLowerThreshold()
 {
-    double aktualniHodnotaTDP = ui->T_DP->value();
-    if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
-            ui->T_DPzobraz->isChecked())
+    double aktualniHodnotaTDP = ui->T_LT->value();
+    if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked() &&
+            ui->T_LTshow->isChecked())
     {
         if (std::abs(aktualniHodnotaTDP-thresholds["lowerT"])>0.005)
         {
@@ -1063,8 +1064,8 @@ void GrafET::showTennengradLowerThreshold()
             ActualGraphicalObject->replot();
         }
     }
-    else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked() &&
-             ui->T_DPzobraz->isChecked())
+    else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked() &&
+             ui->T_LTshow->isChecked())
     {
         if (std::abs(aktualniHodnotaTDP-thresholds["lowerT"])>0.005)
         {
@@ -1082,7 +1083,7 @@ void GrafET::showTennengradLowerThreshold()
             ActualGraphicalObject->replot();
         }
     }
-    else if(!ui->T_DPzobraz->isChecked())
+    else if(!ui->T_LTshow->isChecked())
     {
         thresholds["lowerT"] = aktualniHodnotaTDP;
         ActualGraphicalObject->graph(7)->setVisible(false);
@@ -1139,13 +1140,13 @@ void GrafET::showCorrespondingFrames(int i_valueType, int i_evaluationType,
 /*void GrafET::firstEvaluationEntropy_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    if (ui->ohodnoceniEntropyCB->isChecked())
+    if (ui->evalEntropyCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(8,framesEntropyFirstEvalComplete,entropyStandard,0);
         }
-        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+        else if (ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
         {
             populateGraph(8,framesEntropyFirstEvalComplete,entropy,0);
         }
@@ -1159,13 +1160,13 @@ void GrafET::showCorrespondingFrames(int i_valueType, int i_evaluationType,
 void GrafET::firstEvaluationTennengrad_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    if (ui->ohodnoceniTennenCB->isChecked())
+    if (ui->evalTennengradCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(9,framesTennengradFirstEvalComplete,tennengradStandard,0);
         }
-        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(9,framesTennengradFirstEvalComplete,tennengrad,0);
         }
@@ -1179,17 +1180,17 @@ void GrafET::firstEvaluationTennengrad_f()
 void GrafET::firstEvaluation_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    if (ui->prvniRozhodCB->isChecked())
+    if (ui->firstDecisionCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(10,framesFirstEvalComplete,entropyStandard,0);
         }
-        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+        else if (ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
         {
             populateGraph(10,framesFirstEvalComplete,entropy,0);
         }
-        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+        else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked()) {
             populateGraph(10,framesFirstEvalComplete,tennengrad,0);
         }
     }
@@ -1202,17 +1203,17 @@ void GrafET::firstEvaluation_f()
 void GrafET::secondEvaluation_f()
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
-    if (ui->druheRozhodCB->isChecked())
+    if (ui->secondDecisionCB->isChecked())
     {
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(11,framesSecondEvalComplete,entropyStandard,0);
         }
-        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+        else if (ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
         {
             populateGraph(11,framesSecondEvalComplete,entropy,0);
         }
-        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+        else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked()) {
             populateGraph(11,framesSecondEvalComplete,tennengrad,0);
         }
     }
@@ -1223,19 +1224,19 @@ void GrafET::secondEvaluation_f()
     }
 }
 
-void GrafET::on_ohodnocKomplet_stateChanged(int arg1)
+void GrafET::on_evalComplete_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(12,framesEvalComplete,entropyStandard,1);
         }
-        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+        else if (ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
         {
             populateGraph(12,framesEvalComplete,entropy,1);
         }
-        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+        else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked()) {
             populateGraph(12,framesEvalComplete,tennengrad,1);
         }
     }
@@ -1249,15 +1250,15 @@ void GrafET::on_IV1_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(13,framesEvalComplete,entropyStandard,2);
         }
-        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+        else if (ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
         {
             populateGraph(13,framesEvalComplete,entropy,2);
         }
-        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+        else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked()) {
             populateGraph(13,framesEvalComplete,tennengrad,2);
         }
     }
@@ -1271,15 +1272,15 @@ void GrafET::on_IV4_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
            populateGraph(14,framesEvalComplete,tennengrad,3);
         }
-        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+        else if (ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
         {
             populateGraph(14,framesEvalComplete,entropy,3);
         }
-        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+        else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked()) {
             populateGraph(14,framesEvalComplete,tennengrad,3);
         }
     }
@@ -1293,15 +1294,15 @@ void GrafET::on_IV5_stateChanged(int arg1)
 {
     QVector<double> vybraneHodnotyY,souradniceDouble;
     if (arg1 == 2){
-        if (ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked())
+        if (ui->showGraphE->isChecked() && ui->showGraphT->isChecked())
         {
             populateGraph(15,framesEvalComplete,tennengrad,4);
         }
-        else if (ui->zobrazGrafE->isChecked() && !ui->zobrazGrafT->isChecked())
+        else if (ui->showGraphE->isChecked() && !ui->showGraphT->isChecked())
         {
             populateGraph(15,framesEvalComplete,entropy,4);
         }
-        else if (!ui->zobrazGrafE->isChecked() && ui->zobrazGrafT->isChecked()) {
+        else if (!ui->showGraphE->isChecked() && ui->showGraphT->isChecked()) {
             populateGraph(15,framesEvalComplete,tennengrad,4);
         }
     }
@@ -1357,14 +1358,14 @@ void GrafET::hideAll(){
     ActualGraphicalObject->graph(7)->setVisible(false);
     ActualGraphicalObject->replot();
 
-    ui->E_HPzobraz->setEnabled(false);ui->E_DPzobraz->setEnabled(false);
-    ui->T_HPzobraz->setEnabled(false);ui->T_DPzobraz->setEnabled(false);
-    ui->E_DPzobraz->setChecked(false);ui->E_HPzobraz->setChecked(false);
-    ui->T_HPzobraz->setChecked(false);ui->T_DPzobraz->setChecked(false);
-    ui->ohodnoceniEntropyCB->setEnabled(false);ui->ohodnoceniEntropyCB->setChecked(false);
-    ui->ohodnoceniTennenCB->setEnabled(false);ui->ohodnoceniTennenCB->setChecked(false);
-    ui->prvniRozhodCB->setEnabled(false);ui->prvniRozhodCB->setChecked(false);
-    ui->druheRozhodCB->setEnabled(false);ui->druheRozhodCB->setChecked(false);
+    ui->E_UTshow->setEnabled(false);ui->E_LTshow->setEnabled(false);
+    ui->T_UTshow->setEnabled(false);ui->T_LTshow->setEnabled(false);
+    ui->E_LTshow->setChecked(false);ui->E_UTshow->setChecked(false);
+    ui->T_UTshow->setChecked(false);ui->T_LTshow->setChecked(false);
+    ui->evalEntropyCB->setEnabled(false);ui->evalEntropyCB->setChecked(false);
+    ui->evalTennengradCB->setEnabled(false);ui->evalTennengradCB->setChecked(false);
+    ui->firstDecisionCB->setEnabled(false);ui->firstDecisionCB->setChecked(false);
+    ui->secondDecisionCB->setEnabled(false);ui->secondDecisionCB->setChecked(false);
     ui->IV1->setEnabled(false);ui->IV1->setChecked(false);
     ui->IV4->setEnabled(false);ui->IV4->setChecked(false);
     ui->IV5->setEnabled(false);ui->IV5->setChecked(false);
@@ -1401,14 +1402,17 @@ SW_VerticalQCPItemLine::~SW_VerticalQCPItemLine()
 {
 }
 
-void SW_VerticalQCPItemLine::UpdateLabel(double x, double y, QPixmap i_framePixmap)
+void SW_VerticalQCPItemLine::UpdateLabel(double x, double y, int frameIndex)
 {
-    Q_UNUSED(x)
+    /*Q_UNUSED(x)
     Q_UNUSED(y)
-    Q_UNUSED(i_framePixmap)
-    /*m_lineLabel->setText("test");
+    Q_UNUSED(i_framePixmap)*/
+    m_lineLabel->setText("Frame:"+QString::number(frameIndex));
     m_lineLabel->position->setType(QCPItemPosition::ptAbsolute);
-    m_lineLabel->position->setCoords(x, y);*/
+    m_lineLabel->position->setCoords(QPointF(x, y));
+    QPointF pp = m_lineLabel->position->pixelPosition() + QPointF(100.0,0.0);
+    m_lineLabel->position->setPixelPosition(pp);
+    qDebug()<<x<<" "<<y<<" "<<m_lineLabel->position->coords().x()<<" "<<m_lineLabel->position->coords().y();
 
     /*entropyLabel->setText(QString::number(i_E));
     tennengradLabel->setText(QString::number(i_T));
