@@ -61,7 +61,6 @@ void GraphET_parent::analyseNames(namesFlag parameter){
             }
             else{
                 filenameList.append(file);
-                continue;
             }
             videoReferences.insert(fileList.at(var),file);
         }
@@ -98,20 +97,20 @@ void GraphET_parent::loadAndShow(){
                 QString video = videoReferences[filePath];
                 QJsonObject loadedJSON = readJson(datFile);
 
-                QMap<QString,QVector<double>> _pomD;
-                QMap<QString,QVector<int>> _pomI;
+                QVector<double> _pomD;
+                QVector<int> _pomI;
                 QJsonArray loadedArrayData = loadedJSON[neededParameters.at(parameterIndex)].toArray();
                 if (parameterIndex < 3){
-                    _pomD.insert(video,array2vector<double>(loadedArrayData));
+                    _pomD = array2vector<double>(loadedArrayData);
                 }
                 else{
-                    _pomI.insert(video,array2vector<int>(loadedArrayData));
+                    _pomI = array2vector<int>(loadedArrayData);
                 }
                 if (parameterIndex < 3){
-                    mapDouble.insert(neededParameters.at(parameterIndex),_pomD);
+                    mapDouble[neededParameters.at(parameterIndex)].insert(video,_pomD);
                 }
                 else{
-                    mapInt.insert(neededParameters.at(parameterIndex),_pomI);
+                    mapInt[neededParameters.at(parameterIndex)].insert(video,_pomI);
                 }
 
                 if (parameterIndex+1 == neededParameters.count()) {
