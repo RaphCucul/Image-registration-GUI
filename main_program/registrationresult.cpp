@@ -35,7 +35,7 @@ RegistrationResult::RegistrationResult(QString i_videoPath,QDialog *parent) :
 {
     ui->setupUi(this);
     setWindowIcon(QIcon(":/images/AppLogo2.png"));
-    //actualVideo = new cv::VideoCapture(i_videoPath.toLocal8Bit().constData());
+    setWindowTitle(windowTitle()+" "+i_videoPath);
     connect(ui->chooseFrame,SIGNAL(valueChanged(int)),this,SLOT(changeDisplayed(int)));
     ui->chooseFrame->setMinimum(0);
     ui->chooseFrame->setMaximum(actualVideo.get(CV_CAP_PROP_FRAME_COUNT)-1);
