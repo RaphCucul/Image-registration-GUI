@@ -6,6 +6,7 @@
 #include <QGraphicsPixmapItem>
 #include <QImage>
 #include <QPixmap>
+#include <QIcon>
 #include <QDebug>
 
 #include <opencv2/core.hpp>
@@ -19,6 +20,7 @@ RegistrationResult::RegistrationResult(cv::Mat& _referencial, cv::Mat& _translat
     ui(new Ui::RegistrationResult)
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/images/AppLogo2.png"));
     _referencial.copyTo(referencialFrame);
     _translated.copyTo(registratedFrame);
     connect(ui->chooseFrame,SIGNAL(valueChanged(int)),this,SLOT(changeDisplayed(int)));
@@ -32,6 +34,7 @@ RegistrationResult::RegistrationResult(QString i_videoPath,QDialog *parent) :
     actualVideo(i_videoPath.toLocal8Bit().constData())
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/images/AppLogo2.png"));
     //actualVideo = new cv::VideoCapture(i_videoPath.toLocal8Bit().constData());
     connect(ui->chooseFrame,SIGNAL(valueChanged(int)),this,SLOT(changeDisplayed(int)));
     ui->chooseFrame->setMinimum(0);

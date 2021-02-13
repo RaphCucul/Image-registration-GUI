@@ -4,9 +4,11 @@
 #include <QHBoxLayout>
 #include <QGraphicsView>
 #include <QGraphicsPixmapItem>
+#include <QIcon>
 
 MatViewer::MatViewer(cv::Mat imageToBeShown, QString dialogLabel)
 {
+    setWindowIcon(QIcon(":/images/AppLogo2.png"));
     int imageFormat = 0;
     cv::Mat processed;
     if (MatType2String(imageToBeShown.type()).contains("8U")) {
