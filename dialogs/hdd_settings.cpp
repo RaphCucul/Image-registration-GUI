@@ -13,6 +13,7 @@
 #include "ui_hdd_settings.h"
 #include "shared_staff/globalsettings.h"
 #include "util/files_folders_operations.h"
+#include "util/adminCheck.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -53,6 +54,13 @@ HDD_Settings::HDD_Settings(QWidget *parent) :
     }
     _rA = new RegistryAccess();
     _rE = new RegistryError();
+
+    // detect if the program is started with admin privilegies
+    bool isAdmin = IsCurrentUserLocalAdministrator();
+    if (isAdmin)
+        ui->runScript->setEnabled(true);
+    else
+        ui->runScript->setEnabled(false);
 }
 
 HDD_Settings::~HDD_Settings()
@@ -92,47 +100,6 @@ void HDD_Settings::setLabelText(QString i_text){
 
 void HDD_Settings::onRunScript()
 {
-    /*std::string fileName = QString("/GetLocalCounterName.ps1").toLocal8Bit().constData();
-
-    std::string strPath = GlobalSettings::getSettings()->getAppPath().toLocal8Bit().constData()+fileName;
-    if(access(strPath.c_str(),0) == 0)
-    {
-        qDebug()<<"File accessible";
-        std::string dirPath = GlobalSettings::getSettings()->getAppPath().toLocal8Bit().constData();
-        std::string complete = dirPath+fileName;
-        ReplaceStringInPlace(complete,"/","\\");
-        std::ostringstream os;
-        os << "-ExecutionPolicy ByPass -NoProfile -NonInteractive -WindowStyle Hidden -File \""+complete+"\"";
-        std::string op = "open";
-        std::string ps = GlobalSettings::getSettings()->getPowershellPath().toStdString();
-        if (ps.length() == 0) {
-            int ret = QMessageBox::critical(this,tr("Powershell path"),tr("Powershell path empty. The script cannot be called!"),QMessageBox::Ok);
-            if (ret == QMessageBox::Ok)
-                return;
-        }
-        std::string param = os.str();
-        DWORD res = (int)(ShellExecuteA(NULL, op.c_str(), ps.c_str(), param.c_str(), NULL, SW_HIDE));
-        qDebug()<<res;
-        if (res <= 32){
-            setLabelIcon(IconType::RED);
-            QString errorMessage = QString(tr("An error occured when launching the script: %i")).arg(res);
-            setLabelText(errorMessage);
-        }
-        else{
-            setLabelIcon(IconType::ORANGE);
-            QString errorMessage = QString(tr("Processing"));
-            setLabelText(errorMessage);
-            timer->setInterval(2000);
-            timer->setTimerType(Qt::PreciseTimer);
-            connect(timer, SIGNAL(timeout()), this, SLOT(scanFolder()));
-            timer->start();
-        }
-    }
-    else{
-        setLabelIcon(IconType::RED);
-        QString errorMessage = QString(tr("Unable to load the script"));
-        setLabelText(errorMessage);
-    }*/
     setLabelIcon(IconType::ORANGE);
     QString message = QString(tr("Processing"));
     setLabelText(message);
@@ -151,7 +118,6 @@ void HDD_Settings::onRunScript()
     }
     else {
         setLabelIcon(IconType::GREEN);
-        //message = QString(tr("Processed."));
         setLabelText(tr("Done"));
         ui->counterNameLE->setText(diskLocated);
         ui->counterParameterLE->setText(counterLocated);

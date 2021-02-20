@@ -18,7 +18,6 @@
 #include "shared_staff/globalsettings.h"
 #include "dialogs/hdd_settings.h"
 #include "util/aboutprogram.h"
-#include "util/adminCheck.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -27,26 +26,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     SystemMonitor::instance().init();
 
-    // detect if the program is started with admin privilegies
-    bool isAdmin = IsCurrentUserLocalAdministrator();
     CPU = new CPUWidget();
     Memory = new MemoryWidget();
+    HDD = new HddUsagePlot();
+    placePowerWidgets(true);
+    setupUsagePlots();
+    QObject::connect(HDD,SIGNAL(hddUsagePlotClicked(bool)),this,SLOT(onHddUsagePlotClicked(bool)));
 
-    if (isAdmin) {
-        HDD = new HddUsagePlot();
-        placePowerWidgets(true);
-        setupUsagePlots();
-        if (GlobalSettings::getSettings()->isHDDMonitorEnabled()) {
-            QObject::connect(CPU,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
-        }
-        else {
-            HDD->setThemeColor(QColor("#dfe9ff"));
-        }
-        connect(HDD,SIGNAL(hddUsagePlotClicked(bool)),this,SLOT(onHddUsagePlotClicked(bool)));
+    if (GlobalSettings::getSettings()->isHDDMonitorEnabled()) {
+        QObject::connect(CPU,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
     }
-    else {
-        placePowerWidgets(false);
-    }
+    else
+        HDD->setThemeColor(QColor("#dfe9ff"));
 
     this->setStyleSheet("background-color: white");
 
@@ -222,7 +213,7 @@ void MainWindow::slotHelpChanged(QAction* action) {
             QDesktopServices::openUrl(QUrl("https://github.com/RaphCucul/Frames-registration"));
         }
         else if (action->text() == tr("Website")) {
-            QDesktopServices::openUrl(QUrl("https://github.com/RaphCucul/FR_webpages"));
+            QDesktopServices::openUrl(QUrl("https://raphcucul.github.io/FR_webpages/"));
         }
     }
 }
@@ -234,6 +225,7 @@ void MainWindow::onHddUsagePlotClicked(bool newStatus) {
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setText(tr("The change will be applied after the application restart"));
     msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setWindowIcon(QPixmap(":/images/AppLogo2.png"));
     msgBox.exec();
 }
 

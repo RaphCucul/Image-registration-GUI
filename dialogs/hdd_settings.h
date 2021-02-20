@@ -78,7 +78,7 @@ private:
         }
     private:
         LONG m_errorCode;
-        const char* m_errorMessage;
+        const char* m_errorMessage = "\0";
     };
 
     /**
