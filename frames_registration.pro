@@ -61,7 +61,9 @@ SOURCES += \
     registration/multiPOC_Ai1.cpp \
     registration/registrationthread.cpp \
 ################################################
+    util/aboutprogram.cpp \
     util/files_folders_operations.cpp \
+    util/playbutton.cpp \
     util/systemmonitor.cpp \
     util/util_grafet.cpp \
     util/registrationparent.cpp \
@@ -123,7 +125,10 @@ HEADERS += \
     registration/registrationthread.h \
 ################################################
     shared_staff/version.h \
+    util/aboutprogram.h \
+    util/adminCheck.h \
     util/files_folders_operations.h \
+    util/playbutton.h \
     util/systemmonitor.h \
     util/util_grafet.h \
     util/registrationparent.h \
@@ -160,25 +165,22 @@ FORMS += \
     dialogs/grafet.ui \
     dialogs/singlevideoet.ui \
     dialogs/multiplevideoet.ui \
-    dialogs/errordialog.ui \
     ui/tabs.ui \
     dialogs/multivideoregistration.ui \
-    dialogs/clickimageevent.ui
+    dialogs/clickimageevent.ui \
+    util/aboutprogram.ui
 
 QMAKE_RESOURCE_FLAGS += -no-compress
 
 LIBS += C:\Windows\System32\pdh.dll
-
+LIBS += D:\Programy\OpenCV\opencv\release\install\x86\mingw\bin\libopencv_world320.dll
 INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\include
 INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\x86\mingw
-#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_core320.dll
-#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_highgui320.dll
-#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgcodecs320.dll
-#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgproc320.dll
-#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_photo320.dll
-#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_videoio320.dll
-#LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_video320.dll
-LIBS += D:\Programy\OpenCV\opencv\release\install\x86\mingw\bin\libopencv_world320.dll
 
-RESOURCES += images/icons.qrc \
+RESOURCES += \
+    images/icons.qrc \
     translations.qrc
+
+RC_FILE += images/mainIco.rc
+
+TRANSLATIONS += translations/czech.ts translations/english.ts
