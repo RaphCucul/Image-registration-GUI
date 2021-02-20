@@ -39,9 +39,9 @@ SingleVideoET::SingleVideoET(QWidget *parent) :
     ui->calculateET->setEnabled(false);
     ui->showGraphET->setEnabled(false);
     ui->savePB->setEnabled(false);
-    ui->areaMaximum->setPlaceholderText("0 - 20");
+    ui->areaMaximum->setPlaceholderText("1 - 20");
     ui->rotationAngle->setPlaceholderText("0 - 0.5");
-    ui->iterationCount->setPlaceholderText("1 - Inf; -1~automatic settings");
+    ui->iterationCount->setPlaceholderText("1 - Inf; -1");
 
     ui->chooseVideoPB->setText(tr("Choose video"));
     ui->standardCutout->setText(tr("Modify standard cutout"));
@@ -457,7 +457,7 @@ void SingleVideoET::on_areaMaximum_editingFinished()
     bool ok;
     double input = ui->areaMaximum->text().toDouble(&ok);
     if (ok){
-        checkInputNumber(input,0.0,20.0,ui->areaMaximum,areaMaximum,areaMaximumCorrect);
+        checkInputNumber(input,1.0,20.0,ui->areaMaximum,areaMaximum,areaMaximumCorrect);
         emit checkValuesPass();
     }
     else

@@ -152,7 +152,7 @@ void HDD_Settings::onRunScript()
     else {
         setLabelIcon(IconType::GREEN);
         //message = QString(tr("Processed."));
-        setLabelText(_rE->ErrorMessage());
+        setLabelText(tr("Done"));
         ui->counterNameLE->setText(diskLocated);
         ui->counterParameterLE->setText(counterLocated);
     }

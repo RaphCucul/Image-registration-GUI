@@ -27,7 +27,7 @@ ChartInit::ChartInit(QWidget *parent) :
     qssFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(qssFile.readAll());
     setStyleSheet(styleSheet);
-    ui->pushButton->setEnabled(false);
+    ui->showDataPB->setEnabled(false);
 }
 
 ChartInit::~ChartInit()
@@ -55,7 +55,7 @@ void ChartInit::dropEvent(QDropEvent *event)
     qDebug()<<"Update video list: "<<fileList;
     ui->selectedFiles->addItems(fileList);
     if (!fileList.isEmpty()) {
-        ui->pushButton->setEnabled(true);
+        ui->showDataPB->setEnabled(true);
     }
 }
 
@@ -83,7 +83,7 @@ void ChartInit::deleteSelectedFiles(){
         fileList.removeAt(index);
     }
     if (fileList.isEmpty())
-        ui->pushButton->setEnabled(false);
+        ui->showDataPB->setEnabled(false);
 }
 
 void ChartInit::on_showDataPB_clicked()

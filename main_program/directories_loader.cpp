@@ -25,7 +25,7 @@ DirectoriesLoader::DirectoriesLoader(QWidget *parent) :
     ui->SaveVideos->setText(tr("Save video to"));
     ui->DataFolder->setText(tr("Video parameters"));
     ui->paramFrangPB->setText(tr("Load frangi parameters"));
-    ui->ChooseFileFolderDirectory->setText(tr("Choose file folder directories"));
+    ui->ChooseFileFolderDirectory->setText(tr("Choose file with folders"));
     ui->FileFolderDirectory->setPlaceholderText(tr("Folder with paths"));
 
     QFile qssFile(":/images/style.qss");
@@ -311,7 +311,7 @@ void DirectoriesLoader::on_ChooseFileFolderDirectory_clicked()
             stream<<"fileFolderDirectoryPath="+pathToFileFolderDirectory+"\n";
             _iniFile.close();
             ui->FileFolderDirectory->setText(pathToFileFolderDirectory);
-            ui->ChooseFileFolderDirectory->setText(tr("Choose file folder directories"));
+            ui->ChooseFileFolderDirectory->setText(tr("Choose file with folders"));
             search = "json";
             GlobalSettings::getSettings()->setIniPath(QCoreApplication::applicationDirPath(),"settings.ini");
         }

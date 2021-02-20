@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <vector>
 #include <QHash>
+#include <QJsonObject>
+#include <QJsonArray>
 #include "shared_staff/qcustomplot.h"
 #include "util/util_grafet.h"
 

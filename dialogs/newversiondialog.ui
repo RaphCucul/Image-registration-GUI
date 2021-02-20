@@ -7,11 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>257</width>
-    <height>107</height>
+    <height>125</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>New version info</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../images/icons.qrc">
+    <normaloff>:/images/AppLogo2.png</normaloff>:/images/AppLogo2.png</iconset>
   </property>
   <layout class="QFormLayout" name="formLayout">
    <item row="0" column="0">
@@ -83,6 +87,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../images/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

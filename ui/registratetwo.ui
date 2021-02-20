@@ -54,7 +54,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBox"/>
+      <widget class="QComboBox" name="selectInput"/>
      </item>
      <item>
       <spacer name="horizontalSpacer_2">
@@ -72,7 +72,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="nabidkaAnalyzy">
+    <layout class="QGridLayout" name="analysisOption">
      <property name="horizontalSpacing">
       <number>15</number>
      </property>
@@ -107,7 +107,10 @@
           </size>
          </property>
          <property name="text">
-          <string>5</string>
+          <string/>
+         </property>
+         <property name="placeholderText">
+          <string>1-20</string>
          </property>
         </widget>
        </item>
@@ -120,7 +123,10 @@
           </size>
          </property>
          <property name="text">
-          <string>0.1</string>
+          <string/>
+         </property>
+         <property name="placeholderText">
+          <string>0-0.5</string>
          </property>
         </widget>
        </item>
@@ -133,7 +139,10 @@
           </size>
          </property>
          <property name="text">
-          <string>-1</string>
+          <string/>
+         </property>
+         <property name="placeholderText">
+          <string>1-Inf;-1</string>
          </property>
         </widget>
        </item>
@@ -147,7 +156,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1">
          <item>
-          <widget class="QLabel" name="entropie_referencial">
+          <widget class="QLabel" name="entropy_referential">
            <property name="text">
             <string/>
            </property>
@@ -165,7 +174,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,1">
          <item>
-          <widget class="QLabel" name="tennengrad_referencial"/>
+          <widget class="QLabel" name="tennengrad_referential"/>
          </item>
          <item>
           <widget class="QLabel" name="TR">
@@ -253,7 +262,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1">
      <property name="spacing">
       <number>10</number>
      </property>
@@ -279,7 +288,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>51</width>
+         <width>71</width>
          <height>21</height>
         </size>
        </property>

@@ -114,7 +114,7 @@ void HddUsagePlot::customMenuRequested(const QPoint &pos) {
                               "background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #109910, stop: 1 #00ff00);"
                               "color: rgb(255, 255, 255);"
                               "}");
-    QAction action1(actualStatus ? tr("Disable HDD monitoring") : tr("Enable HDD monitoring."), this);
+    QAction action1(actualStatus ? tr("Disable and hide HDD monitoring") : tr("Enable HDD monitoring."), this);
     connect(&action1, &QAction::triggered,[=](){
         emit hddUsagePlotClicked(!actualStatus);
     });

@@ -98,7 +98,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="showDataPB">
      <property name="maximumSize">
       <size>
        <width>80</width>
