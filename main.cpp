@@ -25,9 +25,9 @@ int main(int argc, char *argv[])
     QTranslator translator;
     QString savedLanguage = GlobalSettings::getSettings()->getLanguage();
     if (savedLanguage == "CZ")
-        translator.load(":/czech.qm");
+        translator.load(":/translations/czech.qm");
     else
-        translator.load(":/english.qm");
+        translator.load(":/translations/english.qm");
     App.installTranslator(&translator);
 
     MainWindow w;
