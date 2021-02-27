@@ -6,7 +6,7 @@
 
 /**
  * @file adminCheck.h
- * Check, if the program was started with admin privileges or not.
+ * @brief Checks if the program was started with admin privileges or not.
  *
  * It is used to determine, if HDD usage graph should be added to the program or not.
  */

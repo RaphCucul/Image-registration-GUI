@@ -20,7 +20,7 @@ using namespace std;
 
 /**
  * @file files_folders_operations.h
- * Functions supporting different operations with files and folders.
+ * @brief Functions supporting different operations with files and folders.
  **/
 
 /**
@@ -65,7 +65,7 @@ void writeJson(QJsonObject& i_object, QJsonArray& i_array, QString i_type, QStri
 /**
  * @brief Template function converts given vector of type T into QJsonArray.
  * @tparam T - vector data type
- * @code vector2array(TtypeVector>
+ * @code vector2array(QVector<T>input> @endcode
  */
 template <class T>
 QJsonArray vector2array(QVector<T> i_vector){
@@ -77,7 +77,7 @@ QJsonArray vector2array(QVector<T> i_vector){
 /**
  * @brief Template function converts given QJsonArray to vector.
  * @tparam T - data type of the output vector
- * @code array2vector<double>(doubleTypeVector)
+ * @code array2vector<double>(QJSONArray input) @endcode
  */
 template <class T>
 QVector<T> array2vector(QJsonArray i_array){

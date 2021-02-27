@@ -7,7 +7,7 @@
 
 /**
  * @file vector_operations.h
- * The file contains declarations of functions supporting different vector operations.
+ * @brief The file contains declarations of functions supporting different vector operations.
  */
 
 /**
