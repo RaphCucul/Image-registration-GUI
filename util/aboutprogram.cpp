@@ -19,8 +19,7 @@ AboutProgram::AboutProgram(QString i_version, QString i_language, QWidget *paren
         ui->releaseNotes->setText(text);
     }
     else {
-
-        ui->releaseNotes->setText("");
+        ui->releaseNotes->setText(tr("Sorry, no release notes file found."));
     }
     this->setModal(false);
 }
