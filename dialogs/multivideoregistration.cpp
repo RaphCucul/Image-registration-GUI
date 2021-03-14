@@ -36,6 +36,7 @@ MultiVideoRegistration::MultiVideoRegistration(QWidget *parent) :
     ui->chooseMultiVPB->setText(tr("Choose few videos"));
     ui->chooseFolderPB->setText(tr("Choose whole folder"));
     ui->registratePB->setText(tr("Registrate"));
+    ui->registratePB->setEnabled(false);
     ui->saveResultsPB->setText(tr("Save computed results"));
 
     QObject::connect(this,SIGNAL(calculationStarted()),this,SLOT(disableWidgets()));
@@ -193,7 +194,8 @@ QWidget* MultiVideoRegistration::createIconTableItem(bool icon, QString informat
     if (icon) {
         QLabel *lbl_item = new QLabel();
         lbl_item->setPixmap(QPixmap(":/images/"+information));
-        lbl_item ->setAlignment(Qt::AlignHCenter);
+        lbl_item->setAlignment(Qt::AlignHCenter);
+        //lbl_item->setAlignment(Qt::AlignVCenter);
         return lbl_item;
     }
     else {
@@ -203,41 +205,45 @@ QWidget* MultiVideoRegistration::createIconTableItem(bool icon, QString informat
 }
 
 void MultiVideoRegistration::fillTable(bool fillInternalVariables) {
-    int _helperCounter = 0;
-    //bool _controlCheckToEnableElements = false;
+    bool videoWithoutDat = false;
+    bool cannotOpen = false;
+    QVector<int> problematic = {};
     if (!videoListFull.isEmpty()) {
-        ui->listOfVideos->setRowCount(videoListFull.count());
         for (int indexList = 0; indexList < videoListFull.count();indexList++)
         {
-            if (checkVideo(videoListFull.at(indexList))) {
-                QString folder,filename,suffix;
-                processFilePath(videoListFull.at(indexList),folder,filename,suffix);
-                if (checkPath(filename)) {
+            QString folder,filename,suffix;
+            processFilePath(videoListFull.at(indexList),folder,filename,suffix);
+            if (checkVideo(videoListFull.at(indexList))) { // video loadable
+                if (checkPath(filename)) { // .dat file exists
                     readyToProcess[videoListFull.at(indexList)] = true;
-                    //_controlCheckToEnableElements = true;
-
                     if (fillInternalVariables) {
                         if (!videoListNames.contains(filename))
-                            videoListNames.append(filename);
-                        ui->listOfVideos->setItem(_helperCounter,0,new QTableWidgetItem(filename));
+                            videoListNames.append(filename);                       
                     }
-                    else
-                        ui->listOfVideos->setItem(_helperCounter,0,new QTableWidgetItem(videoListNames.at(indexList)));
-
-                    ui->listOfVideos->setCellWidget(_helperCounter,1,createIconTableItem(true,"noProgress.png"));
-                    ui->listOfVideos->setCellWidget(_helperCounter,2,createIconTableItem(true,"play_inactive.png"));
-                    _helperCounter++;
                 }
                 else {
-                    ui->listOfVideos->setItem(_helperCounter,0,new QTableWidgetItem(videoListNames.at(indexList)));
-                    ui->listOfVideos->setCellWidget(_helperCounter,1,createIconTableItem(true,"everythingBad.png"));
+                    videoWithoutDat = true;
+                    problematic.push_back(indexList);
                 }
             }
             else {
-                ui->listOfVideos->setItem(_helperCounter,0,new QTableWidgetItem(videoListNames.at(indexList)));
-                ui->listOfVideos->setCellWidget(_helperCounter,1,createIconTableItem(true,"everythingBad.png"));
+                cannotOpen = true;
+                problematic.push_back(indexList);
             }
         }
+
+        for (int removeIndex=0; removeIndex < problematic.length(); removeIndex++)
+            videoListFull.removeAt(removeIndex);
+
+        ui->listOfVideos->setRowCount(videoListNames.count());
+        for (int indexList = 0; indexList < videoListNames.count(); indexList++) {
+             ui->listOfVideos->setItem(indexList,0,new QTableWidgetItem(videoListNames.at(indexList)));
+             ui->listOfVideos->setCellWidget(indexList,1,createIconTableItem(true,"noProgress.png"));
+             ui->listOfVideos->setCellWidget(indexList,2,createIconTableItem(true,"play_inactive.png"));
+        }
+        if (cannotOpen)
+            localErrorDialogHandling[ui->listOfVideos]->evaluate("left","hardError",6);
+
         if (fillInternalVariables) {
             ui->listOfVideos->setColumnWidth(0,(ui->listOfVideos->width()/5)*3);
             ui->listOfVideos->setColumnWidth(1,(ui->listOfVideos->width()/5));
@@ -245,10 +251,13 @@ void MultiVideoRegistration::fillTable(bool fillInternalVariables) {
             populateProperties(videoListNames);
         }
     }
-    if (videoListFull.isEmpty()) {
+
+    if (videoListNames.isEmpty() && !videoWithoutDat) {
         localErrorDialogHandling[ui->registratePB]->evaluate("center","softError",3);
         localErrorDialogHandling[ui->registratePB]->show(false);
     }
+    else if (!videoListNames.isEmpty())
+        ui->registratePB->setEnabled(true);
 }
 
 void MultiVideoRegistration::startCalculations(cv::VideoCapture &capture){

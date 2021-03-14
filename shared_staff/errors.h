@@ -31,7 +31,7 @@ static QJsonArray softErrorList = {
     QObject::tr("*.ini file loaded successfully, but file folder path is empty."),//0
     QObject::tr("*.ini file path must be similar with the application path."), //1
     QObject::tr("An error occured when loading frangi json from this directory."), //2
-    QObject::tr("All processed videos are unprocessable."), //3
+    QObject::tr("All added videos are unprocessable."), //3
 };
 
 static QJsonArray infoList = {
