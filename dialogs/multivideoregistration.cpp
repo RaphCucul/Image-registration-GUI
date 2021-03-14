@@ -194,7 +194,7 @@ QWidget* MultiVideoRegistration::createIconTableItem(bool icon, QString informat
     if (icon) {
         QLabel *lbl_item = new QLabel();
         lbl_item->setPixmap(QPixmap(":/images/"+information));
-        lbl_item->setAlignment(Qt::AlignHCenter);
+        lbl_item->setAlignment(Qt::AlignCenter);
         //lbl_item->setAlignment(Qt::AlignVCenter);
         return lbl_item;
     }

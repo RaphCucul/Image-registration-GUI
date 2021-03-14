@@ -164,7 +164,7 @@ bool MultipleVideoET::checkVideo(QString i_video){
 QLabel* MultipleVideoET::createIconTableItem(QString i_icon) {
     QLabel *lbl_item = new QLabel();
     lbl_item->setPixmap(QPixmap(":/images/"+i_icon));
-    lbl_item ->setAlignment(Qt::AlignHCenter);
+    lbl_item ->setAlignment(Qt::AlignCenter);
     return lbl_item;
 }
 
