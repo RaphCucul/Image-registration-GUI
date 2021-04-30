@@ -259,13 +259,13 @@ void SharedVariables::saveVideoFrangiParameters(QString i_videoName) {
     QFile file(whereToSaveFrangi+"/"+i_videoName+".dat");
     if (file.exists()) {
         object = readJson(file);
-        foreach (QString parameter, FrangiParametersList)
-            FrangiInformation[parameter] = videoFrangiParameters[i_videoName][parameter];
-        foreach (QString margin, FrangiMarginsList)
-            FrangiInformation[margin] = videoFrangiMargins[i_videoName][margin];
-        foreach (QString ratio, FrangiRatiosList)
-            FrangiInformation[ratio] = videoFrangiRatios[i_videoName][ratio];
     }
+    foreach (QString parameter, FrangiParametersList)
+        FrangiInformation[parameter] = videoFrangiParameters[i_videoName][parameter];
+    foreach (QString margin, FrangiMarginsList)
+        FrangiInformation[margin] = videoFrangiMargins[i_videoName][margin];
+    foreach (QString ratio, FrangiRatiosList)
+        FrangiInformation[ratio] = videoFrangiRatios[i_videoName][ratio];
     object["FrangiInformation"] = FrangiInformation;
     document.setObject(object);
     QString documentString = document.toJson();
@@ -501,7 +501,10 @@ void SharedVariables:: setVideoInformation(QString i_video, QString i_key, QVari
 }
 
 QVariant SharedVariables::getVideoInformation(QString i_video, QString i_key){
-    return videoInformation[i_video][i_key];
+    if (videoInformation[i_video].contains(i_key))
+        return videoInformation[i_video][i_key];
+    else
+        return QVariant();
 }
 
 QMap<QString, QVariant> SharedVariables::getCompleteVideoInformation(QString i_video){
