@@ -25,6 +25,7 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,
                                QMap<QString, QVector<int>> i_FirstDecisionResults,
                                QMap<QString, QVector<int>> i_SecondDecisionResults,
                                QMap<QString, QVector<int>> i_CompleteEvaluation,
+                               QMap<QString, int> i_referentialFrames,
                                QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GraphET_parent)
@@ -32,6 +33,7 @@ GraphET_parent::GraphET_parent(QStringList i_chosenList,
     ui->setupUi(this);
     fileList = i_chosenList;
     analyseNames(namesFlag::FilenameOnly);
+    referentialFrames = i_referentialFrames;
     processAndShow(i_entropy,i_tennengrad,i_thresholds,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
                    i_SecondDecisionResults,i_CompleteEvaluation);
     this->setStyleSheet("background-color: white");
@@ -86,6 +88,19 @@ bool GraphET_parent::prepareData(QString i_videoName, QJsonObject& loadedData) {
         return false;
 }
 
+int GraphET_parent::findReferentialFrame(QVector<int>& evaluationData){
+    bool found = false;
+    int index;
+    for (index = 0; index < evaluationData.length(); index++){
+        if (evaluationData[index] == 2) {
+            found = true;
+            break;
+        }
+    }
+    int output = found ? index : 0;
+    return output;
+}
+
 void GraphET_parent::loadAndShow(){
     QMap<QString,QMap<QString,QVector<double>>> mapDouble;
     QMap<QString,QMap<QString,QVector<int>>> mapInt;
@@ -130,7 +145,7 @@ void GraphET_parent::loadAndShow(){
 
 
     int index = 0;
-    foreach (QString video, filenameList){
+    foreach (QString video, filenameList){        
         GrafET* _graph = new GrafET(mapDouble["entropy"][video],
                                     mapDouble["tennengrad"][video],
                                     mapDouble["thresholds"][video],
@@ -139,7 +154,7 @@ void GraphET_parent::loadAndShow(){
                                     mapInt["firstEval"][video],
                                     mapInt["secondEval"][video],
                                     mapInt["evaluation"][video],
-                                    video,"avi");
+                                    video,"avi",findReferentialFrame(mapInt["evaluation"][video]));
         ui->tabWidget->addTab(_graph,filenameList.at(index));
         index++;
         connect(_graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SLOT(saveDataForGivenVideo(QString,QJsonObject)));
@@ -167,7 +182,7 @@ void GraphET_parent::processAndShow(QMap<QString,QVector<double>> i_entropy,
                                     i_FirstDecisionResults[file],
                                     i_SecondDecisionResults[file],
                                     i_CompleteEvaluation[file],
-                                    file,"avi");
+                                    file,"avi",referentialFrames[file]);
         ui->tabWidget->addTab(_graph,file);
         connect(_graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SIGNAL(saveCalculatedData(QString,QJsonObject)));
         connect(_graph,&GrafET::resizeWindow,[=](){

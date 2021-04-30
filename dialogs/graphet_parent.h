@@ -40,6 +40,7 @@ public:
                             QMap<QString,QVector<int>> i_FirstDecisionResults,
                             QMap<QString,QVector<int>> i_SecondDecisionResults,
                             QMap<QString,QVector<int>> i_CompleteEvaluation,
+                            QMap<QString,int> i_referentialFrames,
                             QWidget *parent = nullptr);
     ~GraphET_parent();
 signals:
@@ -74,6 +75,12 @@ private:
     bool prepareData(QString i_videoName, QJsonObject &loadedData);
 
     /**
+     * @brief Looks for the referential frame of the video.
+     * @return Referential frame index.
+     */
+    int findReferentialFrame(QVector<int> &evaluationData);
+
+    /**
      * @brief Creates the grap directly from given data. Used for SingleVideoET and MultipleVideoET classes.
      */
     void processAndShow(QMap<QString,QVector<double>> i_entropy,
@@ -98,6 +105,7 @@ private:
                                  "firstEval","secondEval","standard","extra"};
     QMap<QString,QString> videoReferences;
     QMap<QString,QMap<QString,cv::Rect>> videosAnomalies;
+    QMap<QString,int> referentialFrames;
 };
 
 #endif // GRAPHET_PARENT_H

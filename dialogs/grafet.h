@@ -113,7 +113,7 @@ public:
                     QVector<int> i_FirstDecisionResults,
                     QVector<int> i_SecondDecisionResults,
                     QVector<int> i_CompleteEvaluation,
-                    QString i_videoName, QString i_suffix,
+                    QString i_videoName, QString i_suffix, int i_indexReferential,
                     QWidget *parent = nullptr);
     ~GrafET() override;
     /**
@@ -402,7 +402,7 @@ private:
     QHash<int,QCheckBox*> CBreferences;
     QHash<QDoubleSpinBox*,QCheckBox*> interWidgetsReferences;
 
-    int frameCount = 0, frameRows = 0, frameCols = 0;
+    int frameCount = 0, frameRows = 0, frameCols = 0, referentialIndex = 0;
     QMap<int,double> thresholds;
     QMap<int,double> extremes;
     QVector<double> valueRange;
