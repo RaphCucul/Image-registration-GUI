@@ -270,13 +270,17 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referential,
         int cols = i_referential.cols;
 
         // calculate frangi
-        int mode = i_frangiParameters.contains("mode") ? i_frangiParameters["mode"] : 1;
-        qDebug()<<"Applying frangi mode "<<mode;
-        i_frangi_point = frangi_analysis(i_referential,mode,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
-        if (i_frangi_point.z == 0.0)
-            return false;
+        // it may happen that frangi is known and only standard cutout is meant to be calculated
+        if (i_frangi_point.x <= 0 || i_frangi_point.y <= 0) {
+            int mode = i_frangiParameters.contains("mode") ? i_frangiParameters["mode"] : 1;
+            qDebug()<<"Applying frangi mode "<<mode;
+            i_frangi_point = frangi_analysis(i_referential,mode,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
+            if (i_frangi_point.z == 0.0)
+                return false;
+        }
 
         // extra cutout is not necessary, just calculate standard cutout
+        // extra cutout can be already applied
         i_standardCutout = calculateStandardCutout(i_frangi_point,frangiRatios,rows,cols);
 
         return true;
