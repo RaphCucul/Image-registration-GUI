@@ -256,9 +256,9 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     image_scale.release();
     imageAngles.release();
     imageFiltered.release();
-    //if (i_frameType == 1) {zeroBorders(imageFrangi,1,i_margins["top_m"],i_margins["bottom_m"],
-                            //i_margins["left_m"],i_margins["right_m"]);}
-    //if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,r,s,s);}
+    if (i_frameType == 1) {zeroBorders(imageFrangi,1,i_margins["top_m"],i_margins["bottom_m"],
+                            i_margins["left_m"],i_margins["right_m"]);}
+    if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,r,s,s);}
     //qDebug()<<"Borders zeroed";
     double maximum_imageFrangi;
     Point max_loc_frangi;
