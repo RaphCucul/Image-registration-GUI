@@ -85,7 +85,6 @@ void SingleVideoRegistration::on_chooseVideoLE_textChanged(const QString &arg1)
 {
     QString fullPath = chosenVideo["folder"]+"/"+arg1+"."+chosenVideo["suffix"];
     QFile file(fullPath);
-
     if (!file.exists())
     {
         ui->chooseVideoLE->setStyleSheet("color: #FF0000");
@@ -126,6 +125,9 @@ void SingleVideoRegistration::on_chooseVideoPB_clicked()
     {
         videoListFull.append(fullVideoPath);
         videoListNames.append(filename);
+        chosenVideo["filename"] = filename;
+        chosenVideo["folder"] = folder;
+        chosenVideo["suffix"] = suffix;
         ui->chooseVideoLE->setText(chosenVideo["filename"]);
         ui->chooseVideoLE->setStyleSheet("color: #33aa00");
         ui->registratePB->setEnabled(true);
@@ -178,6 +180,7 @@ void SingleVideoRegistration::registrateVideoframes()
         ui->registratePB->setText(tr("Registrate videoframes"));
         ui->vysledkyLicovaniTW->clearContents();
         ui->onlyBestFrames->setEnabled(true);
+        ui->registratePB->setEnabled(true);
         runStatus = true;
         canProceed = false;
         internalCounter = 0;
