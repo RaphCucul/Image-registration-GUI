@@ -17,7 +17,7 @@ GrafET::GrafET(QVector<double> i_entropy,
                QVector<int> i_FirstDecisionResults,
                QVector<int> i_SecondDecisionResults,
                QVector<int> i_CompleteEvaluation,
-               QString i_videoName, QString i_suffix,
+               QString i_videoName, QString i_suffix, int i_indexReferential,
                QWidget *parent) : QDialog(parent),
     ui(new Ui::GrafET)
 {
@@ -36,14 +36,20 @@ GrafET::GrafET(QVector<double> i_entropy,
     frameRows = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
     frameCols = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));
     frameCount = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+    referentialIndex = i_indexReferential;
 
     // fill prepared layout with GraphicsView - this may contain a preview of the video frames
     framePreview = new QGraphicsView;
-    framePreview->setFixedSize(frameCols/2+5,frameRows/2+5);
+
+    // prepare view and scene for a frame preview
+    int _width =frameCols/(round(frameCols/300))+5;
+    int _height = frameRows/(round(frameCols/200))+5;
+    //qDebug()<<"View size "<<_width<<" "<<_height;
     scene = new QGraphicsScene;
+    framePreview->setFixedSize(_width,_height);
     framePreview->setScene(scene);
+    framePreview->setFrameStyle(0);
     ui->horizontalLayout_3->addWidget(framePreview);
-    //resize(sizeHint());
 
     // saving all provided informations into internal private variables
     initDataMaps(i_entropy,i_tennengrad,i_FirstEvalEntropy,i_FirstEvalTennengrad,i_FirstDecisionResults,
@@ -291,6 +297,7 @@ void GrafET::showVals(QMouseEvent *event)
                     pixmap = pixmap.scaled(frame.cols/2,frame.rows/2);
                     QGraphicsPixmapItem* image = new QGraphicsPixmapItem(pixmap);
                     framePreview->scene()->addItem(image);
+                    framePreview->fitInView(scene->sceneRect(),Qt::KeepAspectRatio);
                     delete imageObject;
                 }
             }
@@ -349,7 +356,8 @@ void GrafET::showContextMenu(QMouseEvent *i_point){
 
 void GrafET::makeReferential(int i_frameIndex){
     int originalReferentialFrame = findReferentialFrame();
-    ETparametersIntMap["evalComplete"][originalReferentialFrame] = 0;
+    if (originalReferentialFrame != -1)
+        ETparametersIntMap["evalComplete"][originalReferentialFrame] = 0;
     ETparametersIntMap["evalComplete"][i_frameIndex] = 2;
     dataChanged = true;
 }
@@ -486,7 +494,13 @@ void GrafET::on_saveThresholds_clicked()
 
 void GrafET::saveData(SaveOption i_saveOption){
     QJsonObject _returnObject;
-    if (i_saveOption == SaveOption::ALL){        
+    if (i_saveOption == SaveOption::ALL){
+        // it is possible complete evaluation does not contain info about referential frame
+        // if the referential frame was not change by a user, referential frame must be added to
+        // the complete evaluation
+        int originalReferentialFrame = findReferentialFrame();
+        if (originalReferentialFrame == -1)
+            ETparametersIntMap["evalComplete"][referentialIndex] = 2;
         prepareDataForSaving(ETparametersIntMap["evalComplete"],_returnObject,"evaluation");
         prepareDataForSaving(thresholdsToVector(),_returnObject,"thresholds");
     }
@@ -1404,23 +1418,12 @@ SW_VerticalQCPItemLine::~SW_VerticalQCPItemLine()
 
 void SW_VerticalQCPItemLine::UpdateLabel(double x, double y, int frameIndex)
 {
-    /*Q_UNUSED(x)
-    Q_UNUSED(y)
-    Q_UNUSED(i_framePixmap)*/
     m_lineLabel->setText("Frame:"+QString::number(frameIndex));
     m_lineLabel->position->setType(QCPItemPosition::ptAbsolute);
     m_lineLabel->position->setCoords(QPointF(x, y));
     QPointF pp = m_lineLabel->position->pixelPosition() + QPointF(100.0,0.0);
     m_lineLabel->position->setPixelPosition(pp);
-    qDebug()<<x<<" "<<y<<" "<<m_lineLabel->position->coords().x()<<" "<<m_lineLabel->position->coords().y();
-
-    /*entropyLabel->setText(QString::number(i_E));
-    tennengradLabel->setText(QString::number(i_T));
-    evalIndex->setText(QString::number(i_EI));*/
-
-    /*m_linePixmap->setPixmap(i_framePixmap);
-    m_linePixmap->position(QString(QCPItemPosition::ptAbsolute));
-    m_lineLabel->position->setCoords(x, y);*/
+    //qDebug()<<x<<" "<<y<<" "<<m_lineLabel->position->coords().x()<<" "<<m_lineLabel->position->coords().y();
 }
 
 void SW_VerticalQCPItemLine::SetVisibility(bool i_status){
