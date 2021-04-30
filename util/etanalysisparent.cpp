@@ -242,13 +242,17 @@ void ETanalysisParent::saveVideoAnalysisResults() {
         if (badVideos.indexOf(name) == -1){
             QJsonDocument document;
             QJsonObject object;
+            QJsonObject alreadyExisting;
             QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+name+".dat";
+            QFile _f(path);
+            if (_f.exists())
+                alreadyExisting = readJson(_f);
             mapInt["evaluation"][name][framesReferencial[name]] = 2;
             mapDouble["FrangiX"][name][framesReferencial[name]] = framesReferentialFrangiCoordinates[name].x;
             mapDouble["FrangiY"][name][framesReferencial[name]] = framesReferentialFrangiCoordinates[name].y;
 
             object = maps2Object(videoParameters,name,mapDouble,mapInt,mapAnomalies);
-
+            compareJsonKeys(alreadyExisting,object);
             document.setObject(object);
             QString documentString = document.toJson();
             QFile writer;
@@ -264,6 +268,10 @@ void ETanalysisParent::saveVideoAnalysisResultsFromGraphET(QString i_videoName, 
     QJsonDocument document;
     QJsonObject object;
     QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+i_videoName+".dat";
+    QJsonObject alreadyExisting;
+    QFile _f(path);
+    if (_f.exists())
+        alreadyExisting = readJson(_f);
     if (mapDouble.contains("FrangiX") && mapDouble.contains("FrangiY")) {
         if (mapDouble["FrangiX"].contains(i_videoName) && mapDouble["FrangiY"].contains(i_videoName)) {
             if (mapDouble["FrangiX"][i_videoName].length() >= framesReferencial[i_videoName] &&
@@ -304,7 +312,7 @@ void ETanalysisParent::saveVideoAnalysisResultsFromGraphET(QString i_videoName, 
     foreach (QString key, i_object.keys()) {
         object[key] = i_object[key];
     }
-
+    compareJsonKeys(alreadyExisting,object);
     document.setObject(object);
     QString documentString = document.toJson();
     QFile writer;

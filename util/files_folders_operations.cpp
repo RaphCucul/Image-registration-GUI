@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QVector>
+#include <QDebug>
 
 #include "util/files_folders_operations.h"
 using namespace std;
@@ -55,6 +56,20 @@ void writeJson(QJsonObject &i_object, QJsonArray &i_array, QString i_type, QStri
     _write.open(QIODevice::WriteOnly);
     _write.write(documentString.toLocal8Bit());
     _write.close();
+}
+
+void compareJsonKeys(QJsonObject& original, QJsonObject& newOne)
+{
+    QStringList originalKeys = original.keys();
+    QStringList newOneKeys = newOne.keys();
+    if (originalKeys.length() > 0) {
+        for (int i=0; i < originalKeys.length(); i++) {
+            if (!newOne.contains(originalKeys.at(i))) {
+                //qDebug()<<"Key "<<originalKeys.at(i)<<" added to new object";
+                newOne[originalKeys.at(i)] = original[originalKeys.at(i)];
+            }
+        }
+    }
 }
 
 QJsonObject maps2Object(QStringList i_parameters,

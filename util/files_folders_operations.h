@@ -63,6 +63,14 @@ QJsonObject readJson(QFile& i_file);
 void writeJson(QJsonObject& i_object, QJsonArray& i_array, QString i_type, QString i_pathAndName);
 
 /**
+ * @brief Compares two objects - original and new one - and adds missing keys
+ * from original to new one object.
+ * @param original - already existing object
+ * @param newOne - newly created object ready to be saved
+ */
+void compareJsonKeys(QJsonObject& original, QJsonObject& newOne);
+
+/**
  * @brief Template function converts given vector of type T into QJsonArray.
  * @tparam T - vector data type
  * @code vector2array(QVector<T>input> @endcode

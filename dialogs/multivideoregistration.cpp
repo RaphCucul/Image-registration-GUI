@@ -555,9 +555,10 @@ void MultiVideoRegistration::on_saveResultsPB_clicked()
 {
     for (int videoIndex = 0; videoIndex < videoListNames.count(); videoIndex++){
         QJsonDocument document;
-        QJsonObject object;
         QString actualName = videoListNames.at(videoIndex);
-        QString path = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+actualName+".dat";
+        QString datPath = SharedVariables::getSharedVariables()->getPath("datFilesPath")+"/"+actualName+".dat";
+        QFile file(datPath);
+        QJsonObject object = readJson(file);
         for (int parameter = 0; parameter < videoParameters.count(); parameter++){
             if (parameter < 8){
                 QVector<double> pomDouble = videoPropertiesDouble[actualName][videoParameters.at(parameter)];
@@ -589,7 +590,7 @@ void MultiVideoRegistration::on_saveResultsPB_clicked()
         document.setObject(object);
         QString documentString = document.toJson();
         QFile writer;
-        writer.setFileName(path);
+        writer.setFileName(datPath);
         writer.open(QIODevice::WriteOnly);
         writer.write(documentString.toLocal8Bit());
         writer.close();
