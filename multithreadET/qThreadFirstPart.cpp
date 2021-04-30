@@ -188,7 +188,7 @@ void qThreadFirstPart::run()
         // only entropy is used to determine referential frame, because tennengrad was not reliable
         int referentialImageNo = findReferentialNumber(correctEntropyMax,nextAnalysisEntropy,
                                                              entropyComplete[filename]);
-        qDebug()<<"Referential frame for "<<filename<<": "<<referentialImageNo;
+        qDebug()<<"### Referential frame for "<<filename<<": "<<referentialImageNo;
         referentialFrames.insert(filename,referentialImageNo);
 
         // Fourth part - frangi filter is applied on the frame marked as the reference
@@ -219,21 +219,20 @@ void qThreadFirstPart::run()
                 cutoutStandard = transform_QRect_to_CV_RECT(_standardCutout);
                 referential_temp.copyTo(referentialMat);
                 referential_temp.release();
-            }
-            standardCutoutDiscovered = true;
+            }            
         }
-        qDebug()<<"Final standard cutout "<<cutoutStandard.height<<" "<<cutoutStandard.width<<" "<<cutoutStandard.x<<" "<<cutoutStandard.y;
+
         if (referentialMat.rows==0 || referentialMat.cols==0) {
             referential_temp.copyTo(referentialMat);
             referential_temp.release();
         }
-        if (frangi_bod.x <=0 || frangi_bod.y <=0) {
+        if ((frangi_bod.x <=0 || frangi_bod.y <=0) || (cutoutStandard.width == 0 || cutoutStandard.height == 0)) {
             // the referential frame was not preprocessed -> no anomaly is present in the frame
             // video was not analysed in the past -> no data about referential frame and frangi coordinates
             // =>
             // extraCutout is not expected, only standard cutout must be calculated from the newly calculated
             // frangi coordinates -> preprocessing before complete registration
-            qDebug()<<"Referential before preprocessing "<<referentialMat.rows<<" "<<referentialMat.cols;
+            qDebug()<<"Preprocessing needed";
             if (!preprocessingCompleteRegistration(referentialMat,
                                                    frangi_bod,
                                                    cutoutStandardPreprocessed,
@@ -246,6 +245,8 @@ void qThreadFirstPart::run()
                 continue;
             }
         }
+        else
+            standardCutoutDiscovered = true;
         if (cutoutExtraFound) {
             // if extra cutout is present, standard cutout size must be saved because each thread, and especially fifth thread,
             // calculates adjusted standard cutout from the standard cutout
@@ -253,10 +254,14 @@ void qThreadFirstPart::run()
         }
         qDebug()<<"### Referential frame "<<referentialImageNo<<frangi_bod.x<<" "<<frangi_bod.y;
         maximum_frangi[filename] = frangi_bod;
-        if (standardCutoutDiscovered)
+        if (standardCutoutDiscovered) {
+            qDebug()<<"Final standard cutout "<<cutoutStandard.height<<" "<<cutoutStandard.width<<" "<<cutoutStandard.x<<" "<<cutoutStandard.y;
             obtainedCutoffStandard.insert(filename,cutoutStandard);
-        else
+        }
+        else {
+            qDebug()<<"Final standard cutout "<<cutoutStandardPreprocessed.height<<" "<<cutoutStandardPreprocessed.width<<" "<<cutoutStandardPreprocessed.x<<" "<<cutoutStandardPreprocessed.y;
             obtainedCutoffStandard.insert(filename,cutoutStandardPreprocessed);
+        }
 
         QVector<int> badFrame_completeList = mergeVectors(badFramesEntropy,badFramesTennengrad);
         integrityCheck(badFrame_completeList);
