@@ -814,23 +814,26 @@ bool registrationCorrection(cv::Mat& i_registratedFrame,
                             double i_areaMaximum)
 {
     try {
-        Mat interresult,interresult32f,interresult32f_cutout,frame_cutoutArea;
+        Mat interresult,interresult32f,interresult_cutout,frame_cutoutArea;
         i_registratedFrame.copyTo(interresult);
         int rows = i_registratedFrame.rows;
         int cols = i_registratedFrame.cols;        
         i_frame(i_cutoutStandard).copyTo(frame_cutoutArea);
-
+        interresult(i_cutoutStandard).copyTo(interresult_cutout);
+        //qDebug()<<i_registratedFrame.rows<<" "<<i_registratedFrame.cols<<" vs "<<i_frame.rows<<" "<<i_frame.cols;
+        //qDebug()<<interresult.rows<<" "<<interresult.cols<<" vs "<<i_frame.rows<<" "<<i_frame.cols;
         double R1 = calculateCorrCoef(i_frame,interresult,i_cutoutStandard);
-
+        //qDebug()<<"Correction R1 "<<R1;
         Point3d shiftCorrection(0.0,0.0,0.0);
         shiftCorrection = pc_translation_hann(i_frame,interresult,i_areaMaximum);
+        //qDebug()<<"Shift correction "<<shiftCorrection.x<<" "<<shiftCorrection.y;
         if (std::abs(shiftCorrection.x) > 290 || std::abs(shiftCorrection.y) > 290)
         {
             shiftCorrection = pc_translation(i_frame,interresult,i_areaMaximum);
         }
         if (std::abs(shiftCorrection.x) > 290 || std::abs(shiftCorrection.y) > 290)
         {
-            shiftCorrection = pc_translation(frame_cutoutArea,interresult32f_cutout,i_areaMaximum);
+            shiftCorrection = pc_translation(frame_cutoutArea,interresult_cutout,i_areaMaximum);
         }
         i_corrected = frameTranslation(interresult,shiftCorrection,rows,cols);
         double R2 = calculateCorrCoef(i_frame,i_corrected,i_cutoutStandard);
