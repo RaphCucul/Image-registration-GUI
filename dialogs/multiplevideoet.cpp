@@ -305,7 +305,8 @@ void MultipleVideoET::on_showResultsPB_clicked()
                                                mapInt["firstEvalTennengrad"],
                                                mapInt["firstEval"],
                                                mapInt["secondEval"],
-                                               mapInt["evaluation"]);
+                                               mapInt["evaluation"],
+                                               framesReferencial);
     connect(graph,SIGNAL(saveCalculatedData(QString,QJsonObject)),this,SLOT(onSaveFromGraphET(QString,QJsonObject)));
     graph->setModal(true);
     graph->show();
