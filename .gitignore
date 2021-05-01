@@ -1,8 +1,11 @@
 *.user
 frames_registration.pro.user.4.10-pre1
-analyza_obrazu
-dialogy
-fancy_staff
-hlavni_program
-vykon
-licovani*.stash
+*.stash
+debug/
+release/
+profile/
+ui_*
+*.ad8df6c
+Makefile*
+object_script.*
+*.json
