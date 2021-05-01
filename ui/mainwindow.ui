@@ -9,14 +9,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1000</width>
     <height>600</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>800</width>
-    <height>500</height>
+    <width>1000</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1000</width>
+    <height>700</height>
    </size>
   </property>
   <property name="contextMenuPolicy">
@@ -27,7 +33,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../images/icons.qrc">
-    <normaloff>:/images/AppLogo.png</normaloff>:/images/AppLogo.png</iconset>
+    <normaloff>:/images/AppLogo2.png</normaloff>:/images/AppLogo2.png</iconset>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -59,7 +65,7 @@
      <widget class="tabs" name="widget" native="true"/>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="stateIndicators" stretch="0,0,0">
+     <layout class="QHBoxLayout" name="stateIndicators">
       <property name="spacing">
        <number>50</number>
       </property>
@@ -72,59 +78,6 @@
       <property name="rightMargin">
        <number>20</number>
       </property>
-      <item>
-       <widget class="CPUWidget" name="cpuWidget" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>120</width>
-          <height>120</height>
-         </size>
-        </property>
-        <property name="whatsThis">
-         <string>CPU</string>
-        </property>
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="MemoryWidget" name="memoryWidget" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>120</width>
-          <height>120</height>
-         </size>
-        </property>
-        <property name="whatsThis">
-         <string>Memory</string>
-        </property>
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="HddUsagePlot" name="hddWidget" native="true"/>
-      </item>
      </layout>
     </item>
    </layout>
@@ -135,8 +88,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>18</height>
+     <width>1000</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -201,9 +154,36 @@ QMenu::item:selected{
     <addaction name="actionHDD_counter"/>
     <addaction name="actionCheck_version"/>
     <addaction name="actionCheck_for_update_automatically"/>
+    <addaction name="actionDefine_number_of_CPU_cores"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="styleSheet">
+     <string notr="true">QMenu {
+    background-color: rgb(255,255,255); /* sets background of the menu */
+    border-width: 1px;
+    border-radius: 5px;
+     border-color: grey;
+    font: 11px;
+}
+QMenu::item{
+ background-color: rgb(255, 255, 255);
+ color: rgb(0, 0, 0);
+}
+QMenu::item:selected{
+ background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #109910, stop: 1 #00ff00);
+ color: rgb(255, 255, 255);
+}</string>
+    </property>
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout_program"/>
+    <addaction name="actionGitHub_repository"/>
+    <addaction name="actionWebsite"/>
    </widget>
    <addaction name="menuLanguage"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionEnglish">
    <property name="icon">
@@ -252,31 +232,49 @@ QMenu::item:selected{
     <string>Check for update automatically</string>
    </property>
   </action>
+  <action name="actionAutomatic">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Automatic</string>
+   </property>
+  </action>
+  <action name="actionCustom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Custom</string>
+   </property>
+  </action>
+  <action name="actionDefine_number_of_CPU_cores">
+   <property name="text">
+    <string>Define number of CPU cores</string>
+   </property>
+  </action>
+  <action name="actionAbout_program">
+   <property name="text">
+    <string>About program</string>
+   </property>
+  </action>
+  <action name="actionGitHub_repository">
+   <property name="text">
+    <string>GitHub repository</string>
+   </property>
+  </action>
+  <action name="actionWebsite">
+   <property name="text">
+    <string>Website</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>CPUWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">power/cpuwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MemoryWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">power/memorywidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>tabs</class>
    <extends>QWidget</extends>
    <header>main_program/tabs.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>HddUsagePlot</class>
-   <extends>QWidget</extends>
-   <header>power/hddusageplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

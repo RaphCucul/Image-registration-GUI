@@ -6,6 +6,11 @@
 #include <iostream>
 using std::string;
 
+/**
+ * @struct Version
+ * @brief Helps the program to identify the actual version.
+ */
+
 struct Version {
     int MAJOR=0;
     int MINOR=0;

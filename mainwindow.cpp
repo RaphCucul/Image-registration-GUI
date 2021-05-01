@@ -11,14 +11,13 @@
 #include <QSettings>
 #include <QApplication>
 #include <QThread>
+#include <QInputDialog>
+#include <QUrl>
 
-#include "power/cpuwidget.h"
-#include "power/memorywidget.h"
-#include "power/hddwidget.h"
 #include "main_program/tabs.h"
 #include "shared_staff/globalsettings.h"
 #include "dialogs/hdd_settings.h"
-#include "util/versioncheckerparent.h"
+#include "util/aboutprogram.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -27,21 +26,42 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     SystemMonitor::instance().init();
 
+    CPU = new CPUWidget();
+    Memory = new MemoryWidget();
+    HDD = new HddUsagePlot();
+    placePowerWidgets(true);
     setupUsagePlots();
-    QObject::connect(ui->cpuWidget,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
+    QObject::connect(HDD,SIGNAL(hddUsagePlotClicked(bool)),this,SLOT(onHddUsagePlotClicked(bool)));
+
+    if (GlobalSettings::getSettings()->isHDDMonitorEnabled()) {
+        QObject::connect(CPU,SIGNAL(updateWidget()),this,SLOT(updateWidget()));
+    }
+    else
+        HDD->setThemeColor(QColor("#dfe9ff"));
+
     this->setStyleSheet("background-color: white");
 
-    versionInfoStatus = new QLabel(this);
-    versionInfoStatus->setText(tr("No data"));
-    ui->statusBar->addPermanentWidget(versionInfoStatus);
+    vcp = new VersionCheckerParent;
+
+    CPUusedLabel = new QLabel(this);
+    QString _cpuText = tr("Used cores: ")+QString::number(GlobalSettings::getSettings()->getUsedCores(),10);
+    CPUusedLabel->setText(_cpuText);
+    ui->statusBar->addPermanentWidget(CPUusedLabel);
+
+    versionActual = new QLabel(this);
+    ui->statusBar->addPermanentWidget(versionActual);
 
     languageGroup = new QActionGroup(ui->menuLanguage);
     languageGroup->setExclusive(true);
     settingsGroup = new QActionGroup(ui->menuSettings);
     settingsGroup->setExclusive(true);
+    helpGroup = new QActionGroup(ui->menuHelp);
+
     connect(ui->menuLanguage,SIGNAL(triggered(QAction*)),this,SLOT(slotLanguageChanged(QAction*)));
     connect(ui->menuSettings,SIGNAL(triggered(QAction*)),this,SLOT(slotSettingsChanged(QAction*)));
-    localErrorDialogHandler[ui->hddWidget] = new ErrorDialog(ui->hddWidget);
+    connect(ui->menuHelp,SIGNAL(triggered(QAction*)),this,SLOT(slotHelpChanged(QAction*)));
+
+    localErrorDialogHandler[HDD] = new ErrorDialog(HDD);
     bool status = GlobalSettings::getSettings()->getAutoUpdateSetting();
     ui->menuSettings->actions().at(2)->setChecked(status);
     if (status){
@@ -51,13 +71,15 @@ MainWindow::MainWindow(QWidget *parent) :
         QObject::connect(timer,SIGNAL(timeout()),this,SLOT(timerTimeOut()));
         timer->start(1000);
     }
+    else {
+        versionActual->setText(tr("No data"));
+    }
 }
 
 void MainWindow::timerTimeOut(){
     timerCounter++;
     if (timerCounter > 5){
-        timer->stop();
-        VersionCheckerParent* vcp = new VersionCheckerParent;
+        timer->stop();        
         QThread* thread = new QThread;
 
         QObject::connect(vcp,SIGNAL(analysed()),vcp,SLOT(deleteLater()));
@@ -77,21 +99,29 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::placePowerWidgets(bool includeHDD) {
+    ui->stateIndicators->addWidget(CPU,1);
+    ui->stateIndicators->addWidget(Memory,1);
+    if (includeHDD) {
+        ui->stateIndicators->addWidget(HDD,5);
+    }
+}
+
 void MainWindow::setupUsagePlots()
 {
-    ui->hddWidget->setMaximumTime(60);
-    ui->hddWidget->setMaximumUsage(110);
-    ui->hddWidget->setThemeColor(QColor(Qt::blue));
+    HDD->setMaximumTime(60);
+    HDD->setMaximumUsage(110);
+    HDD->setThemeColor(QColor(Qt::blue));
 }
 
 void MainWindow::updateWidget()
 {
     double hddused = SystemMonitor::instance().hddUsed();
     if (hddused >= 0.0)
-        ui->hddWidget->addData(hddused);
+        HDD->addData(hddused);
     else if (hddused < 0.0 && !alreadyEvaluated){
-        localErrorDialogHandler[ui->hddWidget]->evaluate("center","",0);
-        localErrorDialogHandler[ui->hddWidget]->show(false);
+        localErrorDialogHandler[HDD]->evaluate("center","",0);
+        localErrorDialogHandler[HDD]->show(false);
         alreadyEvaluated = true;
     }
 }
@@ -126,17 +156,17 @@ void MainWindow::loadLanguage(const QString& rLanguage)
 
 void MainWindow::versionChecked(bool status){
     if (status){
-        versionInfoStatus->setText(tr("Out of date"));
-        versionInfoStatus->setStyleSheet("color: red");
+        versionActual->setText(tr("Out of date"));
+        versionActual->setStyleSheet("color: red");
     }
     else{
-        versionInfoStatus->setText(tr("Up to date"));
-        versionInfoStatus->setStyleSheet("color: green");
+        versionActual->setText(tr("Up to date"));
+        versionActual->setStyleSheet("color: green");
     }
 }
 
-void MainWindow::slotSettingsChanged(QAction* action){    
-    if (nullptr != action){
+void MainWindow::slotSettingsChanged(QAction* action){
+    if (nullptr != action){//->text() == tr("Add HDD counter name")
         if (action->text() == tr("Add HDD counter name")){
             HDD_Settings* _hddSettings = new HDD_Settings;
             _hddSettings->setModal(true);
@@ -160,5 +190,46 @@ void MainWindow::slotSettingsChanged(QAction* action){
             GlobalSettings::getSettings()->setAutoUpdateSetting(action->isChecked());
             action->setChecked(action->isChecked());
         }
+        else if (action->text() == tr("Define number of CPU cores")) {
+            bool ok;
+            int number = QInputDialog::getInt(this,tr("Number of CPU cores"),tr("Type number of CPU cores to be used: "),
+                                              1,1,QThread::idealThreadCount(),1,&ok);
+            if (ok) {
+                GlobalSettings::getSettings()->setUsedCores(number);
+                CPUusedLabel->setText(tr("Used cores: ")+QString::number(number,10));
+            }
+        }
     }
+}
+
+void MainWindow::slotHelpChanged(QAction* action) {
+    if (action != nullptr) {
+        if (action->text() == tr("About program")) {
+            AboutProgram* info = new AboutProgram(QString::fromStdString(vcp->getActualVersion()),
+                                                  GlobalSettings::getSettings()->getLanguage());
+            info->open();
+        }
+        else if (action->text() == tr("GitHub repository")) {
+            QDesktopServices::openUrl(QUrl("https://github.com/RaphCucul/Frames-registration"));
+        }
+        else if (action->text() == tr("Website")) {
+            QDesktopServices::openUrl(QUrl("https://raphcucul.github.io/FR_webpages/"));
+        }
+    }
+}
+
+void MainWindow::onHddUsagePlotClicked(bool newStatus) {
+    GlobalSettings::getSettings()->setHDDMonitorStatus(newStatus);
+
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(tr("The change will be applied after the application restart"));
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setWindowIcon(QPixmap(":/images/AppLogo2.png"));
+    msgBox.exec();
+}
+
+void MainWindow::closeEvent(QCloseEvent *e){
+    QMainWindow::closeEvent(e);
+    QApplication::quit();
 }

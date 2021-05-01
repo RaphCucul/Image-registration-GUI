@@ -1,10 +1,9 @@
 #include "image_analysis/frangi_utilization.h"
-#include <opencv2/core.hpp>
-#include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
 #include "image_analysis/image_processing.h"
+#include "dialogs/matviewer.h"
+
+#include <opencv2/opencv.hpp>
+
 #include <vector>
 #include <math.h>
 #include <string>
@@ -214,7 +213,7 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
                             QString i_windowName,
                             int i_frameType,
                             cv::Point3d i_translation,
-                            QVector<double> i_FrangiParameters,
+                            QMap<QString,double> i_FrangiParameters,
                             QMap<QString,int> i_margins)
 {
     Point3d definitiveCoords;
@@ -228,16 +227,16 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     {
         opts.BlackWhite = true;
     }
-    opts.sigma_start = int(i_FrangiParameters[0]);
-    opts.sigma_step = int(i_FrangiParameters[1]);
-    opts.sigma_end = int(i_FrangiParameters[2]);
-    opts.BetaOne = i_FrangiParameters[3];
-    opts.BetaTwo = i_FrangiParameters[4];
+    opts.sigma_start = int(i_FrangiParameters["sigma_start"]);
+    opts.sigma_step = int(i_FrangiParameters["sigma_step"]);
+    opts.sigma_end = int(i_FrangiParameters["sigma_end"]);
+    opts.BetaOne = i_FrangiParameters["beta_one"];
+    opts.BetaTwo = i_FrangiParameters["beta_two"];
 
     int r = int(i_translation.y);
     int s = int(i_translation.x);
 
-    Mat imageFiltered,imageFrangi,obraz_scale, imageAngles;
+    Mat imageFiltered,imageFrangi,image_scale, imageAngles;
     imageFiltered = imageFiltrationPreprocessing(i_inputFrame,60.0f,0.4f);
     //qDebug()<<"filtration processed";
     if (i_frameType == 1) {borderProcessing(imageFiltered,1,
@@ -251,48 +250,56 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
     cv::Mat _pom;
     imageFiltered.copyTo(_pom);
     transformMatTypeTo8C3(_pom);
-    //cv::imshow("forFrangi",_pom);
 
-    frangi2d(imageFiltered, imageFrangi, obraz_scale, imageAngles, opts);
-
-    //imwrite("frangi",imageFrangi);
-    obraz_scale.release();
+    frangi2d(imageFiltered, imageFrangi, image_scale, imageAngles, opts);
+    //qDebug()<<"Frangi done";
+    image_scale.release();
     imageAngles.release();
     imageFiltered.release();
     if (i_frameType == 1) {zeroBorders(imageFrangi,1,i_margins["top_m"],i_margins["bottom_m"],
                             i_margins["left_m"],i_margins["right_m"]);}
-    if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,s,0,0);}
-
+    if (i_frameType == 2) {zeroBorders(imageFrangi,2,r,r,s,s);}
+    //qDebug()<<"Borders zeroed";
     double maximum_imageFrangi;
     Point max_loc_frangi;
     cv::minMaxLoc(imageFrangi, NULL, &maximum_imageFrangi, NULL, &max_loc_frangi);
-    if ((max_loc_frangi.x!=max_loc_frangi.x)== 1 || (max_loc_frangi.y!=max_loc_frangi.y) == 1)
+    bool maxCondition = (max_loc_frangi.x > 0 && max_loc_frangi.y > 0);
+
+    if (i_processingMode == 2 && !maxCondition)
     {
+        qDebug()<<"minMaxLoc -> something went wrong";
         definitiveCoords.z = 0.0;
         definitiveCoords.x = -10;
         definitiveCoords.y = -10;
+        return definitiveCoords;
     }
     else
     {
         if (i_accuracy == 1)
         {
+            //qDebug()<<"Setting standard pixel resolution";
             definitiveCoords.x = max_loc_frangi.x;
             definitiveCoords.y = max_loc_frangi.y;
             definitiveCoords.z = 1.0;
         }
-        if (i_accuracy == 2)
+        else if (i_accuracy == 2)
         {
-            cv::Point2d teziste = FrangiSubpixel(imageFrangi,maximum_imageFrangi,max_loc_frangi);
-            definitiveCoords.x = teziste.x;
-            definitiveCoords.y = teziste.y;
+            //qDebug()<<"Setting subpixel resolution";
+            cv::Point2d centerOfWeight = FrangiSubpixel(imageFrangi,
+                                                        maximum_imageFrangi,
+                                                        max_loc_frangi);
+            definitiveCoords.x = centerOfWeight.x;
+            definitiveCoords.y = centerOfWeight.y;
             definitiveCoords.z = 1.0;
         }
+
         if (i_showResult == 1)
         {
-            namedWindow(i_windowName.toLocal8Bit().constData());
-            drawMarker(imageFrangi,max_loc_frangi,(0));
-            cv::imshow(i_windowName.toLocal8Bit().constData(),imageFrangi);
+            drawMarker(imageFrangi,max_loc_frangi,cv::Scalar(0));
+            MatViewer *viewer = new MatViewer(imageFrangi,i_windowName);
+            viewer->open();
         }
     }
+    qDebug()<<"Returning frangi results: "<<definitiveCoords.x<<" "<<definitiveCoords.y;
     return definitiveCoords;
 }

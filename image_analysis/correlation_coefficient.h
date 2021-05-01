@@ -5,12 +5,18 @@
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
+
 /**
- * @brief Function calculates the correlation coefficient of referencial and registrated frame.
- * @param i_referencial
- * @param i_registrated
- * @param i_cutoutCorrelation
- * @return
+ * @file correlation_coefficient.h
+ * A function calculating a correlation coefficient of two frames.
  */
-double calculateCorrCoef(const cv::Mat& i_referencial, const cv::Mat& i_registrated,cv::Rect i_cutoutCorrelation);
+
+/**
+ * @brief Calculates the correlation coefficient of referencial and registrated frame.
+ * @param i_referential - a referential frame
+ * @param i_registrated - a registrated frame
+ * @param i_cutoutCorrelation - an area of the frame which will be used for the calculation of the CC
+ * @return The value of the correlation coefficient.
+ */
+double calculateCorrCoef(const cv::Mat& i_referential, const cv::Mat& i_registrated,cv::Rect i_cutoutCorrelation);
 #endif // CORRELATION_COEFFICIENT_H_INCLUDED

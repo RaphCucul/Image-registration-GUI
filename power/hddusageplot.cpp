@@ -1,28 +1,26 @@
 #include "power/hddusageplot.h"
 #include "shared_staff/qcustomplot.h"
+#include "shared_staff/globalsettings.h"
 
 HddUsagePlot::HddUsagePlot(QWidget *parent) : QCustomPlot (parent),
     time(30),usage(30)
 {
     blockRedraw = false;
     axisRect()->setMinimumMargins(QMargins(0,20,0,20));
-    //xAxis2->setVisible(false);
-    //yAxis2->setVisible(false);
+    this->setStyleSheet("border-color: red;border-width: 15px");
     xAxis->setTickLabels(false);
-    //xAxis2->setTickLabels(false);
     yAxis->setTickLabels(false);
-    //yAxis2->setTickLabels(false);
     xAxis->setRangeReversed(true);
     xAxis->setTickPen(QPen(QColor(255, 255, 255, 0)));
     xAxis->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
-    //xAxis2->setTickPen(QPen(QColor(255, 255, 255, 0)));
-    //xAxis2->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
     yAxis->setTickPen(QPen(QColor(255, 255, 255, 0)));
     yAxis->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
-    //yAxis2->setTickPen(QPen(QColor(255, 255, 255, 0)));
-    //yAxis2->setSubTickPen(QPen(QColor(255, 255, 255, 0)));
+
     addGraph();
     graph(0)->addData(time,usage);
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+        this, SLOT(customMenuRequested(const QPoint &)));
 }
 
 void HddUsagePlot::setMaximumTime(unsigned int max)
@@ -57,7 +55,7 @@ void HddUsagePlot::addData(double data)
     replot();
 }
 
-QPixmap HddUsagePlot::convertToPixmap(int width, int height, double scale)
+/*QPixmap HddUsagePlot::convertToPixmap(int width, int height, double scale)
 {
     blockRedraw = true;
 
@@ -71,7 +69,7 @@ QPixmap HddUsagePlot::convertToPixmap(int width, int height, double scale)
 
     blockRedraw = false;
     return pixmap;
-}
+}*/
 
 void HddUsagePlot::redraw()
 {
@@ -107,4 +105,20 @@ void HddUsagePlot::setThemeColor(const QColor & themeColor, unsigned int scale)
     graph(0)->setBrush(QBrush(QColor(0,0,100,100)));
 
     redraw();
+}
+
+void HddUsagePlot::customMenuRequested(const QPoint &pos) {
+    bool actualStatus = GlobalSettings::getSettings()->isHDDMonitorEnabled();
+    QMenu contextMenu(tr("HDDUsagePlot context menu"), this);
+    contextMenu.setStyleSheet("QMenu::item:selected{"
+                              "background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #109910, stop: 1 #00ff00);"
+                              "color: rgb(255, 255, 255);"
+                              "}");
+    QAction action1(actualStatus ? tr("Disable HDD monitoring") : tr("Enable HDD monitoring."), this);
+    connect(&action1, &QAction::triggered,[=](){
+        emit hddUsagePlotClicked(!actualStatus);
+    });
+    contextMenu.addAction(&action1);
+
+    contextMenu.exec(mapToGlobal(pos));
 }

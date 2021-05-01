@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/images">
-        <file>adresar.png</file>
         <file>circularHardError16_2.png</file>
         <file>circularInfo16_2.png</file>
         <file>circularSoftError16_2.png</file>
@@ -8,10 +7,7 @@
         <file>everythingBad.png</file>
         <file>everythingOK.png</file>
         <file>frangi.png</file>
-        <file>licovaniDvou.png</file>
         <file>noProgress.png</file>
-        <file>Piechart.png</file>
-        <file>video-camera-icon.png</file>
         <file>What_todo.png</file>
         <file>style.qss</file>
         <file>iconfinder_71_Ensign_Flag_Nation_czech_2634499.png</file>
@@ -21,5 +17,19 @@
         <file>greyDiode.png</file>
         <file>orangeDiode.png</file>
         <file>redDiode.png</file>
+        <file>upload.png</file>
+        <file>dataExists.png</file>
+        <file>dataMissing.png</file>
+        <file>play.png</file>
+        <file>processing.gif</file>
+        <file>UP.png</file>
+        <file>play_inactive.png</file>
+        <file>dataExistsComplete.png</file>
+        <file>AppLogo2.png</file>
+        <file>twoFrames.png</file>
+        <file>folders.png</file>
+        <file>video.png</file>
+        <file>AppLogo2.ico</file>
+        <file>mainIco.rc</file>
     </qresource>
 </RCC>

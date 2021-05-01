@@ -19,13 +19,15 @@ int main(int argc, char *argv[])
 
     if (_storedAppDirPath == "" || _storedAppDirPath != _applicationDirectoryPath)
         GlobalSettings::getSettings()->setAppPath(_applicationDirectoryPath);
+    if (!GlobalSettings::getSettings()->checkPresenceOfSetting("UsedCores"))
+        GlobalSettings::getSettings()->setUsedCores(1);
 
     QTranslator translator;
     QString savedLanguage = GlobalSettings::getSettings()->getLanguage();
     if (savedLanguage == "CZ")
-        translator.load(":/czech.qm");
+        translator.load(":/translations/czech.qm");
     else
-        translator.load(":/english.qm");
+        translator.load(":/translations/english.qm");
     App.installTranslator(&translator);
 
     MainWindow w;

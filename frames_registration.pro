@@ -25,7 +25,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-    dialogs/newversiondialog.cpp \
     image_analysis/entropy.cpp \
     image_analysis/frangi.cpp \
     image_analysis/correlation_coefficient.cpp \
@@ -41,6 +40,8 @@ SOURCES += \
     dialogs/singlevideoet.cpp \
     dialogs/multivideoregistration.cpp \
     dialogs/singlevideoregistration.cpp \
+    dialogs/matviewer.cpp \
+    dialogs/newversiondialog.cpp \
 ###############################################            
     shared_staff/qcustomplot.cpp \
     shared_staff/systemmonitorwidget.cpp \
@@ -50,7 +51,7 @@ SOURCES += \
     main_program/frangi_detektor.cpp \
     main_program/registratetwo.cpp \
     main_program/registratevideo.cpp \
-    main_program/t_b_ho.cpp \
+    main_program/directories_loader.cpp \
     main_program/registrationresult.cpp \
     main_program/chartinit.cpp \
     main_program/tabs.cpp \
@@ -60,7 +61,9 @@ SOURCES += \
     registration/multiPOC_Ai1.cpp \
     registration/registrationthread.cpp \
 ################################################
+    util/aboutprogram.cpp \
     util/files_folders_operations.cpp \
+    util/playbutton.cpp \
     util/systemmonitor.cpp \
     util/util_grafet.cpp \
     util/registrationparent.cpp \
@@ -69,7 +72,6 @@ SOURCES += \
 ################################################
     power/cpuwidget.cpp \
     power/hddusageplot.cpp \
-    power/hddwidget.cpp \
     power/memorywidget.cpp \
     power/windowsimpl.cpp \
 ################################################
@@ -85,7 +87,6 @@ SOURCES += \
     util/versioncheckerparent.cpp
 
 HEADERS += \
-    dialogs/newversiondialog.h \
     image_analysis/entropy.h \
     image_analysis/frangi.h \
     image_analysis/correlation_coefficient.h \
@@ -101,6 +102,8 @@ HEADERS += \
     dialogs/singlevideoet.h \
     dialogs/multivideoregistration.h\
     dialogs/singlevideoregistration.h \
+    dialogs/newversiondialog.h \
+    dialogs/matviewer.h \
 ################################################
     shared_staff/qcustomplot.h \
     shared_staff/systemmonitorwidget.h \
@@ -112,7 +115,7 @@ HEADERS += \
     main_program/registratetwo.h \
     main_program/registratevideo.h \
     main_program/registrationresult.h \
-    main_program/t_b_ho.h \
+    main_program/directories_loader.h \
     main_program/chartinit.h \
     main_program/tabs.h \
 ################################################
@@ -122,16 +125,20 @@ HEADERS += \
     registration/registrationthread.h \
 ################################################
     shared_staff/version.h \
+    util/aboutprogram.h \
+    util/adminCheck.h \
     util/files_folders_operations.h \
+    util/playbutton.h \
     util/systemmonitor.h \
     util/util_grafet.h \
     util/registrationparent.h \
     util/vector_operations.h \
     util/etanalysisparent.h \
+    util/versionchecker.h \
+    util/versioncheckerparent.h \
 ################################################
     power/cpuwidget.h \
     power/hddusageplot.h \
-    power/hddwidget.h \
     power/memorywidget.h \
     power/windowsimpl.h \
 #################################################
@@ -141,9 +148,7 @@ HEADERS += \
     multithreadET/qthreadsecondpart.h \
     multithreadET/qthreadthirdpart.h \
     multithreadET/qthreadfourthpart.h \
-    multithreadET/qthreadfifthpart.h \
-    util/versionchecker.h \
-    util/versioncheckerparent.h
+    multithreadET/qthreadfifthpart.h
 
 FORMS += \
     dialogs/hdd_settings.ui \
@@ -154,30 +159,28 @@ FORMS += \
     ui/registratetwo.ui \
     ui/registratevideo.ui \
     ui/registrationresult.ui \
-    ui/t_b_ho.ui \
+    ui/directories_loader.ui \
     ui/frangi_detektor.ui \
     ui/mainwindow.ui \
     dialogs/grafet.ui \
     dialogs/singlevideoet.ui \
     dialogs/multiplevideoet.ui \
-    dialogs/errordialog.ui \
     ui/tabs.ui \
     dialogs/multivideoregistration.ui \
-    dialogs/clickimageevent.ui
+    dialogs/clickimageevent.ui \
+    util/aboutprogram.ui
 
 QMAKE_RESOURCE_FLAGS += -no-compress
 
-INCLUDEPATH += C:\opencv_installed\build\include
-
 LIBS += C:\Windows\System32\pdh.dll
+LIBS += D:\Programy\OpenCV\opencv\release\install\x86\mingw\bin\libopencv_world320.dll
+INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\include
+INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\x86\mingw
 
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_core320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_highgui320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgcodecs320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_imgproc320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_photo320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_videoio320.dll
-LIBS += D:\Qt_projekty\opencv_build\install\x86\mingw\bin\libopencv_video320.dll
-
-RESOURCES += images/icons.qrc \
+RESOURCES += \
+    images/icons.qrc \
     translations.qrc
+
+RC_FILE += images/mainIco.rc
+
+TRANSLATIONS += translations/czech.ts translations/english.ts

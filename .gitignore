@@ -1,5 +1,11 @@
-frames_registration.pro.user
-frames_registration.user
 *.user
-
-*.10-pre1
+frames_registration.pro.user.4.10-pre1
+*.stash
+debug/
+release/
+profile/
+ui_*
+*.ad8df6c
+Makefile*
+object_script.*
+*.json

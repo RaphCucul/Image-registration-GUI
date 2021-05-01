@@ -1,9 +1,5 @@
 #include "image_analysis/image_processing.h"
-#include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <opencv2/highgui/highgui.hpp>
 
 #include <vector>
 #include <math.h>
@@ -13,7 +9,7 @@
 #include <random>
 using namespace cv;
 
-cv::Mat frameTranslation(const cv::Mat& i_shifted_orig, const cv::Point3d& i_shift, int i_rows, int i_cols)
+cv::Mat frameTranslation(const cv::Mat& i_orig, const cv::Point3d& i_shift, int i_rows, int i_cols)
 {
     cv::Mat srcX(i_rows,i_cols,CV_32FC1);
     cv::Mat srcY(i_rows,i_cols,CV_32FC1);
@@ -27,7 +23,7 @@ cv::Mat frameTranslation(const cv::Mat& i_shifted_orig, const cv::Point3d& i_shi
             srcY.at<float>(i,j) = float(i+i_shift.y);
         }
     }
-    cv::remap(i_shifted_orig,translation_result,srcX,srcY,cv::INTER_LINEAR);
+    cv::remap(i_orig,translation_result,srcX,srcY,cv::INTER_LINEAR);
 
     srcX.release();
     srcY.release();
@@ -40,28 +36,6 @@ cv::Mat frameRotation(const cv::Mat& i_frameAfterTranslation, const double i_ang
     cv::Mat rotation_result;// = cv::Mat::zeros(i_frameAfterTranslation.size(), CV_32FC3);
     cv::warpAffine(i_frameAfterTranslation,rotation_result,M,i_frameAfterTranslation.size(),0,BORDER_REPLICATE);
     return rotation_result;
-}
-void showMat(std::string i_windowName, cv::Mat i_frameToShow)
-{
-    cv::namedWindow(i_windowName);
-    cv::Mat frameToShow_8U = cv::Mat::zeros(i_frameToShow.rows,i_frameToShow.cols,CV_8UC3);
-    i_frameToShow.copyTo(frameToShow_8U);
-    i_frameToShow.release();
-    if (frameToShow_8U.type() != 0)
-    {
-        if (frameToShow_8U.channels() == 3)
-        {
-            cv::cvtColor(frameToShow_8U,frameToShow_8U,CV_BGR2GRAY);
-            frameToShow_8U.convertTo(frameToShow_8U,CV_8UC1);
-        }
-        else
-        {
-            frameToShow_8U.convertTo(frameToShow_8U,CV_8UC1);
-        }
-    }
-    namedWindow(i_windowName);
-    imshow(i_windowName,frameToShow_8U);
-    frameToShow_8U.release();
 }
 
 void transformMatTypeTo32C1(cv::Mat& i_MatToCheck)
@@ -78,6 +52,13 @@ void transformMatTypeTo32C1(cv::Mat& i_MatToCheck)
             i_MatToCheck.convertTo(i_MatToCheck,CV_32FC1);
         }
     }
+}
+
+cv::Mat convertMatFrom32FTo8U(cv::Mat& i_MatToCheck)
+{
+    cv::Mat _returnMat;
+    i_MatToCheck.convertTo(_returnMat,CV_8UC1,255,0);
+    return _returnMat;
 }
 
 void transformMatTypeTo8C1(cv::Mat& i_MatToCheck)
@@ -98,21 +79,21 @@ void transformMatTypeTo8C1(cv::Mat& i_MatToCheck)
 
 cv::Mat transformMatTypeTo64C1(cv::Mat& i_MatToCheck)
 {
-    Mat upraveny;
+    Mat modified;
     if (i_MatToCheck.type() != 6)
     {
         if (i_MatToCheck.channels() == 3)
         {
-            cvtColor(i_MatToCheck,upraveny,CV_BGR2GRAY);
-            upraveny.convertTo(upraveny,CV_64FC1);
+            cvtColor(i_MatToCheck,modified,CV_BGR2GRAY);
+            modified.convertTo(modified,CV_64FC1);
         }
         else
         {
-            i_MatToCheck.copyTo(upraveny);
-            upraveny.convertTo(upraveny,CV_64FC1);
+            i_MatToCheck.copyTo(modified);
+            modified.convertTo(modified,CV_64FC1);
         }
     }
-    return upraveny;
+    return modified;
 }
 
 void transformMatTypeTo8C3(cv::Mat& i_MatToCheck)
@@ -129,4 +110,47 @@ void transformMatTypeTo8C3(cv::Mat& i_MatToCheck)
             i_MatToCheck.convertTo(i_MatToCheck,CV_8UC3);
         }
     }
+}
+
+QString MatType2String(int type) {
+    QString r;
+
+    uchar depth = type & CV_MAT_DEPTH_MASK;
+    uchar chans = 1 + (type >> CV_CN_SHIFT);
+
+    switch ( depth ) {
+    case CV_8U:  r = "8U"; break;
+    case CV_8S:  r = "8S"; break;
+    case CV_16U: r = "16U"; break;
+    case CV_16S: r = "16S"; break;
+    case CV_32S: r = "32S"; break;
+    case CV_32F: r = "32F"; break;
+    case CV_64F: r = "64F"; break;
+    default:     r = "User"; break;
+    }
+
+    r += "C";
+    r += (chans+'0');
+
+    return r;
+}
+
+QRect transform_CV_RECT_to_QRect(cv::Rect i_rect){
+    return QRect(i_rect.x,i_rect.y,i_rect.width,i_rect.height);
+}
+
+cv::Rect transform_QRect_to_CV_RECT(QRect i_rect){
+    return cv::Rect(i_rect.x(),i_rect.y(),i_rect.width(),i_rect.height());
+}
+
+QPoint transform_CV_POINT_to_QPoint(cv::Point i_point){
+    return QPoint(i_point.x,i_point.y);
+}
+
+QPointF transform_CV_POINTF_to_QPointF(cv::Point3d i_point){
+    return QPointF(i_point.x,i_point.y);
+}
+
+cv::Point3d transform_QPoint_to_CV_Point3d(QPoint i_point){
+    return cv::Point3d(i_point.x(),i_point.y(),0.0);
 }

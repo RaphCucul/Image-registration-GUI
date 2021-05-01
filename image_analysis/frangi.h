@@ -1,6 +1,15 @@
 #include <opencv2/opencv.hpp>
-/// PREVZATY ALGORITMUS PRO SEGMENTACI CEV POMOCI FRANGIHO FILTRU
-//options for the filter
+
+/**
+ * @file frangi.h
+ * Functions calculating frangi parameters.
+ * For more info about the origin of these functions, please visit the repository of this program.
+ */
+
+/**
+ * @struct frangi2d_opts_t
+ * @brief options for the filter
+ */
 typedef struct{
 	//vessel scales
     int sigma_start;
@@ -27,7 +36,15 @@ typedef struct{
 //Frangi filter//
 /////////////////
 
-//apply full Frangi filter to src. Vesselness is saved in J, scale is saved to scale, vessel angle is saved to directions.
+/**
+ * @brief Applies full Frangi filter to src. Vesselness is saved in J, scale is saved to scale, vessel angle is saved to
+ * directions.
+ * @param[in] src - input image
+ * @param[out] J - frame with output values
+ * @param[] scale - frame with scale information
+ * @param[] directions - frame with calculated directories
+ * @param[] opts - defined frangi parameters
+ */
 void frangi2d(const cv::Mat &src, cv::Mat &J, cv::Mat &scale, cv::Mat &directions, frangi2d_opts_t opts);
 
 
@@ -36,12 +53,32 @@ void frangi2d(const cv::Mat &src, cv::Mat &J, cv::Mat &scale, cv::Mat &direction
 //Helper functions//
 ////////////////////
 
-//run 2D Hessian filter with parameter sigma on src, save to Dxx, Dxy and Dyy.
+/**
+ * @brief Runs 2D Hessian filter with parameter sigma on src, save to Dxx, Dxy and Dyy.
+ * @param src
+ * @param Dxx
+ * @param Dxy
+ * @param Dyy
+ * @param sigma
+ */
 void frangi2d_hessian(const cv::Mat &src, cv::Mat &Dxx, cv::Mat &Dxy, cv::Mat &Dyy, float sigma);
 
-//set opts to default options (sigma_start = 3, sigma_end = 7, sigma_step = 1, BetaOne = 1.6, BetaTwo 0.08)
+/**
+ * @brief Sets opts variable to default options (sigma_start = 1, sigma_end = 10, sigma_step = 1, BetaOne = 8.0, BetaTwo 8.0)
+ * @param opts
+ */
 void frangi2d_createopts(frangi2d_opts_t *opts);
 
-//estimate eigenvalues from Dxx, Dxy, Dyy. Save results to lambda1, lambda2, Ix, Iy.
-void frangi2_eig2image(const cv::Mat &Dxx, const cv::Mat &Dxy, const cv::Mat &Dyy, cv::Mat &lambda1, cv::Mat &lambda2, cv::Mat &Ix, cv::Mat &Iy);
+/**
+ * @brief Estimates eigenvalues from Dxx, Dxy, Dyy. Save results to lambda1, lambda2, Ix, Iy.
+ * @param Dxx
+ * @param Dxy
+ * @param Dyy
+ * @param lambda1
+ * @param lambda2
+ * @param Ix
+ * @param Iy
+ */
+void frangi2_eig2image(const cv::Mat &Dxx, const cv::Mat &Dxy, const cv::Mat &Dyy,
+                       cv::Mat &lambda1, cv::Mat &lambda2, cv::Mat &Ix, cv::Mat &Iy);
 

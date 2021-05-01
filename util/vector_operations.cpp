@@ -165,10 +165,20 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
                             int& i_dmin,
                             double& i_restToEnd,
                             QVector<int> &i_badFrames,
-                            QVector<double>& i_forEvaluation)
+                            QVector<double>& i_forEvaluation,
+                            bool explicitThresholds)
 {
-    try {
-        if ((i_inputValues[0] < i_medianVector[0]) || (i_inputValues[0] >= (i_recalculatedMaximum+i_thresholds[1])))
+    double absoluteMinimum = 100000;
+    double maximum_criterion = 0, minimum_criterion = 0;
+    if (explicitThresholds) {
+        maximum_criterion = i_thresholds[1];
+    }
+    else {
+        maximum_criterion = i_recalculatedMaximum+i_thresholds[1];
+    }
+
+    try { // 0 - lower; 1 - upper
+        if ((i_inputValues[0] < i_medianVector[0]) || (i_inputValues[0] >= (maximum_criterion)))
         {
             i_badFrames.push_back(0);
         }
@@ -190,10 +200,22 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
                 from_to[0] = int(i_windowsVector[i-1]);
                 from_to[1] = int(i_windowsVector[i]);
             }
+
             double actualMedian = i_medianVector[i];
+            // trying to identify absolute minimum which will be stored in the *.dat file
+            if (actualMedian-i_thresholds[0] < absoluteMinimum)
+                absoluteMinimum = actualMedian-i_thresholds[0];
+
             for (int j = from_to[0]; j < from_to[1]; j++)
             {
-                if (i_inputValues[j] < (actualMedian-i_thresholds[0]))
+                if (explicitThresholds) {
+                    minimum_criterion = i_thresholds[0];
+                }
+                else {
+                    minimum_criterion = actualMedian-i_thresholds[0];
+                }
+
+                if (i_inputValues[j] < (minimum_criterion))
                 {
                     if ((i_inputValues[j-1])>=i_inputValues[j] || (i_inputValues[j]<=i_inputValues[j+1]))
                     {
@@ -210,14 +232,17 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
                         }
                     }
                 }
-                if (i_inputValues[j] >= i_recalculatedMaximum+i_thresholds[1])
+                if (i_inputValues[j] >= maximum_criterion)
                 {
                     i_badFrames.push_back(j);
                 }
                 if (i_thresholds.size() == 2)
                 {
-                    if ((i_inputValues[j] > (actualMedian-i_thresholds[0]+i_tolerance))
-                            && (i_inputValues[j] < i_recalculatedMaximum+i_thresholds[1]))
+                    if (!explicitThresholds)
+                        minimum_criterion+=i_tolerance;
+
+                    if ((i_inputValues[j] > minimum_criterion)
+                            && (i_inputValues[j] < maximum_criterion))
                     {
                         i_forEvaluation.push_back(j);
                     }
@@ -227,10 +252,14 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
         }
         if (i_restToEnd == 0.0)
         {
-            if ((i_inputValues.back() < i_medianVector.back()) || (i_inputValues.back() >= i_recalculatedMaximum + i_thresholds[1]))
+            if ((i_inputValues.back() < i_medianVector.back()) || (i_inputValues.back() >= maximum_criterion))
             {
                 i_badFrames.push_back(i_inputValues.size()-1);
             }
+        }
+        if (!explicitThresholds) {
+            i_thresholds[1]+= i_recalculatedMaximum;
+            i_thresholds[0] = absoluteMinimum;
         }
         return true;
     } catch (std::exception e) {
@@ -238,20 +267,20 @@ bool analysisFunctionValues(QVector<double>& i_inputValues,
     }
 }
 
-int findReferencialNumber(double& i_recalculatedMaximum, QVector<double>& i_forEvaluation,
+int findReferentialNumber(double& i_recalculatedMaximum, QVector<double>& i_forEvaluation,
                                  QVector<double>& i_inputValues)
 {
     double difference = 1000.0;
-    int referencialNumber = 0;
+    int referentialNumber = 0;
     for (int i = 0; i < i_forEvaluation.size(); i++)
     {
         if (std::abs(i_recalculatedMaximum - i_inputValues[int(i_forEvaluation[i])]) < difference)
         {
-            referencialNumber = int(i_forEvaluation[i]);
+            referentialNumber = int(i_forEvaluation[i]);
             difference = i_recalculatedMaximum - i_inputValues[int(i_forEvaluation[i])];
         }
     }
-    return referencialNumber;
+    return referentialNumber;
 }
 
 void integrityCheck(QVector<int> &i_badFrames)
@@ -333,7 +362,7 @@ QVector<QVector<int> > divideIntoPeaces(int i_totalLength, int i_threadCount)
     return output;
 }
 
-void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString> &i_whereToSave){
+void analyseAndSaveFirst(QString i_analysedFolder, QMap<QString,QString> &i_whereToSave){
     QString folder,filename,suffix;
     QStringList filesFound;
     int foundCount = 0;
@@ -341,34 +370,8 @@ void analyseAndSaveFirst(QString i_analysedFolder, QVector<QString> &i_whereToSa
     if (foundCount != 0){
         QString fullName = i_analysedFolder+"/"+filesFound.at(0);
         processFilePath(fullName,folder,filename,suffix);
-        if (i_whereToSave.length() == 0){
-            i_whereToSave.push_back(folder);
-            i_whereToSave.push_back(filename);
-            i_whereToSave.push_back(suffix);
-        }
-        else{
-            i_whereToSave.clear();
-            i_whereToSave.push_back(folder);
-            i_whereToSave.push_back(filename);
-            i_whereToSave.push_back(suffix);
-        }
+        i_whereToSave["folder"] = folder;
+        i_whereToSave["filename"] = filename;
+        i_whereToSave["suffix"] = suffix;
     }
-}
-
-int vectorSum(QVector<int> i_input)
-{
-    int output=0;
-    for (int vectorElement = 0; vectorElement < i_input.length(); vectorElement++)
-        output += i_input[vectorElement];
-
-    return output;
-}
-
-double vectorSum(QVector<double> i_input)
-{
-    int output=0;
-    for (int vectorElement = 0; vectorElement < i_input.length(); vectorElement++)
-        output += i_input[vectorElement];
-
-    return output;
 }

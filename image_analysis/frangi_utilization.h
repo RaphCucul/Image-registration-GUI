@@ -6,54 +6,66 @@
 #include "image_analysis/image_processing.h"
 #include <QVector>
 #include <QJsonObject>
+#include <QObject>
+#include <QMap>
 
 /**
- * @brief Recursive and median filtration are applied on the image.
+ * @file frangi_utilization.h
+ * Functions using functions declared in frangi.h
+ * to calculate maximum frangi coordinates.
+ */
+
+/**
+ * @brief Recursive and median filtration is applied on a frame.
  * @param inputImage
  * @param sigma_s
  * @param sigma_r
- * @return
+ * @return Filtered frame.
  */
 cv::Mat imageFiltrationPreprocessing(const cv::Mat &i_inputImage, float i_sigma_s, float i_sigma_r);
 
-/** Function eliminates the borders of the image to get rid of undesirable light artefacts etc. to minimize chance
- * frangi filter will be analysing these artefacts too
- * @brief borderProcessing
- * @param inputImage
- * @param imageType
- * @param padding_r
- * @param padding_s
+/**
+ * @brief Modifies margins of a frame to eliminate light artefacts. The chance frangi filter will be analysing
+ * these artefacts is reduced.
+ * @param i_inputImage
+ * @param i_imageType - original/processed (registrated)
+ * @param i_padding_top
+ * @param i_padding_bottom
+ * @param i_padding_left
+ * @param i_padding_right
  */
 void borderProcessing(cv::Mat &i_inputImage,int i_imageType, int i_padding_top,int i_padding_bottom,
                       int i_padding_left, int i_padding_right);
 
 /**
- * @brief Function set zeros to specific pixels
- * @param inputImage
- * @param imageType
- * @param padding_r
- * @param padding_s
+ * @brief Sets a zero value for border pixels of the frame. The size of the border can be changed by a user.
+ * @param i_inputImage
+ * @param i_imageType
+ * @param i_padding_top
+ * @param i_padding_bottom
+ * @param i_padding_left
+ * @param i_padding_right
  */
 void zeroBorders(cv::Mat &i_inputImage,int i_imageType, int i_padding_top,int i_padding_bottom,
                  int i_padding_left, int i_padding_right);
 
 /**
- * @brief
- * Function calculates frangi maximum coords. Frame type indicates, if the maximum is calculated from
- * the translated image or from referencial image. Translated image is supposed to have black corners. The accuracy
- * of the calculation can be pixel or subpixel. If you choose to show the calculation and detection result,
+ * @brief Calculates frangi maximum coordinates.
+ *
+ * The frame type indicates, if the maximum is calculated from
+ * registrated or referential frame. Registrated frame is supposed to have black margins. The precision
+ * of the calculation can be pixel or subpixel. If you choose to show the calculation result,
  * the name of the window can be set. The processing mode says, if the frangi filter should be standard or reverse.
  * @param inputFrame
- * @param processingMode
- * @param accuracy
- * @param showResult
- * @param windowName
+ * @param processingMode - standard/reverse usage
+ * @param accuracy - pixel/subpixel
+ * @param showResult - call MatViewer
+ * @param windowName - custom name
  * @param frameType
- * @param translation
- * @param FrangiParameters
+ * @param translation - calculated translation
+ * @param FrangiParameters - sigma and beta parameters
  * @param i_margins
- * @param i_ratios
- * @return
+ * @return Calculated maximum frangi coordinates.
  */
 cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
                             int i_processingMode,
@@ -62,17 +74,17 @@ cv::Point3d frangi_analysis(const cv::Mat i_inputFrame,
                             QString i_windowName,
                             int i_frameType,
                             cv::Point3d i_translation,
-                            QVector<double> i_FrangiParameters,
+                            QMap<QString, double> i_FrangiParameters,
                             QMap<QString, int> i_margins);
 
 /**
- * @brief Computing subpixel accuracy of the Frangi maximum
+ * @brief Computes Frangi maximum coordinates with subpixel precision.
  * @param frangi
  * @param maximum_frangi
  * @param maximumFrangiCoords
- * @return
+ * @return Recalculated frangi corrdinates with subpixel precision.
  */
 cv::Point2d FrangiSubpixel(const cv::Mat &i_frangi,
-                                   const double& i_maximum_frangi,
-                                   const cv::Point& i_maximumFrangiCoords);
+                           const double& i_maximum_frangi,
+                           const cv::Point& i_maximumFrangiCoords);
 #endif // FRANGI_UTILIZATION_H_INCLUDED

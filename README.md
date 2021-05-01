@@ -1,11 +1,11 @@
-# Videoframes registration
+# Frames registration
 
 The program is based on a console application written in C++ aimed on the registration of videoframes, using OpenCV libraries, which are used for image processing. The source code of the console app with additional informations (in Czech) can be found here: https://www.vutbr.cz/studenti/zav-prace/detail/110555
 Check the Wiki page to learn more about the program.
 
 The program is designed to register videoframes with specific content - retinal fundus. The example of such videoframe is shown below.
 
-![TEST](/example_images/videoFrameExample.png)
+![example_image](https://github.com/RaphCucul/FR_webpages/blob/master/example_images/videoFrameExample.png)
 
 The program is using Frangi filter during videoframe preprocessing. The code for Frangi filter can be found here: https://github.com/ntnu-bioopt/libfrangi.git
 

@@ -6,6 +6,7 @@
 #include <QGraphicsPixmapItem>
 #include <QImage>
 #include <QPixmap>
+#include <QIcon>
 #include <QDebug>
 
 #include <opencv2/core.hpp>
@@ -19,11 +20,25 @@ RegistrationResult::RegistrationResult(cv::Mat& _referencial, cv::Mat& _translat
     ui(new Ui::RegistrationResult)
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/images/AppLogo2.png"));
     _referencial.copyTo(referencialFrame);
     _translated.copyTo(registratedFrame);
-    //_referencial.release();
-    //_translated.release();
-    connect(ui->vyberSnimek,SIGNAL(valueChanged(int)),this,SLOT(changeDisplayed(int)));
+    connect(ui->chooseFrame,SIGNAL(valueChanged(int)),this,SLOT(changeDisplayed(int)));
+    ui->chooseFrame->setMinimum(0);
+    ui->chooseFrame->setMaximum(1);
+}
+
+RegistrationResult::RegistrationResult(QString i_videoPath,QDialog *parent) :
+    QDialog(parent),
+    ui(new Ui::RegistrationResult),
+    actualVideo(i_videoPath.toLocal8Bit().constData())
+{
+    ui->setupUi(this);
+    setWindowIcon(QIcon(":/images/AppLogo2.png"));
+    setWindowTitle(windowTitle()+" "+i_videoPath);
+    connect(ui->chooseFrame,SIGNAL(valueChanged(int)),this,SLOT(changeDisplayed(int)));
+    ui->chooseFrame->setMinimum(0);
+    ui->chooseFrame->setMaximum(actualVideo.get(CV_CAP_PROP_FRAME_COUNT)-1);
 }
 
 RegistrationResult::~RegistrationResult()
@@ -33,8 +48,6 @@ RegistrationResult::~RegistrationResult()
 
 void RegistrationResult::displayTwo()
 {
-    //reference.copyTo(referencialFrame);
-    //moved.copyTo(registratedFrame);
     setWindowsSize(referencialFrame.cols,referencialFrame.rows);
 
     imageReference = new QImage(referencialFrame.data,
@@ -49,13 +62,13 @@ void RegistrationResult::displayTwo()
                                 QImage::Format_RGB888);
 }
 
-void RegistrationResult::displayVideo(cv::VideoCapture video)
+void RegistrationResult::displayVideo()
 {
-    actualVideo = video;
     actualVideo.set(CV_CAP_PROP_POS_FRAMES,0);
     if (actualVideo.read(frame0)!=1)
     {
         qWarning()<< "Image "<<0<<" cannot be registrated.";
+        return;
     }
     actualFrame = new QImage(frame0.data,
                              frame0.cols,
@@ -70,13 +83,13 @@ void RegistrationResult::changeDisplayed(int value)
         //qDebug()<<value;
         if (value == 0)
         {
-            qDebug()<<value;
+            //qDebug()<<value;
             QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageReference));
             scene->addItem(image);
         }
         if (value == 1)
         {
-            qDebug()<<value;
+            //qDebug()<<value;
             QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageSlicovany));
             scene->addItem(image);
         }
@@ -86,7 +99,7 @@ void RegistrationResult::changeDisplayed(int value)
         actualVideo.set(CV_CAP_PROP_POS_FRAMES,value);
         if (actualVideo.read(displayedFrame)!=1)
         {
-            qWarning()<< "Image "<<0<<" cannot be registrated.";
+            qWarning()<< "Frame "<<value<<" cannot be opened.";
         }
         else{
             actualFrame = new QImage(displayedFrame.data,
@@ -101,47 +114,47 @@ void RegistrationResult::changeDisplayed(int value)
 
 }
 
-void RegistrationResult::setWindowsSize(int sirka,int vyska)
+void RegistrationResult::setWindowsSize(int width, int height)
 {
-    this->setFixedSize(sirka,vyska);
+    this->setFixedSize(width,height);
 }
 
 void RegistrationResult::callTwo()
 {
-    displayTwo();
+    start(1);
 }
 
 void RegistrationResult::callVideo()
 {
-    displayVideo(actualVideo);
+    start(2);
 }
 
 void RegistrationResult::start(int startMethod)
 {
     if (startMethod == 1){
-        callTwo();
+        displayTwo();
         QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*imageReference));
         scene = new QGraphicsScene();
         view = new QGraphicsView(scene);
         view->setFixedSize(referencialFrame.cols,referencialFrame.rows);
-        ui->vysledekLicovani->setScene(scene);
+        ui->registrationResult->setScene(scene);
         scene->addItem(image);
-        ui->vysledekLicovani->setFixedSize(referencialFrame.cols+30,referencialFrame.rows+30);
-        ui->vysledekLicovani->setSceneRect(0,0,referencialFrame.cols+30,referencialFrame.rows+30);
-        this->setGeometry(50,50,referencialFrame.cols,referencialFrame.rows);
+        ui->registrationResult->setFixedSize(referencialFrame.cols+30,referencialFrame.rows+30);
+        ui->registrationResult->setSceneRect(0,0,referencialFrame.cols+30,referencialFrame.rows+30);
+        this->setGeometry(150,150,referencialFrame.cols+20,referencialFrame.rows+20);
         wantToDisplay = startMethod;
     }
     if (startMethod == 2){
-        callVideo();
+        displayVideo();
         QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap::fromImage(*actualFrame));
         scene = new QGraphicsScene();
         view = new QGraphicsView(scene);
         view->setFixedSize(frame0.cols,frame0.rows);
-        ui->vysledekLicovani->setScene(scene);
+        ui->registrationResult->setScene(scene);
         scene->addItem(image);
-        ui->vysledekLicovani->setFixedSize(frame0.cols+30,frame0.rows+30);
-        ui->vysledekLicovani->setSceneRect(0,0,frame0.cols+30,frame0.rows+30);
-        this->setGeometry(50,50,frame0.cols,frame0.rows);
+        ui->registrationResult->setFixedSize(frame0.cols,frame0.rows);
+        ui->registrationResult->setSceneRect(0,0,frame0.cols,frame0.rows);
+        this->setGeometry(150,150,frame0.cols+20,frame0.rows+20);
         wantToDisplay = startMethod;
     }
 }

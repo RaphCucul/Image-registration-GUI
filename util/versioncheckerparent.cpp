@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 
-std::string actualVersion = "1.0.0";
+std::string actualVersion = "2.0.0";
 
 VersionCheckerParent::VersionCheckerParent(QObject *parent) : QObject(parent)
 {
@@ -27,8 +27,11 @@ VersionCheckerParent::~VersionCheckerParent(){
 
 }
 
+std::string VersionCheckerParent::getActualVersion() {
+    return actualVersion;
+}
+
 void VersionCheckerParent::noData(){
-    //qDebug()<<"processing noData()";
     QMessageBox msgBox;
     msgBox.setIcon(QMessageBox::Warning);
     msgBox.setText("An error occured when connecting to internet. Program version not checked.");

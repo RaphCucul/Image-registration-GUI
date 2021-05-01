@@ -29,11 +29,11 @@ double binFrequency(cv::Mat &inputImage, int &histogramSize)
 bool calculateParametersET(cv::Mat &i_specificImage, double &i_entropy, cv::Scalar &i_tennengrad)
 {
     try {
-        Mat filtered;//,filtrovany32f;
+        Mat filtered;
 
         medianBlur(i_specificImage,filtered,5);
         Mat Sobelx,Sobely;
-        Mat abs_grad_x, abs_grad_y,grad,suma,sum_abs_x,sum_abs_y;
+        Mat abs_grad_x, abs_grad_y,grad,totalSum,sum_abs_x,sum_abs_y;
 
         Sobel(filtered, Sobelx, CV_32FC1, 1, 0);
         Sobel(filtered,Sobely,CV_32FC1,0,1);
@@ -44,9 +44,9 @@ bool calculateParametersET(cv::Mat &i_specificImage, double &i_entropy, cv::Scal
         sum_abs_x = abs_grad_x.mul(abs_grad_x);
         sum_abs_y = abs_grad_y.mul(abs_grad_y);
 
-        cv::add(sum_abs_x,sum_abs_y,suma);
-        i_tennengrad = mean(suma);
-        cv::sqrt(suma,grad);
+        cv::add(sum_abs_x,sum_abs_y,totalSum);
+        i_tennengrad = mean(totalSum);
+        cv::sqrt(totalSum,grad);
         transformMatTypeTo8C1(grad);
         int histSize = 256;
         float range[] = { 0, 256 } ;
@@ -82,7 +82,6 @@ bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
                               QVector<double> &i_tennengrad)
 {
     int success = false;
-    int percentage = 0;
 
     if (i_capture.isOpened() == 0)
     {
@@ -93,19 +92,13 @@ bool entropy_tennengrad_video(cv::VideoCapture& i_capture,
         int frameCount = int(i_capture.get(CV_CAP_PROP_FRAME_COUNT));
         for (int a = 0; a < frameCount; a++)
         {
-            if (a == 0)
-                percentage = 0;
-            else if (a == (frameCount-1))
-                percentage = 100;
-            else
-                percentage = ((a/frameCount)*100);
-
             cv::Mat image;
-            double entropyValue = 0;
+            double entropyValue = 0.0;
             cv::Scalar tennengradValue;
             i_capture.set(CAP_PROP_POS_FRAMES,double(a));
             if (!i_capture.read(image)){
-
+                i_entropy[a] = 0.0;
+                i_tennengrad[a] = 0.0;
             }
             else
             {

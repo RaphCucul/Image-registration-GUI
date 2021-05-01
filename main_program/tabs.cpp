@@ -15,23 +15,22 @@ tabs::tabs(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->pages->setTabPosition(QTabWidget::West);
-    //ui->pages->setStyleSheet("QTabBar::tab {height: 32px;width: 32px;padding-top:0px;padding-bottom:,0px}");
-    //ui->pages->setStyleSheet("background-color: white");
 
-    QIcon icon_Folder_png(":/images/adresar.png");
+    QIcon icon_Folder_png(":/images/folders.png");
     QIcon icon_Frangi_png(":/images/frangi.png");
-    QIcon icon_RegistrateTwo_png(":/images/licovaniDvou.png");
-    QIcon icon_RegistrateVideo_png(":/images/video-camera-icon.png");
-    QIcon icon_Graph_png(":/images/Piechart.png");
+    QIcon icon_RegistrateTwo_png(":/images/twoFrames.png");
+    QIcon icon_RegistrateVideo_png(":/images/video.png");
+    QIcon icon_Graph_png(":/images/upload.png");
 
-    ui->pages->setIconSize(QSize(32,32));
-    QIcon icon_Folder = iconRotation(icon_Folder_png);
-    QIcon icon_Frangi = iconRotation(icon_Frangi_png);
-    QIcon icon_RegistrateTwo = iconRotation(icon_RegistrateTwo_png);
-    QIcon icon_RegistrateVideo = iconRotation(icon_RegistrateVideo_png);
-    QIcon icon_Graph = iconRotation(icon_Graph_png);
+    int icon_size = 48;
+    ui->pages->setIconSize(QSize(icon_size,icon_size));
+    QIcon icon_Folder = iconRotation(icon_Folder_png,icon_size);
+    QIcon icon_Frangi = iconRotation(icon_Frangi_png,icon_size);
+    QIcon icon_RegistrateTwo = iconRotation(icon_RegistrateTwo_png,icon_size);
+    QIcon icon_RegistrateVideo = iconRotation(icon_RegistrateVideo_png,icon_size);
+    QIcon icon_Graph = iconRotation(icon_Graph_png,icon_size);
 
-    chooseFolders = new t_b_HO;
+    chooseFolders = new DirectoriesLoader;
     frangiDetector = new Frangi_detektor;
     registrateTwo = new RegistrateTwo;
     registrateVideo = new RegistrateVideo;
@@ -42,10 +41,8 @@ tabs::tabs(QWidget *parent) :
     ui->pages->addTab(registrateTwo,icon_RegistrateTwo,"");
     ui->pages->addTab(registrateVideo,icon_RegistrateVideo,"");
     ui->pages->addTab(initializeGraph,icon_Graph,"");
-    //localErrorDialogHandler[ui->pages->tabBar()->tabRect(1)] = new ErrorDialog(ui->pages->tabBar()->tabRect(1));
 
-    bool folderPresent = chooseFolders->checkFileFolderExistence();
-    if (!folderPresent){
+    if (!chooseFolders->checkFileFolderExistence()){
         disableTabs();
     }
 
@@ -60,14 +57,12 @@ tabs::tabs(QWidget *parent) :
 
     connect(registrateVideo,SIGNAL(calculationStarted()),this,SLOT(disableTabs_slot()));
     connect(registrateVideo,SIGNAL(calculationStopped()),this,SLOT(enableTabs_slot()));
-
-    default_disabled();
 }
 
-QIcon tabs::iconRotation(QIcon i_icon)
+QIcon tabs::iconRotation(QIcon i_icon,int size)
 {
     QTransform trans;
-    QSize sz(32,32);
+    QSize sz(size,size);
     QPixmap pix = i_icon.pixmap(sz);
     QIcon icon = QIcon(pix);
     trans.rotate(+90);

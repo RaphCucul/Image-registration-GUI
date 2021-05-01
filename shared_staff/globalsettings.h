@@ -4,98 +4,148 @@
 #include <QSettings>
 #include <QObject>
 
+/**
+ * @class GlobalSettings
+ * @brief Contains getters and setters to get/set important pathes. Works as a singleton,
+ * allowing to customize each parameter of the *.ini file.
+ */
 class GlobalSettings
 {
 public:
     Q_DISABLE_COPY(GlobalSettings)
 
+    /**
+     * @brief Enables to get the GlobalSettings class object.
+     * @return GlobalSettings class singleton
+     */
     static GlobalSettings *getSettings();
 
     /**
-     * @brief setFileFolderDirectoriesPath and getFileFolderDirectoriesPath are used for *.json file
-     * with stored paths loaded in t_b_HO class
+     * @brief Checks if a specific setting is present in the settings ini file.
+     * @param[in] i_settingToCheck - specific setting
+     * @return True if setting is present.
+     */
+    bool checkPresenceOfSetting(QString i_settingToCheck);
+
+    /**
+     * @brief Saves a given path to the JSON file with the list of directories.
+     * @sa getFileFolderDirectoriesPath()
+     * @param[in] input - given path with the file
      */
     void setFileFolderDirectoriesPath(const QString& input);
 
     /**
-     * @brief Function returns the settings data.
-     * @return
+     * @brief Returns the path to the JSON file with the list of directories.
+     * @sa setFileFolderDirectoriesPath(const QString& input)
      */
     QString getFileFolderDirectoriesPath() const;
 
     /**
-     * @brief Function return the location of *.ini file
-     * @return
+     * @brief Returns the location of the *.ini file.
+     * @sa setIniPath(const QString &inputPath, const QString &inputFile)
      */
     QString getIniPath() const;
 
     /**
-     * @brief If the program could not find the *.ini file, user can add find it manually and save it to the program.
-     * @param input
+     * @brief Saves a directory path. If the program could not find the *.ini file,
+     * user can add find it manually and save it to the program.
+     * @sa getIniPath()
+     * @param[in] inputPath
+     * @param[in] inputFile
      */
     void setIniPath(const QString &inputPath, const QString &inputFile);
 
     /**
-     * @brief Function returns saved language from ini file.
-     * @return
+     * @brief Returns saved app language from the *.ini file.
+     * @sa setLanguage(QString i_language)
      */
     QString getLanguage();
 
     /**
-     * @brief Function saves language, if user changes it.
-     * @param i_language
+     * @brief Saves the app language chosen by a user.
+     * @param[in] i_language
+     * @sa getLanguage()
      */
     void setLanguage(QString i_language);
 
     /**
-     * @brief Function returns the name of HDD counter localized to system language
-     * @return
+     * @brief Returns the name of the HDD counter localized to the system language.
+     * @sa getHDDCounterParameter()
      */
     QString getHDDCounterName();
 
     /**
-     * @brief Function returns the name of HDD counter parameter localized to system language
-     * @return
+     * @brief Returns the name of the HDD counter parameter localized to the system language.
+     * @sa getHDDCounterName()
      */
     QString getHDDCounterParameter();
 
     /**
-     * @brief Function saves the counter name and counter parameter name into tje HDDparameters.json file.
-     * @param i_name
-     * @param i_parameter
+     * @brief Saves the counter name and counter parameter name into the HDDparameters.json file.
+     * @param[in] i_name - HDD counter name
+     * @param[in] i_parameter - HDD counter parameter
+     * @sa getHDDCounterParameter()
+     * @sa getHDDCounterName()
      */
-    void setHDDCounter(QString i_name,QString i_parameter);
+    void setHDDCounter(QString i_name, QString i_parameter);
 
     /**
-     * @brief Function returns application path, where almost all files
+     * @brief Returns application path where all files
      * necessary for the program should be located.
-     * @return
+     * @sa setAppPath(QString i_path)
      */
     QString getAppPath();
 
     /**
-     * @brief Function saves application path, where almost all files
+     * @brief Saves application path where all files
      * necessary for the program should be located.
-     * @param i_path
+     * @param[in] i_path
+     * @sa getAppPath()
      */
     void setAppPath(QString i_path);
 
     /**
-     * @brief Function returns user's choice of auto update check.
-     * @return
+     * @brief Returns user's choice of the auto update check.
+     * @sa setAutoUpdateSetting(bool i_status)
      */
     bool getAutoUpdateSetting();
 
     /**
-     * @brief Function saves user's choice of auto update check.
+     * @brief Saves user's choice of auto update check.
+     * @sa getAutoUpdateSetting()
      */
     void setAutoUpdateSetting(bool i_status);
+
+    /**
+     * @brief Returns info if the HDD monitor is enabled (widget will appear in the program and data will be collected) or not
+     * @return True if enabled, otherwise false.
+     */
+    bool isHDDMonitorEnabled();
+
+    /**
+     * @brief Sets a HDD monitor status - true if it should be enabled.
+     * @param status
+     */
+    void setHDDMonitorStatus(bool status);
+
+    /**
+     * @brief Saves maximum number of utilizable CPU cores.
+     * @param i_cores
+     */
+    void setUsedCores(int i_cores);
+
+    /**
+     * @brief Returns the number of utilizable CPU cores.
+     */
+    int getUsedCores();
+
 private:
     GlobalSettings();
     static GlobalSettings * m_Settings;
+
     QSettings * settings;
     QString iniPath;
-    QString iniFileName = "settings.ini";
+    QString iniFileName = "settings.ini"; /**<The name of the application file with settings is strict and should not be changed */
 };
 
 #endif // GLOBALSETTINGS_H
