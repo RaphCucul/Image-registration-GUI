@@ -1,10 +1,10 @@
 #include "dialogs/errordialog.h"
-#include "ui_errordialog.h"
 #include "shared_staff/errors.h"
 
 #include <QtGui>
 #include <QPropertyAnimation>
 #include <QEvent>
+#include <QHBoxLayout>
 
 ErrorDialog::ErrorDialog(QWidget *widgetWithNotification, QWidget *parent) :
     QObject(parent)
