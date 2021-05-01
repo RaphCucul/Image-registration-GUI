@@ -5,7 +5,7 @@ Check the Wiki page to learn more about the program.
 
 The program is designed to register videoframes with specific content - retinal fundus. The example of such videoframe is shown below.
 
-[TEST](https://github.com/RaphCucul/FR_webpages/tree/master/example_images/videoFrameExample.png)
+![example_image](https://github.com/RaphCucul/FR_webpages/blob/master/example_images/videoFrameExample.png)
 
 The program is using Frangi filter during videoframe preprocessing. The code for Frangi filter can be found here: https://github.com/ntnu-bioopt/libfrangi.git
 
