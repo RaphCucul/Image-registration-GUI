@@ -179,6 +179,7 @@ INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\x86\mingw
 
 RESOURCES += \
     images/icons.qrc \
+    releaseNotes.qrc \
     translations.qrc
 
 RC_FILE += images/mainIco.rc
