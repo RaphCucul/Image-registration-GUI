@@ -1,0 +1,44 @@
+Přepracován systém zpracování dat ve třídě GrafET.
+<hr>
+Opraven mechanismus stanovení velikosti záložky<br>
+podle délky jména videa.
+<hr>
+Vylepšen náhled videosnímku ve třídě GrafET.
+<hr>
+Opravena změna referenčního snímku uživatelem.
+<hr>
+Nový grafický styl záložek programu včetně ikon.
+<hr>
+Kompletně přepracována selekce standardního a extra výřezu - nový systém<br>
+je více intuitivní a nabízí nové funkce.
+<hr>
+Lepší využívání zvolených výřezů v různých částech programu.
+<hr>
+Vylepšen systém lícování tak, aby lépe reflektoval změny výřezů<br>
+a aplikoval je správně.
+<hr>    
+Zavedeno využívání dříve vypočítaných prahů.
+<hr>
+Přidána možnost uložit do finálního slícovaného videa pouze snímky s indexem<br>
+hodnocení 0.
+<hr>   
+Přepracováno zjišťování jména čítače a parametru HDD. Zahrnuje kontrolu<br>
+oprávnění programu k této akci.
+<hr>
+Opraveno načítání jíž zjištěných jmen čítače a parametru HDD.
+<hr>
+Opraveno ukládání a načítání jmen čítače a parametru HDD v rámci globálních nastavení<br>
+programu. Vrací pouze požadovanou informaci, ne všechno.
+<hr>
+Dokončen popis jednotlivých funkcí a zkompletována dokumentace programu.<br>
+Lepší jména proměnných.
+<hr>
+Rozšířeno menu nápovědy.
+<hr>
+Zobrazen nastavený počet využívaných CPU jader.
+<hr>
+Doplněna možnost zobrazit slícovaná videa přímo v programu.
+<hr>
+Opraveno ukončování instancí tříd v separátních vláknech.
+<hr>
+Opraveno ukládání parametrů videa.

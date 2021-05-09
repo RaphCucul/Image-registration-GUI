@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/rl">
+        <file>releaseNotes/CZ.txt</file>
+        <file>releaseNotes/EN.txt</file>
+    </qresource>
+</RCC>
