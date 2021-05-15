@@ -8,16 +8,16 @@ User's referential frame changed fixed.
 <hr>
 New tabs icons.
 <hr>
-Reimplemented selection of standard and extra cutout - new system<br>
+Re-implemented selection of standard and extra cutout - new system<br>
 is more intuitive.
 <hr>
-Better usage of selected cutouts in differents parts of the program.
+Better usage of selected cutouts in different parts of the program.
 <hr>
 Registration algorithm improved to reflect changes in cutouts<br>
 and apply them correctly during the registration process.
 <hr>
 Previously calculated entropy and tennengrad thresholds can be used.
-<br>
+<hr>
 Video containing the results of the registration process may now<br>
 contain only frames with evaluation index 0.
 <hr>
@@ -27,7 +27,7 @@ program privileges.
 Help menu extended.
 <hr>
 Selected number of CPU cores is now displayed in the status bar.
-<br>
+<hr>
 Videos with registration results can be loaded and displayed directly<br>
 in the program.
 <hr>
