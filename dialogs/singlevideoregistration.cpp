@@ -24,6 +24,7 @@
 #include <QGridLayout>
 #include <QIcon>
 #include <QJsonDocument>
+#include <QTimer>
 
 using cv::Mat;
 using cv::Point3d;
@@ -109,28 +110,30 @@ void SingleVideoRegistration::on_chooseVideoLE_textChanged(const QString &arg1)
 
 void SingleVideoRegistration::on_chooseVideoPB_clicked()
 {
-    fullVideoPath = QFileDialog::getOpenFileName(this,
+    QString path = QFileDialog::getOpenFileName(this,
          tr("Choose video"), SharedVariables::getSharedVariables()->getPath("videosPath"),tr("*.avi;;;"));
-    QString folder,filename,suffix;
-    processFilePath(fullVideoPath,folder,filename,suffix);
-    cv::VideoCapture cap = cv::VideoCapture(fullVideoPath.toLocal8Bit().constData());
-    ui->chooseVideoLE->setReadOnly(false);
-    if (!cap.isOpened())
-    {
-        ui->chooseVideoLE->setText(filename);
-        ui->chooseVideoLE->setStyleSheet("color: #FF0000");
-        cap.release();
-    }
-    else
-    {
-        videoListFull.append(fullVideoPath);
-        videoListNames.append(filename);
-        chosenVideo["filename"] = filename;
-        chosenVideo["folder"] = folder;
-        chosenVideo["suffix"] = suffix;
-        ui->chooseVideoLE->setText(chosenVideo["filename"]);
-        ui->chooseVideoLE->setStyleSheet("color: #33aa00");
-        ui->registratePB->setEnabled(true);
+    if (path != "") {
+        QString folder,filename,suffix;
+        processFilePath(path,folder,filename,suffix);
+        cv::VideoCapture cap = cv::VideoCapture(path.toLocal8Bit().constData());
+        if (!cap.isOpened())
+        {
+            ui->chooseVideoLE->setText(filename);
+            ui->chooseVideoLE->setStyleSheet("color: #FF0000");
+            cap.release();
+        }
+        else
+        {
+            fullVideoPath = path;
+            videoListFull.append(fullVideoPath);
+            videoListNames.append(filename);
+            chosenVideo["filename"] = filename;
+            chosenVideo["folder"] = folder;
+            chosenVideo["suffix"] = suffix;
+            ui->chooseVideoLE->setText(chosenVideo["filename"]);
+            ui->chooseVideoLE->setStyleSheet("color: #33aa00");
+            ui->registratePB->setEnabled(true);
+        }
     }
 }
 
@@ -226,8 +229,8 @@ void SingleVideoRegistration::createAndRunThreads(int indexThread, cv::VideoCapt
         QObject::connect(threadPool[indexThread],SIGNAL(allWorkDone(int)),this,SLOT(processAnother(int)));
         QObject::connect(threadPool[indexThread],SIGNAL(errorDetected(int,QString)),this,SLOT(errorHandler(int,QString)));
         QObject::connect(threadPool[indexThread],SIGNAL(readyForFinish(int)),this,SLOT(onFinishThread(int)));
+
         threadPool[indexThread]->start();
-        ui->name_state->setText(tr("Processing video ")+videoListNames.at(videoCounter));
     }
 }
 

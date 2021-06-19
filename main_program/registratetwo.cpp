@@ -187,23 +187,24 @@ void RegistrateTwo::analyseAndSave(QString i_analysedFolder, QMap<QString,QStrin
 
 bool RegistrateTwo::evaluateVideoImageInput(QString i_path, QString i_method){
     if (i_method == "video"){
-        cap = cv::VideoCapture(i_path.toLocal8Bit().constData());
-        if (!cap.isOpened())
-        {
-            chosenVideoLE->setStyleSheet("color: #FF0000");
-            videoCorrect = false;
-            referenceNoLE->setText("");
-            translatedNoLE->setText("");
-            referenceNoLE->setEnabled(false);
-            translatedNoLE->setEnabled(false);
-            ui->areaMaximum->setEnabled(false);
-            ui->rotationAngle->setEnabled(false);
-            ui->iterationCount->setEnabled(false);
-            cap.release();
-            return false;
+        if (!i_path.isEmpty()) {
+            cap = cv::VideoCapture(i_path.toLocal8Bit().constData());
+            if (!cap.isOpened())
+            {
+                chosenVideoLE->setStyleSheet("color: #FF0000");
+                videoCorrect = false;
+                referenceNoLE->setText("");
+                translatedNoLE->setText("");
+                referenceNoLE->setEnabled(false);
+                translatedNoLE->setEnabled(false);
+                ui->areaMaximum->setEnabled(false);
+                ui->rotationAngle->setEnabled(false);
+                ui->iterationCount->setEnabled(false);
+                cap.release();
+                return false;
+            }
         }
-        else
-        {
+        if (cap.isOpened()) {
             chosenVideoLE->setStyleSheet("color: #339900");
             videoCorrect = true;
             referenceNoLE->setEnabled(true);
@@ -253,6 +254,19 @@ bool RegistrateTwo::evaluateVideoImageInput(QString i_path, QString i_method){
             }
 
             return true;
+        }
+        else {
+            chosenVideoLE->setStyleSheet("color: #FF0000");
+            videoCorrect = false;
+            referenceNoLE->setText("");
+            translatedNoLE->setText("");
+            referenceNoLE->setEnabled(false);
+            translatedNoLE->setEnabled(false);
+            ui->areaMaximum->setEnabled(false);
+            ui->rotationAngle->setEnabled(false);
+            ui->iterationCount->setEnabled(false);
+            cap.release();
+            return false;
         }
     }
     else if (i_method == "referentialImage"){
@@ -339,7 +353,7 @@ void RegistrateTwo::on_selectInput_activated(int index)
         translatedImg.release();
         whatIsAnalysed = chosenSource::VIDEO;
         placeChoiceOneWidgets();
-}
+    }
     else if (index == 1)
     {
         if (whatIsAnalysed != chosenSource::NOTHING)
@@ -347,6 +361,8 @@ void RegistrateTwo::on_selectInput_activated(int index)
         if (whatIsAnalysed != chosenSource::IMAGE)
             initChoiceTwoInnerWidgets();
 
+        referentialImg.release();
+        translatedImg.release();
         whatIsAnalysed = chosenSource::IMAGE;
         placeChoiceTwoWidgets();
         secondChoiceInitialised = true;
@@ -373,35 +389,38 @@ void RegistrateTwo::clearLayout(QGridLayout *layout)
 
 void RegistrateTwo::chosenVideoPB_clicked()
 {
-    QString pathToVideo = QFileDialog::getOpenFileName(this,
-         tr("Choose video"), "","*.avi;;;");
-    analyseAndSave(pathToVideo,chosenVideoAnalysis);
-    chosenVideoLE->setText(chosenVideoAnalysis["filename"]);
-    evaluateVideoImageInput(pathToVideo,"video");
+    QString pathToVideo = QFileDialog::getOpenFileName(this,tr("Choose video"), SharedVariables::getSharedVariables()->getPath("videosPath"),"*.avi;;;");
+    if (pathToVideo != "") {
+        analyseAndSave(pathToVideo,chosenVideoAnalysis);
+        chosenVideoLE->setText(chosenVideoAnalysis["filename"]);
+        evaluateVideoImageInput(pathToVideo,"video");
+    }
 }
 
 void RegistrateTwo::chosenReferenceImgPB_clicked()
 {
-    QString referentialImagePath = QFileDialog::getOpenFileName(this,
-         tr("Choose referential image"), "",tr("Images (*.bmp *.png *.jpg)"));
-    analyseAndSave(referentialImagePath,chosenReferentialImgAnalysis);
-    referenceImgLE->setText(chosenReferentialImgAnalysis["filename"]);
-    evaluateVideoImageInput(referentialImagePath,"referentialImage");
+    QString referentialImagePath = QFileDialog::getOpenFileName(this,tr("Choose referential image"), "",tr("Images (*.bmp *.png *.jpg)"));
+    if (referentialImagePath != "") {
+        analyseAndSave(referentialImagePath,chosenReferentialImgAnalysis);
+        referenceImgLE->setText(chosenReferentialImgAnalysis["filename"]);
+        evaluateVideoImageInput(referentialImagePath,"referentialImage");
+    }
 }
 
 void RegistrateTwo::chosenTranslatedImgPB_clicked()
 {
-    QString translatedImgPath = QFileDialog::getOpenFileName(this,
-         tr("Choose translated image"), "",tr("Images (*.bmp *.png *.jpg)"));
-    analyseAndSave(translatedImgPath,chosenTranslatedImgAnalysis);
-    translatedImgLE->setText(chosenTranslatedImgAnalysis["filename"]);
-    evaluateVideoImageInput(translatedImgPath,"translatedImage");
+    QString translatedImgPath = QFileDialog::getOpenFileName(this,tr("Choose translated image"), "",tr("Images (*.bmp *.png *.jpg)"));
+    if (translatedImgPath != "") {
+        analyseAndSave(translatedImgPath,chosenTranslatedImgAnalysis);
+        translatedImgLE->setText(chosenTranslatedImgAnalysis["filename"]);
+        evaluateVideoImageInput(translatedImgPath,"translatedImage");
+    }
 }
 
 void RegistrateTwo::ReferenceImgLE_textChanged(const QString &arg1)
 {
     QString fullPath = chosenReferentialImgAnalysis["folder"]+"/"+arg1+"."+chosenReferentialImgAnalysis["suffix"];
-    evaluateVideoImageInput(fullPath,"referentialImage");
+    evaluateVideoImageInput("","referentialImage");
     if (referentialImgCorrect && translatedImgCorrect){
         ui->areaMaximum->setEnabled(true);
         ui->rotationAngle->setEnabled(true);
@@ -412,7 +431,7 @@ void RegistrateTwo::ReferenceImgLE_textChanged(const QString &arg1)
 void RegistrateTwo::TranslatedImgLE_textChanged(const QString &arg1)
 {
     QString fullPath = chosenTranslatedImgAnalysis["folder"]+"/"+arg1+"."+chosenTranslatedImgAnalysis["suffix"];
-    evaluateVideoImageInput(fullPath,"translatedImage");
+    evaluateVideoImageInput("","translatedImage");
     if (referentialImgCorrect && translatedImgCorrect){
         ui->areaMaximum->setEnabled(true);
         ui->rotationAngle->setEnabled(true);
@@ -452,7 +471,7 @@ void RegistrateTwo::ReferenceLE_textChanged(const QString &arg1)
             ui->iterationCount->setEnabled(true);
         }
         if (!checkReferentialFrameExistence(SharedVariables::getSharedVariables()->getPath("datFilesPath"),
-                                             chosenVideoAnalysis["filename"],referentialNumber)){
+                                            chosenVideoAnalysis["filename"],referentialNumber)){
             if (!localErrorDialogHandling[referenceNoLE]->isEvaluated()){
                 localErrorDialogHandling[referenceNoLE]->evaluate("left","info",4);
                 localErrorDialogHandling[referenceNoLE]->show(false);
@@ -546,12 +565,14 @@ void RegistrateTwo::on_registrateTwo_clicked()
     emit calculationStarted();
     cv::Mat referentialImage_temp,referentialImage,translatedImage_temp,translatedImage;
     if (whatIsAnalysed == chosenSource::VIDEO) {
-        QString filePath = chosenVideoAnalysis["folder"]+"/"+chosenVideoAnalysis["filename"]+"."+chosenVideoAnalysis["suffix"];
-        cap = cv::VideoCapture(filePath.toLocal8Bit().constData());
-        cap.set(CV_CAP_PROP_POS_FRAMES,double(referentialNumber));
-        cap.read(referentialImage_temp);
-        cap.set(CV_CAP_PROP_POS_FRAMES,double(translatedNumber)-1);
-        cap.read(translatedImage_temp);
+        if (!cap.isOpened())
+            return;
+        cap.set(CV_CAP_PROP_POS_FRAMES,1.0*referentialNumber);
+        if (!cap.read(referentialImage_temp))
+            return;
+        cap.set(CV_CAP_PROP_POS_FRAMES,1.0*translatedNumber);
+        if (!cap.read(translatedImage_temp))
+            return;
     }
     else if (whatIsAnalysed == chosenSource::IMAGE) {
         referentialImg.copyTo(referentialImage_temp);
@@ -559,7 +580,7 @@ void RegistrateTwo::on_registrateTwo_clicked()
     }
     transformMatTypeTo8C3(referentialImage_temp);
     transformMatTypeTo8C3(translatedImage_temp);
-
+    qDebug()<<"Analysing frames "<<referentialNumber<<" "<<translatedNumber;
     cv::Rect cutoutExtra(0,0,0,0);
     cv::Rect cutoutStandard(0,0,0,0);
     cv::Point3d pt_temp(0.0,0.0,0.0);
@@ -571,8 +592,9 @@ void RegistrateTwo::on_registrateTwo_clicked()
 
     // before starting the registration process, it is necessary to check several thinks:
     // I. Is modified standard cutout present?
-    if (ui->standardCutout->isChecked() && readyToObtainData) {
+    if ((ui->standardCutout->isChecked() || ui->extraCutout->isChecked()) && readyToObtainData) {
         // if checked, videoInformation has to contain corresponding information
+        // when extra cutout is selected, usually standard cutout is also available
         if (SharedVariables::getSharedVariables()->checkVideoInformationPresence(chosenVideoAnalysis["filename"])) {
             QRect _standardCutout = SharedVariables::getSharedVariables()->getVideoInformation(chosenVideoAnalysis["filename"],"standard").toRect();
             if (!_standardCutout.isNull() && _standardCutout.width() > 0 && _standardCutout.height() > 0) {
