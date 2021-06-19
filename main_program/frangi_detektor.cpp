@@ -263,7 +263,7 @@ void Frangi_detektor::on_frameNumber_textChanged(const QString &arg1)
     else
     {
         ui->frameNumber->setStyleSheet("color: #339933");
-        analyseFrame = frameNumber-1;
+        analyseFrame = frameNumber;
         //readyToCalculate = true;
         changeStatus(true);
     }
