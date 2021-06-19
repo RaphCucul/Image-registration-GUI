@@ -359,10 +359,24 @@ void ClickImageEvent::startFrangiAnalysis(){
         referentialImage_temp = cv::imread(filePath.toLocal8Bit().constData(),CV_LOAD_IMAGE_UNCHANGED);
     }
     transformMatTypeTo8C3(referentialImage_temp);
-    if (originalExtraCutout.contains(videoName) && !extraCutout.contains(videoName))
+    bool originalExtraReady = false, standardExtraReady = false, tempExtraReady = false;
+    if (originalExtraCutout.contains(videoName)) {
+        if (originalExtraCutout[videoName].width() > 0)
+            originalExtraReady = true;
+    }
+    if (extraCutout.contains(videoName)) {
+        if (extraCutout[videoName].width() > 0)
+            standardExtraReady = true;
+    }
+    if (tempExtraCutout.width() > 0 && tempExtraCutout.height() > 0)
+        tempExtraReady = true;
+
+    if (originalExtraReady && !standardExtraReady)
         referentialImage_temp(convertQRectToRect(originalExtraCutout[videoName])).copyTo(referentialImage);
-    else if (extraCutout.contains(videoName))
+    else if (standardExtraReady && !tempExtraReady)
         referentialImage_temp(convertQRectToRect(extraCutout[videoName])).copyTo(referentialImage);
+    else if (tempExtraReady)
+        referentialImage_temp(convertQRectToRect(tempExtraCutout)).copyTo(referentialImage);
     else
         referentialImage_temp.copyTo(referentialImage);
     referentialImage_temp.release();
@@ -445,8 +459,8 @@ QPoint ClickImageEvent::recalculateFrangiPoint(QPoint i_originalCoordinates) {
         if (extraCutout.contains(videoName)) {
             _returnPoint.setX(i_originalCoordinates.x()+extraCutout[videoName].x());
             _returnPoint.setY(i_originalCoordinates.y()+extraCutout[videoName].y());
-
-            frangiCoordinatesToSave[videoName] = i_originalCoordinates;
+            frangiCoordinates[videoName] = i_originalCoordinates;
+            frangiCoordinatesToSave[videoName] = _returnPoint;
         }
         else {
             frangiCoordinates[videoName] = _returnPoint;
@@ -496,38 +510,40 @@ void ClickImageEvent::closeEvent(QCloseEvent *e) {
     e->accept();
 }
 
+void ClickImageEvent::processDataForSaving(QString i_videoName, bool i_applyNew) {
+    SharedVariables::getSharedVariables()->setVideoInformation(i_videoName,"frame",referentialFrameNo[i_videoName]);
+    if (frangiCoordinatesToSave.contains(i_videoName))
+        SharedVariables::getSharedVariables()->setVideoInformation(i_videoName,"frangi",frangiCoordinatesToSave[i_videoName]);
+    else
+        SharedVariables::getSharedVariables()->setVideoInformation(i_videoName,"frangi",frangiCoordinates[i_videoName]);
+    if (cutout == cutoutType::STANDARD) {
+        // if standard without extra
+        if (!extraCutout.contains(i_videoName))
+            SharedVariables::getSharedVariables()->setVideoInformation(i_videoName,"standard",i_applyNew ? standardCutout[i_videoName] : originalStandardCutout[i_videoName]);
+        else if (extraCutout.contains(i_videoName) && i_applyNew) {
+            // if standard updated but extra exists too
+            QRect _pom = adjustStandardCutout(extraCutout[i_videoName],standardCutout[i_videoName],frameSize[i_videoName][0],frameSize[i_videoName][1]);
+            SharedVariables::getSharedVariables()->setVideoInformation(i_videoName,"standard",_pom);
+        }
+    }
+    else if (cutout == cutoutType::EXTRA) {
+        SharedVariables::getSharedVariables()->setVideoInformation(i_videoName,"extra",i_applyNew ? extraCutout[i_videoName] : originalExtraCutout[i_videoName]);
+        if (runFrangi) {
+            QRect _pom = adjustStandardCutout(extraCutout[i_videoName],standardCutout[i_videoName],frameSize[i_videoName][0],frameSize[i_videoName][1]);
+            SharedVariables::getSharedVariables()->setVideoInformation(i_videoName,"standard",_pom);
+        }
+    }
+}
+
 void ClickImageEvent::saveCutouts(bool saveNew) {
     if (whatIsAnalysed == chosenSource::VIDEO && actualVideoCount == videoCount::ONE_VIDEO) {
-        SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frame",referentialFrameNo[videoName]);
-        if (frangiCoordinatesToSave.contains(videoName))
-            SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frangi",frangiCoordinatesToSave[videoName]);
-        else
-            SharedVariables::getSharedVariables()->setVideoInformation(videoName,"frangi",frangiCoordinates[videoName]);
-        if (cutout == cutoutType::STANDARD)
-            SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",saveNew ? standardCutout[videoName] : originalStandardCutout[videoName]);
-        else if (cutout == cutoutType::EXTRA) {
-            SharedVariables::getSharedVariables()->setVideoInformation(videoName,"extra",saveNew ? extraCutout[videoName] : originalExtraCutout[videoName]);
-            if (runFrangi) {
-                QRect _pom = adjustStandardCutout(extraCutout[videoName],standardCutout[videoName],frameSize[videoName][0],frameSize[videoName][1]);
-                SharedVariables::getSharedVariables()->setVideoInformation(videoName,"standard",_pom);
-            }
-        }
+        processDataForSaving(videoName,saveNew);
         qDebug()<<"Video information :"<<SharedVariables::getSharedVariables()->getCompleteVideoInformation(videoName);
     }
     else if (whatIsAnalysed == chosenSource::VIDEO && actualVideoCount == videoCount::MULTIPLE_VIDEOS) {
         QList<QString> videoNames = referentialFrameNo.keys();
         foreach (QString name, videoNames) {
-            if (listOfModifies[name] == true) {
-                SharedVariables::getSharedVariables()->setVideoInformation(name,"frame",referentialFrameNo[name]);
-                SharedVariables::getSharedVariables()->setVideoInformation(name,"frangi",frangiCoordinates[name]);
-                if (cutout == cutoutType::STANDARD)
-                    SharedVariables::getSharedVariables()->setVideoInformation(name,"standard",saveNew ? standardCutout[name] : originalStandardCutout[name]);
-                else if (cutout == cutoutType::EXTRA) {
-                    SharedVariables::getSharedVariables()->setVideoInformation(name,"extra",saveNew ? extraCutout[name] : originalExtraCutout[name]);
-                    QRect _pom = adjustStandardCutout(extraCutout[name],standardCutout[name],frameSize[name][0],frameSize[name][1]);
-                    SharedVariables::getSharedVariables()->setVideoInformation(name,"standard",_pom);
-                }
-            }
+            processDataForSaving(name,saveNew);
         }
     }
     else if (whatIsAnalysed == chosenSource::IMAGE && actualVideoCount == videoCount::NO_VIDEO) {
@@ -611,10 +627,12 @@ void ClickImageEvent::mouseReleaseEvent(QMouseEvent *release){
         // temp cutouts are modified during mouseMoveEvent
         // on release event, it must be clear, if the new cutout can be saved or not
         // standard or extra cutout can be modified
-        if (!checkFrangiMaximumPresenceInCutout())
-            revertCutoutChange();
-        else{
-            qDebug()<<"Results: standard: "<<standardCutout<<" extra: "<<extraCutout;
+        if (cutout == cutoutType::STANDARD) {
+            if (!checkFrangiMaximumPresenceInCutout())
+                revertCutoutChange();
+            else{
+                qDebug()<<"Results: standard: "<<standardCutout<<" extra: "<<extraCutout;
+            }
         }
         modified = true;
         listOfModifies[videoName] = true;
@@ -712,6 +730,7 @@ void ClickImageEvent::updateCutoutExtra(){
 }
 
 void ClickImageEvent::revertCutoutChange(){
+    qDebug()<<"Reverting cutout";
     if (cutout == cutoutType::STANDARD){
         scene->removeItem(standardCutout_GRI);
         standardCutout_GRI = scene->addRect(standardCutout[videoName],QPen(QColor(255, 0, 0)));
@@ -744,7 +763,7 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts, bool afterFrangi){
     }
     transformMatTypeTo8C3(referentialImage);
 
-    if (cutout == cutoutType::EXTRA && extraCutout[videoName].width() > 0 && extraCutout[videoName].height() > 0 && !afterFrangi)
+    if (extraCutout[videoName].width() > 0 && extraCutout[videoName].height() > 0 && !afterFrangi)
         standardCutout[videoName] = adjustStandardCutout(extraCutout[videoName],standardCutout[videoName],height,width,false);
 
     imageObject = new QImage(referentialImage.data,
@@ -759,8 +778,9 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts, bool afterFrangi){
     ui->clickImage->setScene(scene);
     scene->addItem(image);
     QPainterPath crossPath;
+    qDebug()<<"Frangi coords to be filled "<<frangiCoordinates[videoName].x()<<" "<<frangiCoordinates[videoName].y();
     paintCross(crossPath,frangiCoordinates[videoName].x(),frangiCoordinates[videoName].y());
-    if (runFrangi)
+    //if (runFrangi)
         pathItem = scene->addPath(crossPath,QPen(QColor(255, 0, 0), 1, Qt::SolidLine,Qt::FlatCap, Qt::MiterJoin));
 
     if (i_initCutouts)
@@ -769,8 +789,12 @@ void ClickImageEvent::fillGraphicScene(bool i_initCutouts, bool afterFrangi){
     originalExtraCutout = extraCutout;
 
     if (runFrangi) {
+        qDebug()<<"Adding rects to a scene";
         standardCutout_GRI = scene->addRect(standardCutout[videoName],QPen(QColor(255, 0, 0)));
         extraCutout_GRI = scene->addRect(extraCutout[videoName],QPen(QColor(0,0,255)));
+    }
+    else {
+        extraCutout_GRI = scene->addRect(extraCutout[videoName],QPen(QColor(255,0,0)));
     }
 
     ui->clickImage->setFixedSize(referentialImage.cols+10,referentialImage.rows+10);

@@ -342,6 +342,14 @@ private:
     void revertCutoutChange();
 
     /**
+     * @brief Puts parameters to SharedVariables class instance.
+     * @param i_videoName - affected video
+     * @param i_applyNew - corresponds with saveNew parameter from saveCutouts
+     * @sa saveCutouts(bool saveNew)
+     */
+    void processDataForSaving(QString i_videoName, bool i_applyNew);
+
+    /**
      * @brief Saves selected cutouts.
      * @param saveNew - if true, saves newly selected cutout(s). If false, saves previously automatically calculated cutout(s).
      */
