@@ -15,9 +15,9 @@ using cv::Rect;
 using cv::Point3d;
 using std::cout;
 using std::endl;
-bool completeRegistration(cv::VideoCapture& cap,
+bool completeRegistration(cv::VideoCapture cap,
                           cv::Mat& i_referential,
-                          cv::Mat &i_shifted,
+                          cv::Mat& i_shifted,
                           int i_translatedNo,
                           double i_iteration,
                           double i_areaMaximum,
@@ -36,19 +36,17 @@ bool completeRegistration(cv::VideoCapture& cap,
         i_pocY.push_back(0.0);
         i_maxAngles.push_back(0.0);
         cv::Rect adjustedStandardCutout;
-        qDebug()<<"Extra: "<<i_cutoutExtra.height<<" "<<i_cutoutExtra.width;
-        qDebug()<<"Extra: "<<i_cutoutExtra.x<<" "<<i_cutoutExtra.y;
-        qDebug()<<"Standard: "<<i_cutoutStandard.height<<" "<<i_cutoutStandard.width;
-        qDebug()<<"Standard: "<<i_cutoutStandard.x<<" "<<i_cutoutStandard.y;
+        qDebug()<<"Extra h+w: "<<i_cutoutExtra.height<<" "<<i_cutoutExtra.width;
+        qDebug()<<"Extra x+y: "<<i_cutoutExtra.x<<" "<<i_cutoutExtra.y;
+        qDebug()<<"Standard h+w: "<<i_cutoutStandard.height<<" "<<i_cutoutStandard.width;
+        qDebug()<<"Standard x+y: "<<i_cutoutStandard.x<<" "<<i_cutoutStandard.y;
         double totalAngle = 0.0;
 
         Mat referencialFrame_32f,referencialFrame_cutout;
-        //qDebug()<<"Referential frame inside completeRegistration: "<<i_referential.rows<<" "<<i_referential.cols;
-
         i_referential.copyTo(referencialFrame_32f);
         transformMatTypeTo32C1(referencialFrame_32f);
         referencialFrame_32f(i_cutoutStandard).copyTo(referencialFrame_cutout);
-        //qDebug()<<"Referential 32C1: "<<referencialFrame_32f.rows<<" "<<referencialFrame_32f.cols;
+
         int rows = referencialFrame_32f.rows;
         int cols = referencialFrame_32f.cols;
 
@@ -57,7 +55,7 @@ bool completeRegistration(cv::VideoCapture& cap,
 
         Mat shifted_temp,shifted_32f,shifted_cutout;
         if (video) {
-            cap.set(CV_CAP_PROP_POS_FRAMES,i_translatedNo);
+            cap.set(CV_CAP_PROP_POS_FRAMES,1.0*i_translatedNo);
             if(!cap.read(shifted_temp))
                 return false;
         }
@@ -72,7 +70,6 @@ bool completeRegistration(cv::VideoCapture& cap,
             shifted_32f(i_cutoutExtra).copyTo(shifted_32f);
         }        
         shifted_32f(i_cutoutStandard).copyTo(shifted_cutout);
-
         Point3d pt1(0.0,0.0,0.0);
         if (i_scaleChanged)
         {
@@ -138,7 +135,7 @@ bool completeRegistration(cv::VideoCapture& cap,
             {
                 double sigma_gauss = 1/(std::sqrt(2*CV_PI)*pt2.z);
                 double FWHM = 2*std::sqrt(2*std::log(2)) * sigma_gauss;
-                qDebug()<<"FWHM for "<<i_translatedNo<<" = "<<FWHM;
+                //qDebug()<<"FWHM for "<<i_translatedNo<<" = "<<FWHM;
                 registrated1.release();
                 registrated1_32f.release();
                 registrated1_cutout.release();
@@ -273,7 +270,7 @@ bool preprocessingCompleteRegistration(cv::Mat &i_referential,
         // it may happen that frangi is known and only standard cutout is meant to be calculated
         if (i_frangi_point.x <= 0 || i_frangi_point.y <= 0) {
             int mode = i_frangiParameters.contains("mode") ? i_frangiParameters["mode"] : 1;
-            qDebug()<<"Applying frangi mode "<<mode;
+            //qDebug()<<"Applying frangi mode "<<mode;
             i_frangi_point = frangi_analysis(i_referential,mode,1,0,"",1,pt_temp,i_frangiParameters,frangiMargins);
             if (i_frangi_point.z == 0.0)
                 return false;
@@ -316,15 +313,17 @@ cv::Rect adjustStandardCutout(cv::Rect i_extraCutoutParameters, cv::Rect i_origi
         output.x = i_originalStandardCutout.x - i_extraCutoutParameters.x;
         output.y = i_originalStandardCutout.y - i_extraCutoutParameters.y;
         // width and height are adjusted to the row and column count of the standard "full" frame
-        output.width = i_originalStandardCutout.width - (i_cols - i_extraCutoutParameters.width);
-        output.height = i_originalStandardCutout.height - (i_rows - i_extraCutoutParameters.height);
+        output.width = i_originalStandardCutout.width;// - (i_cols - i_extraCutoutParameters.width);
+        output.height = i_originalStandardCutout.height;// - (i_rows - i_extraCutoutParameters.height);
     }
     else {
         output.x = i_originalStandardCutout.x + i_extraCutoutParameters.x;
         output.y = i_originalStandardCutout.y + i_extraCutoutParameters.y;
-        output.width = i_originalStandardCutout.width + (i_cols - i_extraCutoutParameters.width);
-        output.height = i_originalStandardCutout.height + (i_rows - i_extraCutoutParameters.height);
+        output.width = i_originalStandardCutout.width;// + (i_cols - i_extraCutoutParameters.width);
+        output.height = i_originalStandardCutout.height;// + (i_rows - i_extraCutoutParameters.height);
     }
+    qDebug()<<"Adjusting standard cutout - orig: "<<i_originalStandardCutout.width<<" "<<i_originalStandardCutout.height;
+    qDebug()<<"Adjusting standard cutout - new: "<<output.width<<" "<<output.height;
     return output;
 }
 
@@ -337,14 +336,16 @@ QRect adjustStandardCutout(QRect i_extraCutoutParameters, QRect i_originalStanda
         output.setX(i_originalStandardCutout.x() - i_extraCutoutParameters.x());
         output.setY(i_originalStandardCutout.y() - i_extraCutoutParameters.y());
         // width and height are adjusted to the row and column count of the standard "full" frame
-        output.setWidth(i_originalStandardCutout.width() - (i_cols - i_extraCutoutParameters.width()));
-        output.setHeight(i_originalStandardCutout.height() - (i_rows - i_extraCutoutParameters.height()));
+        output.setWidth(i_originalStandardCutout.width());// - (i_cols - i_extraCutoutParameters.width()));
+        output.setHeight(i_originalStandardCutout.height());// - (i_rows - i_extraCutoutParameters.height()));
     }
     else {
         output.setX(i_originalStandardCutout.x() + i_extraCutoutParameters.x());
         output.setY(i_originalStandardCutout.y() + i_extraCutoutParameters.y());
-        output.setWidth(i_originalStandardCutout.width() + (i_cols - i_extraCutoutParameters.width()));
-        output.setHeight(i_originalStandardCutout.height() + (i_rows - i_extraCutoutParameters.height()));
+        output.setWidth(i_originalStandardCutout.width());// + (i_cols - i_extraCutoutParameters.width()));
+        output.setHeight(i_originalStandardCutout.height());// + (i_rows - i_extraCutoutParameters.height()));
     }
+    qDebug()<<"Adjusting standard cutout - orig: "<<i_originalStandardCutout.width()<<" "<<i_originalStandardCutout.height();
+    qDebug()<<"Adjusting standard cutout - new: "<<output.width()<<" "<<output.height();
     return output;
 }

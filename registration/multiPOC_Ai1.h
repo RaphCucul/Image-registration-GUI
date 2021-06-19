@@ -29,9 +29,9 @@
  * @param[in] video
  * @return False if registration fails, otherwise true.
  */
-bool completeRegistration(cv::VideoCapture& cap,
-                          cv::Mat& i_referential,
-                          cv::Mat& i_shifted,
+bool completeRegistration(cv::VideoCapture cap,
+                          cv::Mat &i_referential,
+                          cv::Mat &i_shifted,
                           int i_translatedNo,
                           double i_iteration,
                           double i_areaMaximum,
