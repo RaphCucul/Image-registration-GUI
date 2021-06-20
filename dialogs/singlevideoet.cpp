@@ -94,9 +94,6 @@ void SingleVideoET::on_chooseVideoPB_clicked()
         ui->chosenVideoLE->setText(chosenVideoETSingle["filename"]);
         evaluateVideoImageInput(referencialImagePath);        
     }
-    else{
-        ui->chosenVideoLE->setReadOnly(true);
-    }
 }
 
 void SingleVideoET::on_chosenVideoLE_textChanged(const QString &arg1)
@@ -216,10 +213,11 @@ void SingleVideoET::on_calculateET_clicked()
                 if (!First.isEmpty()) {
                     if (First[1]->isRunning()){
                         First[1]->terminate();
-                        First[1]->wait(100);
+                        First[1]->wait(200);
                         First[1]->deleteLater();
                     }
-                    else First[1]->deleteLater();
+                    else
+                        First[1]->deleteLater();
                 }
             });
             First[1]->start();
@@ -294,10 +292,11 @@ void SingleVideoET::onDone(int thread){
         QObject::connect(Second[2],&qThreadSecondPart::readyForFinish,[=](){
             if (Second[2]->isRunning()){
                 Second[2]->terminate();
-                Second[2]->wait(100);
+                Second[2]->wait(200);
                 Second[2]->deleteLater();
             }
-            else Second[2]->deleteLater();
+            else
+                Second[2]->deleteLater();
         });
 
         Second[2]->start();
@@ -326,10 +325,11 @@ void SingleVideoET::onDone(int thread){
         QObject::connect(Third[3],&qThreadThirdPart::readyForFinish,[=](){
             if (Third[3]->isRunning()){
                 Third[3]->terminate();
-                Third[3]->wait(100);
+                Third[3]->wait(200);
                 Third[3]->deleteLater();
             }
-            else Third[3]->deleteLater();
+            else
+                Third[3]->deleteLater();
         });
 
         Third[3]->start();
@@ -360,10 +360,11 @@ void SingleVideoET::onDone(int thread){
         QObject::connect(Fourth[4],&qThreadFourthPart::readyForFinish,[=](){
             if (Fourth[4]->isRunning()){
                 Fourth[4]->terminate();
-                Fourth[4]->wait(100);
+                Fourth[4]->wait(200);
                 Fourth[4]->deleteLater();
             }
-            else Fourth[4]->deleteLater();
+            else
+                Fourth[4]->deleteLater();
         });
 
         Fourth[4]->start();
@@ -398,10 +399,11 @@ void SingleVideoET::onDone(int thread){
         QObject::connect(Fifth[5],&qThreadFifthPart::readyForFinish,[=](){
             if (Fifth[5]->isRunning()){
                 Fifth[5]->terminate();
-                Fifth[5]->wait(100);
+                Fifth[5]->wait(200);
                 Fifth[5]->deleteLater();
             }
-            else Fifth[5]->deleteLater();
+            else
+                Fifth[5]->deleteLater();
         });
 
         Fifth[5]->start();

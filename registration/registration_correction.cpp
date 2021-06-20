@@ -97,7 +97,7 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
         {
             Mat shifted_temp;
             if (video) {
-                i_cap.set(CV_CAP_PROP_POS_FRAMES,i_index_moved);
+                i_cap.set(CV_CAP_PROP_POS_FRAMES,1.0*i_index_moved);
                 if (i_cap.read(shifted_temp)!=1)
                 {
                     qWarning()<<"Frame "<<i_index_moved<<" could not be read!";
@@ -245,11 +245,11 @@ bool registrateBestFrames(cv::VideoCapture& i_cap,
 }
 
 bool translationCorrection(cv::Mat& i_frameRegistrated,
-                                  cv::Mat& i_frame,
-                                  cv::Mat &i_frameCorrected,
-                                  cv::Rect &i_cutoutStandard,
-                                  cv::Point3d &i_correction,
-                                  double i_areaMaximum)
+                           cv::Mat& i_frame,
+                           cv::Mat &i_frameCorrected,
+                           cv::Rect &i_cutoutStandard,
+                           cv::Point3d &i_correction,
+                           double i_areaMaximum)
 {
     try {
         Mat interresult,interresult32f,interresult32f_vyrez,frameCutout;

@@ -94,6 +94,58 @@ private:
      */
     void run();
 
+    /**
+     * @brief The function is designed to registrate referential frame with a frame with evaluation index 0 (perfect for
+     * the registration, no problems are expected).
+     *
+     * The registration process itself is covered by the function "fullRegistration"
+     * followed by some postprocessing.
+     * @param i_shifted - loaded processed frame
+     * @param i_referentialFrame - original referential frame
+     * @param i_coordsFrangiStandardReferencialReverse - frangi maximum coordinates
+     * @param i_index_translated - the index of processed frame
+     * @param i_scaleChanged - true if extra cutout exists
+     * @return - true if the registration was successful
+     */
+    bool registrateTheBest(cv::Mat i_shifted,
+                           cv::Mat& i_referentialFrame,
+                           cv::Point3d i_coordsFrangiStandardReferencialReverse,
+                           int i_index_translated,
+                           bool i_scaleChanged);
+
+    /**
+     * @brief The main registration function of the class.
+     *
+     * It is called by the function "registrateTheBest" to registrate
+     * the referential frame with a frame with the evaluation index 0, 1 or 4. If a frame has evaluation index 1 aor 4, problems are expected
+     * and there is no postprocessing when the frames are registrated.
+     * @param shifted_temp - loaded processed frame
+     * @param i_referencialFrame - original referential frame
+     * @param i_shiftedNo - the index of processed frame
+     * @param i_scaleChange - true if extra cutout exists
+     * @param i_fullyRegistrated - the result of the registration process
+     * @return  - true if the registration was successful
+     */
+    bool fullRegistration(cv::Mat shifted_temp,
+                          cv::Mat& i_referencialFrame,
+                          int i_shiftedNo,
+                          bool i_scaleChange,
+                          cv::Mat& i_fullyRegistrated);
+
+    /**
+     * @brief Tries to improve the registration result with one additional phase correlation. The correlation coefficient is
+     * used to determine if the correction was senseless or not.
+     * @param i_registratedFrame - the result of the registration process
+     * @param i_frame - original referential frame
+     * @param i_corrected - the corrected registration result
+     * @param i_correction - the final registration in x and y axis
+     * @return - true if the correction worked properly
+     */
+    bool registrationCorrection(cv::Mat& i_registratedFrame,
+                                cv::Mat& i_frame,
+                                cv::Mat& i_corrected,
+                                cv::Point3d& i_correction);
+
     cv::VideoCapture capture;
     cv::Mat referencialImage;
     QMap<QString,double> frangiParameters;

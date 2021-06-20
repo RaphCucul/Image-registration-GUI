@@ -306,6 +306,8 @@ cv::Rect calculateStandardCutout(cv::Point3d i_frangi, QMap<QString, double> i_r
 
 cv::Rect adjustStandardCutout(cv::Rect i_extraCutoutParameters, cv::Rect i_originalStandardCutout,
                               int i_rows, int i_cols, bool makeItSmaller){
+    Q_UNUSED(i_rows)
+    Q_UNUSED(i_cols)
     cv::Rect output;
     if (makeItSmaller) {
         // when the extra cutout is applied, standard cutout must be recalculated to fit the new frame
@@ -329,6 +331,8 @@ cv::Rect adjustStandardCutout(cv::Rect i_extraCutoutParameters, cv::Rect i_origi
 
 QRect adjustStandardCutout(QRect i_extraCutoutParameters, QRect i_originalStandardCutout,
                               int i_rows, int i_cols, bool makeItSmaller) {
+    Q_UNUSED(i_rows)
+    Q_UNUSED(i_cols)
     QRect output;
     if (makeItSmaller) {
         // when the extra cutout is applied, standard cutout must be recalculated to fit the new frame

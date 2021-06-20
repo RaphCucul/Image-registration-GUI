@@ -6,6 +6,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 using namespace cv;
+
+#include <QDebug>
 cv::Point3d pc_translation_hann(const Mat &i_referentialFrame,
                               const Mat &i_shiftedFrame,
                               double i_calcAreaSize)
@@ -17,10 +19,12 @@ cv::Point3d pc_translation_hann(const Mat &i_referentialFrame,
     transformMatTypeTo32C1(referentialFrame32f);
     transformMatTypeTo32C1(shiftedFrame32f);
     cv::Mat hann;
-    cv::createHanningWindow(hann, referentialFrame32f.size(), CV_32FC1);
-    transformMatTypeTo32C1(hann);
+    cv::createHanningWindow(hann, i_referentialFrame.size(), CV_32FC1);
+    //transformMatTypeTo32C1(hann);
+    qDebug()<<"Referential "<<referentialFrame32f.rows<<" "<<referentialFrame32f.cols;
+    qDebug()<<"Shifted "<<shiftedFrame32f.rows<<" "<<shiftedFrame32f.cols;
     translation_result = cv::phaseCorrelate(referentialFrame32f,shiftedFrame32f,i_calcAreaSize,hann);
-
+    qDebug()<<"Hann "<<translation_result.x<<" "<<translation_result.y;
     hann.release();
     referentialFrame32f.release();
     shiftedFrame32f.release();
@@ -39,7 +43,6 @@ cv::Point3d pc_translation(const Mat &i_referentialFrame,
     transformMatTypeTo32C1(shiftedFrame32f);
 
     translation_result = cv::phaseCorrelate(referentialFrame32f,shiftedFrame32f,i_calcAreaSize);
-
     referentialFrame32f.release();
     shiftedFrame32f.release();
     return translation_result;
@@ -89,7 +92,6 @@ cv::Point3d pc_rotation(const Mat &i_referentialFrame,
 
     cv::Point3d translationAfterRotationResults(0.0,0.0,0.0);
     translationAfterRotationResults = cv::phaseCorrelate(referentialFrame32f,rotationResultFrame,10,hann);
-
     if (translationAfterRotationResults.z > i_fkTranslation_maximumValue)
     {
         translation_result.y = rotation_result.y*360/(logImage2.cols);

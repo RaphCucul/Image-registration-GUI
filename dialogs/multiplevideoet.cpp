@@ -266,7 +266,17 @@ void MultipleVideoET::on_analyzeVideosPB_clicked()
         QObject::connect(First[1],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         QObject::connect(First[1],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
         QObject::connect(this,SIGNAL(dataObtained_first()),First[1],SLOT(onDataObtained()));
-        QObject::connect(First[1],SIGNAL(readyForFinish()),First[1],SLOT(deleteLater()));
+        QObject::connect(First[1],&qThreadFirstPart::readyForFinish,[=](){
+            if (!First.isEmpty()) {
+                if (First[1]->isRunning()){
+                    First[1]->terminate();
+                    First[1]->wait(200);
+                    First[1]->deleteLater();
+                }
+                else
+                    First[1]->deleteLater();
+            }
+        });
         First[1]->start();
 
         initMaps();
@@ -389,7 +399,15 @@ void MultipleVideoET::onDone(int thread){
         QObject::connect(Second[2],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         QObject::connect(Second[2],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
         QObject::connect(this,SIGNAL(dataObtained_second()),Second[2],SLOT(onDataObtained()));
-        QObject::connect(Second[2],SIGNAL(readyForFinish()),Second[2],SLOT(deleteLater()));
+        QObject::connect(Second[2],&qThreadSecondPart::readyForFinish,[=](){
+            if (Second[2]->isRunning()){
+                Second[2]->terminate();
+                Second[2]->wait(200);
+                Second[2]->deleteLater();
+            }
+            else
+                Second[2]->deleteLater();
+        });
 
         Second[2]->start();
         qDebug()<<"Started";
@@ -414,7 +432,15 @@ void MultipleVideoET::onDone(int thread){
         QObject::connect(Third[3],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         QObject::connect(Third[3],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
         QObject::connect(this,SIGNAL(dataObtained_third()),Third[3],SLOT(onDataObtained()));
-        QObject::connect(Third[3],SIGNAL(readyForFinish()),Third[3],SLOT(deleteLater()));
+        QObject::connect(Third[3],&qThreadThirdPart::readyForFinish,[=](){
+            if (Third[3]->isRunning()){
+                Third[3]->terminate();
+                Third[3]->wait(200);
+                Third[3]->deleteLater();
+            }
+            else
+                Third[3]->deleteLater();
+        });
 
         Third[3]->start();
         qDebug()<<"Started";
@@ -441,7 +467,15 @@ void MultipleVideoET::onDone(int thread){
         QObject::connect(Fourth[4],SIGNAL(typeOfMethod(int)),this,SLOT(movedToMethod(int)));
         QObject::connect(Fourth[4],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         QObject::connect(this,SIGNAL(dataObtained_fourth()),Fourth[4],SLOT(onDataObtained()));
-        QObject::connect(Fourth[4],SIGNAL(readyForFinish()),Fourth[4],SLOT(deleteLater()));
+        QObject::connect(Fourth[4],&qThreadFourthPart::readyForFinish,[=](){
+            if (Fourth[4]->isRunning()){
+                Fourth[4]->terminate();
+                Fourth[4]->wait(200);
+                Fourth[4]->deleteLater();
+            }
+            else
+                Fourth[4]->deleteLater();
+        });
 
         Fourth[4]->start();
         qDebug()<<"Started";
@@ -472,7 +506,15 @@ void MultipleVideoET::onDone(int thread){
         QObject::connect(Fifth[5],SIGNAL(actualVideo(int)),this,SLOT(newVideoProcessed(int)));
         QObject::connect(Fifth[5],SIGNAL(unexpectedTermination(int,QString)),this,SLOT(onUnexpectedTermination(int,QString)));
         QObject::connect(this,SIGNAL(dataObtained_fifth()),Fifth[5],SLOT(onDataObtained()));
-        QObject::connect(Fifth[5],SIGNAL(readyForFinish()),Fifth[5],SLOT(deleteLater()));
+        QObject::connect(Fifth[5],&qThreadFifthPart::readyForFinish,[=](){
+            if (Fifth[5]->isRunning()){
+                Fifth[5]->terminate();
+                Fifth[5]->wait(200);
+                Fifth[5]->deleteLater();
+            }
+            else
+                Fifth[5]->deleteLater();
+        });
 
         Fifth[5]->start();
         qDebug()<<"Started";

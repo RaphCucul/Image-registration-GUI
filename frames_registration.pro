@@ -174,6 +174,7 @@ QMAKE_RESOURCE_FLAGS += -no-compress
 
 LIBS += C:\Windows\System32\pdh.dll
 LIBS += D:\Programy\OpenCV\opencv\release\install\x86\mingw\bin\libopencv_world320.dll
+LIBS += D:\Programy\OpenCV\opencv\release\install\x86\mingw\bin\opencv_ffmpeg320.dll
 INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\include
 INCLUDEPATH += D:\Programy\OpenCV\opencv\release\install\x86\mingw
 
